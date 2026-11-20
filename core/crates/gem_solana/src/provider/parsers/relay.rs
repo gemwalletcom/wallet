@@ -115,7 +115,6 @@ fn spent_balance_change(transaction: &BlockTransaction, owner: &str) -> Option<T
 
 #[cfg(test)]
 mod tests {
-    use chrono::DateTime;
     use num_bigint::BigUint;
     use primitives::{AssetId, Chain, JsonRpcResult, TransactionState, TransactionType};
 
@@ -126,7 +125,7 @@ mod tests {
 
     fn parse_transaction(payload: &str) -> Transaction {
         let result: JsonRpcResult<SingleTransaction> = serde_json::from_str(payload).unwrap();
-        let created_at = DateTime::from_timestamp(result.result.block_time, 0).unwrap();
+        let created_at = result.result.block_time;
         let transaction = BlockTransaction {
             meta: result.result.meta,
             transaction: result.result.transaction,

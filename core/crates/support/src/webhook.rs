@@ -1,9 +1,8 @@
-use primitives::hex;
+use primitives::{DateTime, hex};
 use std::collections::HashMap;
 use std::error::Error;
 use std::fmt;
 
-use chrono::Utc;
 use hmac::{Hmac, KeyInit, Mac};
 use sha2::Sha256;
 
@@ -37,7 +36,7 @@ impl ChatwootWebhookVerifier {
     }
 
     pub fn verify(&self, headers: &HashMap<String, String>, data: &str) -> Result<(), ChatwootWebhookError> {
-        self.verify_at(headers, data, Utc::now().timestamp())
+        self.verify_at(headers, data, DateTime::now().timestamp())
     }
 
     fn verify_at(&self, headers: &HashMap<String, String>, data: &str, now: i64) -> Result<(), ChatwootWebhookError> {

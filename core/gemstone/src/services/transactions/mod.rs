@@ -8,8 +8,7 @@ use crate::services::error::GemServiceError;
 use crate::services::transaction_state::GemTransactionStateStore;
 use std::sync::Arc;
 
-use chrono::Utc;
-use primitives::{AssetId, Chain, Transaction, TransactionId, Wallet, WalletId};
+use primitives::{AssetId, Chain, DateTime, Transaction, TransactionId, Wallet, WalletId};
 
 pub use details::GemTransactionDetailsService;
 pub use model::{
@@ -96,7 +95,7 @@ impl GemTransactionsService {
 
     pub async fn sync_wallet(&self, wallet_id: WalletId, asset_id: Option<AssetId>) -> Result<(), GemServiceError> {
         let from_timestamp = self.wallet_preferences.get_transactions_timestamp(wallet_id.clone(), asset_id.clone());
-        let timestamp = Utc::now().timestamp() as u64;
+        let timestamp = DateTime::now().timestamp() as u64;
         let response = self.api.client.get_transactions(wallet_id.id(), asset_id.as_ref().map(ToString::to_string), from_timestamp).await.map_err(GemApiError::from)?;
 
         self.save_api_transactions(wallet_id.clone(), response.transactions).await?;

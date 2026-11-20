@@ -1,6 +1,4 @@
-use chrono::DateTime;
-
-use crate::{ApplicationMetadata, Chain, Wallet, WalletConnectRequest, WalletConnectionSession, WalletConnectionSessionProposal, WalletConnectionState};
+use crate::{ApplicationMetadata, Chain, DateTime, Wallet, WalletConnectRequest, WalletConnectionSession, WalletConnectionSessionProposal, WalletConnectionState};
 
 impl WalletConnectRequest {
     pub fn mock(method: &str, params: &str, chain_id: Option<&str>) -> Self {
@@ -21,8 +19,8 @@ impl WalletConnectionSession {
             session_id: id.to_string(),
             state: WalletConnectionState::Active,
             chains: chains.to_vec(),
-            created_at: DateTime::from_timestamp(1_700_000_000, 0).unwrap(),
-            expire_at: DateTime::from_timestamp(1_700_604_800, 0).unwrap(),
+            created_at: DateTime::from_timestamp(1_700_000_000),
+            expire_at: DateTime::from_timestamp(1_700_604_800),
             metadata: ApplicationMetadata::mock(),
         }
     }

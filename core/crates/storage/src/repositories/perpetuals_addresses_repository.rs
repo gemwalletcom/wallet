@@ -1,9 +1,10 @@
-use chrono::Utc;
 use diesel::{prelude::*, upsert::excluded};
+use primitives::DateTime;
 use primitives::perpetual::PerpetualAddress;
 
 use crate::models::NewPerpetualAddressRow;
 use crate::schema::perpetuals_addresses;
+use crate::sql_types::DateTimeRow;
 use crate::{DatabaseClient, DatabaseError, WalletsRepository};
 
 pub trait PerpetualsAddressesRepository {
@@ -31,7 +32,7 @@ impl PerpetualsAddressesRepository for DatabaseClient {
                 perpetuals_addresses::referred_at.eq(excluded(perpetuals_addresses::referred_at)),
                 perpetuals_addresses::cumulative_volume_usd.eq(excluded(perpetuals_addresses::cumulative_volume_usd)),
                 perpetuals_addresses::cumulative_referral_earned_usd.eq(excluded(perpetuals_addresses::cumulative_referral_earned_usd)),
-                perpetuals_addresses::updated_at.eq(Utc::now().naive_utc()),
+                perpetuals_addresses::updated_at.eq(DateTimeRow::from(DateTime::now())),
             ))
             .execute(&mut self.connection)?)
     }
@@ -39,8 +40,7 @@ impl PerpetualsAddressesRepository for DatabaseClient {
 
 #[cfg(all(test, feature = "database_integration_tests"))]
 mod database_integration_tests {
-    use chrono::{DateTime, NaiveDateTime};
-    use primitives::PerpetualProvider;
+    use primitives::{DateTime, PerpetualProvider};
 
     use super::*;
     use crate::Database;
@@ -52,7 +52,7 @@ mod database_integration_tests {
         let address = PerpetualAddress {
             provider: PerpetualProvider::Hypercore,
             address: "0x0000000000000000000000000000000000000001".to_string(),
-            referred_at: DateTime::from_timestamp(1, 0).unwrap(),
+            referred_at: DateTime::from_timestamp(1),
             cumulative_volume_usd: 100.0,
             cumulative_referral_earned_usd: 1.0,
         };
@@ -61,7 +61,10 @@ mod database_integration_tests {
             .transaction(move |client| {
                 assert_eq!(client.set_perpetual_addresses(vec![initial])?, 1);
                 diesel::update(perpetuals_addresses::table)
-                    .set((perpetuals_addresses::created_at.eq(DateTime::UNIX_EPOCH.naive_utc()), perpetuals_addresses::updated_at.eq(DateTime::UNIX_EPOCH.naive_utc())))
+                    .set((
+                        perpetuals_addresses::created_at.eq(DateTimeRow::from(DateTime::UNIX_EPOCH)),
+                        perpetuals_addresses::updated_at.eq(DateTimeRow::from(DateTime::UNIX_EPOCH)),
+                    ))
                     .execute(&mut client.connection)?;
                 Ok::<_, DatabaseError>(())
             })
@@ -86,8 +89,8 @@ mod database_integration_tests {
                         perpetuals_addresses::cumulative_referral_earned_usd,
                         perpetuals_addresses::created_at,
                     ))
-                    .load::<(String, f64, f64, NaiveDateTime)>(&mut client.connection)?;
-                assert_eq!(rows, vec![("0x0000000000000000000000000000000000000001".to_string(), 200.0, 2.0, DateTime::UNIX_EPOCH.naive_utc())]);
+                    .load::<(String, f64, f64, DateTimeRow)>(&mut client.connection)?;
+                assert_eq!(rows, vec![("0x0000000000000000000000000000000000000001".to_string(), 200.0, 2.0, DateTimeRow(DateTime::UNIX_EPOCH))]);
                 let refreshed = perpetuals_addresses::table
                     .select(perpetuals_addresses::updated_at.gt(perpetuals_addresses::created_at))
                     .get_result::<bool>(&mut client.connection)?;

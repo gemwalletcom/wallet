@@ -7,12 +7,11 @@ edition = { workspace = true }
 num-bigint = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
-chrono = { workspace = true }
 r2d2 = { workspace = true }
 strum = { workspace = true }
 tokio = { workspace = true }
 
-diesel = { workspace = true, features = ["postgres", "chrono", "serde_json", "r2d2"] }
+diesel = { workspace = true, features = ["postgres", "serde_json", "r2d2"] }
 diesel_migrations = { workspace = true }
 
 config_keys = { path = "../config_keys" }

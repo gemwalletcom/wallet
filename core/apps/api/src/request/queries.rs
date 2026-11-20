@@ -1,6 +1,7 @@
+use primitives::DateTime;
 use serde::Deserialize;
 
-use super::params::{ChainParam, ChartPeriodParam, CurrencyParam, lenient};
+use super::params::{ChainParam, ChartPeriodParam, CurrencyParam, lenient, timestamp};
 
 #[derive(Deserialize)]
 pub struct CurrencyQuery {
@@ -21,6 +22,6 @@ pub struct ChartPeriodQuery {
 
 #[derive(Deserialize)]
 pub struct FromTimestampQuery {
-    #[serde(default, deserialize_with = "lenient")]
-    pub from_timestamp: Option<u64>,
+    #[serde(default, deserialize_with = "timestamp")]
+    pub from_timestamp: Option<DateTime>,
 }

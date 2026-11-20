@@ -1,21 +1,21 @@
 use std::sync::Arc;
 
 use axum::extract::State;
-use primitives::{Transaction, TransactionsResponse};
+use primitives::{DateTime, Transaction, TransactionsResponse};
 use serde::Deserialize;
 use services::transactions::TransactionsClient;
 
 use crate::auth::device::{AuthenticatedDevice, AuthenticatedDeviceWallet};
 use crate::error::ApiError;
-use crate::request::{AssetIdParam, Path, Query, QueryLimitParam, TransactionIdParam, lenient};
+use crate::request::{AssetIdParam, Path, Query, QueryLimitParam, TransactionIdParam, lenient, timestamp};
 use crate::response::ApiResponse;
 
 #[derive(Deserialize)]
 pub struct TransactionsQuery {
     #[serde(default, deserialize_with = "lenient")]
     asset_id: Option<AssetIdParam>,
-    #[serde(default, deserialize_with = "lenient")]
-    from_timestamp: Option<u64>,
+    #[serde(default, deserialize_with = "timestamp")]
+    from_timestamp: Option<DateTime>,
     #[serde(default)]
     limit: QueryLimitParam,
     #[serde(default, deserialize_with = "lenient")]

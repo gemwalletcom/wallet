@@ -1,6 +1,7 @@
 use num_bigint::BigUint;
 #[cfg(feature = "rpc")]
 use number_formatter::BigNumberFormatter;
+use primitives::DateTime;
 #[cfg(feature = "rpc")]
 use serde::de;
 use serde::{Deserialize, Serialize};
@@ -58,7 +59,7 @@ pub struct Payment {
     #[cfg_attr(feature = "rpc", serde(deserialize_with = "deserialize_option_stellar_amount"))]
     pub source_amount: Option<BigUint>,
 
-    pub created_at: String,
+    pub created_at: DateTime,
 
     pub source_account: Option<String>,
     pub funder: Option<String>,

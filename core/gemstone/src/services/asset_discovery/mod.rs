@@ -6,8 +6,7 @@ use crate::services::error::GemServiceError;
 use std::future::Future;
 use std::sync::Arc;
 
-use chrono::Utc;
-use primitives::WalletId;
+use primitives::{DateTime, WalletId};
 
 pub use crate::services::wallet_preferences::GemDiscoveryStep;
 
@@ -66,7 +65,7 @@ impl GemAssetDiscoveryService {
             return Ok(());
         };
         let from_timestamp = self.preferences.get_assets_timestamp(wallet_id.clone());
-        let timestamp = Utc::now().timestamp() as u64;
+        let timestamp = DateTime::now().timestamp() as u64;
         let asset_ids = self.api.client.get_assets_list(wallet_id.id(), from_timestamp).await.map_err(GemApiError::from)?;
         let asset_ids = rules::discoverable_asset_ids(asset_ids, &wallet.accounts);
         if !asset_ids.is_empty() {

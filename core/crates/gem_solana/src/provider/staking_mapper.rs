@@ -1,7 +1,7 @@
 use crate::models::{EpochInfo, TokenAccountInfo, VoteAccount};
-use chrono::{DateTime, Duration, Utc};
 use num_bigint::BigUint;
-use primitives::{AssetId, Chain, DelegationBase, DelegationState, DelegationValidator};
+use primitives::{AssetId, Chain, DateTime, DelegationBase, DelegationState, DelegationValidator};
+use std::time::Duration;
 
 pub fn calculate_network_apy(inflation_rate: f64, total_supply: u64, total_active_stake: u64) -> f64 {
     if total_active_stake == 0 {
@@ -24,7 +24,7 @@ pub fn map_staking_validators(vote_accounts: Vec<VoteAccount>, chain: Chain, net
         .collect()
 }
 
-pub fn map_staking_delegations(stake_accounts: Vec<TokenAccountInfo>, epoch: EpochInfo, asset_id: AssetId, now: DateTime<Utc>) -> Vec<DelegationBase> {
+pub fn map_staking_delegations(stake_accounts: Vec<TokenAccountInfo>, epoch: EpochInfo, asset_id: AssetId, now: DateTime) -> Vec<DelegationBase> {
     stake_accounts
         .into_iter()
         .filter_map(|account| {
@@ -56,8 +56,7 @@ pub fn map_staking_delegations(stake_accounts: Vec<TokenAccountInfo>, epoch: Epo
                 let completion_date = match state {
                     DelegationState::Activating | DelegationState::Deactivating => {
                         let remaining_slots = epoch.slots_in_epoch.saturating_sub(epoch.slot_index);
-                        let completion_seconds = remaining_slots as f64 * 0.420;
-                        Some(now + Duration::seconds(completion_seconds as i64))
+                        Some(now + Duration::from_millis(remaining_slots.saturating_mul(420)))
                     }
                     DelegationState::Active | DelegationState::Pending | DelegationState::Inactive | DelegationState::AwaitingWithdrawal => None,
                 };
@@ -112,7 +111,7 @@ mod tests {
 
     #[test]
     fn test_map_staking_delegations() {
-        let now = DateTime::from_timestamp(1_757_000_000, 0).unwrap();
+        let now = DateTime::from_timestamp(1_757_000_000);
 
         let result = map_staking_delegations(vec![TokenAccountInfo::mock_stake(100, u64::MAX)], EpochInfo::mock(0), AssetId::from_chain(Chain::Solana), now);
 
@@ -125,14 +124,14 @@ mod tests {
 
     #[test]
     fn test_map_staking_delegations_completion_date() {
-        let now = DateTime::from_timestamp(1_757_000_000, 0).unwrap();
+        let now = DateTime::from_timestamp(1_757_000_000);
         let deactivating = |slot_index: u64| map_staking_delegations(vec![TokenAccountInfo::mock_stake(100, 200)], EpochInfo::mock(slot_index), AssetId::from_chain(Chain::Solana), now)[0].clone();
 
         assert_eq!(deactivating(0).state, DelegationState::Deactivating);
 
-        assert_eq!(deactivating(0).completion_date, Some(now + Duration::seconds(181_440)));
-        assert_eq!(deactivating(216_000).completion_date, Some(now + Duration::seconds(90_720)));
-        assert_eq!(deactivating(431_000).completion_date, Some(now + Duration::seconds(420)));
+        assert_eq!(deactivating(0).completion_date, Some(now + Duration::from_secs(181_440)));
+        assert_eq!(deactivating(216_000).completion_date, Some(now + Duration::from_secs(90_720)));
+        assert_eq!(deactivating(431_000).completion_date, Some(now + Duration::from_secs(420)));
         assert_eq!(deactivating(432_000).completion_date, Some(now));
     }
 }

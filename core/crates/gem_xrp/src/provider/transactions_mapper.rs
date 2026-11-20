@@ -1,8 +1,7 @@
 use crate::models::rpc::{AccountLedger, AccountLedgerTransaction, Amount, Ledger, RawTransactionEntry, Transaction as XrpTransaction, TransactionBroadcast, TransactionMemo, TransactionMeta, memos_hash};
 use crate::{RESULT_SUCCESS, TRANSACTION_TYPE_BATCH, TRANSACTION_TYPE_PAYMENT, XRP_EPOCH_OFFSET_SECONDS};
-use chrono::DateTime;
 use num_bigint::{BigInt, BigUint};
-use primitives::{AssetId, SwapProvider, Transaction, TransactionState, TransactionSwapMetadata, TransactionSwapReferralFee, TransactionType, chain::Chain, swap::XRP_REFERRAL_ADDRESS};
+use primitives::{AssetId, DateTime, SwapProvider, Transaction, TransactionState, TransactionSwapMetadata, TransactionSwapReferralFee, TransactionType, chain::Chain, swap::XRP_REFERRAL_ADDRESS};
 use std::collections::HashSet;
 use std::error::Error;
 
@@ -167,7 +166,7 @@ fn map_batch_swap(chain: Chain, batch: &LedgerEntry, entries: &[LedgerEntry]) ->
         from_value,
         None,
         serde_json::to_value(metadata).ok(),
-        DateTime::from_timestamp(batch.timestamp, 0)?,
+        DateTime::from_timestamp(batch.timestamp),
     ))
 }
 
@@ -201,7 +200,7 @@ fn map_transaction_common(chain: Chain, entry: &LedgerEntry) -> Option<Transacti
             amount.value()?,
             memo,
             None,
-            DateTime::from_timestamp(entry.timestamp, 0)?,
+            DateTime::from_timestamp(entry.timestamp),
         )
         .with_data(entry.memos.and_then(memos_hash)),
     )
@@ -242,7 +241,7 @@ mod tests {
                 BigUint::from(from_value),
                 None,
                 serde_json::to_value(metadata).ok(),
-                DateTime::from_timestamp(XRP_EPOCH_OFFSET_SECONDS + 846_227_231, 0).unwrap(),
+                DateTime::from_timestamp(XRP_EPOCH_OFFSET_SECONDS + 846_227_231),
             )
         };
         let rows = |transactions: &[Transaction]| transactions.iter().map(|transaction| (transaction.hash().to_string(), transaction.transaction_type.clone())).collect::<Vec<_>>();
@@ -321,7 +320,7 @@ mod tests {
             BigUint::from(1u64),
             None,
             None,
-            DateTime::from_timestamp(1749150631, 0).unwrap(),
+            DateTime::from_timestamp(1749150631),
         );
 
         assert_eq!(transactions.first().unwrap(), &expected_tx);

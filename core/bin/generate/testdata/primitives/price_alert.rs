@@ -8,7 +8,7 @@ pub struct PriceAlert {
     pub price: Option<f64>,
     #[serde(rename = "type")]
     pub kind: String,
-    pub last_notified_at: Option<DateTime<Utc>>,
+    pub last_notified_at: Option<DateTime>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Model)]
@@ -24,7 +24,7 @@ pub struct PriceAlertNotification {
     pub votes: u32,
     pub value: BigInt,
     pub read: bool,
-    pub created_at: DateTime<Utc>,
+    pub created_at: DateTime,
     pub accounts: Vec<Account>,
     pub note: Option<NFTImages>,
     pub path: String,

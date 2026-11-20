@@ -4,7 +4,6 @@ use std::sync::Arc;
 
 use ::simulation::evm::SimulationClient;
 use chain_traits::ChainSimulation;
-use chrono::{DateTime, Utc};
 use gem_evm::jsonrpc::TransactionObject;
 use gem_evm::rpc::{EthereumClient, EthereumProvider};
 use gem_jsonrpc::grpc::AlienGrpcTransport;
@@ -14,7 +13,7 @@ use gem_ton::rpc::client::TonClient;
 use gem_tron::rpc::{TronProvider, client::TronClient};
 use gem_wallet_connect::{EvmTransactionKind, SignDigestType, WalletConnectTransactionType};
 use primitives::{
-    AddressName, AssetBasic, BlockExplorerLink, Chain, ChainAddress, EVMChain, Resource, SimulationBalanceChange, SimulationInput, SimulationPayloadField, SimulationPayloadFieldKind, SimulationPayloadFieldType, SimulationResult,
+    AddressName, AssetBasic, BlockExplorerLink, Chain, ChainAddress, DateTime, EVMChain, Resource, SimulationBalanceChange, SimulationInput, SimulationPayloadField, SimulationPayloadFieldKind, SimulationPayloadFieldType, SimulationResult,
     SimulationSeverity, SimulationWarning, SimulationWarningType, TransactionType, ValueAccess, VerificationStatus, WCEthereumTransaction,
 };
 
@@ -348,11 +347,11 @@ fn address_value(copy: GemCopy, names: &[AddressName], explorer: BlockExplorerLi
     }
 }
 
-fn timestamp(value: &str) -> Option<DateTime<Utc>> {
+fn timestamp(value: &str) -> Option<DateTime> {
     if let Ok(seconds) = value.parse::<f64>() {
-        return DateTime::from_timestamp_millis((seconds * 1000.0) as i64);
+        return DateTime::checked_from_timestamp_millis((seconds * 1000.0) as i64);
     }
-    DateTime::parse_from_rfc3339(value).ok().map(|date| date.with_timezone(&Utc))
+    DateTime::parse_rfc3339(value)
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -622,7 +621,7 @@ mod tests {
 
         assert_ne!(copy.display, address, "the row shows the short address");
         let explorer = link(Chain::Ethereum, address.to_string());
-        let date = |unix_ms| DateTime::from_timestamp_millis(unix_ms).unwrap();
+        let date = DateTime::from_timestamp_millis;
         assert_eq!(
             rows,
             vec![

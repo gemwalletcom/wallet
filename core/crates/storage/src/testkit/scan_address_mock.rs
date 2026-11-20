@@ -1,7 +1,6 @@
 use crate::models::ScanAddressRow;
 use crate::sql_types::{AddressType, ChainRow};
-use chrono::DateTime;
-use primitives::{AddressType as PrimitiveAddressType, Chain};
+use primitives::{AddressType as PrimitiveAddressType, Chain, DateTime};
 
 impl ScanAddressRow {
     pub fn mock(id: i32, chain: Chain, address: &str, name: Option<&str>) -> Self {
@@ -14,8 +13,8 @@ impl ScanAddressRow {
             is_verified: false,
             is_fraudulent: false,
             is_memo_required: false,
-            updated_at: DateTime::UNIX_EPOCH.naive_utc(),
-            created_at: DateTime::UNIX_EPOCH.naive_utc(),
+            updated_at: DateTime::UNIX_EPOCH.into(),
+            created_at: DateTime::UNIX_EPOCH.into(),
         }
     }
 }

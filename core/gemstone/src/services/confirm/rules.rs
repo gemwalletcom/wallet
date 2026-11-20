@@ -843,7 +843,7 @@ mod tests {
     use num_bigint::BigUint;
     use primitives::FeeOption;
     use primitives::{
-        Account, ApplicationMetadata, Asset, PerpetualConfirmData, PerpetualDirection, PerpetualType, SimulationWarning, StakeType, SwapProvider, TransactionType, TransferAmount, TransferDataExtra, TransferDataOutputAction,
+        Account, ApplicationMetadata, Asset, DateTime, PerpetualConfirmData, PerpetualDirection, PerpetualType, SimulationWarning, StakeType, SwapProvider, TransactionType, TransferAmount, TransferDataExtra, TransferDataOutputAction,
         known_assets::HYPERCORE_PERPETUAL_USDC,
         swap::{ApprovalData, SwapData},
     };
@@ -1488,7 +1488,7 @@ mod tests {
             requirement: Some(requirement.clone()),
         };
 
-        let prices = vec![AssetPrice::new(asset.id.clone(), 2_000.0, 0.0, chrono::Utc::now())];
+        let prices = vec![AssetPrice::new(asset.id.clone(), 2_000.0, 0.0, DateTime::now())];
         let token = AssetId::from_token(Chain::Ethereum, "0xtoken");
         let info = error_info(&error, &prices, Currency::USD, &token, &asset.id).unwrap();
 
@@ -1540,7 +1540,7 @@ mod tests {
     fn test_the_inline_error_reads_the_sheet_description_without_its_fiat() {
         let asset = Asset::from_chain(Chain::Ethereum);
         let requirement = GemBalanceRequirement::new(GemBigInt::from(3_000_000_000_000_000_000u64), GemBigInt::from(1_000_000_000_000_000_000u64));
-        let prices = vec![AssetPrice::new(asset.id.clone(), 2_000.0, 0.0, chrono::Utc::now())];
+        let prices = vec![AssetPrice::new(asset.id.clone(), 2_000.0, 0.0, DateTime::now())];
         let without_fiat = |description: GemInfoDescription| match description {
             GemInfoDescription::InsufficientNetworkFeeBalance { required, network, available, shortfall } => GemInfoDescription::InsufficientNetworkFeeBalance {
                 required: required.map(|required| GemInfoAmount { fiat: None, ..required }),

@@ -1,6 +1,6 @@
-use chrono::{Duration, Utc};
 use num_bigint::BigUint;
-use primitives::{AssetId, Chain, Transaction, TransactionDirection, TransactionId, TransactionState, TransactionSwapMetadata, TransactionType};
+use primitives::{AssetId, Chain, DateTime, Transaction, TransactionDirection, TransactionId, TransactionState, TransactionSwapMetadata, TransactionType};
+use std::time::Duration;
 
 const SOLANA_ADDRESS: &str = "7nVDzZUjrBA3gHs3gNcHidhmR96CH7KpKsU8pyBZGHUr";
 const ETHEREUM_ADDRESS: &str = "0xf1158986419F6058231b0Dbd7A78Ff0674ebBc50";
@@ -15,11 +15,11 @@ struct SampleTransaction {
     transaction_type: TransactionType,
     value: u128,
     swap: Option<(Chain, u128, Chain, u128)>,
-    seconds_ago: i64,
+    seconds_ago: u64,
 }
 
 pub fn sample_transactions() -> Vec<Transaction> {
-    let now = Utc::now();
+    let now = DateTime::now();
     samples()
         .into_iter()
         .enumerate()
@@ -54,7 +54,7 @@ pub fn sample_transactions() -> Vec<Transaction> {
                 utxo_outputs: Some(vec![]),
                 metadata,
                 data: None,
-                created_at: now - Duration::seconds(sample.seconds_ago),
+                created_at: now - Duration::from_secs(sample.seconds_ago),
             }
         })
         .collect()

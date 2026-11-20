@@ -1,14 +1,14 @@
-use chrono::NaiveDateTime;
 use diesel::prelude::*;
 use diesel::upsert::excluded;
-use primitives::AssetId;
+use primitives::{AssetId, DateTime};
 
 use crate::models::AssetUsageRankRow;
+use crate::sql_types::DateTimeRow;
 use crate::{DatabaseClient, DatabaseError};
 
 pub trait AssetsUsageRanksRepository {
     fn set_usage_ranks(&mut self, values: &[(AssetId, i32)]) -> Result<usize, DatabaseError>;
-    fn delete_usage_ranks_before(&mut self, before: NaiveDateTime) -> Result<usize, DatabaseError>;
+    fn delete_usage_ranks_before(&mut self, before: DateTime) -> Result<usize, DatabaseError>;
     fn get_all_usage_ranks(&mut self) -> Result<Vec<(AssetId, i32)>, DatabaseError>;
 }
 
@@ -33,9 +33,9 @@ impl AssetsUsageRanksRepository for DatabaseClient {
             .execute(&mut self.connection)?)
     }
 
-    fn delete_usage_ranks_before(&mut self, before: NaiveDateTime) -> Result<usize, DatabaseError> {
+    fn delete_usage_ranks_before(&mut self, before: DateTime) -> Result<usize, DatabaseError> {
         use crate::schema::assets_usage_ranks::dsl::*;
-        Ok(diesel::delete(assets_usage_ranks.filter(updated_at.lt(before))).execute(&mut self.connection)?)
+        Ok(diesel::delete(assets_usage_ranks.filter(updated_at.lt(DateTimeRow::from(before)))).execute(&mut self.connection)?)
     }
 
     fn get_all_usage_ranks(&mut self) -> Result<Vec<(AssetId, i32)>, DatabaseError> {

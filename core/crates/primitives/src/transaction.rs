@@ -3,7 +3,7 @@ use crate::{
     transaction_metadata_types::TransactionAssetTransfersMetadata, transaction_state::TransactionState, transaction_type::TransactionType, transaction_utxo::TransactionUtxoInput,
 };
 
-use chrono::{DateTime, Utc};
+use crate::DateTime;
 use model_derive::Model;
 use num_bigint::BigUint;
 use serde::{Deserialize, Serialize};
@@ -60,7 +60,7 @@ pub struct Transaction {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub data: Option<String>,
     #[serde(rename = "createdAt")]
-    pub created_at: DateTime<Utc>,
+    pub created_at: DateTime,
 }
 
 impl Transaction {
@@ -81,7 +81,7 @@ impl Transaction {
         value: BigUint,
         memo: Option<String>,
         metadata: Option<serde_json::Value>,
-        created_at: DateTime<Utc>,
+        created_at: DateTime,
     ) -> Self {
         Self {
             id: TransactionId::new(asset_id.chain, hash),
@@ -118,7 +118,7 @@ impl Transaction {
         utxo_inputs: Option<Vec<TransactionUtxoInput>>,
         utxo_outputs: Option<Vec<TransactionUtxoInput>>,
         metadata: Option<serde_json::Value>,
-        created_at: DateTime<Utc>,
+        created_at: DateTime,
     ) -> Self {
         Self {
             id: TransactionId::new(asset_id.chain, hash),
@@ -628,7 +628,7 @@ mod tests {
             BigUint::from(1_000_000_000_000_000_000u64),
             None,
             None,
-            Utc::now(),
+            DateTime::now(),
         );
         let json = serde_json::to_value(&transaction).unwrap();
 

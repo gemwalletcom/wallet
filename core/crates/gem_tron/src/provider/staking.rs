@@ -1,10 +1,9 @@
 use async_trait::async_trait;
 use chain_traits::ChainStaking;
-use chrono::Utc;
 use std::error::Error;
 
 use gem_client::Client;
-use primitives::{DelegationBase, DelegationValidator};
+use primitives::{DateTime, DelegationBase, DelegationValidator};
 
 use super::staking_mapper::{map_staking_delegations, map_staking_validators};
 use crate::rpc::TronProvider;
@@ -42,7 +41,7 @@ impl<C: Client> ChainStaking for TronProvider<C> {
     async fn get_staking_delegations(&self, address: String) -> Result<Vec<DelegationBase>, Box<dyn Error + Sync + Send>> {
         let (account, reward, validators) = futures::try_join!(self.get_account(&address), self.get_reward(&address), self.get_staking_validators(None))?;
 
-        Ok(map_staking_delegations(account, reward, &validators, Utc::now()))
+        Ok(map_staking_delegations(account, reward, &validators, DateTime::now()))
     }
 }
 

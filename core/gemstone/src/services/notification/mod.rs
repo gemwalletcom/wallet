@@ -7,8 +7,7 @@ pub(crate) mod testkit;
 
 use crate::models::state::GemLoadState;
 use crate::services::error::GemServiceError;
-use chrono::DateTime;
-use primitives::unix_seconds;
+use primitives::{DateTime, unix_seconds};
 use primitives::{InAppNotification, WalletId};
 use std::sync::Arc;
 
@@ -47,7 +46,7 @@ impl GemNotificationService {
     async fn open(&self) -> Result<(), GemServiceError> {
         let wallet_id = self.session.current_wallet_id()?;
         let last_visit = self.preferences.get_notifications_timestamp(wallet_id.clone());
-        self.store.mark_notifications_read(wallet_id.clone(), DateTime::from_timestamp(last_visit as i64, 0).unwrap_or_default()).await?;
+        self.store.mark_notifications_read(wallet_id.clone(), DateTime::from_timestamp(last_visit as i64)).await?;
         self.sync(wallet_id.clone(), last_visit).await?;
         if self.store.has_unread_notifications(wallet_id.clone()).await? {
             self.api.client.mark_notifications_read(wallet_id.id()).await.map_err(GemApiError::from)?;

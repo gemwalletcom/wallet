@@ -7,11 +7,11 @@ edition = { workspace = true }
 num-traits = { workspace = true }
 
 primitives = { path = "../primitives" }
+date_time = { path = "../date_time", features = ["serde"] }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 num-bigint = { workspace = true }
 serde_serializers = { path = "../serde_serializers", features = ["bigint"] }
-chrono = { workspace = true, features = ["serde"], optional = true }
 
 # RPC specific dependencies
 gem_jsonrpc = { path = "../gem_jsonrpc", features = ["client"], optional = true }
@@ -32,7 +32,7 @@ settings = { path = "../settings" }
 
 [features]
 default = []
-rpc = ["dep:gem_jsonrpc", "dep:gem_client", "dep:chain_traits", "dep:async-trait", "dep:chrono", "dep:futures", "dep:gem_encoding"]
+rpc = ["dep:gem_jsonrpc", "dep:gem_client", "dep:chain_traits", "dep:async-trait", "dep:futures", "dep:gem_encoding"]
 signer = ["dep:gem_encoding", "dep:gem_hash", "dep:signer"]
 reqwest = ["gem_client/reqwest", "gem_jsonrpc/reqwest"]
 chain_integration_tests = ["rpc", "reqwest"]

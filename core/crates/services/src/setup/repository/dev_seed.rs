@@ -1,15 +1,15 @@
-use chrono::{NaiveDateTime, Utc};
 use num_bigint::BigUint;
 use primitives::currency::Currency;
 use primitives::{
-    Asset, AssetAssociation, AssetAssociationType, AssetBasic, AssetId, AssetType, Chain, Device, DeviceLocale, FiatAsset, FiatProviderCountry, FiatProviderName, FiatQuoteType, FiatTransaction, FiatTransactionStatus, NotificationType,
-    Platform, PlatformStore, PriceAlert, PriceAlertDirection, PriceData, PriceId, PriceProvider, WalletId, WalletSource, WalletType,
+    Asset, AssetAssociation, AssetAssociationType, AssetBasic, AssetId, AssetType, Chain, DateTime, Device, DeviceLocale, DurationExt, FiatAsset, FiatProviderCountry, FiatProviderName, FiatQuoteType, FiatTransaction, FiatTransactionStatus,
+    NotificationType, Platform, PlatformStore, PriceAlert, PriceAlertDirection, PriceData, PriceId, PriceProvider, WalletId, WalletSource, WalletType,
     asset_constants::{
         ARBITRUM_USDC_ASSET_ID, ARBITRUM_USDT_ASSET_ID, BASE_USDC_ASSET_ID, ETHEREUM_USDC_ASSET_ID, ETHEREUM_USDT_ASSET_ID, POLYGON_USDC_ASSET_ID, SMARTCHAIN_USDT_ASSET_ID, SOLANA_USDC_ASSET_ID, SOLANA_USDT_ASSET_ID, TON_DUST_ASSET_ID,
         TON_DUST_TOKEN_ID, TON_STON_ASSET_ID, TON_STON_TOKEN_ID, TON_USDT_ASSET_ID, TON_USDT_TOKEN_ID, TRON_USDT_ASSET_ID,
     },
     known_assets::{ARBITRUM_USDC, ARBITRUM_USDT, BASE_USDC, ETHEREUM_USDC, ETHEREUM_USDT, POLYGON_USDC, SMARTCHAIN_USDT, SOLANA_USDC, SOLANA_USDT, TRON_USDT},
 };
+use std::time::Duration;
 use storage::{ChartPoint, NewNotification, NewWallet, PriceAsset};
 
 const WALLET_ADDRESS: &str = "0xBA4D1d35bCe0e8F28E5a3403e7a0b996c5d50AC4";
@@ -79,7 +79,7 @@ pub(super) fn subscriptions(wallet_id: i32) -> Vec<(i32, Chain, String)> {
 }
 
 pub(super) fn fiat_transactions() -> Vec<(FiatTransaction, Chain)> {
-    let now = Utc::now();
+    let now = DateTime::now();
     let pending = FiatTransaction {
         id: "setup-dev-quote-moonpay-pending".to_string(),
         asset_id: AssetId::from_chain(Chain::Ethereum),
@@ -240,7 +240,7 @@ pub(super) fn fiat_countries() -> Vec<FiatProviderCountry> {
         .collect()
 }
 
-pub(super) fn price_series(now: NaiveDateTime) -> DevPriceSeries {
+pub(super) fn price_series(now: DateTime) -> DevPriceSeries {
     let ton_native_price_id = Asset::from_chain(Chain::Ton).symbol.to_lowercase();
     let coins = [
         (PriceProvider::primary(), Chain::Bitcoin.as_ref().to_string(), AssetId::from_chain(Chain::Bitcoin), 60000.0),
@@ -270,7 +270,7 @@ pub(super) fn price_series(now: NaiveDateTime) -> DevPriceSeries {
             circulating_supply: None,
             total_supply: None,
             max_supply: None,
-            last_updated_at: Utc::now(),
+            last_updated_at: DateTime::now(),
         })
         .collect();
 
@@ -294,8 +294,8 @@ pub(super) fn price_series(now: NaiveDateTime) -> DevPriceSeries {
                 price,
                 created_at,
             };
-            let hourly = (0i64..720).map(|h| point(gen_price(h as f64, 0.1), now - chrono::Duration::hours(h))).collect();
-            let daily = (30i64..1825).map(|d| point(gen_price(d as f64, 0.15), now - chrono::Duration::days(d))).collect();
+            let hourly = (0u64..720).map(|h| point(gen_price(h as f64, 0.1), now - Duration::from_hours(h))).collect();
+            let daily = (30u64..1825).map(|d| point(gen_price(d as f64, 0.15), now - Duration::days(d))).collect();
             (hourly, daily)
         })
         .collect();

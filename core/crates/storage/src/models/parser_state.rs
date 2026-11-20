@@ -1,8 +1,7 @@
-use chrono::NaiveDateTime;
 use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
 
-use crate::sql_types::ChainRow;
+use crate::sql_types::{ChainRow, DateTimeRow};
 
 #[derive(Debug, Queryable, Selectable, Serialize, Deserialize, Insertable, AsChangeset, Clone)]
 #[diesel(table_name = crate::schema::parser_state)]
@@ -16,7 +15,7 @@ pub(crate) struct ParserStateRow {
     pub timeout_latest_block: i32,
     pub parallel_blocks: i32,
     pub is_enabled: bool,
-    pub updated_at: NaiveDateTime,
+    pub updated_at: DateTimeRow,
     pub queue_behind_blocks: Option<i32>,
     pub block_time: i32,
 }

@@ -12,7 +12,6 @@ gem_solana = { path = "../gem_solana" }
 gem_ton = { path = "../gem_ton", features = ["signer"] }
 
 gem_encoding = { path = "../gem_encoding", features = ["base58"] }
-chrono = { workspace = true }
 serde_json = { workspace = true }
 url = { workspace = true }
 

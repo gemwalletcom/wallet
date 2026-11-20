@@ -1,7 +1,6 @@
-use chrono::NaiveDateTime;
 use diesel::prelude::*;
 
-use crate::sql_types::{AssetId, PerpetualDirectionRow, PerpetualProviderRow, TransactionType};
+use crate::sql_types::{AssetId, DateTimeRow, PerpetualDirectionRow, PerpetualProviderRow, TransactionType};
 
 #[derive(Debug, Insertable, AsChangeset, Clone)]
 #[diesel(table_name = crate::schema::transactions_perpetuals)]
@@ -15,5 +14,5 @@ pub(crate) struct NewTransactionPerpetualRow {
     pub size_usd: f64,
     pub pnl_usd: f64,
     pub referral_fee_amount_usd: f64,
-    pub created_at: NaiveDateTime,
+    pub created_at: DateTimeRow,
 }

@@ -154,7 +154,7 @@ mod tests {
 
         assert_eq!(transactions.len(), 1);
         assert_eq!(transactions[0].transaction.hash, "tx_hash");
-        assert_eq!(transactions[0].included_at, "2023-01-01T00:00:00Z");
+        assert_eq!(transactions[0].included_at.to_string(), "2023-01-01T00:00:00Z");
     }
 
     #[tokio::test]
@@ -170,6 +170,6 @@ mod tests {
         let transaction = CardanoClient::new(client).get_transaction("tx_hash").await.unwrap().unwrap();
 
         assert_eq!(transaction.transaction.hash, "tx_hash");
-        assert_eq!(transaction.included_at, "2025-12-06T17:35:46Z");
+        assert_eq!(transaction.included_at.to_string(), "2025-12-06T17:35:46Z");
     }
 }

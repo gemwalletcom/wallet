@@ -1,6 +1,5 @@
 use crate::services::localization::GemLocalizedText;
-use chrono::{DateTime, Utc};
-use primitives::{NFTAssetData, NFTData};
+use primitives::{DateTime, NFTAssetData, NFTData};
 
 use crate::config::social::GemSocialLink;
 use crate::models::list::{GemListRow, GemListSectionTitle};
@@ -93,5 +92,5 @@ pub struct GemCollectibleAttribute {
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemCollectibleAttributeValue {
     Text { value: String },
-    Date { date: DateTime<Utc> },
+    Date { date: DateTime },
 }

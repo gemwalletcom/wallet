@@ -1,4 +1,4 @@
-use chrono::{DateTime, Utc};
+use primitives::DateTime;
 
 use crate::CoinMarket;
 
@@ -20,10 +20,10 @@ impl CoinMarket {
             total_supply: Some(20000.0),
             max_supply: Some(30000.0),
             ath: Some(1.0),
-            ath_date: Some(DateTime::<Utc>::UNIX_EPOCH),
+            ath_date: Some(DateTime::UNIX_EPOCH),
             atl: Some(0.01),
-            atl_date: Some(DateTime::<Utc>::UNIX_EPOCH),
-            last_updated: Some(DateTime::<Utc>::UNIX_EPOCH),
+            atl_date: Some(DateTime::UNIX_EPOCH),
+            last_updated: Some(DateTime::UNIX_EPOCH),
         }
     }
 }

@@ -297,7 +297,6 @@ pub use self::portfolio::{
     ChartValuePercentage, PerpetualAccountSummary, PerpetualPortfolio, PerpetualPortfolioTimeframeData, PortfolioAllocation, PortfolioAsset, PortfolioAssets, PortfolioAssetsRequest, PortfolioChartData, PortfolioChartType, PortfolioData,
     PortfolioMarginUsage, PortfolioStatistic, PortfolioType,
 };
-pub use chrono;
 pub mod tpsl_type;
 pub use self::tpsl_type::TpslType;
 pub mod autoclose_validator;
@@ -345,7 +344,8 @@ pub use self::signer_error::SignerError;
 pub mod domain;
 
 pub mod date_ext;
-pub use self::date_ext::{DurationExt, NaiveDateTimeExt, now};
+pub use self::date_ext::DurationExt;
+pub use date_time::{DateTime, SecondsFormat};
 pub mod option_ext;
 pub use self::option_ext::OptionStringExt;
 pub mod number_incrementer;

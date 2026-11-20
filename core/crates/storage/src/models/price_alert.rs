@@ -1,9 +1,8 @@
-use chrono::NaiveDateTime;
 use diesel::prelude::*;
 use primitives::PriceAlert;
 use serde::{Deserialize, Serialize};
 
-use crate::sql_types::{AssetId, Currency, PriceAlertDirectionRow};
+use crate::sql_types::{AssetId, Currency, DateTimeRow, PriceAlertDirectionRow};
 
 #[derive(Debug, Queryable, Selectable, Serialize, Deserialize, Insertable, AsChangeset, Clone)]
 #[diesel(table_name = crate::schema::price_alerts)]
@@ -16,7 +15,7 @@ pub(crate) struct PriceAlertRow {
     pub price_direction: Option<PriceAlertDirectionRow>,
     pub price: Option<f64>,
     pub price_percent_change: Option<f64>,
-    pub last_notified_at: Option<NaiveDateTime>,
+    pub last_notified_at: Option<DateTimeRow>,
 }
 
 #[derive(Debug, Queryable, Selectable, Serialize, Deserialize, Insertable, AsChangeset, Clone)]
@@ -40,7 +39,7 @@ impl PriceAlertRow {
             price_direction: self.price_direction.as_ref().map(|value| value.0.clone()),
             price: self.price,
             price_percent_change: self.price_percent_change,
-            last_notified_at: self.last_notified_at.map(|x| x.and_utc()),
+            last_notified_at: self.last_notified_at.map(Into::into),
             identifier: self.identifier.clone(),
         }
     }

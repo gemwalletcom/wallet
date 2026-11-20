@@ -1,12 +1,11 @@
-use crate::TransactionStateRequest;
-use chrono::{DateTime, Utc};
+use crate::{DateTime, TransactionStateRequest};
 
 impl TransactionStateRequest {
     pub fn mock_with_id(id: impl Into<String>) -> Self {
         Self {
             id: id.into(),
             sender_address: String::new(),
-            created_at: DateTime::<Utc>::UNIX_EPOCH,
+            created_at: DateTime::UNIX_EPOCH,
             block_number: 0,
         }
     }

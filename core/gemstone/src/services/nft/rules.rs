@@ -1,5 +1,4 @@
-use chrono::{DateTime, Utc};
-use primitives::{AddressFormatStyle, Asset, BlockExplorerLink, Chain, NFTAssetData, NFTAttribute, NFTAttributeType, NFTData, VerificationStatus, WalletType};
+use primitives::{AddressFormatStyle, Asset, BlockExplorerLink, Chain, DateTime, NFTAssetData, NFTAttribute, NFTAttributeType, NFTData, VerificationStatus, WalletType};
 
 use super::model::{
     GemCollectibleAction, GemCollectibleAttribute, GemCollectibleAttributeValue, GemCollectibleDetails, GemCollectibleMenuRow, GemCollectibleSection, GemCollectibleSectionGroup, GemNftEntry, GemNftItem, GemNftList, GemNftListScreen,
@@ -264,11 +263,11 @@ fn attribute(attribute: &NFTAttribute) -> GemCollectibleAttribute {
     }
 }
 
-fn attribute_date(value: &str) -> Option<DateTime<Utc>> {
+fn attribute_date(value: &str) -> Option<DateTime> {
     let value = value.trim();
     match value.parse::<i64>() {
-        Ok(seconds) => DateTime::from_timestamp(seconds, 0),
-        Err(_) => DateTime::parse_from_rfc3339(value).ok().map(|date| date.with_timezone(&Utc)),
+        Ok(seconds) => DateTime::checked_from_timestamp(seconds),
+        Err(_) => DateTime::parse_rfc3339(value),
     }
 }
 
@@ -585,7 +584,7 @@ mod tests {
         let date = attribute(&NFTAttribute::new("Created", "1662714817", NFTAttributeType::Timestamp));
         let iso = attribute(&NFTAttribute::new("Created", "2022-09-09T09:13:37Z", NFTAttributeType::Timestamp));
         let broken = attribute(&NFTAttribute::new("Created", "soon", NFTAttributeType::Timestamp));
-        let expected = DateTime::from_timestamp(1662714817, 0).unwrap();
+        let expected = DateTime::from_timestamp(1662714817);
 
         assert_eq!(text.value, GemCollectibleAttributeValue::Text { value: "9".to_string() });
         assert_eq!(date.value, GemCollectibleAttributeValue::Date { date: expected });

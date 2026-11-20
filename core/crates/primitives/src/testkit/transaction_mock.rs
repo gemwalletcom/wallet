@@ -1,6 +1,5 @@
 use crate::transaction_metadata_types::{TransactionAssetTransfer, TransactionAssetTransfersMetadata};
-use crate::{AssetId, Chain, PerpetualDirection, SwapProvider, Transaction, TransactionDirection, TransactionId, TransactionPerpetualMetadata, TransactionState, TransactionSwapMetadata, TransactionType, TransactionUtxoInput};
-use chrono::Utc;
+use crate::{AssetId, Chain, DateTime, PerpetualDirection, SwapProvider, Transaction, TransactionDirection, TransactionId, TransactionPerpetualMetadata, TransactionState, TransactionSwapMetadata, TransactionType, TransactionUtxoInput};
 use num_bigint::BigUint;
 
 impl Transaction {
@@ -18,7 +17,7 @@ impl Transaction {
             BigUint::from(1_000_000u32),
             None,
             None,
-            Utc::now(),
+            DateTime::now(),
         )
     }
 
@@ -36,7 +35,7 @@ impl Transaction {
             value,
             None,
             None,
-            Utc::now(),
+            DateTime::now(),
         )
     }
 
@@ -56,7 +55,7 @@ impl Transaction {
                 BigUint::from(1u32),
                 None,
                 None,
-                Utc::now(),
+                DateTime::now(),
             )
         }
     }
@@ -97,7 +96,7 @@ impl Transaction {
             BigUint::from(1_000_000_000_000_000_000u64),
             None,
             serde_json::to_value(TransactionSwapMetadata::mock()).ok(),
-            Utc::now(),
+            DateTime::now(),
         )
     }
 
@@ -114,7 +113,7 @@ impl Transaction {
             Some(utxo_inputs),
             Some(utxo_outputs),
             None,
-            Utc::now(),
+            DateTime::now(),
         )
     }
 }

@@ -4,9 +4,11 @@ use crate::{
     AccountAddress, FEE_PAYER_SIGNATURE_TYPE, FUNGIBLE_ASSET_DEPOSIT_EVENT, FUNGIBLE_ASSET_WITHDRAW_EVENT, HYPERION_POOL_SWAP_EVENTS, HYPERION_THIRD_PARTY_SWAP_EVENT, NO_ACCOUNT_SIGNATURE_TYPE, SIMULATION_FEE_PAYER_ADDRESS,
     STAKE_DEPOSIT_EVENT, STAKE_WITHDRAW_EVENT,
 };
+use date_time::deserialize_datetime_from_micros;
 use num_bigint::{BigInt, BigUint};
+use primitives::DateTime;
 use serde::{Deserialize, Serialize};
-use serde_serializers::{deserialize_biguint_from_str, deserialize_option_biguint_from_str, deserialize_option_u64_from_str, deserialize_u64_from_str};
+use serde_serializers::{deserialize_biguint_from_str, deserialize_option_biguint_from_str, deserialize_option_u64_from_str};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Transaction {
@@ -23,8 +25,8 @@ pub struct Transaction {
     #[serde(rename = "type", default)]
     pub transaction_type: Option<String>,
     pub sequence_number: Option<String>,
-    #[serde(default, deserialize_with = "deserialize_u64_from_str")]
-    pub timestamp: u64,
+    #[serde(default, deserialize_with = "deserialize_datetime_from_micros")]
+    pub timestamp: DateTime,
 }
 
 impl Transaction {

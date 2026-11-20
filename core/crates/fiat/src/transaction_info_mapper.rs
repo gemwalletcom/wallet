@@ -1,8 +1,7 @@
-use primitives::date_ext::NaiveDateTimeExt;
-use primitives::{FiatProviderName, FiatQuoteType, FiatTransaction, FiatTransactionData, FiatTransactionStatus};
+use primitives::{DAY, DateTime, FiatProviderName, FiatQuoteType, FiatTransaction, FiatTransactionData, FiatTransactionStatus};
 
 pub fn fiat_transaction_info(mut transaction: FiatTransaction) -> FiatTransactionData {
-    if transaction.status == FiatTransactionStatus::Pending && transaction.created_at.naive_utc().is_older_than_days(1) {
+    if transaction.status == FiatTransactionStatus::Pending && transaction.created_at <= DateTime::now() - DAY {
         transaction.status = FiatTransactionStatus::Unknown;
     }
 
@@ -35,8 +34,8 @@ fn details_url(provider: &FiatProviderName, transaction_type: &FiatQuoteType, pr
 #[cfg(test)]
 mod tests {
     use super::{details_url, fiat_transaction_info};
-    use primitives::chrono::{Duration, Utc};
-    use primitives::{FiatProviderName, FiatQuoteType, FiatTransactionStatus};
+    use primitives::{DateTime, DurationExt, FiatProviderName, FiatQuoteType, FiatTransactionStatus};
+    use std::time::Duration;
 
     #[test]
     fn details_url_returns_expected_values() {
@@ -74,7 +73,7 @@ mod tests {
     fn pending_older_than_one_day_becomes_unknown() {
         let transaction = primitives::FiatTransaction {
             status: FiatTransactionStatus::Pending,
-            created_at: Utc::now() - Duration::days(2),
+            created_at: DateTime::now() - Duration::days(2),
             ..primitives::FiatTransaction::mock()
         };
 
@@ -87,7 +86,7 @@ mod tests {
     fn recent_pending_stays_pending() {
         let transaction = primitives::FiatTransaction {
             status: FiatTransactionStatus::Pending,
-            created_at: Utc::now(),
+            created_at: DateTime::now(),
             ..primitives::FiatTransaction::mock()
         };
 

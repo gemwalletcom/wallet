@@ -48,8 +48,7 @@ impl StoreTransactionsConsumerConfig {
     }
 
     pub fn is_transaction_outdated(&self, transaction: &Transaction) -> bool {
-        let elapsed = (chrono::Utc::now() - transaction.created_at).to_std().unwrap_or_default();
-        elapsed > self.outdated_timeout(transaction)
+        transaction.created_at.elapsed() > self.outdated_timeout(transaction)
     }
 
     fn outdated_timeout(&self, transaction: &Transaction) -> Duration {
@@ -94,7 +93,7 @@ impl StoreTransactionsConsumerConfig {
 mod tests {
     use super::*;
     use num_bigint::BigUint;
-    use primitives::{AssetId, Chain, SwapProvider, TransactionSwapMetadata, TransactionType, transaction_metadata_types::TransactionAssetTransfer};
+    use primitives::{AssetId, Chain, DateTime, SwapProvider, TransactionSwapMetadata, TransactionType, transaction_metadata_types::TransactionAssetTransfer};
 
     #[test]
     fn test_is_transaction_outdated() {
@@ -115,28 +114,31 @@ mod tests {
             (same_chain_swap, config.swap_outdated_timeout),
             (cross_chain_swap, config.cross_chain_swap_outdated_timeout),
         ] {
-            let created_at = |offset_seconds: i64| chrono::Utc::now() - chrono::Duration::from_std(timeout).unwrap() + chrono::Duration::seconds(offset_seconds);
+            let second = Duration::from_secs(1);
 
             assert!(config.is_transaction_outdated(&Transaction {
-                created_at: created_at(-1),
+                created_at: DateTime::now() - timeout - second,
                 ..transaction.clone()
             }));
-            assert!(!config.is_transaction_outdated(&Transaction { created_at: created_at(1), ..transaction }));
+            assert!(!config.is_transaction_outdated(&Transaction {
+                created_at: DateTime::now() - timeout + second,
+                ..transaction
+            }));
         }
     }
 
     #[test]
     fn test_is_transaction_insufficient_amount() {
-        use chrono::Utc;
         use primitives::AssetId;
+        use primitives::DateTime;
 
         let config = StoreTransactionsConsumerConfig::mock();
 
         let token_asset = Asset::mock_erc20();
         let native_asset = Asset::mock_btc();
 
-        let price_high = Some(Price::new(1.0, 0.0, Utc::now(), primitives::PriceProvider::Coingecko));
-        let price_low = Some(Price::new(0.005, 0.0, Utc::now(), primitives::PriceProvider::Coingecko));
+        let price_high = Some(Price::new(1.0, 0.0, DateTime::now(), primitives::PriceProvider::Coingecko));
+        let price_low = Some(Price::new(0.005, 0.0, DateTime::now(), primitives::PriceProvider::Coingecko));
 
         let transaction_transfer = Transaction::mock_with_params(
             AssetId::from(Chain::Ethereum, Some("0xA0b86a33E6441066d64bb38954e41F6b4b925c59".to_string())),

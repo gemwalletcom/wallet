@@ -12,7 +12,6 @@ pub(crate) mod testkit;
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use chrono::Utc;
 use futures::lock::Mutex;
 use gem_hypercore::config::HypercoreConfig;
 use gem_hypercore::models::perp_dex::PerpDex;
@@ -21,7 +20,7 @@ use gem_hypercore::provider::perpetual_mapper::total_dexes_balance;
 use gem_hypercore::provider::websocket_mapper::{diff_clearinghouse_positions, diff_open_orders_positions, parse_websocket_data};
 use primitives::perpetual::{PerpetualAccountPositions, PerpetualBalance, PerpetualData};
 use primitives::portfolio::PerpetualPortfolio;
-use primitives::{Asset, AssetId, Chain, ChartCandleStick, ChartPeriod, Feature, PerpetualAccountMode, PerpetualId, PerpetualPosition, PerpetualProvider, RecentActivityType, Wallet, WalletId};
+use primitives::{Asset, AssetId, Chain, ChartCandleStick, ChartPeriod, DateTime, Feature, PerpetualAccountMode, PerpetualId, PerpetualPosition, PerpetualProvider, RecentActivityType, Wallet, WalletId};
 
 use crate::config::perpetual_config::PRICES_UPDATE_INTERVAL_SECONDS;
 use crate::gateway::GemGateway;
@@ -168,7 +167,7 @@ impl GemPerpetualService {
 
     pub async fn sync_markets_if_needed(&self, chain: Chain, trigger: GemMarketsRefreshTrigger) -> Result<bool, GemServiceError> {
         let _sync = self.markets_sync.lock().await;
-        if !trigger.should_sync_markets(self.preferences.get_perpetual_markets_updated_at(), Utc::now().timestamp()) {
+        if !trigger.should_sync_markets(self.preferences.get_perpetual_markets_updated_at(), DateTime::now().timestamp()) {
             return Ok(false);
         }
         self.sync_markets(chain).await?;
@@ -198,7 +197,7 @@ impl GemPerpetualService {
         if let Some(price) = rules::collateral_price(chain) {
             self.price.update_prices(vec![price]).await?;
         }
-        self.preferences.set_perpetual_markets_updated_at(Some(Utc::now().timestamp()))
+        self.preferences.set_perpetual_markets_updated_at(Some(DateTime::now().timestamp()))
     }
 
     pub async fn save_markets(&self, data: Vec<PerpetualData>) -> Result<(), GemServiceError> {
@@ -332,7 +331,7 @@ impl GemPerpetualService {
 
     pub async fn update_prices(&self, prices: HashMap<String, f64>) -> Result<(), GemServiceError> {
         let _writes = self.writes.lock().await;
-        let now = Utc::now().timestamp();
+        let now = DateTime::now().timestamp();
         let prices = {
             let mut pending = self.pending_prices.lock().unwrap();
             pending.extend(prices);
@@ -718,7 +717,7 @@ mod tests {
         block_on(async {
             let testkit = PerpetualTestkit::new();
             testkit.preferences.set_perpetual_enabled(true).unwrap();
-            testkit.preferences.set_perpetual_markets_updated_at(Some(Utc::now().timestamp() - 24 * 60 * 60)).unwrap();
+            testkit.preferences.set_perpetual_markets_updated_at(Some(DateTime::now().timestamp() - 24 * 60 * 60)).unwrap();
             let hypercore = Wallet::mock_with_accounts(Account::mock_chains(&[Chain::HyperCore], "0xc64c"));
 
             assert!(testkit.service.sync_enablement(Some(hypercore)).await.unwrap());
@@ -759,7 +758,7 @@ mod tests {
     fn test_a_scheduled_refresh_skips_markets_that_were_just_synced() {
         block_on(async {
             let testkit = PerpetualTestkit::new();
-            testkit.preferences.set_perpetual_markets_updated_at(Some(Utc::now().timestamp())).unwrap();
+            testkit.preferences.set_perpetual_markets_updated_at(Some(DateTime::now().timestamp())).unwrap();
 
             assert!(!testkit.service.sync_markets_if_needed(Chain::HyperCore, GemMarketsRefreshTrigger::Scheduled).await.unwrap());
 
@@ -771,7 +770,7 @@ mod tests {
     fn test_a_user_requested_refresh_always_asks_for_the_markets() {
         block_on(async {
             let testkit = PerpetualTestkit::new();
-            testkit.preferences.set_perpetual_markets_updated_at(Some(Utc::now().timestamp())).unwrap();
+            testkit.preferences.set_perpetual_markets_updated_at(Some(DateTime::now().timestamp())).unwrap();
 
             assert!(testkit.service.sync_markets_if_needed(Chain::HyperCore, GemMarketsRefreshTrigger::UserRequested).await.is_err());
 
@@ -831,7 +830,7 @@ mod tests {
                 let testkit = PerpetualTestkit::with_unified_balance().await;
                 let wallet = Wallet::mock_with_accounts(Account::mock_chains(&chains, "0xc64c"));
                 testkit.select_wallet(&wallet);
-                testkit.preferences.set_perpetual_markets_updated_at(Some(Utc::now().timestamp())).unwrap();
+                testkit.preferences.set_perpetual_markets_updated_at(Some(DateTime::now().timestamp())).unwrap();
 
                 let failures = testkit.service.refresh(GemMarketsRefreshTrigger::Scheduled).await;
                 assert!(failures.iter().all(|failure| failure.step == GemPerpetualRefreshStep::DepositBalances), "only the Arbitrum deposit balance has no node here");
@@ -850,7 +849,7 @@ mod tests {
             let testkit = PerpetualTestkit::with_standard_spot_balance().await;
             let wallet = Wallet::mock_with_accounts(Account::mock_chains(&[Chain::HyperCore], "0xc64c"));
             testkit.select_wallet(&wallet);
-            testkit.preferences.set_perpetual_markets_updated_at(Some(Utc::now().timestamp())).unwrap();
+            testkit.preferences.set_perpetual_markets_updated_at(Some(DateTime::now().timestamp())).unwrap();
 
             assert_eq!(testkit.service.refresh(GemMarketsRefreshTrigger::Scheduled).await, vec![]);
 

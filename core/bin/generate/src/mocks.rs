@@ -79,7 +79,7 @@ pub(crate) const SWIFT_MOCKS: MockSyntax = MockSyntax {
         ("f64", "Double", "0"),
         ("BigInt", "String", "\"0\""),
         ("BigUint", "String", "\"0\""),
-        ("DateTime<Utc>", "Date", "Date(timeIntervalSince1970: 0)"),
+        ("DateTime", "Date", "Date(timeIntervalSince1970: 0)"),
         ("serde_json::Value", "AnyCodableValue", ""),
         ("BigIntValue", "BigUInt", "0"),
     ],
@@ -104,10 +104,6 @@ pub(crate) const SWIFT_MOCKS: MockSyntax = MockSyntax {
         ("GemBigUint", "BigUInt", "0"),
         ("GemJsonValue", "String", "\"\""),
         ("DateTimeUtc", "Date", "Date(timeIntervalSince1970: 0)"),
-        ("DateTime<Utc>", "Date", "Date(timeIntervalSince1970: 0)"),
-        ("chrono::DateTime<chrono::Utc>", "Date", "Date(timeIntervalSince1970: 0)"),
-        ("NaiveDateTime", "Int64", "0"),
-        ("NaiveDateTimeUtc", "Int64", "0"),
     ],
     core_bytes: ("Data", "Data()"),
     core_identifiers: &[
@@ -163,11 +159,11 @@ pub(crate) const KOTLIN_MOCKS: MockSyntax = MockSyntax {
         ("f64", "Double", "0.0"),
         ("BigInt", "String", "\"0\""),
         ("BigUint", "String", "\"0\""),
-        ("DateTime<Utc>", "SerializedDate", "0L"),
+        ("DateTime", "SerializedDate", "0L"),
         ("serde_json::Value", "JsonValue", ""),
         ("BigIntValue", "SerializedBigInteger", "java.math.BigInteger.ZERO"),
     ],
-    app_type_imports: &[("DateTime<Utc>", "SerializedDate"), ("serde_json::Value", "JsonValue"), ("BigIntValue", "SerializedBigInteger")],
+    app_type_imports: &[("DateTime", "SerializedDate"), ("serde_json::Value", "JsonValue"), ("BigIntValue", "SerializedBigInteger")],
     core_qualifier: "uniffi.gemstone.",
     core_error_suffix: "Exception",
     core_types: &[
@@ -188,10 +184,6 @@ pub(crate) const KOTLIN_MOCKS: MockSyntax = MockSyntax {
         ("GemBigUint", "java.math.BigInteger", "java.math.BigInteger.ZERO"),
         ("GemJsonValue", "String", "\"\""),
         ("DateTimeUtc", "Long", "0L"),
-        ("DateTime<Utc>", "Long", "0L"),
-        ("chrono::DateTime<chrono::Utc>", "Long", "0L"),
-        ("NaiveDateTime", "Long", "0L"),
-        ("NaiveDateTimeUtc", "Long", "0L"),
     ],
     core_bytes: ("ByteArray", "byteArrayOf()"),
     core_identifiers: &[("AssetId", "mockAssetId().toIdentifier()"), ("TransactionId", "mockTransactionId().toIdentifier()"), ("WalletId", "mockWalletId().id")],
@@ -217,7 +209,7 @@ pub(crate) fn screaming_words(variant: &str) -> String {
     out
 }
 
-const CORE_CUSTOM_TYPES: &[&str] = &["GemBigInt", "GemBigUint", "GemJsonValue", "DateTimeUtc", "NaiveDateTimeUtc"];
+const CORE_CUSTOM_TYPES: &[&str] = &["GemBigInt", "GemBigUint", "GemJsonValue", "DateTimeUtc"];
 
 #[derive(Clone, Copy, PartialEq)]
 enum Side {
@@ -365,10 +357,10 @@ impl Generator {
     }
 
     fn core_name<'a>(&'a self, name: &'a str) -> &'a str {
+        let name = self.config.declared(name).unwrap_or(name);
         if CORE_CUSTOM_TYPES.contains(&name) {
             return name;
         }
-        let name = self.config.declared(name).unwrap_or(name);
         let name = match name.contains('<') {
             true => name,
             false => name.rsplit("::").next().unwrap_or(name),

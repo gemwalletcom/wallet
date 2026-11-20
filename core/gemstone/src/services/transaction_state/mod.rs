@@ -10,8 +10,7 @@ use crate::services::failures::record;
 use std::sync::{Arc, OnceLock};
 
 use async_trait::async_trait;
-use chrono::{DateTime, Utc};
-use primitives::{Chain, Transaction, TransactionId, TransactionState, TransactionUpdate, WalletId};
+use primitives::{Chain, DateTime, Transaction, TransactionId, TransactionState, TransactionUpdate, WalletId};
 
 pub use model::{GemPendingTransaction, GemPostProcessingFailure, GemPostProcessingStep, GemTransactionStateResult, GemTransactionStateUpdate};
 pub use store::GemTransactionStateStore;
@@ -93,7 +92,7 @@ impl GemTransactionStateService {
 
     pub async fn pending_nonces(&self, chain: Chain, sender: &str) -> Result<Vec<u64>, GemServiceError> {
         let pending = self.store.get_pending_transactions(TransactionState::pending()).await?;
-        Ok(rules::pending_nonces(&pending, chain, sender, Utc::now()))
+        Ok(rules::pending_nonces(&pending, chain, sender, DateTime::now()))
     }
 
     async fn enable_transaction_assets(&self, wallet_id: WalletId, transactions: Vec<Transaction>) -> Result<(), GemServiceError> {
@@ -110,7 +109,7 @@ impl GemTransactionStateService {
             None => self.gateway.get_transaction_update(transaction.clone()).await.map_err(|error| error.to_string()),
         };
         let previous_state = transaction.state;
-        let result = merge_update(self.store.as_ref(), wallet_id.clone(), transaction.clone(), update, Utc::now()).await?;
+        let result = merge_update(self.store.as_ref(), wallet_id.clone(), transaction.clone(), update, DateTime::now()).await?;
         let Some(mut result) = result else {
             return Ok(None);
         };
@@ -141,7 +140,7 @@ impl GemTransactionStateService {
     }
 }
 
-async fn merge_update(store: &dyn GemTransactionStateStore, wallet_id: WalletId, transaction: Transaction, update: Result<TransactionUpdate, String>, now: DateTime<Utc>) -> Result<Option<GemTransactionStateResult>, GemServiceError> {
+async fn merge_update(store: &dyn GemTransactionStateStore, wallet_id: WalletId, transaction: Transaction, update: Result<TransactionUpdate, String>, now: DateTime) -> Result<Option<GemTransactionStateResult>, GemServiceError> {
     let update = match update {
         Ok(update) => update,
         Err(_) if rules::has_timed_out(&transaction, transaction.state, now) => TransactionUpdate::new_state(TransactionState::Failed),
@@ -192,15 +191,16 @@ mod tests {
     use super::testkit::MemoryTransactionStateStore;
     use super::*;
     use num_bigint::{BigInt, BigUint};
-    use primitives::{AssetId, Chain, TransactionChange, TransactionMetadata, TransactionSwapMetadata, TransactionType};
+    use primitives::{AssetId, Chain, DurationExt, TransactionChange, TransactionMetadata, TransactionSwapMetadata, TransactionType};
+    use std::time::Duration;
 
-    fn merge_polled_update(store: &MemoryTransactionStateStore, transaction: Transaction, update: Result<TransactionUpdate, String>, now: DateTime<Utc>) -> Result<Option<GemTransactionStateResult>, GemServiceError> {
+    fn merge_polled_update(store: &MemoryTransactionStateStore, transaction: Transaction, update: Result<TransactionUpdate, String>, now: DateTime) -> Result<Option<GemTransactionStateResult>, GemServiceError> {
         futures::executor::block_on(merge_update(store, WalletId::mock(), transaction, update, now))
     }
 
     #[test]
     fn test_in_transit_saves_metadata_and_keeps_polling() {
-        let now = Utc::now();
+        let now = DateTime::now();
         let store = MemoryTransactionStateStore::with(vec![(TransactionId::mock("hash"), TransactionState::Pending)]);
 
         let result = merge_polled_update(
@@ -226,7 +226,7 @@ mod tests {
 
     #[test]
     fn test_hash_change_renames_when_no_existing_row() {
-        let now = Utc::now();
+        let now = DateTime::now();
         let store = MemoryTransactionStateStore::with(vec![(TransactionId::mock("hash"), TransactionState::Pending)]);
 
         let result = merge_polled_update(
@@ -245,7 +245,7 @@ mod tests {
 
     #[test]
     fn test_hash_change_merges_into_existing_row_without_downgrade() {
-        let now = Utc::now();
+        let now = DateTime::now();
         let store = MemoryTransactionStateStore::with(vec![(TransactionId::mock("hash"), TransactionState::Pending), (TransactionId::mock("new-hash"), TransactionState::Confirmed)]);
 
         let result = merge_polled_update(
@@ -266,7 +266,7 @@ mod tests {
 
     #[test]
     fn test_hash_change_is_idempotent() {
-        let now = Utc::now();
+        let now = DateTime::now();
         let store = MemoryTransactionStateStore::with(vec![(TransactionId::mock("hash"), TransactionState::Pending)]);
         for hash in ["hash", "new-hash", "new-hash"] {
             let result = merge_polled_update(
@@ -287,7 +287,7 @@ mod tests {
 
     #[test]
     fn test_in_transit_is_not_downgraded_to_pending() {
-        let now = Utc::now();
+        let now = DateTime::now();
         let store = MemoryTransactionStateStore::with(vec![(TransactionId::mock("hash"), TransactionState::InTransit)]);
 
         let result = merge_polled_update(
@@ -309,7 +309,7 @@ mod tests {
 
     #[test]
     fn test_a_delayed_poll_merges_against_the_stored_state_not_its_own_snapshot() {
-        let now = Utc::now();
+        let now = DateTime::now();
         let store = MemoryTransactionStateStore::with(vec![(TransactionId::mock("hash"), TransactionState::Confirmed)]);
         let polled = Transaction {
             state: TransactionState::Pending,
@@ -333,7 +333,7 @@ mod tests {
 
     #[test]
     fn test_removed_row_stops_polling() {
-        let now = Utc::now();
+        let now = DateTime::now();
         let store = MemoryTransactionStateStore::with(vec![]);
 
         for changes in [vec![], vec![TransactionChange::HashChange { old: "hash".into(), new: "new-hash".into() }]] {
@@ -345,7 +345,7 @@ mod tests {
 
     #[test]
     fn test_status_failure_fails_only_after_timeout() {
-        let now = Utc::now();
+        let now = DateTime::now();
         let store = MemoryTransactionStateStore::with(vec![(TransactionId::mock("hash"), TransactionState::Pending)]);
 
         let fresh = merge_polled_update(&store, Transaction { created_at: now, ..Transaction::mock_swap() }, Err("offline".into()), now);
@@ -354,7 +354,7 @@ mod tests {
         let stale = merge_polled_update(
             &store,
             Transaction {
-                created_at: now - chrono::Duration::hours(2),
+                created_at: now - Duration::from_hours(2),
                 ..Transaction::mock_swap()
             },
             Err("offline".into()),
@@ -367,10 +367,10 @@ mod tests {
 
     #[test]
     fn test_a_late_confirmed_deposit_moves_into_transit_instead_of_failing() {
-        let now = Utc::now();
+        let now = DateTime::now();
         let store = MemoryTransactionStateStore::with(vec![(TransactionId::mock("hash"), TransactionState::Pending)]);
         let polled = Transaction {
-            created_at: now - chrono::Duration::hours(2),
+            created_at: now - Duration::from_hours(2),
             ..Transaction::mock_swap()
         };
 
@@ -381,7 +381,7 @@ mod tests {
 
     #[test]
     fn test_post_processing_by_state_transition() {
-        let now = Utc::now();
+        let now = DateTime::now();
         let swap = Transaction { created_at: now, ..Transaction::mock_swap() };
 
         assert_eq!(rules::post_processing(&swap, TransactionState::Pending, TransactionState::Pending), None);
@@ -411,9 +411,9 @@ mod tests {
 
     #[test]
     fn test_a_same_chain_swap_in_transit_waits_for_its_provider() {
-        let now = Utc::now();
+        let now = DateTime::now();
         let same_chain = Transaction {
-            created_at: now - chrono::Duration::hours(2),
+            created_at: now - Duration::from_hours(2),
             metadata: serde_json::to_value(TransactionSwapMetadata {
                 to_asset: AssetId::from_chain(Chain::Ethereum),
                 ..TransactionSwapMetadata::mock()
@@ -428,8 +428,8 @@ mod tests {
 
     #[test]
     fn test_in_transit_timeout_uses_destination_chain() {
-        let now = Utc::now();
-        let created_at = now - chrono::Duration::hours(2);
+        let now = DateTime::now();
+        let created_at = now - Duration::from_hours(2);
         let in_transit = Transaction {
             state: TransactionState::InTransit,
             created_at,
@@ -442,7 +442,7 @@ mod tests {
         assert!(!rules::has_timed_out(&Transaction { created_at, ..Transaction::mock_swap() }, TransactionState::InTransit, now));
         assert!(!rules::has_timed_out(
             &Transaction {
-                created_at: now - chrono::Duration::days(30),
+                created_at: now - Duration::days(30),
                 ..Transaction::mock_swap()
             },
             TransactionState::Confirmed,
@@ -454,7 +454,7 @@ mod tests {
     fn test_assets_to_enable_skips_hypercore_and_duplicates() {
         let swap = Transaction {
             id: TransactionId::mock("swap"),
-            created_at: Utc::now(),
+            created_at: DateTime::now(),
             ..Transaction::mock_swap()
         };
         let hypercore = Transaction::mock_with_params(AssetId::from_chain(Chain::HyperCore), TransactionType::Transfer, BigUint::from(1u64));

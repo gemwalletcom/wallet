@@ -85,7 +85,7 @@ pub fn map_staking_delegations(active_delegations: Vec<Delegation>, unbonding_de
                 balance: entry.balance,
                 shares: BigUint::from(0u32),
                 rewards: BigUint::from(0u32),
-                completion_date: entry.completion_time.parse::<chrono::DateTime<chrono::Utc>>().ok(),
+                completion_date: Some(entry.completion_time),
                 delegation_id: entry.creation_height,
                 validator_id: unbonding.validator_address.clone(),
             });

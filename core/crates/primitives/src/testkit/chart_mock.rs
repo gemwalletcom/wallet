@@ -1,11 +1,11 @@
-use chrono::{DateTime, TimeDelta, Utc};
+use std::time::Duration;
 
-use crate::{ChartCandleStick, ChartDateValue};
+use crate::{ChartCandleStick, ChartDateValue, DateTime};
 
 impl ChartDateValue {
     pub fn mock(seconds: i64, value: f64) -> Self {
         Self {
-            date: DateTime::from_timestamp(seconds, 0).unwrap(),
+            date: DateTime::from_timestamp(seconds),
             value,
         }
     }
@@ -18,7 +18,7 @@ impl ChartDateValue {
 impl ChartCandleStick {
     pub fn mock(seconds: i64, close: f64) -> Self {
         Self {
-            date: DateTime::from_timestamp(seconds, 0).unwrap(),
+            date: DateTime::from_timestamp(seconds),
             open: close - 1.0,
             high: close + 1.0,
             low: close - 2.0,
@@ -27,7 +27,7 @@ impl ChartCandleStick {
         }
     }
 
-    pub fn mock_series(from: DateTime<Utc>, interval: TimeDelta, count: i32) -> Vec<Self> {
+    pub fn mock_series(from: DateTime, interval: Duration, count: u32) -> Vec<Self> {
         (0..count)
             .map(|index| Self {
                 date: from + interval * index,

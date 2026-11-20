@@ -1,16 +1,14 @@
 use std::error::Error;
 
-use chrono::{DateTime, Utc};
 use num_bigint::BigUint;
 use primitives::transaction_metadata_types::{TransactionAssetTransfer, TransactionAssetTransfersMetadata};
-use primitives::{Chain, Transaction, TransactionState, TransactionType};
+use primitives::{Chain, DateTime, Transaction, TransactionState, TransactionType};
 
 use crate::models::{BroadcastTransaction, Outcome, TransactionAction};
 
 use super::fungible_token::map_fungible_token_transfers;
 
-pub(in crate::rpc) fn map_transaction(transaction: BroadcastTransaction, receipts: Vec<Outcome>, block_height: u64, block_timestamp: u64, state: TransactionState, fee: BigUint) -> Result<Transaction, Box<dyn Error + Send + Sync>> {
-    let created_at = DateTime::<Utc>::from_timestamp_nanos(i64::try_from(block_timestamp)?);
+pub(in crate::rpc) fn map_transaction(transaction: BroadcastTransaction, receipts: Vec<Outcome>, block_height: u64, created_at: DateTime, state: TransactionState, fee: BigUint) -> Result<Transaction, Box<dyn Error + Send + Sync>> {
     let asset_transfers = map_fungible_token_transfers(&receipts)?;
     let (transfer, transaction_type, metadata) = if let Some(transfer) = asset_transfers.first().cloned() {
         let metadata = if asset_transfers.len() > 1 {

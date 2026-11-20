@@ -1,8 +1,10 @@
-use chrono::NaiveDateTime;
 use diesel::prelude::*;
+use primitives::DateTime;
 use serde::{Deserialize, Serialize};
 
 use crate::models::PriceRow;
+
+use crate::sql_types::DateTimeRow;
 
 #[derive(Debug, Clone, Queryable, Selectable, Insertable, Serialize, Deserialize)]
 #[diesel(table_name = crate::schema::charts)]
@@ -10,12 +12,16 @@ use crate::models::PriceRow;
 pub(crate) struct ChartRow {
     pub price_id: String,
     pub price: f64,
-    pub created_at: NaiveDateTime,
+    pub created_at: DateTimeRow,
 }
 
 impl ChartRow {
-    pub fn new(price_id: String, price: f64, created_at: NaiveDateTime) -> Self {
-        ChartRow { price_id, price, created_at }
+    pub fn new(price_id: String, price: f64, created_at: DateTime) -> Self {
+        ChartRow {
+            price_id,
+            price,
+            created_at: created_at.into(),
+        }
     }
 
     pub fn from_price(price: PriceRow) -> Self {
@@ -33,7 +39,7 @@ impl ChartRow {
 pub(crate) struct HourlyChartRow {
     pub price_id: String,
     pub price: f64,
-    pub created_at: NaiveDateTime,
+    pub created_at: DateTimeRow,
 }
 
 #[derive(Debug, Clone, Queryable, Selectable, Insertable)]
@@ -42,7 +48,7 @@ pub(crate) struct HourlyChartRow {
 pub(crate) struct DailyChartRow {
     pub price_id: String,
     pub price: f64,
-    pub created_at: NaiveDateTime,
+    pub created_at: DateTimeRow,
 }
 
 impl From<HourlyChartRow> for ChartRow {

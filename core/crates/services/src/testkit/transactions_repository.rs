@@ -3,8 +3,7 @@ use std::sync::Mutex;
 use std::time::Duration;
 
 use async_trait::async_trait;
-use chrono::NaiveDateTime;
-use primitives::{Asset, AssetId, AssetPriceMetadata, Chain, ChainAddress, Device, NFTAssetId, ScanAddress, Transaction, TransactionId, TransactionsResponse};
+use primitives::{Asset, AssetId, AssetPriceMetadata, Chain, ChainAddress, DateTime, Device, NFTAssetId, ScanAddress, Transaction, TransactionId, TransactionsResponse};
 use storage::{AssetFilter, DatabaseError, ParserState, TransactionFilter, TransactionPerpetualRecord, TransactionSwapRecord, TransactionUpdate, WalletRecord};
 
 use crate::transactions::repository::{AddressRecords, AssetPriceHistory, Repository, WalletTransactionsQuery};
@@ -96,7 +95,7 @@ impl Repository for MemoryTransactionsRepository {
         Ok(vec![])
     }
 
-    async fn get_asset_price_history(&self, asset_id: AssetId, _at: NaiveDateTime) -> Result<AssetPriceHistory, DatabaseError> {
+    async fn get_asset_price_history(&self, asset_id: AssetId, _at: DateTime) -> Result<AssetPriceHistory, DatabaseError> {
         Err(Self::not_found("Asset", asset_id))
     }
 
@@ -117,7 +116,7 @@ impl Repository for MemoryTransactionsRepository {
                     TransactionFilter::States(states) => states.contains(&transaction.state),
                     TransactionFilter::Chain(chain) => transaction.id.chain.as_ref() == chain,
                     TransactionFilter::Hash(hash) => &transaction.id.hash == hash,
-                    TransactionFilter::After(created_at, id) => (transaction.created_at.naive_utc(), transaction.id.chain.as_ref(), transaction.id.hash.as_str()) > (*created_at, id.chain.as_ref(), id.hash.as_str()),
+                    TransactionFilter::After(created_at, id) => (transaction.created_at, transaction.id.chain.as_ref(), transaction.id.hash.as_str()) > (*created_at, id.chain.as_ref(), id.hash.as_str()),
                 })
             })
             .cloned()

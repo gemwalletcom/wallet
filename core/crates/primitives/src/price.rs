@@ -1,5 +1,4 @@
-use crate::{Asset, AssetLink, AssetMarket, AssetProperties, PriceAlert, PriceProvider};
-use chrono::{DateTime, Utc};
+use crate::{Asset, AssetLink, AssetMarket, AssetProperties, DateTime, PriceAlert, PriceProvider};
 use model_derive::Model;
 use serde::{Deserialize, Serialize};
 
@@ -9,14 +8,14 @@ use serde::{Deserialize, Serialize};
 pub struct Price {
     pub price: f64,
     pub price_change_percentage_24h: f64,
-    pub updated_at: DateTime<Utc>,
+    pub updated_at: DateTime,
     #[model(skip)]
     #[serde(default)]
     pub provider: PriceProvider,
 }
 
 impl Price {
-    pub fn new(price: f64, price_change_percentage_24h: f64, updated_at: DateTime<Utc>, provider: PriceProvider) -> Self {
+    pub fn new(price: f64, price_change_percentage_24h: f64, updated_at: DateTime, provider: PriceProvider) -> Self {
         Price {
             price,
             price_change_percentage_24h,

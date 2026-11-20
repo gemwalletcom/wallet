@@ -1,13 +1,12 @@
-use chrono::{DateTime, Utc};
 use num_bigint::BigUint;
-use primitives::{Transaction, TransactionState, TransactionType, chain::Chain};
+use primitives::{DateTime, Transaction, TransactionState, TransactionType, chain::Chain};
 
 use crate::constants::{TRANSACTION_TYPE_TRANSFER_ALLOW_DEATH, TRANSACTION_TYPE_TRANSFER_KEEP_ALIVE};
 use crate::models::rpc::{Block, Extrinsic, ExtrinsicArguments};
 
 pub fn map_transactions(chain: Chain, block: Block) -> Vec<Transaction> {
     let created_at = block.extrinsics.iter().find_map(|ext| match &ext.args {
-        ExtrinsicArguments::Timestamp(timestamp) => DateTime::from_timestamp_millis(timestamp.now as i64),
+        ExtrinsicArguments::Timestamp(timestamp) => Some(timestamp.now),
         _ => None,
     });
 
@@ -18,7 +17,7 @@ pub fn map_transactions(chain: Chain, block: Block) -> Vec<Transaction> {
     block.extrinsics.iter().flat_map(|x| map_transaction(chain, x.clone(), created_at)).flatten().collect()
 }
 
-pub fn map_transaction(chain: Chain, transaction: Extrinsic, created_at: DateTime<Utc>) -> Vec<Option<Transaction>> {
+pub fn map_transaction(chain: Chain, transaction: Extrinsic, created_at: DateTime) -> Vec<Option<Transaction>> {
     match &transaction.args.clone() {
         ExtrinsicArguments::Transfer(transfer) => {
             vec![map_transfer(chain, transaction.clone(), transaction.method.method, transfer.dest.id.clone(), transfer.value.clone(), created_at)]
@@ -32,7 +31,7 @@ pub fn map_transaction(chain: Chain, transaction: Extrinsic, created_at: DateTim
     }
 }
 
-fn map_transfer(chain: Chain, transaction: Extrinsic, method: String, to_address: String, value: BigUint, created_at: DateTime<Utc>) -> Option<Transaction> {
+fn map_transfer(chain: Chain, transaction: Extrinsic, method: String, to_address: String, value: BigUint, created_at: DateTime) -> Option<Transaction> {
     if method != TRANSACTION_TYPE_TRANSFER_ALLOW_DEATH && method != TRANSACTION_TYPE_TRANSFER_KEEP_ALIVE {
         return None;
     }
@@ -70,7 +69,9 @@ mod tests {
             extrinsics: vec![
                 Extrinsic::mock(),
                 Extrinsic {
-                    args: ExtrinsicArguments::Timestamp(ExtrinsicTimestamp { now: 1771126812000 }),
+                    args: ExtrinsicArguments::Timestamp(ExtrinsicTimestamp {
+                        now: DateTime::from_timestamp_millis(1_771_126_812_000),
+                    }),
                     ..Extrinsic::mock()
                 },
             ],

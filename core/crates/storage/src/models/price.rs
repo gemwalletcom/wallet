@@ -1,4 +1,3 @@
-use chrono::NaiveDateTime;
 use diesel::prelude::*;
 use primitives::{AssetId as PrimitiveAssetId, AssetMarket, AssetPriceInfo, ChartValuePercentage, Price, PriceData, PriceId as PrimitivePriceId, PriceProvider};
 use serde::{Deserialize, Serialize};
@@ -7,7 +6,7 @@ use std::hash::{Hash, Hasher};
 use crate::models::min_max::MinMax;
 use crate::repositories::prices_repository::PriceUpdate;
 
-use crate::sql_types::{AssetId, PriceId, PriceProviderRow};
+use crate::sql_types::{AssetId, DateTimeRow, PriceId, PriceProviderRow};
 
 #[derive(Debug, Queryable, Selectable, Identifiable, Serialize, Deserialize, Insertable, AsChangeset, Clone)]
 #[diesel(table_name = crate::schema::prices)]
@@ -18,9 +17,9 @@ pub(crate) struct PriceRow {
     pub price: f64,
     pub price_change_percentage_24h: Option<f64>,
     pub all_time_high: f64,
-    pub all_time_high_date: Option<NaiveDateTime>,
+    pub all_time_high_date: Option<DateTimeRow>,
     pub all_time_low: f64,
-    pub all_time_low_date: Option<NaiveDateTime>,
+    pub all_time_low_date: Option<DateTimeRow>,
     pub market_cap: Option<f64>,
     pub market_cap_fdv: Option<f64>,
     pub market_cap_rank: Option<i32>,
@@ -28,7 +27,7 @@ pub(crate) struct PriceRow {
     pub circulating_supply: Option<f64>,
     pub total_supply: Option<f64>,
     pub max_supply: Option<f64>,
-    pub last_updated_at: NaiveDateTime,
+    pub last_updated_at: DateTimeRow,
 }
 
 #[derive(Debug, Selectable, Identifiable, Serialize, Deserialize, Insertable, Clone)]
@@ -40,9 +39,9 @@ pub(crate) struct NewPriceRow {
     pub price: f64,
     pub price_change_percentage_24h: Option<f64>,
     pub all_time_high: f64,
-    pub all_time_high_date: Option<NaiveDateTime>,
+    pub all_time_high_date: Option<DateTimeRow>,
     pub all_time_low: f64,
-    pub all_time_low_date: Option<NaiveDateTime>,
+    pub all_time_low_date: Option<DateTimeRow>,
     pub market_cap: Option<f64>,
     pub market_cap_fdv: Option<f64>,
     pub total_volume: Option<f64>,
@@ -56,9 +55,9 @@ pub(crate) struct NewPriceRow {
 #[diesel(treat_none_as_null = false)]
 pub struct PricesChangeset {
     all_time_high: Option<f64>,
-    all_time_high_date: Option<Option<NaiveDateTime>>,
+    all_time_high_date: Option<Option<DateTimeRow>>,
     all_time_low: Option<f64>,
-    all_time_low_date: Option<Option<NaiveDateTime>>,
+    all_time_low_date: Option<Option<DateTimeRow>>,
 }
 
 impl PricesChangeset {
@@ -67,11 +66,11 @@ impl PricesChangeset {
             match update {
                 PriceUpdate::AllTimeHigh { value, date } => {
                     acc.all_time_high = Some(value);
-                    acc.all_time_high_date = Some(date);
+                    acc.all_time_high_date = Some(date.map(Into::into));
                 }
                 PriceUpdate::AllTimeLow { value, date } => {
                     acc.all_time_low = Some(value);
-                    acc.all_time_low_date = Some(date);
+                    acc.all_time_low_date = Some(date.map(Into::into));
                 }
             }
             acc
@@ -87,9 +86,9 @@ impl NewPriceRow {
             price: data.price,
             price_change_percentage_24h: data.price_change_percentage_24h,
             all_time_high: data.all_time_high,
-            all_time_high_date: data.all_time_high_date.map(|date| date.naive_utc()),
+            all_time_high_date: data.all_time_high_date.map(Into::into),
             all_time_low: data.all_time_low,
-            all_time_low_date: data.all_time_low_date.map(|date| date.naive_utc()),
+            all_time_low_date: data.all_time_low_date.map(Into::into),
             market_cap: data.market_cap,
             market_cap_fdv: data.market_cap_fdv,
             total_volume: data.total_volume,
@@ -143,14 +142,14 @@ impl PriceRow {
         let mut updates = Vec::new();
         if let Some(point) = extremes.max
             && point.value >= self.all_time_high
-            && (point.value, Some(point.date)) != (self.all_time_high, self.all_time_high_date)
+            && (point.value, Some(point.date)) != (self.all_time_high, self.all_time_high_date.map(Into::into))
         {
             updates.push(PriceUpdate::AllTimeHigh { value: point.value, date: Some(point.date) });
         }
         if let Some(point) = extremes.min
             && point.value > 0.0
             && (self.all_time_low == 0.0 || point.value <= self.all_time_low)
-            && (point.value, Some(point.date)) != (self.all_time_low, self.all_time_low_date)
+            && (point.value, Some(point.date)) != (self.all_time_low, self.all_time_low_date.map(Into::into))
         {
             updates.push(PriceUpdate::AllTimeLow { value: point.value, date: Some(point.date) });
         }
@@ -170,7 +169,7 @@ impl PriceRow {
             high = (self.price, Some(self.last_updated_at));
         }
         if high != (self.all_time_high, self.all_time_high_date) {
-            updates.push(PriceUpdate::AllTimeHigh { value: high.0, date: high.1 });
+            updates.push(PriceUpdate::AllTimeHigh { value: high.0, date: high.1.map(Into::into) });
         }
 
         let mut low = (self.all_time_low, self.all_time_low_date);
@@ -184,7 +183,7 @@ impl PriceRow {
             low = (self.price, Some(self.last_updated_at));
         }
         if low != (self.all_time_low, self.all_time_low_date) {
-            updates.push(PriceUpdate::AllTimeLow { value: low.0, date: low.1 });
+            updates.push(PriceUpdate::AllTimeLow { value: low.0, date: low.1.map(Into::into) });
         }
 
         updates
@@ -199,7 +198,7 @@ impl PriceRow {
     }
 
     pub fn as_primitive(&self) -> Price {
-        Price::new(self.price, self.price_change_percentage_24h.unwrap_or(0.0), self.last_updated_at.and_utc(), self.provider_value())
+        Price::new(self.price, self.price_change_percentage_24h.unwrap_or(0.0), self.last_updated_at.into(), self.provider_value())
     }
 
     pub fn as_market_primitive(&self) -> AssetMarket {
@@ -214,18 +213,18 @@ impl PriceRow {
             total_supply: self.total_supply,
             max_supply: self.max_supply,
             all_time_high: Some(self.all_time_high),
-            all_time_high_date: self.all_time_high_date.map(|d| d.and_utc()),
+            all_time_high_date: self.all_time_high_date.map(Into::into),
             all_time_high_change_percentage: ath_percentage,
             all_time_low: Some(self.all_time_low),
-            all_time_low_date: self.all_time_low_date.map(|d| d.and_utc()),
+            all_time_low_date: self.all_time_low_date.map(Into::into),
             all_time_low_change_percentage: atl_percentage,
             all_time_high_value: self.all_time_high_date.map(|d| ChartValuePercentage {
-                date: d.and_utc(),
+                date: d.into(),
                 value: self.all_time_high as f32,
                 percentage: ath_percentage.unwrap_or_default() as f32,
             }),
             all_time_low_value: self.all_time_low_date.map(|d| ChartValuePercentage {
-                date: d.and_utc(),
+                date: d.into(),
                 value: self.all_time_low as f32,
                 percentage: atl_percentage.unwrap_or_default() as f32,
             }),
@@ -248,9 +247,9 @@ impl PriceRow {
             price: self.price,
             price_change_percentage_24h: self.price_change_percentage_24h,
             all_time_high: self.all_time_high,
-            all_time_high_date: self.all_time_high_date.map(|d| d.and_utc()),
+            all_time_high_date: self.all_time_high_date.map(Into::into),
             all_time_low: self.all_time_low,
-            all_time_low_date: self.all_time_low_date.map(|d| d.and_utc()),
+            all_time_low_date: self.all_time_low_date.map(Into::into),
             market_cap: self.market_cap,
             market_cap_fdv: self.market_cap_fdv,
             market_cap_rank: self.market_cap_rank,
@@ -258,7 +257,7 @@ impl PriceRow {
             circulating_supply: self.circulating_supply,
             total_supply: self.total_supply,
             max_supply: self.max_supply,
-            last_updated_at: self.last_updated_at.and_utc(),
+            last_updated_at: self.last_updated_at.into(),
         }
     }
 
@@ -269,9 +268,9 @@ impl PriceRow {
             price: data.price,
             price_change_percentage_24h: data.price_change_percentage_24h,
             all_time_high: data.all_time_high,
-            all_time_high_date: data.all_time_high_date.map(|d| d.naive_utc()),
+            all_time_high_date: data.all_time_high_date.map(Into::into),
             all_time_low: data.all_time_low,
-            all_time_low_date: data.all_time_low_date.map(|d| d.naive_utc()),
+            all_time_low_date: data.all_time_low_date.map(Into::into),
             market_cap: data.market_cap,
             market_cap_fdv: data.market_cap_fdv,
             market_cap_rank: data.market_cap_rank,
@@ -279,7 +278,7 @@ impl PriceRow {
             circulating_supply: data.circulating_supply,
             total_supply: data.total_supply,
             max_supply: data.max_supply,
-            last_updated_at: data.last_updated_at.naive_utc(),
+            last_updated_at: data.last_updated_at.into(),
         }
     }
 }
@@ -287,10 +286,10 @@ impl PriceRow {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use chrono::TimeZone;
+    use primitives::DateTime;
 
-    fn ts(secs: i64) -> NaiveDateTime {
-        chrono::Utc.timestamp_opt(secs, 0).unwrap().naive_utc()
+    fn ts(secs: i64) -> DateTime {
+        DateTime::from_timestamp(secs)
     }
 
     #[test]

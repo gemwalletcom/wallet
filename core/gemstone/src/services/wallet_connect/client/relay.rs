@@ -1,8 +1,7 @@
 use std::sync::Arc;
 
-use chrono::Utc;
 use gem_encoding::encode_hex;
-use primitives::Platform;
+use primitives::{DateTime, Platform};
 use wallet_connect_protocol::crypto::{self, Key};
 use wallet_connect_protocol::relay;
 
@@ -19,7 +18,7 @@ const RELAY_ORIGIN: &str = "gemwallet.com";
 pub fn wallet_connect_relay(store: Arc<dyn GemSecureStore>, platform: Platform) -> Result<GemWalletConnectRelay, GemServiceError> {
     let seed = relay_seed(store.as_ref())?;
     let subject = encode_hex(crypto::generate_key()?.as_slice());
-    let issued_at = u64::try_from(Utc::now().timestamp()).unwrap_or_default();
+    let issued_at = u64::try_from(DateTime::now().timestamp()).unwrap_or_default();
     let token = relay::auth_token(&seed, RELAY_URL, &subject, issued_at);
     Ok(GemWalletConnectRelay {
         url: format!("{RELAY_URL}/?projectId={}&auth={token}&ua=wc-2/gem/{}", get_wallet_connect_config().project_id, platform.as_str()),

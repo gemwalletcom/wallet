@@ -358,7 +358,6 @@ mod tests {
     };
     use alloy_primitives::{Bytes, hex::encode as hex_encode};
     use alloy_sol_types::SolCall;
-    use chrono::DateTime;
     use gem_evm::rpc::{
         model::{Transaction, TransactionReceipt},
         parsers::ProtocolParsers,
@@ -373,7 +372,7 @@ mod tests {
         deployment::v3::{get_aerodrome_router_deployment_by_chain, get_pancakeswap_router_deployment_by_chain},
     };
     use num_bigint::BigUint;
-    use primitives::TransactionSwapMetadata;
+    use primitives::{DateTime, TransactionSwapMetadata};
     use primitives::{
         asset_constants::{BASE_USDC_TOKEN_ID, BASE_WETH_TOKEN_ID, SMARTCHAIN_USDC_TOKEN_ID, SMARTCHAIN_USDT_TOKEN_ID},
         decode_hex,

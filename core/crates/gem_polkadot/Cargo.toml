@@ -24,9 +24,9 @@ chain_integration_tests = ["rpc", "reqwest"]
 gem_encoding = { path = "../gem_encoding", default-features = false, features = ["base58"] }
 num-traits = { workspace = true }
 primitives = { path = "../primitives" }
+date_time = { path = "../date_time", features = ["serde"] }
 serde = { workspace = true, features = ["derive"] }
 num-bigint = { workspace = true }
-chrono = { workspace = true, features = ["serde"] }
 gem_hash = { path = "../gem_hash" }
 signer = { path = "../signer", optional = true }
 gem_crypto = { path = "../gem_crypto", features = ["random"], optional = true }

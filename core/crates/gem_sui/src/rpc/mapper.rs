@@ -1,6 +1,7 @@
 use std::error::Error;
 
 use num_bigint::BigUint;
+use primitives::DateTime;
 
 use super::proto::{self, Command, OwnerKind, Timestamp};
 use crate::models::transaction::{STATUS_FAILURE, STATUS_SUCCESS, SuiStatus};
@@ -37,7 +38,7 @@ pub(super) fn map_executed_transaction(transaction: proto::ExecutedTransaction) 
         move_call_packages: map_move_call_packages(transaction.transaction.as_ref()),
         balance_changes: Some(transaction.balance_changes.into_iter().map(map_balance_change).collect::<Result<Vec<_>, _>>()?),
         events: transaction.events.map(map_events).unwrap_or_default(),
-        timestamp_ms: transaction.timestamp.as_ref().map(timestamp_millis).unwrap_or_default() as u64,
+        timestamp: DateTime::from_timestamp_millis(transaction.timestamp.as_ref().map(timestamp_millis).unwrap_or_default()),
     })
 }
 

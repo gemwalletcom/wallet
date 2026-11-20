@@ -4,8 +4,7 @@ use std::sync::atomic::{AtomicUsize, Ordering};
 use std::time::Duration;
 
 use async_trait::async_trait;
-use chrono::NaiveDateTime;
-use primitives::{Asset, AssetAddress, AssetAssociation, AssetBalance, AssetBasic, AssetFull, AssetId, AssetPriceMetadata, Chain, ChainAddress, ListId, Perpetual, ScanAddress, asset_score::AssetRank, fiat_assets::AssetCatalog};
+use primitives::{Asset, AssetAddress, AssetAssociation, AssetBalance, AssetBasic, AssetFull, AssetId, AssetPriceMetadata, Chain, ChainAddress, DateTime, ListId, Perpetual, ScanAddress, asset_score::AssetRank, fiat_assets::AssetCatalog};
 use storage::{AssetFilter, AssetUpdate, DatabaseError, Tag};
 
 use crate::assets::repository::{RankChange, Repository, TokenAddressesUpdate};
@@ -119,7 +118,7 @@ impl Repository for MemoryAssetRepository {
         Ok(vec![])
     }
 
-    async fn get_wallet_assets_with_prices(&self, _device_id: i32, _wallet_id: i32, _since: Option<NaiveDateTime>, filters: Vec<AssetFilter>, price_max_age: Duration) -> Result<Vec<AssetPriceMetadata>, DatabaseError> {
+    async fn get_wallet_assets_with_prices(&self, _device_id: i32, _wallet_id: i32, _since: Option<DateTime>, filters: Vec<AssetFilter>, price_max_age: Duration) -> Result<Vec<AssetPriceMetadata>, DatabaseError> {
         self.price_queries.lock().unwrap().push((filters, price_max_age));
         Ok(vec![])
     }
@@ -163,7 +162,7 @@ impl Repository for MemoryAssetRepository {
         Ok((0, 0))
     }
 
-    async fn update_usage_ranks(&self, _windows: Vec<(NaiveDateTime, i64)>, _retain_since: NaiveDateTime, _batch_size: usize) -> Result<usize, DatabaseError> {
+    async fn update_usage_ranks(&self, _windows: Vec<(DateTime, i64)>, _retain_since: DateTime, _batch_size: usize) -> Result<usize, DatabaseError> {
         Ok(0)
     }
 

@@ -1,5 +1,4 @@
 use crate::models::{Address, Transaction};
-use chrono::{TimeZone, Utc};
 use num_bigint::BigUint;
 use primitives::{TransactionState, TransactionType, chain::Chain, transaction_utxo::TransactionUtxoInput};
 use std::error::Error;
@@ -48,7 +47,7 @@ pub fn map_utxo_transaction(chain: Chain, transaction: &Transaction, inputs: Vec
     if inputs.is_empty() || outputs.is_empty() {
         return None;
     }
-    let created_at = Utc.timestamp_opt(transaction.block_time, 0).single()?;
+    let created_at = transaction.block_time;
     let memo = op_return_memo(transaction);
 
     let state = if transaction.is_confirmed() { TransactionState::Confirmed } else { TransactionState::Pending };

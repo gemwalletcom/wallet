@@ -1,4 +1,4 @@
-use chrono::{DateTime, Utc};
+use crate::DateTime;
 use model_derive::Model;
 use serde::{Deserialize, Serialize};
 
@@ -68,7 +68,7 @@ pub struct SupportMessage {
     pub content: String,
     pub sender: SupportMessageSender,
     pub status: SupportMessageStatus,
-    pub created_at: DateTime<Utc>,
+    pub created_at: DateTime,
     pub images: Vec<SupportMessageImage>,
 }
 

@@ -6,10 +6,9 @@ use crate::{
     address::ethereum_address_checksum,
     rpc::model::{Transaction, TransactionReceipt},
 };
-use chrono::DateTime;
 use num_bigint::BigUint;
 use primitives::{
-    AssetId, NFTAssetId, OptionStringExt, Transaction as PrimitivesTransaction, TransactionType,
+    AssetId, DateTime, NFTAssetId, OptionStringExt, Transaction as PrimitivesTransaction, TransactionType,
     chain::Chain,
     hex::decode_hex_utf8,
     transaction_metadata_types::{TransactionAssetTransfer, TransactionAssetTransfersMetadata, TransactionNFTTransferMetadata},
@@ -52,7 +51,7 @@ impl EthereumMapper {
         let fee_asset_id = chain.as_asset_id();
         let from = ethereum_address_checksum(&transaction.from.clone()).ok()?;
         let to = ethereum_address_checksum(&transaction.to.clone().unwrap_or_default()).ok()?;
-        let created_at = DateTime::from_timestamp(timestamp.clone().try_into().ok()?, 0)?;
+        let created_at = DateTime::from_timestamp(timestamp.clone().try_into().ok()?);
 
         let payload = TransactionPayload::from_transaction(transaction, transaction_receipt, &from, &to);
 

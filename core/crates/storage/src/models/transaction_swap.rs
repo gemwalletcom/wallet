@@ -1,7 +1,6 @@
-use chrono::NaiveDateTime;
 use diesel::prelude::*;
 
-use crate::sql_types::{AssetId, SwapProviderRow, SwapStatusRow};
+use crate::sql_types::{AssetId, DateTimeRow, SwapProviderRow, SwapStatusRow};
 
 #[derive(Debug, Insertable, AsChangeset, Clone)]
 #[diesel(table_name = crate::schema::transactions_swaps)]
@@ -19,5 +18,5 @@ pub(crate) struct NewTransactionSwapRow {
     pub to_amount_usd: Option<f64>,
     pub referral_fee_asset_id: AssetId,
     pub referral_fee_amount_usd: Option<f64>,
-    pub created_at: NaiveDateTime,
+    pub created_at: DateTimeRow,
 }

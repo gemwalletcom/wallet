@@ -2,10 +2,9 @@ use std::error::Error;
 use std::sync::Arc;
 
 use async_trait::async_trait;
-use chrono::{Duration, NaiveDateTime};
 use num_bigint::BigUint;
 use number_formatter::BigNumberFormatter;
-use primitives::{AssetId, DAY, PriceData, SwapProvider, Transaction, TransactionId, TransactionType, swap::SwapStatus};
+use primitives::{AssetId, DAY, DateTime, PriceData, SwapProvider, Transaction, TransactionId, TransactionType, swap::SwapStatus};
 use storage::TransactionSwapRecord;
 use streamer::consumer::MessageConsumer;
 
@@ -40,7 +39,7 @@ impl StoreTransactionsSwapsConsumer {
         let (Some(referral_fee), Some(provider)) = (metadata.referral_fee, metadata.provider.and_then(|provider| provider.parse::<SwapProvider>().ok())) else {
             return Ok(None);
         };
-        let at = transaction.created_at.naive_utc();
+        let at = transaction.created_at;
         let fee = self.asset_value(&referral_fee.asset_id, &referral_fee.value, at).await?;
         if !fee.is_enabled {
             return Ok(None);
@@ -65,13 +64,12 @@ impl StoreTransactionsSwapsConsumer {
         }))
     }
 
-    async fn asset_value(&self, asset_id: &AssetId, value: &BigUint, at: NaiveDateTime) -> Result<AssetValue, Box<dyn Error + Send + Sync>> {
+    async fn asset_value(&self, asset_id: &AssetId, value: &BigUint, at: DateTime) -> Result<AssetValue, Box<dyn Error + Send + Sync>> {
         let AssetPriceHistory { assets, price_at: price, prices } = self.repository.get_asset_price_history(asset_id.clone(), at).await?;
         let asset = assets.into_iter().next().ok_or_else(|| format!("asset {asset_id} not found"))?;
         let amount = BigNumberFormatter::value_as_f64(value, asset.asset.decimals)?;
-        let max_age = Duration::from_std(DAY)?;
         let is_enabled = asset.properties.is_enabled;
-        let amount_usd = price.filter(|(price_at, _)| is_enabled && at - *price_at <= max_age && is_within_supply(amount, &prices)).map(|(_, price)| amount * price);
+        let amount_usd = price.filter(|(price_at, _)| is_enabled && at - *price_at <= DAY && is_within_supply(amount, &prices)).map(|(_, price)| amount * price);
         Ok(AssetValue { amount, amount_usd, is_enabled })
     }
 }

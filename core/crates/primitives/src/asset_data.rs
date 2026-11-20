@@ -1,8 +1,7 @@
-use chrono::{DateTime, Utc};
 use model_derive::Model;
 use serde::{Deserialize, Serialize};
 
-use crate::{Account, Asset, AssetAssociation, AssetMetaData, Balance, Price, PriceAlert};
+use crate::{Account, Asset, AssetAssociation, AssetMetaData, Balance, DateTime, Price, PriceAlert};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Model)]
 #[model(swift = "Equatable, Hashable, Sendable")]
@@ -30,5 +29,5 @@ pub struct ChainAssetData {
 #[serde(rename_all = "camelCase")]
 pub struct RecentAsset {
     pub asset: Asset,
-    pub created_at: DateTime<Utc>,
+    pub created_at: DateTime,
 }

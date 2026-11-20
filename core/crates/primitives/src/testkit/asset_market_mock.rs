@@ -1,6 +1,4 @@
-use chrono::DateTime;
-
-use crate::{AssetMarket, ChartValuePercentage};
+use crate::{AssetMarket, ChartValuePercentage, DateTime};
 
 impl AssetMarket {
     pub fn mock() -> Self {
@@ -39,7 +37,7 @@ impl AssetMarket {
 impl ChartValuePercentage {
     pub fn mock() -> Self {
         ChartValuePercentage {
-            date: DateTime::from_timestamp(10, 0).unwrap(),
+            date: DateTime::from_timestamp(10),
             value: 1.1,
             percentage: -5.0,
         }
@@ -47,7 +45,7 @@ impl ChartValuePercentage {
 
     pub fn mock_low() -> Self {
         ChartValuePercentage {
-            date: DateTime::from_timestamp(5, 0).unwrap(),
+            date: DateTime::from_timestamp(5),
             value: 0.9,
             percentage: 25.0,
         }

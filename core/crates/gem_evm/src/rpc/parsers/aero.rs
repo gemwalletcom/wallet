@@ -24,10 +24,9 @@ mod tests {
         parsers::ProtocolParsers,
     };
     use crate::uniswap::deployment::aero::METAROUTER;
-    use chrono::DateTime;
     use num_bigint::BigUint;
     use primitives::{
-        AssetId, Chain, SwapProvider, TransactionSwapMetadata, TransactionSwapReferralFee,
+        AssetId, Chain, DateTime, SwapProvider, TransactionSwapMetadata, TransactionSwapReferralFee,
         asset_constants::{ARC_EURC_TOKEN_ID, ARC_USDC_TOKEN_ID, BASE_USDC_ASSET_ID},
         swap::EVM_REFERRAL_ADDRESS,
         testkit::json_rpc::load_json_rpc_result,

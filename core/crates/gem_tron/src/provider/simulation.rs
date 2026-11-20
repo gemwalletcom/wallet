@@ -4,11 +4,10 @@ use std::error::Error;
 
 use async_trait::async_trait;
 use chain_traits::ChainSimulation;
-use chrono::Utc;
 use futures::future::join_all;
 use gem_client::Client;
 use primitives::Address as _;
-use primitives::{Asset, AssetId, Chain, SimulationBalanceChange, SimulationHeader, SimulationInput, SimulationResult};
+use primitives::{Asset, AssetId, Chain, DateTime, SimulationBalanceChange, SimulationHeader, SimulationInput, SimulationResult};
 
 use crate::address::TronAddress;
 use crate::decode_wallet_connect_approval;
@@ -72,7 +71,7 @@ impl<C: Client> TronProvider<C> {
         let contract = decode_wallet_connect_single_contract(encoded_transaction).ok().flatten()?;
         let withdrawal = match &contract {
             TronContract::WithdrawBalance { owner } => self.get_reward(&owner.encode()).await.ok().map(|reward| BigUint::from(reward.reward)),
-            TronContract::WithdrawExpireUnfreeze { owner } => self.get_account(&owner.encode()).await.ok().map(|account| map_withdrawable_unfreeze(account, Utc::now())),
+            TronContract::WithdrawExpireUnfreeze { owner } => self.get_account(&owner.encode()).await.ok().map(|account| map_withdrawable_unfreeze(account, DateTime::now())),
             TronContract::Transfer { .. }
             | TronContract::TriggerSmart(_)
             | TronContract::VoteWitness { .. }

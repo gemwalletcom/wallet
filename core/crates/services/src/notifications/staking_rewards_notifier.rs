@@ -9,7 +9,7 @@ use gem_tracing::info_with_fields;
 use localizer::LanguageLocalizer;
 use num_bigint::BigUint;
 use number_formatter::{BigNumberFormatter, ValueFormatter, ValueStyle};
-use primitives::{Asset, Chain, DelegationBase, DeviceSubscription, TransactionType};
+use primitives::{Asset, Chain, DateTime, DelegationBase, DeviceSubscription, TransactionType};
 use push_notification::{GorushNotification, PushNotification};
 use streamer::{NotificationsPayload, StreamProducerQueue};
 
@@ -50,7 +50,7 @@ impl StakingRewardsNotifier {
     }
 
     pub async fn check_chain(&self, chain: Chain) -> Result<usize, Box<dyn Error + Send + Sync>> {
-        let since = chrono::Utc::now().naive_utc() - chrono::Duration::from_std(self.config.lookback)?;
+        let since = DateTime::now() - self.config.lookback;
         let kinds = TransactionType::staking_types();
         let addresses = self.repository.get_addresses_with_transactions(chain, kinds, since).await?;
 

@@ -2,8 +2,8 @@ use super::config::AbuseDetectionConfig;
 use super::repository::{AbuseFacts, Repository};
 use crate::ConfigCacher;
 use gem_tracing::info_with_fields;
+use primitives::DateTime;
 use primitives::rewards::RewardStatus;
-use primitives::{NaiveDateTimeExt, now};
 use std::error::Error;
 use std::sync::Arc;
 use storage::AbusePatterns;
@@ -58,7 +58,7 @@ impl RewardsAbuseChecker {
 
     pub async fn check(&self) -> Result<usize, Box<dyn Error + Send + Sync>> {
         let config = AbuseDetectionConfig::from_config(&self.config).await?;
-        let since = now().ago(config.lookback);
+        let since = DateTime::now() - config.lookback;
 
         let facts = self.repository.get_abuse_facts(since, config.min_referrals_to_evaluate, config.velocity_window.as_secs() as i64).await?;
         let mut evaluations: Vec<AbuseEvaluation> = facts.into_iter().map(|facts| Self::evaluate_user(facts, &config)).collect();

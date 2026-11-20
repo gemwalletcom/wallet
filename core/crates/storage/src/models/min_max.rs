@@ -1,14 +1,16 @@
-use chrono::NaiveDateTime;
+use primitives::DateTime;
+
+use crate::sql_types::DateTimeRow;
 
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct DataPoint<T> {
     pub value: T,
-    pub date: NaiveDateTime,
+    pub date: DateTime,
 }
 
-impl<T> From<(T, NaiveDateTime)> for DataPoint<T> {
-    fn from((value, date): (T, NaiveDateTime)) -> Self {
-        Self { value, date }
+impl<T> From<(T, DateTimeRow)> for DataPoint<T> {
+    fn from((value, date): (T, DateTimeRow)) -> Self {
+        Self { value, date: date.into() }
     }
 }
 

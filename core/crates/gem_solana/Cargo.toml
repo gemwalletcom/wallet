@@ -27,10 +27,10 @@ gem_encoding = { path = "../gem_encoding", features = ["base58"] }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 num-bigint = { workspace = true }
-chrono = { workspace = true }
 url = { workspace = true }
 serde_serializers = { path = "../serde_serializers", features = ["bigint"] }
 primitives = { path = "../primitives" }
+date_time = { path = "../date_time", features = ["serde"] }
 gem_jsonrpc = { path = "../gem_jsonrpc" }
 async-trait = { workspace = true, optional = true }
 gem_client = { path = "../gem_client", optional = true }

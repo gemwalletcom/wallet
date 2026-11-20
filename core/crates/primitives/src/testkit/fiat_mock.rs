@@ -1,7 +1,6 @@
 use crate::currency::Currency;
 use crate::fiat_assets::{FiatAsset, FiatAssetLimits};
-use crate::{Asset, AssetId, Chain, FiatProvider, FiatProviderName, FiatQuote, FiatQuoteRequest, FiatQuoteType, FiatTransaction, FiatTransactionStatus, PaymentType};
-use chrono::{DateTime, Utc};
+use crate::{Asset, AssetId, Chain, DateTime, FiatProvider, FiatProviderName, FiatQuote, FiatQuoteRequest, FiatQuoteType, FiatTransaction, FiatTransactionStatus, PaymentType};
 use num_bigint::BigUint;
 use std::collections::HashMap;
 
@@ -81,8 +80,8 @@ impl FiatTransaction {
             fiat_currency: "USD".to_string(),
             value: BigUint::from(100_000u64),
             transaction_hash: None,
-            created_at: DateTime::<Utc>::UNIX_EPOCH,
-            updated_at: DateTime::<Utc>::UNIX_EPOCH,
+            created_at: DateTime::UNIX_EPOCH,
+            updated_at: DateTime::UNIX_EPOCH,
         }
     }
 }

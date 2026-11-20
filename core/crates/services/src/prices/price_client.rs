@@ -4,13 +4,12 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use cacher::{CacheError, PriceCacher};
-use chrono::{Duration as ChronoDuration, NaiveDateTime, Utc};
 use config_keys::ConfigKey;
 use gem_tracing::{error_with_fields, warn_with_fields};
 use prices::{AssetPriceFull, AssetPriceMapping, PriceAssetsProvider, PriceProviders};
 use primitives::currency::Currency;
 use primitives::price_provider::primary_price;
-use primitives::{AssetId, AssetMarketPrice, AssetPriceInfo, AssetPrices, ChartTimeframe, FiatRate, FiatRateProvider, PriceData, PriceId, PriceProvider, PriceProviderConfig};
+use primitives::{AssetId, AssetMarketPrice, AssetPriceInfo, AssetPrices, ChartTimeframe, DateTime, FiatRate, FiatRateProvider, PriceData, PriceId, PriceProvider, PriceProviderConfig};
 use storage::{AssetFilter, PriceAsset};
 
 use super::repository::Repository;
@@ -69,11 +68,8 @@ impl PriceClient {
         if price_ids.is_empty() {
             return Ok(prices);
         }
-        let now = Utc::now();
-        let prices_24h_ago = self
-            .repository
-            .get_chart_prices(price_ids, (now - ChronoDuration::hours(25)).naive_utc(), (now - ChronoDuration::hours(24)).naive_utc())
-            .await?;
+        let now = DateTime::now();
+        let prices_24h_ago = self.repository.get_chart_prices(price_ids, now - Duration::from_hours(25), now - Duration::from_hours(24)).await?;
         Ok(prices
             .into_iter()
             .map(|price| {
@@ -135,7 +131,7 @@ impl PriceClient {
         Ok(self.repository.update_chart_aggregates(timeframe).await?)
     }
 
-    pub async fn delete_charts(&self, timeframe: ChartTimeframe, before: NaiveDateTime) -> Result<usize, Box<dyn Error + Send + Sync>> {
+    pub async fn delete_charts(&self, timeframe: ChartTimeframe, before: DateTime) -> Result<usize, Box<dyn Error + Send + Sync>> {
         Ok(self.repository.delete_charts(timeframe, before).await?)
     }
 
@@ -273,17 +269,17 @@ mod tests {
         let asset_id = AssetId::from_chain(Chain::Solana);
         let fresh = AssetPriceInfo {
             asset_id: asset_id.clone(),
-            price: Price::new(144.0, 2.0, Utc::now(), PriceProvider::Jupiter),
+            price: Price::new(144.0, 2.0, DateTime::now(), PriceProvider::Jupiter),
             market: AssetMarket::mock(),
         };
         let repository = Arc::new(MemoryPricesRepository::default().with_price_infos(vec![
             AssetPriceInfo {
-                price: Price::new(143.0, 1.0, Utc::now() - ChronoDuration::hours(2), PriceProvider::Coingecko),
+                price: Price::new(143.0, 1.0, DateTime::now() - Duration::from_hours(2), PriceProvider::Coingecko),
                 ..fresh.clone()
             },
             fresh.clone(),
             AssetPriceInfo {
-                price: Price::new(145.0, 0.0, Utc::now(), PriceProvider::Pyth),
+                price: Price::new(145.0, 0.0, DateTime::now(), PriceProvider::Pyth),
                 ..fresh.clone()
             },
         ]));

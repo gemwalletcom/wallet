@@ -1,9 +1,10 @@
 mod mapper;
 
+use std::time::Duration;
+
 use async_trait::async_trait;
-use chrono::NaiveDateTime;
 use primitives::rewards::{RedemptionResponse, RedemptionResult, RedemptionStatus, RewardRedemptionOption, RewardRedemptionType, RewardStatus};
-use primitives::{NotificationRewardsMetadata, ReferralLeaderboard, RewardEvent, RewardEventType, Rewards, WalletId, WalletSource, WalletType, now};
+use primitives::{DateTime, NotificationRewardsMetadata, ReferralLeaderboard, RewardEvent, RewardEventType, Rewards, WalletId, WalletSource, WalletType};
 use rewards::{
     NewReferralVerification, ReferralError, ReferralUseFacts, ReferralValidationError, ReferredRewards, RewardsRedemptionError, RiskScoreConfig, RiskScoringInput, UsernameRules, UsernameValidationError, available_redemption_options,
     evaluate_risk, new_referral_verification, offers_redemptions, referral_verification_delay, validate_username, validate_username_available, validate_wallet_without_username,
@@ -29,7 +30,7 @@ pub(crate) struct ReferralCodeRequest {
     pub(crate) code: String,
     pub(crate) wallet_id: i32,
     pub(crate) device_id: i32,
-    pub(crate) device_created_at: NaiveDateTime,
+    pub(crate) device_created_at: DateTime,
 }
 
 pub(crate) struct ReferralUseCheck {
@@ -37,10 +38,10 @@ pub(crate) struct ReferralUseCheck {
     pub(crate) referrer_wallet_id: i32,
     pub(crate) wallet_id: i32,
     pub(crate) device_id: i32,
-    pub(crate) device_created_at: NaiveDateTime,
-    pub(crate) window_limits: Vec<(NaiveDateTime, i64)>,
-    pub(crate) cooldown_since: NaiveDateTime,
-    pub(crate) eligibility_days: i64,
+    pub(crate) device_created_at: DateTime,
+    pub(crate) window_limits: Vec<(DateTime, i64)>,
+    pub(crate) cooldown_since: DateTime,
+    pub(crate) eligibility: Duration,
 }
 
 pub(crate) struct RedemptionStart {
@@ -61,7 +62,7 @@ pub(crate) trait Repository: Send + Sync {
     async fn get_referral_code_use(&self, request: ReferralCodeRequest) -> Result<Result<ReferralCodeUse, ReferralError>, DatabaseError>;
     async fn get_referrer_info(&self, username: String) -> Result<ReferrerInfo, DatabaseError>;
     async fn get_referral_use_check(&self, check: ReferralUseCheck) -> Result<Result<(), ReferralError>, DatabaseError>;
-    async fn add_referral_risk_signal(&self, input: RiskScoringInput, config: RiskScoreConfig, since: NaiveDateTime) -> Result<Result<RiskAssessment, ReferralError>, DatabaseError>;
+    async fn add_referral_risk_signal(&self, input: RiskScoringInput, config: RiskScoreConfig, since: DateTime) -> Result<Result<RiskAssessment, ReferralError>, DatabaseError>;
     async fn set_referral(
         &self,
         referrer_username: String,
@@ -72,10 +73,10 @@ pub(crate) trait Repository: Send + Sync {
         verification_config: ReferralVerificationConfig,
     ) -> Result<Result<Vec<RewardEvent>, ReferralError>, DatabaseError>;
     async fn add_referral_attempt(&self, referrer_username: String, wallet_id: i32, device_id: i32, risk_signal_id: Option<i32>, reason: String) -> Result<(), DatabaseError>;
-    async fn get_redemption_limit_check(&self, username: String, cooldown_since: NaiveDateTime, window_limits: Vec<(NaiveDateTime, i64)>) -> Result<Result<(), RewardsRedemptionError>, DatabaseError>;
+    async fn get_redemption_limit_check(&self, username: String, cooldown_since: DateTime, window_limits: Vec<(DateTime, i64)>) -> Result<Result<(), RewardsRedemptionError>, DatabaseError>;
     async fn add_redemption(&self, username: String, points: i32, option_id: String, device_id: i32, wallet_id: i32) -> Result<Result<RedemptionResponse, RewardsRedemptionError>, DatabaseError>;
     async fn get_event_notifications(&self, event_id: i32) -> Result<Vec<InAppNotificationPayload>, DatabaseError>;
-    async fn get_abuse_facts(&self, since: NaiveDateTime, min_referrals: i64, velocity_window_secs: i64) -> Result<Vec<AbuseFacts>, DatabaseError>;
+    async fn get_abuse_facts(&self, since: DateTime, min_referrals: i64, velocity_window_secs: i64) -> Result<Vec<AbuseFacts>, DatabaseError>;
     async fn set_rewards_disabled(&self, username: String, reason: String, comment: String) -> Result<i32, DatabaseError>;
     async fn get_usernames_with_status(&self, status: RewardStatus) -> Result<Vec<String>, DatabaseError>;
     async fn update_rewards_verified_if_eligible(&self, username: String, eligibility: RewardsEligibilityConfig) -> Result<Option<(i32, Vec<i32>)>, DatabaseError>;
@@ -183,7 +184,7 @@ impl Repository for PostgresRepository {
                     }));
                 }
                 if referrer_info.status == RewardStatus::Attribution {
-                    if let Err(error) = facts.validate_use(&referrer_username, referrer_info.wallet_id, device_created_at, None, now()) {
+                    if let Err(error) = facts.validate_use(&referrer_username, referrer_info.wallet_id, device_created_at, None, DateTime::now()) {
                         return Ok(Err(error.into()));
                     }
                     return Ok(Ok(ReferralCodeUse::Apply {
@@ -213,13 +214,13 @@ impl Repository for PostgresRepository {
                 }
                 let facts = mapper::referral_use_facts(client.get_referral_use_facts(check.wallet_id, check.device_id)?);
                 Ok(facts
-                    .validate_use(&check.referrer_username, check.referrer_wallet_id, check.device_created_at, Some(check.eligibility_days), now())
+                    .validate_use(&check.referrer_username, check.referrer_wallet_id, check.device_created_at, Some(check.eligibility), DateTime::now())
                     .map_err(ReferralError::from))
             })
             .await
     }
 
-    async fn add_referral_risk_signal(&self, input: RiskScoringInput, config: RiskScoreConfig, since: NaiveDateTime) -> Result<Result<RiskAssessment, ReferralError>, DatabaseError> {
+    async fn add_referral_risk_signal(&self, input: RiskScoringInput, config: RiskScoreConfig, since: DateTime) -> Result<Result<RiskAssessment, ReferralError>, DatabaseError> {
         self.database
             .run(move |client| {
                 if client.get_disabled_users_count_by_device(input.device_id, since)? > 0 {
@@ -282,7 +283,7 @@ impl Repository for PostgresRepository {
                     status: verification.status,
                     verify_after: verification.verify_after,
                 };
-                let now = now();
+                let now = DateTime::now();
                 let can_verify = referred.can_verify_referral(now);
                 if referred.clears_verification_delay(now) {
                     client.delete_rewards_verification_delay(&referred_username)?;
@@ -316,7 +317,7 @@ impl Repository for PostgresRepository {
         self.database.run(move |client| client.add_referral_attempt(&referrer_username, wallet_id, device_id, risk_signal_id, &reason)).await
     }
 
-    async fn get_redemption_limit_check(&self, username: String, cooldown_since: NaiveDateTime, window_limits: Vec<(NaiveDateTime, i64)>) -> Result<Result<(), RewardsRedemptionError>, DatabaseError> {
+    async fn get_redemption_limit_check(&self, username: String, cooldown_since: DateTime, window_limits: Vec<(DateTime, i64)>) -> Result<Result<(), RewardsRedemptionError>, DatabaseError> {
         self.database
             .run(move |client| {
                 if client.get_referrals_count_since(&username, cooldown_since)? > 0 {
@@ -370,7 +371,7 @@ impl Repository for PostgresRepository {
             .await
     }
 
-    async fn get_abuse_facts(&self, since: NaiveDateTime, min_referrals: i64, velocity_window_secs: i64) -> Result<Vec<AbuseFacts>, DatabaseError> {
+    async fn get_abuse_facts(&self, since: DateTime, min_referrals: i64, velocity_window_secs: i64) -> Result<Vec<AbuseFacts>, DatabaseError> {
         self.database
             .run(move |client| {
                 let usernames = client.get_referrer_usernames_with_referrals(since, min_referrals)?;

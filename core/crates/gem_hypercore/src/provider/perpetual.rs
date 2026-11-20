@@ -8,7 +8,7 @@ use futures::{
 };
 use gem_client::Client;
 use primitives::{
-    ChartPeriod, PerpetualPosition,
+    ChartPeriod, DateTime, PerpetualPosition,
     chart::ChartCandleStick,
     perpetual::{PerpetualAccountMode, PerpetualAccountPositions, PerpetualAddress, PerpetualBalance, PerpetualData, PerpetualPositionsSummary},
     portfolio::PerpetualPortfolio,
@@ -104,7 +104,7 @@ impl<C: Client> ChainPerpetual for HyperCoreClient<C> {
     async fn get_perpetual_candlesticks(&self, symbol: String, period: ChartPeriod) -> Result<Vec<ChartCandleStick>, Box<dyn Error + Sync + Send>> {
         let interval = candle_interval(&period);
 
-        let end_time = chrono::Utc::now().timestamp() * 1000;
+        let end_time = DateTime::now().timestamp() * 1000;
         let start_time = match period {
             ChartPeriod::Hour => end_time - 60 * 60 * 1000,
             ChartPeriod::Day => end_time - 24 * 60 * 60 * 1000,

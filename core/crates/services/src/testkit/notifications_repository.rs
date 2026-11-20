@@ -1,8 +1,7 @@
 use std::sync::Mutex;
 
 use async_trait::async_trait;
-use chrono::NaiveDateTime;
-use primitives::{Asset, AssetId, Chain, Device, NotificationData, ScanAddress, TransactionType};
+use primitives::{Asset, AssetId, Chain, DateTime, Device, NotificationData, ScanAddress, TransactionType};
 use storage::{DatabaseError, DeviceFilter, DeviceUpdate, NewNotification};
 
 use crate::notifications::repository::Repository;
@@ -33,7 +32,7 @@ impl Repository for MemoryNotificationsRepository {
         Ok(vec![])
     }
 
-    async fn get_device_notifications(&self, device_id: String, _since: Option<NaiveDateTime>, _limit: usize) -> Result<(Device, Vec<NotificationData>), DatabaseError> {
+    async fn get_device_notifications(&self, device_id: String, _since: Option<DateTime>, _limit: usize) -> Result<(Device, Vec<NotificationData>), DatabaseError> {
         Err(DatabaseError::not_found("Device", device_id))
     }
 
@@ -61,7 +60,7 @@ impl Repository for MemoryNotificationsRepository {
             .ok_or_else(|| DatabaseError::not_found("ScanAddress", address))
     }
 
-    async fn get_addresses_with_transactions(&self, _chain: Chain, _kinds: Vec<TransactionType>, _since: NaiveDateTime) -> Result<Vec<String>, DatabaseError> {
+    async fn get_addresses_with_transactions(&self, _chain: Chain, _kinds: Vec<TransactionType>, _since: DateTime) -> Result<Vec<String>, DatabaseError> {
         Ok(vec![])
     }
 }

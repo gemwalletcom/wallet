@@ -3,11 +3,10 @@ use std::sync::Arc;
 
 use cacher::{AssetCatalogCacher, ChartsHistoryCacher, ObservedAssetsCacher, PerpetualAddressCacher, PriceMetadataCacher, SwapVaultAddressCacher, ThrottleCacher};
 use chain_providers::ChainProviders;
-use chrono::{TimeDelta, Utc};
 use coingecko::CoinGeckoClient;
 use config_keys::ConfigKey;
 use prices::{FiatRatesProvider, PriceAssetsProvider, PriceProvider};
-use primitives::{AccessTokenCacher, Chain, ChartTimeframe, SwapProvider};
+use primitives::{AccessTokenCacher, Chain, ChartTimeframe, DateTime, SwapProvider};
 use search_index::SearchIndexClient;
 use settings::service_user_agent;
 use storage::{Database, PricesProvidersRepository};
@@ -230,7 +229,7 @@ impl PriceJobs {
 
     pub async fn delete_expired_charts(&self, timeframe: ChartTimeframe) -> Result<usize, Box<dyn Error + Send + Sync>> {
         let retention = self.config.get_duration(charts_retention_key(timeframe)).await?;
-        let before = (Utc::now() - TimeDelta::from_std(retention)?).naive_utc();
+        let before = DateTime::now() - retention;
         ChartsUpdater::new(self.price_client.clone()).delete_charts(timeframe, before).await
     }
 }

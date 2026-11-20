@@ -5,7 +5,6 @@ version = { workspace = true }
 
 [dependencies]
 async-trait = { workspace = true }
-chrono = { workspace = true }
 cacher = { path = "../cacher" }
 chain_primitives = { path = "../chain_primitives" }
 chain_providers = { path = "../chain_providers" }

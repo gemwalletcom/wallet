@@ -7,9 +7,7 @@ pub(crate) mod testkit;
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use chrono::Utc;
-
-use primitives::{Asset, AssetId, Chain, ContractCallData, Currency, Delegation, DelegationBase, DelegationValidator, EarnType, Feature, Platform, StakeProviderType, WalletId, WalletType};
+use primitives::{Asset, AssetId, Chain, ContractCallData, Currency, DateTime, Delegation, DelegationBase, DelegationValidator, EarnType, Feature, Platform, StakeProviderType, WalletId, WalletType};
 
 use crate::api::GemStaticApiClient;
 use crate::gateway::GemGateway;
@@ -124,7 +122,7 @@ impl GemStakeService {
 
     pub fn delegation_details(&self, wallet_type: WalletType, delegation: Delegation, asset: Asset, price: Option<f64>, currency: Currency, validators: Vec<DelegationValidator>) -> GemDelegationDetails {
         let rows = self.delegation_rows(delegation.clone());
-        rules::delegation_details(wallet_type, &delegation, &asset, price, currency, rows, &validators, self.unavailable_topic().as_ref(), Utc::now())
+        rules::delegation_details(wallet_type, &delegation, &asset, price, currency, rows, &validators, self.unavailable_topic().as_ref(), DateTime::now())
     }
 }
 
@@ -139,7 +137,7 @@ impl GemStakeService {
     }
 
     pub fn delegation_rows(&self, delegation: Delegation) -> Vec<GemListRow> {
-        rules::delegation_rows(&delegation, Utc::now())
+        rules::delegation_rows(&delegation, DateTime::now())
     }
 
     pub async fn sync(&self, chain: Chain) -> Result<(), GemServiceError> {

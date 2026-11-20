@@ -1,6 +1,5 @@
-use chrono::NaiveDateTime;
 use diesel::prelude::*;
-use primitives::Chain;
+use primitives::{Chain, DateTime};
 
 use crate::models::ParserStateRow;
 use crate::sql_types::ChainRow;
@@ -16,7 +15,7 @@ pub struct ParserState {
     pub timeout_latest_block: i32,
     pub parallel_blocks: i32,
     pub is_enabled: bool,
-    pub updated_at: NaiveDateTime,
+    pub updated_at: DateTime,
     pub queue_behind_blocks: Option<i32>,
     pub block_time: i32,
 }
@@ -32,7 +31,7 @@ impl ParserState {
             timeout_latest_block: row.timeout_latest_block,
             parallel_blocks: row.parallel_blocks,
             is_enabled: row.is_enabled,
-            updated_at: row.updated_at,
+            updated_at: row.updated_at.into(),
             queue_behind_blocks: row.queue_behind_blocks,
             block_time: row.block_time,
         }

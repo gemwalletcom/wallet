@@ -12,21 +12,19 @@ use crate::{
     near_intents::client::{base_url, explorer_url},
 };
 use async_trait::async_trait;
-#[cfg(test)]
-use chrono::DateTime;
-use chrono::{Duration, Utc};
 use gem_evm::address::ethereum_address_checksum;
 use num_bigint::BigUint;
 use num_traits::Zero;
 use primitives::{
-    AssetId, Chain, OptionStringExt, TransactionSwapMetadata, TransactionSwapReferralFee,
+    AssetId, Chain, DateTime, HOUR, MINUTE, OptionStringExt, TransactionSwapMetadata, TransactionSwapReferralFee,
     swap::{NEAR_REFERRAL_ADDRESS, SwapStatus},
 };
 use std::str::FromStr;
+use std::time::Duration;
 use std::{fmt::Debug, sync::Arc};
 
-const DEFAULT_DEADLINE_MINUTES: i64 = 30;
-const BITCOIN_DEADLINE_MINUTES: i64 = 120;
+const DEFAULT_DEADLINE: Duration = MINUTE.saturating_mul(30);
+const BITCOIN_DEADLINE: Duration = HOUR.saturating_mul(2);
 const APP_FEE_SPLIT: u32 = 2;
 
 pub const TREASURY_ADDRESSES: [(Chain, &str); 17] = [
@@ -96,8 +94,7 @@ where
         }
         let quote_waiting_time_ms = Some(Self::quote_waiting_time(from_chain, to_chain));
 
-        let deadline_minutes = Self::get_deadline_by_chain(from_chain).max(Self::get_deadline_by_chain(to_chain));
-        let deadline = (Utc::now() + Duration::minutes(deadline_minutes)).to_rfc3339();
+        let deadline = (DateTime::now() + Self::get_deadline_by_chain(from_chain).max(Self::get_deadline_by_chain(to_chain))).to_string();
         Ok(NearQuoteRequest {
             origin_asset,
             destination_asset,
@@ -166,8 +163,8 @@ where
         }
     }
 
-    fn get_deadline_by_chain(chain: Chain) -> i64 {
-        if chain == Chain::Bitcoin { BITCOIN_DEADLINE_MINUTES } else { DEFAULT_DEADLINE_MINUTES }
+    fn get_deadline_by_chain(chain: Chain) -> Duration {
+        if chain == Chain::Bitcoin { BITCOIN_DEADLINE } else { DEFAULT_DEADLINE }
     }
 
     fn deposit_recipient(from_asset: &SwapperQuoteAsset, deposit_address: String, deposit_memo: Option<String>) -> Result<(String, Option<String>), SwapperError> {
@@ -367,11 +364,11 @@ mod tests {
         for (from_chain, to_chain) in [(Chain::Bitcoin, Chain::Litecoin), (Chain::Litecoin, Chain::Bitcoin)] {
             let mut request = QuoteRequest::mock(from_chain, None);
             request.to_asset = SwapperQuoteAsset::from(AssetId::from_chain(to_chain));
-            let earliest_deadline = Utc::now() + Duration::hours(2);
+            let earliest_deadline = DateTime::now() + Duration::from_hours(2);
 
             let quote_request = NearIntents::<RpcClient>::build_quote_request(&request, true).unwrap();
-            let latest_deadline = Utc::now() + Duration::hours(2);
-            let deadline: DateTime<Utc> = quote_request.deadline.parse().unwrap();
+            let latest_deadline = DateTime::now() + Duration::from_hours(2);
+            let deadline = DateTime::parse_rfc3339(&quote_request.deadline).unwrap();
 
             assert!(deadline >= earliest_deadline);
             assert!(deadline <= latest_deadline);

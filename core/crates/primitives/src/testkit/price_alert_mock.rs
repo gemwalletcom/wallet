@@ -1,4 +1,4 @@
-use chrono::Utc;
+use crate::DateTime;
 
 use crate::{Asset, AssetId, Chain, Price, PriceAlert, PriceAlertData, PriceProvider, currency::Currency};
 
@@ -20,7 +20,7 @@ impl PriceAlertData {
     pub fn mock(price_alert: PriceAlert, price: Option<f64>, price_change_percentage_24h: Option<f64>) -> Self {
         Self {
             asset: Asset::from_chain(Chain::Bitcoin),
-            price: price.map(|price| Price::new(price, price_change_percentage_24h.unwrap_or_default(), Utc::now(), PriceProvider::default())),
+            price: price.map(|price| Price::new(price, price_change_percentage_24h.unwrap_or_default(), DateTime::now(), PriceProvider::default())),
             price_alert,
             rank_score: 20,
         }

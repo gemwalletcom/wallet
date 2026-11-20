@@ -385,7 +385,7 @@ mod tests {
     };
     use num_bigint::BigUint;
     use primitives::{
-        Asset, AssetId, Device, JsonRpcResult, SwapProvider, TransactionPerpetualMetadata, TransactionSwapMetadata, TransactionSwapReferralFee, WalletId,
+        Asset, AssetId, DateTime, Device, JsonRpcResult, SwapProvider, TransactionPerpetualMetadata, TransactionSwapMetadata, TransactionSwapReferralFee, WalletId,
         asset_constants::SOLANA_USDC_ASSET_ID,
         contract_constants::{SOLANA_MAYAN_CPI_PROXY_PROGRAM_ID, SOLANA_RELAY_DEPOSITORY_PROGRAM_ID},
         known_assets::HYPERCORE_PERPETUAL_USDC,
@@ -412,7 +412,7 @@ mod tests {
     #[test]
     fn test_chainflip_solana_vault_swap_enters_cross_chain_processing() {
         let response: JsonRpcResult<BlockTransaction> = serde_json::from_str(include_str!("../../../gem_solana/testdata/chainflip_vault_swap.json")).unwrap();
-        let transaction = map_transaction(&response.result, 1772283531).unwrap();
+        let transaction = map_transaction(&response.result, DateTime::from_timestamp(1_772_283_531)).unwrap();
         let mut deposit_addresses = DepositAddressMap::from([("J88B7gmadHzTNGiy54c9Ms8BsEXNdB2fntFyhKpk3qoT".to_string(), SwapProvider::Chainflip)]);
         let transactions = StoreTransactionsConsumer::transactions_for_storage(vec![transaction], &deposit_addresses, &SendAddressMap::new(), &TransactionNotificationType::NewTransaction);
 

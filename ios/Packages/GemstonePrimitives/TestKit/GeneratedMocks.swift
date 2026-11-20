@@ -2052,7 +2052,7 @@ public extension Gemstone.Rewards {
         points: Int32 = 0,
         usedReferralCode: String? = nil,
         status: Gemstone.RewardStatus = .unverified,
-        createdAt: Int64 = 0,
+        createdAt: Date = Date(timeIntervalSince1970: 0),
         verifyAfter: Date? = nil,
         redemptionOptions: [Gemstone.RewardRedemptionOption] = [],
         disableReason: String? = nil,

@@ -2,9 +2,8 @@ use std::collections::HashMap;
 use std::error::Error;
 use std::io;
 
-use chrono::Utc;
 use gem_client::{CONTENT_TYPE, ClientError, ClientExt, MultipartForm, ReqwestClient, reqwest_client};
-use primitives::{Device, SupportMessage, SupportTypingStatus};
+use primitives::{DateTime, Device, SupportMessage, SupportTypingStatus};
 use serde::Serialize;
 use serde_json::Value;
 use support::identifier_hash;
@@ -62,10 +61,10 @@ impl ChatwootClient {
         }))
     }
 
-    pub async fn messages(&self, session: &ChatwootSession, from_timestamp: Option<u64>) -> Result<Vec<SupportMessage>, Box<dyn Error + Send + Sync>> {
+    pub async fn messages(&self, session: &ChatwootSession, since: Option<DateTime>) -> Result<Vec<SupportMessage>, Box<dyn Error + Send + Sync>> {
         let response: ChatwootMessagesResponse = self.client.get(ChatwootTarget::Messages).query(&self.token_query()).headers(Self::auth_headers(&session.auth_token)).await?;
 
-        Ok(messages_from_timestamp(support_public_messages(&response.payload), from_timestamp))
+        Ok(messages_since(support_public_messages(&response.payload), since))
     }
 
     pub async fn send_message(&self, session: &ChatwootSession, content: String) -> Result<SupportMessage, Box<dyn Error + Send + Sync>> {
@@ -82,7 +81,7 @@ impl ChatwootClient {
     pub async fn send_image(&self, session: &ChatwootSession, data: Vec<u8>, file_name: String, content_type: String) -> Result<SupportMessage, Box<dyn Error + Send + Sync>> {
         let form = MultipartForm::new()
             .file("message[attachments][]", &file_name, &content_type, &data)
-            .text("message[timestamp]", &Utc::now().to_rfc3339())
+            .text("message[timestamp]", &DateTime::now().to_string())
             .text("message[referer_url]", &self.url);
         let mut headers = Self::auth_headers(&session.auth_token);
         headers.insert(CONTENT_TYPE.to_string(), form.content_type());
@@ -119,14 +118,11 @@ impl ChatwootClient {
     }
 }
 
-fn messages_from_timestamp(messages: Vec<SupportMessage>, from_timestamp: Option<u64>) -> Vec<SupportMessage> {
-    let Some(from_timestamp) = from_timestamp else {
+fn messages_since(messages: Vec<SupportMessage>, since: Option<DateTime>) -> Vec<SupportMessage> {
+    let Some(since) = since else {
         return messages;
     };
-    let Ok(from_timestamp) = i64::try_from(from_timestamp) else {
-        return vec![];
-    };
-    messages.into_iter().filter(|message| message.created_at.timestamp() > from_timestamp).collect()
+    messages.into_iter().filter(|message| message.created_at.timestamp() > since.timestamp()).collect()
 }
 
 #[cfg(test)]
@@ -134,12 +130,12 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_messages_from_timestamp() {
+    fn test_messages_since() {
         let messages = vec![SupportMessage::mock("1", 10), SupportMessage::mock("2", 20)];
 
-        let filtered = messages_from_timestamp(messages.clone(), Some(10));
+        let filtered = messages_since(messages.clone(), Some(DateTime::from_timestamp(10)));
 
         assert_eq!(filtered, vec![SupportMessage::mock("2", 20)]);
-        assert_eq!(messages_from_timestamp(messages, Some(u64::MAX)), Vec::<SupportMessage>::new());
+        assert_eq!(messages_since(messages, Some(DateTime::from_timestamp(i64::MAX))), Vec::<SupportMessage>::new());
     }
 }

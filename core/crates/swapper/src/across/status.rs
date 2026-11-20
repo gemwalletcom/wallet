@@ -2,13 +2,12 @@ use std::{str::FromStr, sync::Arc};
 
 use alloy_primitives::{Address, B256, U256, keccak256};
 use alloy_sol_types::SolValue;
-use chrono::{DateTime, Utc};
 use gem_evm::across::{
     contracts::V3SpokePoolInterface,
     deployment::AcrossDeployment,
     deposit::{Deposit, RelayData, parse_deposit},
 };
-use primitives::{Chain, swap::SwapStatus};
+use primitives::{Chain, DateTime, swap::SwapStatus};
 
 use super::asset::supported_asset_for_token;
 use crate::{
@@ -32,7 +31,7 @@ pub(super) async fn get_swap_result(rpc_provider: Arc<dyn RpcProvider>, chain: C
     };
 
     let fill_status = fill_status(rpc_provider, &deposit).await?;
-    Ok(match deposit_swap_status(fill_status, deposit.relay_data.fill_deadline, Utc::now()) {
+    Ok(match deposit_swap_status(fill_status, deposit.relay_data.fill_deadline, DateTime::now()) {
         SwapStatus::Completed => SwapResult {
             status: SwapStatus::Completed,
             metadata: deposit.swap_metadata(supported_asset_for_token),
@@ -42,7 +41,7 @@ pub(super) async fn get_swap_result(rpc_provider: Arc<dyn RpcProvider>, chain: C
     })
 }
 
-fn deposit_swap_status(fill_status: u8, fill_deadline: u32, now: DateTime<Utc>) -> SwapStatus {
+fn deposit_swap_status(fill_status: u8, fill_deadline: u32, now: DateTime) -> SwapStatus {
     match fill_status {
         ACROSS_FILL_STATUS_FILLED => SwapStatus::Completed,
         ACROSS_FILL_STATUS_UNFILLED if now.timestamp() > i64::from(fill_deadline) => SwapStatus::Refunded,
@@ -127,8 +126,8 @@ mod tests {
     #[test]
     fn test_an_unfilled_deposit_past_its_fill_deadline_is_refunded() {
         let fill_deadline = 1_763_000_000;
-        let before = DateTime::from_timestamp(i64::from(fill_deadline) - 60, 0).unwrap();
-        let after = DateTime::from_timestamp(i64::from(fill_deadline) + 60, 0).unwrap();
+        let before = DateTime::from_timestamp(i64::from(fill_deadline) - 60);
+        let after = DateTime::from_timestamp(i64::from(fill_deadline) + 60);
 
         assert_eq!(deposit_swap_status(ACROSS_FILL_STATUS_UNFILLED, fill_deadline, before), SwapStatus::Pending, "a relayer can still fill it");
         assert_eq!(

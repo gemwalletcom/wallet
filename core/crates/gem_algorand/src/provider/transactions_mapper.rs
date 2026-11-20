@@ -3,7 +3,6 @@ use std::error::Error;
 
 use crate::constants::TRANSACTION_TYPE_PAY;
 use crate::models::{Transaction as AlgoTransaction, TransactionBroadcast, TransactionLookup};
-use chrono::DateTime;
 use primitives::{Transaction, TransactionState, TransactionType, chain::Chain};
 
 pub fn map_transaction_broadcast(result: &TransactionBroadcast) -> Result<String, Box<dyn Error + Sync + Send>> {
@@ -40,7 +39,7 @@ pub fn map_transaction(transaction: AlgoTransaction) -> Option<Transaction> {
             BigUint::try_from(transaction.payment_transaction.clone()?.amount.unwrap_or_default()).ok()?,
             transaction.clone().get_memo(),
             None,
-            DateTime::from_timestamp(transaction.round_time, 0)?,
+            transaction.round_time,
         )),
         _ => None,
     }

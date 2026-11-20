@@ -1,5 +1,4 @@
-use chrono::{DateTime, Utc};
-use primitives::{Rewards, Wallet, WalletId};
+use primitives::{DateTime, Rewards, Wallet, WalletId};
 
 use super::model::{GemRewardsResult, GemRewardsViewState, GemRewardsWallet};
 use super::rules;
@@ -77,7 +76,7 @@ impl GemRewardsSession {
         self.wallet.is_some() && (self.state == GemLoadState::Loading || self.is_refreshing)
     }
 
-    pub fn view_state(&self, now: DateTime<Utc>) -> GemRewardsViewState {
+    pub fn view_state(&self, now: DateTime) -> GemRewardsViewState {
         let is_settled = match self.state {
             GemLoadState::Data | GemLoadState::Error { .. } => !self.is_refreshing,
             GemLoadState::NoData | GemLoadState::Loading => false,
@@ -134,8 +133,8 @@ mod tests {
     use crate::services::error::GemServiceError;
     use crate::services::rewards::model::GemIncomingCode;
 
-    fn now() -> DateTime<Utc> {
-        DateTime::from_timestamp(1_700_000_000, 0).unwrap()
+    fn now() -> DateTime {
+        DateTime::from_timestamp(1_700_000_000)
     }
 
     fn id(value: &str) -> WalletId {

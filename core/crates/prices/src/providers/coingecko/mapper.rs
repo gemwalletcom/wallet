@@ -1,11 +1,10 @@
 use std::collections::HashMap;
 
-use chrono::{DateTime, Utc};
 use coingecko::{
     Coin, CoinInfo, CoinMarket, get_asset_ids_for_coin,
     model::{MarketChart, Ohlc},
 };
-use primitives::{AssetId, AssetLink, AssetMarket, ChartCandleStick, ChartCandleStickVecExt, ChartPeriod, ChartValue, ChartValuePercentage, LinkType, OptionStringExt, PriceProvider};
+use primitives::{AssetId, AssetLink, AssetMarket, ChartCandleStick, ChartCandleStickVecExt, ChartPeriod, ChartValue, ChartValuePercentage, DateTime, LinkType, OptionStringExt, PriceProvider};
 
 use crate::{AssetPriceFull, AssetPriceMapping, PriceProviderAsset, PriceProviderAssetMetadata};
 
@@ -22,15 +21,13 @@ pub fn ohlc_days(period: ChartPeriod) -> &'static str {
 pub fn map_ohlc(candles: Vec<Ohlc>) -> Vec<ChartCandleStick> {
     let candles: Vec<ChartCandleStick> = candles
         .into_iter()
-        .filter_map(|(timestamp, open, high, low, close)| {
-            Some(ChartCandleStick {
-                date: DateTime::<Utc>::from_timestamp_millis(timestamp)?,
-                open,
-                high,
-                low,
-                close,
-                volume: 0.0,
-            })
+        .map(|(timestamp, open, high, low, close)| ChartCandleStick {
+            date: DateTime::from_timestamp_millis(timestamp),
+            open,
+            high,
+            low,
+            close,
+            volume: 0.0,
         })
         .collect();
     let interval = candles.interval().unwrap_or_default();
@@ -44,7 +41,7 @@ pub fn map_market_chart(chart: MarketChart) -> Vec<ChartValue> {
         .filter_map(|p| {
             let ts_ms = *p.first()?;
             let value = *p.get(1)?;
-            let ts = DateTime::<Utc>::from_timestamp_millis(ts_ms as i64)?.timestamp() as i32;
+            let ts = DateTime::from_timestamp_millis(ts_ms as i64).timestamp() as i32;
             Some(ChartValue { timestamp: ts, value: value as f32 })
         })
         .collect()
@@ -81,7 +78,7 @@ pub fn map_coin_markets(markets: Vec<CoinMarket>, by_id: &HashMap<String, Vec<As
 }
 
 pub fn map_coin_market(market: CoinMarket, mapping: AssetPriceMapping) -> AssetPriceFull {
-    let updated_at = market.last_updated.unwrap_or_else(Utc::now);
+    let updated_at = market.last_updated.unwrap_or_else(DateTime::now);
     let price = market.current_price.unwrap_or_default();
     let market_data = coin_market_to_asset_market(&market);
     AssetPriceFull::new(mapping, price, market.price_change_percentage_24h, updated_at, PriceProvider::Coingecko, Some(market_data))
@@ -227,13 +224,13 @@ mod tests {
         let candles = map_ohlc(month);
 
         assert_eq!(candles.len(), 180);
-        assert_eq!(candles[0].date, DateTime::from_timestamp(1_791_820_800, 0).unwrap(), "CoinGecko's close time becomes the open time");
+        assert_eq!(candles[0].date, DateTime::from_timestamp(1_791_820_800), "CoinGecko's close time becomes the open time");
 
         assert_eq!(
             map_ohlc(vec![(1_700_001_000_000, 1.0, 2.0, 0.5, 1.5), (1_700_002_800_000, 1.5, 3.0, 1.0, 2.5)]),
             vec![
                 ChartCandleStick {
-                    date: DateTime::from_timestamp(1_699_999_200, 0).unwrap(),
+                    date: DateTime::from_timestamp(1_699_999_200),
                     open: 1.0,
                     high: 2.0,
                     low: 0.5,
@@ -241,7 +238,7 @@ mod tests {
                     volume: 0.0,
                 },
                 ChartCandleStick {
-                    date: DateTime::from_timestamp(1_700_001_000, 0).unwrap(),
+                    date: DateTime::from_timestamp(1_700_001_000),
                     open: 1.5,
                     high: 3.0,
                     low: 1.0,

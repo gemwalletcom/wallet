@@ -897,8 +897,7 @@ mod tests {
 
     use super::super::model::GemSwapProgressMarker;
     use super::*;
-    use chrono::Utc;
-    use primitives::{Chain, Resource, TransactionPerpetualMetadata};
+    use primitives::{Chain, DateTime, Resource, TransactionPerpetualMetadata};
 
     fn signing_details(extended: &TransactionExtended) -> GemTransactionDetails {
         details(extended, WalletType::Multicoin)
@@ -1370,7 +1369,7 @@ mod tests {
         assert_eq!(unnamed.fee_row.fee.fiat, None, "a fee with no price names no fiat value");
         assert_eq!(unnamed.fee_row.text.value, unnamed.fee_row.fee.amount, "a fee with no price shows its amount");
         let priced = TransactionExtended {
-            fee_price: Some(Price::new(4.0, 0.0, Utc::now(), primitives::PriceProvider::Coingecko)),
+            fee_price: Some(Price::new(4.0, 0.0, DateTime::now(), primitives::PriceProvider::Coingecko)),
             ..transfer.clone()
         };
         let priced_fee = detail_rows(&priced, WalletType::Multicoin, None, explorer.clone(), Currency::USD).fee_row;
@@ -1714,10 +1713,10 @@ mod tests {
         let mut transfer = TransactionExtended::mock();
         let amount_price = |extended: &TransactionExtended| transaction_amount(extended, GemAmountSign::None).price.map(|price| price.price);
 
-        transfer.price = Some(Price::new(0.0, 0.0, Utc::now(), Default::default()));
+        transfer.price = Some(Price::new(0.0, 0.0, DateTime::now(), Default::default()));
         assert_eq!(amount_price(&transfer), None);
 
-        transfer.price = Some(Price::new(12.0, 0.0, Utc::now(), Default::default()));
+        transfer.price = Some(Price::new(12.0, 0.0, DateTime::now(), Default::default()));
         assert_eq!(amount_price(&transfer), Some(12.0));
     }
 
@@ -1730,10 +1729,10 @@ mod tests {
         let ethereum = AssetId::from_chain(Chain::Ethereum);
         let leg_price = |extended: &TransactionExtended| swap_leg(extended, SwapLeg::From, GemAmountSign::Outgoing).and_then(|amount| amount.price).map(|price| price.price);
 
-        swap.prices = vec![AssetPrice::new(ethereum.clone(), 0.0, 0.0, Utc::now())];
+        swap.prices = vec![AssetPrice::new(ethereum.clone(), 0.0, 0.0, DateTime::now())];
         assert_eq!(leg_price(&swap), None);
 
-        swap.prices = vec![AssetPrice::new(ethereum, 12.0, 0.0, Utc::now())];
+        swap.prices = vec![AssetPrice::new(ethereum, 12.0, 0.0, DateTime::now())];
         assert_eq!(leg_price(&swap), Some(12.0));
     }
 

@@ -2,9 +2,8 @@ use num_bigint::BigUint;
 use std::collections::HashMap;
 use std::error::Error;
 
-use chrono::{DateTime, Utc};
 use number_formatter::BigNumberFormatter;
-use primitives::{AssetId, Chain, SwapProvider, Transaction, TransactionState, TransactionSwapMetadata, TransactionSwapReferralFee, TransactionType, asset_constants::HYPERCORE_PERPETUAL_USDC_ASSET_ID};
+use primitives::{AssetId, Chain, DateTime, SwapProvider, Transaction, TransactionState, TransactionSwapMetadata, TransactionSwapReferralFee, TransactionType, asset_constants::HYPERCORE_PERPETUAL_USDC_ASSET_ID};
 
 use crate::config::HypercoreConfig;
 use crate::core::hypercore::recover_l1_action_signer;
@@ -152,7 +151,7 @@ fn build_fill_transaction(address: &str, last_fill: &UserFill, asset_id: AssetId
         return None;
     }
 
-    let created_at = DateTime::<Utc>::from_timestamp_millis(last_fill.time as i64)?;
+    let created_at = DateTime::from_timestamp_millis(last_fill.time as i64);
     let address = address.to_string();
 
     Some(Transaction::new(

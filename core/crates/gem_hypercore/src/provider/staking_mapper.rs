@@ -1,10 +1,10 @@
 use crate::models::balance::{DelegationBalance, Validator};
 use crate::models::user::DelegatorHistoryUpdate;
 use crate::provider::transaction_state_mapper::DELEGATOR_WITHDRAWAL_INITIATED;
-use chrono::{DateTime, Duration, Utc};
 use num_bigint::BigUint;
 use number_formatter::BigNumberFormatter;
-use primitives::{Asset, Chain, DelegationBase, DelegationState, DelegationValidator};
+use primitives::{Asset, Chain, DateTime, DelegationBase, DelegationState, DelegationValidator};
+use std::time::Duration;
 
 pub fn map_staking_validators(validators: Vec<Validator>, chain: Chain, apy: Option<f64>) -> Vec<DelegationValidator> {
     let calculated_apy = apy.unwrap_or_else(|| Validator::max_apr(&validators));
@@ -22,7 +22,7 @@ pub fn map_staking_validators(validators: Vec<Validator>, chain: Chain, apy: Opt
     result
 }
 
-pub fn map_staking_delegations(delegations: Vec<DelegationBalance>, history: Vec<DelegatorHistoryUpdate>, now: DateTime<Utc>, chain: Chain) -> Vec<DelegationBase> {
+pub fn map_staking_delegations(delegations: Vec<DelegationBalance>, history: Vec<DelegatorHistoryUpdate>, now: DateTime, chain: Chain) -> Vec<DelegationBase> {
     let native_decimals = Asset::from_chain(chain).decimals;
     let mut result: Vec<DelegationBase> = delegations
         .into_iter()
@@ -32,7 +32,7 @@ pub fn map_staking_delegations(delegations: Vec<DelegationBalance>, history: Vec
             balance: BigNumberFormatter::value_from_amount_biguint(&x.amount, native_decimals).unwrap_or_default(),
             shares: BigUint::from(0u32),
             rewards: BigUint::from(0u32),
-            completion_date: i64::try_from(x.locked_until_timestamp).ok().and_then(DateTime::from_timestamp_millis).filter(|locked_until| *locked_until > now),
+            completion_date: i64::try_from(x.locked_until_timestamp).ok().map(DateTime::from_timestamp_millis).filter(|locked_until| *locked_until > now),
             delegation_id: x.validator_address(),
             validator_id: x.validator_address(),
         })
@@ -42,8 +42,8 @@ pub fn map_staking_delegations(delegations: Vec<DelegationBalance>, history: Vec
     result
 }
 
-fn map_pending_withdrawals(history: Vec<DelegatorHistoryUpdate>, now: DateTime<Utc>, chain: Chain, native_decimals: u32) -> Vec<DelegationBase> {
-    let lock = Duration::seconds(chain.stake_config().map(|stake| stake.lock_time).unwrap_or_default() as i64);
+fn map_pending_withdrawals(history: Vec<DelegatorHistoryUpdate>, now: DateTime, chain: Chain, native_decimals: u32) -> Vec<DelegationBase> {
+    let lock = Duration::from_secs(chain.stake_config().map(|stake| stake.lock_time).unwrap_or_default());
 
     history
         .into_iter()
@@ -52,7 +52,7 @@ fn map_pending_withdrawals(history: Vec<DelegatorHistoryUpdate>, now: DateTime<U
             if withdrawal.phase != DELEGATOR_WITHDRAWAL_INITIATED {
                 return None;
             }
-            let completion_date = DateTime::from_timestamp_millis(entry.time as i64)? + lock;
+            let completion_date = DateTime::from_timestamp_millis(entry.time as i64) + lock;
             if completion_date <= now {
                 return None;
             }
@@ -74,7 +74,7 @@ fn map_pending_withdrawals(history: Vec<DelegatorHistoryUpdate>, now: DateTime<U
 mod tests {
     use super::*;
     use crate::models::user::DelegatorHistoryDelta;
-    use primitives::{Chain, DelegationState};
+    use primitives::{Chain, DelegationState, DurationExt};
 
     #[test]
     fn test_map_staking_validators() {
@@ -124,7 +124,7 @@ mod tests {
     fn test_map_staking_delegations() {
         let delegations: Vec<DelegationBalance> = serde_json::from_str(include_str!("../../testdata/staking_delegations.json")).unwrap();
 
-        let result = map_staking_delegations(delegations, vec![], Utc::now(), Chain::HyperCore);
+        let result = map_staking_delegations(delegations, vec![], DateTime::now(), Chain::HyperCore);
 
         assert_eq!(result.len(), 2);
 
@@ -143,17 +143,17 @@ mod tests {
         assert_eq!(delegation2.balance.to_string(), "1814578086");
 
         let delegations: Vec<DelegationBalance> = serde_json::from_str(include_str!("../../testdata/staking_delegations.json")).unwrap();
-        let in_lockup = map_staking_delegations(delegations, vec![], DateTime::from_timestamp_millis(1_756_000_000_000).unwrap(), Chain::HyperCore);
+        let in_lockup = map_staking_delegations(delegations, vec![], DateTime::from_timestamp_millis(1_756_000_000_000), Chain::HyperCore);
 
         assert_eq!(in_lockup[0].state, DelegationState::Active, "a delegation in its lockup still earns");
-        assert_eq!(in_lockup[0].completion_date, DateTime::from_timestamp_millis(1_756_512_053_068));
+        assert_eq!(in_lockup[0].completion_date, Some(DateTime::from_timestamp_millis(1_756_512_053_068)));
         assert_eq!(in_lockup[1].completion_date, None, "a lockup that already ended leaves no date");
     }
 
     #[test]
     fn test_map_staking_delegations_pending_withdrawals() {
-        let now = DateTime::from_timestamp(1_780_000_000, 0).unwrap();
-        let at = |days: i64| (now - Duration::days(days)).timestamp_millis() as u64;
+        let now = DateTime::from_timestamp(1_780_000_000);
+        let at = |days: u64| (now - Duration::days(days)).timestamp_millis() as u64;
         let history = vec![
             DelegatorHistoryUpdate::mock_withdrawal(at(1), "1.5", "initiated"),
             DelegatorHistoryUpdate::mock_withdrawal(at(8), "2.0", "initiated"),

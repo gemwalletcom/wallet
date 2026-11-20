@@ -1,6 +1,6 @@
 use async_trait::async_trait;
 use chain_traits::{ChainBlockTransactions, ChainTransaction, ChainTransactions, TransactionIdRequest, TransactionsRequest, TransactionsResult};
-use primitives::Transaction;
+use primitives::{DateTime, Transaction};
 use std::error::Error;
 
 use gem_client::Client;
@@ -40,7 +40,7 @@ impl<C: Client> ChainTransaction for BitcoinClient<C> {
         let Some(transaction) = self.get_transaction(&hash).await? else {
             return Ok(None);
         };
-        if transaction.block_height <= 0 || transaction.block_time <= 0 {
+        if transaction.block_height <= 0 || transaction.block_time <= DateTime::UNIX_EPOCH {
             return Ok(None);
         }
 

@@ -117,8 +117,7 @@ async fn price_updates(store: &dyn GemPriceStore, prices: Vec<AssetPrice>, curre
 mod tests {
     use super::testkit::MemoryPriceStore;
     use super::*;
-    use chrono::Utc;
-    use primitives::Chain;
+    use primitives::{Chain, DateTime};
 
     fn rates() -> MemoryPriceStore {
         MemoryPriceStore {
@@ -131,7 +130,7 @@ mod tests {
     fn test_a_refresh_that_started_before_a_currency_switch_commits_in_the_new_currency() {
         let store = Arc::new(rates());
         let service = GemPriceService::mock(store.clone());
-        let price = AssetPrice::new(AssetId::from_chain(Chain::Solana), 100.0, 1.5, Utc::now());
+        let price = AssetPrice::new(AssetId::from_chain(Chain::Solana), 100.0, 1.5, DateTime::now());
 
         futures::executor::block_on(service.change_currency(Currency::EUR)).unwrap();
         futures::executor::block_on(service.change_currency(Currency::JPY)).unwrap();
@@ -150,7 +149,7 @@ mod tests {
     fn test_a_failed_currency_switch_keeps_the_current_currency() {
         let store = Arc::new(MemoryPriceStore::with_rate(Currency::EUR, 0.5));
         let service = GemPriceService::mock(store.clone());
-        let price = AssetPrice::new(AssetId::from_chain(Chain::Solana), 100.0, 1.5, Utc::now());
+        let price = AssetPrice::new(AssetId::from_chain(Chain::Solana), 100.0, 1.5, DateTime::now());
 
         assert!(futures::executor::block_on(service.change_currency(Currency::JPY)).is_err());
         futures::executor::block_on(service.update_prices(vec![price])).unwrap();
@@ -178,7 +177,7 @@ mod tests {
     #[test]
     fn test_prices_are_converted_with_the_stored_rate() {
         let store = MemoryPriceStore::with_rate(Currency::EUR, 0.5);
-        let price = AssetPrice::new(AssetId::from_chain(Chain::Solana), 100.0, 1.5, Utc::now());
+        let price = AssetPrice::new(AssetId::from_chain(Chain::Solana), 100.0, 1.5, DateTime::now());
 
         futures::executor::block_on(update_prices(&store, vec![price], Currency::EUR)).unwrap();
 
@@ -191,7 +190,7 @@ mod tests {
     #[test]
     fn test_prices_are_dropped_without_a_stored_rate_except_usd() {
         let store = MemoryPriceStore::default();
-        let price = AssetPrice::new(AssetId::from_chain(Chain::Solana), 100.0, 1.5, Utc::now());
+        let price = AssetPrice::new(AssetId::from_chain(Chain::Solana), 100.0, 1.5, DateTime::now());
 
         futures::executor::block_on(update_prices(&store, vec![price.clone()], Currency::EUR)).unwrap();
         assert!(store.saved.lock().unwrap().is_empty());
@@ -216,7 +215,7 @@ mod tests {
     #[test]
     fn test_unchanged_prices_are_not_saved() {
         let store = MemoryPriceStore::with_rate(Currency::EUR, 0.5);
-        let price = AssetPrice::new(AssetId::from_chain(Chain::Solana), 100.0, 1.5, Utc::now());
+        let price = AssetPrice::new(AssetId::from_chain(Chain::Solana), 100.0, 1.5, DateTime::now());
 
         futures::executor::block_on(update_prices(&store, vec![price.clone()], Currency::EUR)).unwrap();
         futures::executor::block_on(update_prices(&store, vec![price.clone()], Currency::EUR)).unwrap();
@@ -260,7 +259,7 @@ mod tests {
     #[test]
     fn test_a_tick_with_a_new_rate_writes_its_prices_at_that_rate_in_the_same_save() {
         let store = MemoryPriceStore::with_rate(Currency::EUR, 0.5);
-        let price = AssetPrice::new(AssetId::from_chain(Chain::Solana), 100.0, 1.5, Utc::now());
+        let price = AssetPrice::new(AssetId::from_chain(Chain::Solana), 100.0, 1.5, DateTime::now());
 
         futures::executor::block_on(update_rates_and_prices(&store, vec![FiatRate { symbol: Currency::EUR, rate: 0.9 }], vec![price], Currency::EUR)).unwrap();
 

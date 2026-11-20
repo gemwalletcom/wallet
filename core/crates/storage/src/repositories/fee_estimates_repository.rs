@@ -1,10 +1,10 @@
-use chrono::{TimeDelta, Utc};
 use diesel::prelude::*;
 use diesel::upsert::excluded;
-use primitives::{Chain, ChartPeriod, FeeEstimateChartValue};
+use primitives::{Chain, ChartPeriod, DateTime, FeeEstimateChartValue};
+use std::time::Duration;
 
 use crate::models::FeeEstimateRow;
-use crate::sql_types::ChainRow;
+use crate::sql_types::{ChainRow, DateTimeRow};
 use crate::{DatabaseClient, DatabaseError};
 
 pub trait FeeEstimatesRepository {
@@ -30,10 +30,10 @@ impl FeeEstimatesRepository for DatabaseClient {
     fn get_fee_estimates(&mut self, chain_value: Chain, period: ChartPeriod) -> Result<Vec<FeeEstimateChartValue>, DatabaseError> {
         use crate::schema::fee_estimates::dsl::*;
 
-        let since = Utc::now().naive_utc() - TimeDelta::minutes(period.minutes().into());
+        let since = DateTime::now() - Duration::from_mins(period.minutes());
         Ok(fee_estimates
             .filter(chain.eq(ChainRow::from(chain_value)))
-            .filter(created_at.ge(since))
+            .filter(created_at.ge(DateTimeRow::from(since)))
             .order(created_at.asc())
             .select(FeeEstimateRow::as_select())
             .load(&mut self.connection)?
@@ -45,19 +45,18 @@ impl FeeEstimatesRepository for DatabaseClient {
 
 #[cfg(all(test, feature = "database_integration_tests"))]
 mod database_integration_tests {
-    use chrono::{DateTime, Utc};
     use diesel::RunQueryDsl;
-    use primitives::{Chain, ChartPeriod, FeeEstimateChartValue};
+    use primitives::{Chain, ChartPeriod, DateTime, FeeEstimateChartValue, HOUR};
 
     use crate::{ChainsRepository, Database, DatabaseError, FeeEstimatesRepository};
 
     #[tokio::test]
     async fn test_add_fee_estimate() {
-        let now = Utc::now();
+        let now = DateTime::now();
         let value = FeeEstimateChartValue::mock_with_date(now);
         let changed = FeeEstimateChartValue { gas_price: 2.0, ..value.clone() };
         let expected = vec![FeeEstimateChartValue {
-            date: DateTime::from_timestamp(now.timestamp() / 3600 * 3600, 0).unwrap(),
+            date: now.truncated(HOUR),
             ..changed.clone()
         }];
 

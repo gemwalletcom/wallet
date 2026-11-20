@@ -326,10 +326,9 @@ mod tests {
         aliases::{I24, U24},
     };
     use alloy_sol_types::SolCall;
-    use chrono::DateTime;
     use num_bigint::BigUint;
     use primitives::{
-        AssetId, Chain, TransactionState, TransactionSwapMetadata, TransactionSwapReferralFee, TransactionType,
+        AssetId, Chain, DateTime, TransactionState, TransactionSwapMetadata, TransactionSwapReferralFee, TransactionType,
         asset_constants::{BASE_USDC_ASSET_ID, ETHEREUM_USDT_ASSET_ID, ETHEREUM_WETH_TOKEN_ID, POLYGON_USDT_TOKEN_ID, UNICHAIN_DAI_TOKEN_ID, UNICHAIN_USDC_TOKEN_ID},
         contract_constants::{ETHEREUM_UNISWAP_V3_UNIVERSAL_ROUTER_CONTRACT, UNICHAIN_UNISWAP_V4_UNIVERSAL_ROUTER_CONTRACT},
         hex::encode_with_0x,

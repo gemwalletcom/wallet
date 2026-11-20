@@ -1,3 +1,5 @@
+use primitives::DateTime;
+
 use crate::models::transaction::{Input, Output, Transaction};
 
 impl Transaction {
@@ -9,7 +11,7 @@ impl Transaction {
             fees: 5_000u32.into(),
             confirmations: Some(1),
             confirmation_eta_seconds: None,
-            block_time: 1640995200,
+            block_time: DateTime::from_timestamp(1_640_995_200),
             block_height: 700000,
             vin: vec![],
             vout: vec![],

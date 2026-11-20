@@ -1,9 +1,8 @@
-use chrono::NaiveDateTime;
 use diesel::prelude::*;
 use primitives::perpetual::Perpetual as PrimitivePerpetual;
 use serde::{Deserialize, Serialize};
 
-use crate::sql_types::{AssetId, PerpetualIdRow, PerpetualProviderRow};
+use crate::sql_types::{AssetId, DateTimeRow, PerpetualIdRow, PerpetualProviderRow};
 
 #[derive(Debug, Queryable, Selectable, Serialize, Deserialize, Clone)]
 #[diesel(table_name = crate::schema::perpetuals)]
@@ -22,7 +21,7 @@ pub(crate) struct PerpetualRow {
     pub leverage: Vec<Option<i32>>,
     pub is_isolated_only: bool,
     pub is_enabled: bool,
-    pub updated_at: NaiveDateTime,
+    pub updated_at: DateTimeRow,
 }
 
 #[derive(Debug, Insertable, AsChangeset, Clone)]

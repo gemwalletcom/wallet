@@ -2,7 +2,7 @@ use diesel::prelude::*;
 use primitives::ScanAddress;
 use serde::{Deserialize, Serialize};
 
-use crate::sql_types::{AddressType, ChainRow};
+use crate::sql_types::{AddressType, ChainRow, DateTimeRow};
 
 #[derive(Debug, Queryable, Selectable, Serialize, Deserialize, Clone)]
 #[diesel(table_name = crate::schema::scan_addresses)]
@@ -17,8 +17,8 @@ pub(crate) struct ScanAddressRow {
     pub is_verified: bool,
     pub is_fraudulent: bool,
     pub is_memo_required: bool,
-    pub updated_at: chrono::NaiveDateTime,
-    pub created_at: chrono::NaiveDateTime,
+    pub updated_at: DateTimeRow,
+    pub created_at: DateTimeRow,
 }
 
 impl ScanAddressRow {

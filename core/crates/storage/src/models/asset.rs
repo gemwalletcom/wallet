@@ -1,11 +1,10 @@
 use std::str::FromStr;
 
-use chrono::NaiveDateTime;
 use diesel::prelude::*;
 use primitives::{Asset, AssetBasic, AssetId as PrimitiveAssetId, AssetLink, AssetProperties, AssetScore};
 use serde::{Deserialize, Serialize};
 
-use crate::sql_types::{AssetId, AssetType, ChainRow, LinkType};
+use crate::sql_types::{AssetId, AssetType, ChainRow, DateTimeRow, LinkType};
 
 #[derive(Debug, Queryable, Selectable, Identifiable, Serialize, Deserialize, Clone)]
 #[diesel(table_name = crate::schema::assets)]
@@ -32,7 +31,7 @@ pub(crate) struct AssetRow {
     pub has_candles: bool,
     pub has_price: bool,
 
-    pub updated_at: NaiveDateTime,
+    pub updated_at: DateTimeRow,
 }
 
 #[derive(Debug, Insertable, AsChangeset, Clone)]

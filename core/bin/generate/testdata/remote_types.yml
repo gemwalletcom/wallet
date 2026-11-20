@@ -48,7 +48,7 @@ scalars:
 declared:
   BigInt: GemBigInt
   BigUint: GemBigUint
-  DateTime<Utc>: chrono::DateTime<chrono::Utc>
+  DateTime: DateTimeUtc
 
 type_mappings:
   swift:

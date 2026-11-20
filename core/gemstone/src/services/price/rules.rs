@@ -106,7 +106,7 @@ mod tests {
 #[cfg(test)]
 mod observable_tests {
     use super::*;
-    use primitives::Chain;
+    use primitives::{Chain, DateTime};
 
     #[test]
     fn test_observable_asset_ids_falls_back_to_defaults() {
@@ -141,7 +141,7 @@ mod observable_tests {
 
     #[test]
     fn test_changed_prices_keeps_only_moved_values() {
-        let now = chrono::Utc::now();
+        let now = DateTime::now();
         let bitcoin = AssetId::from_chain(primitives::Chain::Bitcoin);
         let ethereum = AssetId::from_chain(primitives::Chain::Ethereum);
         let stored = vec![AssetPrice::new(bitcoin.clone(), 100.0, 2.0, now), AssetPrice::new(ethereum.clone(), 50.0, 1.0, now)];
@@ -159,7 +159,7 @@ mod observable_tests {
 
     #[test]
     fn test_fiat_prices_convert_with_rate() {
-        let now = chrono::Utc::now();
+        let now = DateTime::now();
         let rate = FiatRate { symbol: Currency::EUR, rate: 0.5 };
 
         let updates = fiat_prices(vec![AssetPrice::new(AssetId::from_chain(primitives::Chain::Bitcoin), 100.0, 2.0, now)], &rate);

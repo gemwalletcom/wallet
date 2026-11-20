@@ -1,5 +1,4 @@
-use chrono::{DateTime, Utc};
-use primitives::{AddressFormatStyle, Asset, BlockExplorerLink, Chain, TransactionState, VerificationStatus};
+use primitives::{AddressFormatStyle, Asset, BlockExplorerLink, Chain, DateTime, TransactionState, VerificationStatus};
 use strum::AsRefStr;
 
 use crate::address_formatter::format_address;
@@ -342,7 +341,7 @@ pub enum GemListFieldValue {
         text: String,
     },
     Date {
-        date: DateTime<Utc>,
+        date: DateTime,
     },
     Address {
         name: Option<String>,
@@ -402,7 +401,7 @@ pub enum GemListRow {
     AllTime {
         title: GemListRowTitle,
         value: GemFormattedNumber,
-        date: DateTime<Utc>,
+        date: DateTime,
         change: GemFormattedNumber,
     },
     Duration {
@@ -425,7 +424,7 @@ pub enum GemListRow {
     },
     Date {
         title: GemListRowTitle,
-        date: DateTime<Utc>,
+        date: DateTime,
     },
     Network {
         title: GemListRowTitle,

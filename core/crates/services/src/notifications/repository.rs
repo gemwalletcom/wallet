@@ -1,17 +1,16 @@
 use async_trait::async_trait;
-use chrono::NaiveDateTime;
-use primitives::{Asset, AssetId, Chain, Device, NotificationData, ScanAddress, TransactionType};
+use primitives::{Asset, AssetId, Chain, DateTime, Device, NotificationData, ScanAddress, TransactionType};
 use storage::{AssetsRepository, Database, DatabaseError, DeviceFilter, DeviceUpdate, DevicesRepository, NewNotification, NotificationsRepository, ScanAddressesRepository, TransactionsRepository, WalletsRepository};
 
 #[async_trait]
 pub(crate) trait Repository: Send + Sync {
     async fn get_asset(&self, asset_id: AssetId) -> Result<Asset, DatabaseError>;
     async fn add_notification(&self, notification: NewNotification) -> Result<Vec<Device>, DatabaseError>;
-    async fn get_device_notifications(&self, device_id: String, since: Option<NaiveDateTime>, limit: usize) -> Result<(Device, Vec<NotificationData>), DatabaseError>;
+    async fn get_device_notifications(&self, device_id: String, since: Option<DateTime>, limit: usize) -> Result<(Device, Vec<NotificationData>), DatabaseError>;
     async fn set_notifications_read(&self, wallet_id: i32) -> Result<usize, DatabaseError>;
     async fn update_devices(&self, filters: Vec<DeviceFilter>, updates: Vec<DeviceUpdate>) -> Result<usize, DatabaseError>;
     async fn get_scan_address(&self, chain: Chain, address: String) -> Result<ScanAddress, DatabaseError>;
-    async fn get_addresses_with_transactions(&self, chain: Chain, kinds: Vec<TransactionType>, since: NaiveDateTime) -> Result<Vec<String>, DatabaseError>;
+    async fn get_addresses_with_transactions(&self, chain: Chain, kinds: Vec<TransactionType>, since: DateTime) -> Result<Vec<String>, DatabaseError>;
 }
 
 pub(crate) struct PostgresRepository {
@@ -40,7 +39,7 @@ impl Repository for PostgresRepository {
             .await
     }
 
-    async fn get_device_notifications(&self, device_id: String, since: Option<NaiveDateTime>, limit: usize) -> Result<(Device, Vec<NotificationData>), DatabaseError> {
+    async fn get_device_notifications(&self, device_id: String, since: Option<DateTime>, limit: usize) -> Result<(Device, Vec<NotificationData>), DatabaseError> {
         self.database
             .run(move |client| {
                 let device = client.get_device_record(&device_id)?.device;
@@ -62,7 +61,7 @@ impl Repository for PostgresRepository {
         self.database.run(move |client| client.get_scan_address(chain, &address)).await
     }
 
-    async fn get_addresses_with_transactions(&self, chain: Chain, kinds: Vec<TransactionType>, since: NaiveDateTime) -> Result<Vec<String>, DatabaseError> {
+    async fn get_addresses_with_transactions(&self, chain: Chain, kinds: Vec<TransactionType>, since: DateTime) -> Result<Vec<String>, DatabaseError> {
         self.database.run(move |client| client.get_addresses_by_chain_and_kind(chain.as_ref(), kinds, since)).await
     }
 }

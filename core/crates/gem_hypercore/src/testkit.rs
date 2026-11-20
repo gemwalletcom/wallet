@@ -44,8 +44,8 @@ impl OpenOrder {
 impl HypercorePortfolioTimeframeData {
     pub fn mock(vlm: &str) -> Self {
         Self {
-            account_value_history: vec![HypercoreDataPoint { timestamp_ms: 1640995200000, value: 1000.0 }],
-            pnl_history: vec![HypercoreDataPoint { timestamp_ms: 1640995200000, value: 50.0 }],
+            account_value_history: vec![HypercoreDataPoint::from((1_640_995_200_000, "1000".to_string()))],
+            pnl_history: vec![HypercoreDataPoint::from((1_640_995_200_000, "50".to_string()))],
             vlm: vlm.to_string(),
         }
     }

@@ -1,5 +1,6 @@
+use date_time::deserialize_datetime_from_seconds;
 use num_bigint::BigUint;
-use primitives::{AssetId, Chain};
+use primitives::{AssetId, Chain, DateTime};
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 
@@ -181,14 +182,16 @@ impl BlockTransaction {
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct BlockTransactions {
-    pub block_time: i64,
+    #[serde(deserialize_with = "deserialize_datetime_from_seconds")]
+    pub block_time: DateTime,
     pub transactions: Vec<BlockTransaction>,
 }
 
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct SingleTransaction {
-    pub block_time: i64,
+    #[serde(deserialize_with = "deserialize_datetime_from_seconds")]
+    pub block_time: DateTime,
     pub meta: Meta,
     pub slot: u64,
     pub transaction: Transaction,

@@ -1,6 +1,4 @@
-use chrono::Utc;
-
-use crate::{PriceData, PriceId, PriceProvider};
+use crate::{DateTime, PriceData, PriceId, PriceProvider};
 
 impl PriceData {
     pub fn mock() -> Self {
@@ -25,7 +23,7 @@ impl PriceData {
             circulating_supply: Some(19_920_000.0),
             total_supply: Some(19_920_000.0),
             max_supply: Some(21_000_000.0),
-            last_updated_at: Utc::now(),
+            last_updated_at: DateTime::now(),
         }
     }
 }

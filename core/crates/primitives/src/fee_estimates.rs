@@ -1,9 +1,8 @@
 use std::collections::BTreeMap;
 
-use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-use crate::{Asset, AssetType, FeePriority, FeeUnitType};
+use crate::{Asset, AssetType, DateTime, FeePriority, FeeUnitType};
 
 pub type FeeEstimatesByPriority = BTreeMap<FeePriority, FeeEstimate>;
 
@@ -35,7 +34,7 @@ pub struct FeeEstimate {
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct FeeEstimateChartValue {
-    pub date: DateTime<Utc>,
+    pub date: DateTime,
     pub gas_price: f64,
     pub priority_fee: f64,
 }

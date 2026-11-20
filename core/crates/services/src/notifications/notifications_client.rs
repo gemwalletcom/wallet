@@ -1,10 +1,9 @@
 use std::error::Error;
 use std::sync::Arc;
 
-use chrono::{DateTime, Utc};
 use in_app_notifications::map_notification;
 use localizer::LanguageLocalizer;
-use primitives::InAppNotification;
+use primitives::{DateTime, InAppNotification};
 
 use super::repository::Repository;
 
@@ -18,9 +17,8 @@ impl NotificationsClient {
         Self { repository }
     }
 
-    pub async fn get_notifications(&self, device_id: &str, from_timestamp: Option<u64>, limit: usize) -> Result<Vec<InAppNotification>, Box<dyn Error + Send + Sync>> {
-        let from_datetime = from_timestamp.and_then(|ts| DateTime::<Utc>::from_timestamp(ts as i64, 0).map(|dt| dt.naive_utc()));
-        let (device, notifications) = self.repository.get_device_notifications(device_id.to_string(), from_datetime, limit).await?;
+    pub async fn get_notifications(&self, device_id: &str, since: Option<DateTime>, limit: usize) -> Result<Vec<InAppNotification>, Box<dyn Error + Send + Sync>> {
+        let (device, notifications) = self.repository.get_device_notifications(device_id.to_string(), since, limit).await?;
         let localizer = LanguageLocalizer::new_with_language(device.locale.as_ref());
         Ok(notifications.into_iter().filter_map(|notification| map_notification(notification, &localizer)).collect())
     }

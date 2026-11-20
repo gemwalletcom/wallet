@@ -3,7 +3,7 @@ use std::str::FromStr;
 
 pub(crate) use primitives::MAX_QUERY_LIMIT;
 use primitives::currency::Currency;
-use primitives::{AssetId, Chain, ChartPeriod, FiatProviderName, FiatQuoteType, NFTAssetId, NFTCollectionId, PlatformStore, SwapProvider, TransactionId, WebhookKind};
+use primitives::{AssetId, Chain, ChartPeriod, DateTime, FiatProviderName, FiatQuoteType, NFTAssetId, NFTCollectionId, PlatformStore, SwapProvider, TransactionId, WebhookKind};
 use serde::de::{self, Deserialize, Deserializer};
 
 const MAX_ADDRESS_LENGTH: usize = 256;
@@ -41,6 +41,10 @@ macro_rules! string_param {
 
 pub fn lenient<'de, D: Deserializer<'de>, T: FromStr>(deserializer: D) -> Result<Option<T>, D::Error> {
     Ok(Option::<String>::deserialize(deserializer)?.and_then(|value| value.parse().ok()))
+}
+
+pub fn timestamp<'de, D: Deserializer<'de>>(deserializer: D) -> Result<Option<DateTime>, D::Error> {
+    Ok(lenient(deserializer)?.map(DateTime::from_timestamp))
 }
 
 fn bounded(value: &str, max: usize) -> Option<&str> {

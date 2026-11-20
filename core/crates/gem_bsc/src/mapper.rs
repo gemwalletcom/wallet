@@ -1,6 +1,5 @@
-use chrono::{DateTime, Utc};
 use num_bigint::BigUint;
-use primitives::{AssetId, Balance, Chain, DelegationBase, DelegationState, DelegationValidator};
+use primitives::{AssetId, Balance, Chain, DateTime, DelegationBase, DelegationState, DelegationValidator};
 
 use crate::model::{BscDelegation, BscUndelegation, BscValidator};
 
@@ -48,9 +47,9 @@ fn map_delegation(asset_id: &AssetId, delegation: BscDelegation) -> DelegationBa
 }
 
 fn map_undelegation(asset_id: &AssetId, undelegation: BscUndelegation) -> DelegationBase {
-    let completion_date = undelegation.unlock_time.and_then(|unlock_time| DateTime::from_timestamp(unlock_time as i64, 0));
+    let completion_date = undelegation.unlock_time.map(|unlock_time| DateTime::from_timestamp(unlock_time as i64));
     let state = match &completion_date {
-        Some(completion_date) if *completion_date > Utc::now() => DelegationState::Deactivating,
+        Some(completion_date) if *completion_date > DateTime::now() => DelegationState::Deactivating,
         Some(_) => DelegationState::AwaitingWithdrawal,
         None => DelegationState::Deactivating,
     };

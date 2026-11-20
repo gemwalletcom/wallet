@@ -89,9 +89,8 @@ impl GemRecentActivityService {
 
 #[cfg(test)]
 mod tests {
-    use chrono::DateTime;
     use futures::executor::block_on;
-    use primitives::{Asset, Chain, StakeType};
+    use primitives::{Asset, Chain, DateTime, StakeType};
 
     use super::*;
     use crate::services::transfer::testkit::MemoryRecentActivityStore;
@@ -113,7 +112,7 @@ mod tests {
     fn recent(chain: Chain, seconds: i64) -> RecentAsset {
         RecentAsset {
             asset: Asset::from_chain(chain),
-            created_at: DateTime::from_timestamp(seconds, 0).unwrap(),
+            created_at: DateTime::from_timestamp(seconds),
         }
     }
 

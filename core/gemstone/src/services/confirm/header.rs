@@ -1,8 +1,7 @@
 use std::str::FromStr;
 
-use chrono::Utc;
 use number_formatter::BigNumberFormatter;
-use primitives::{Asset, AssetPrice, Currency, PerpetualProvider, SimulationResult, TransactionInputType};
+use primitives::{Asset, AssetPrice, Currency, DateTime, PerpetualProvider, SimulationResult, TransactionInputType};
 
 use super::model::{GemConfirmLoad, GemConfirmPhase, GemConfirmScreen, GemSimulationValue, GemTransferAmountResult};
 use super::rules;
@@ -93,7 +92,7 @@ fn amount(transfer: &GemTransferData, load: Option<&GemConfirmLoad>, prices: &[A
         && value != GemBigUint::ZERO
     {
         return GemTransactionAmount {
-            price: Some(AssetPrice::new(asset.id.clone(), price.amount / BigNumberFormatter::f64_value(&value, asset.decimals), 0.0, Utc::now())),
+            price: Some(AssetPrice::new(asset.id.clone(), price.amount / BigNumberFormatter::f64_value(&value, asset.decimals), 0.0, DateTime::now())),
             asset,
             value,
             sign: GemAmountSign::None,

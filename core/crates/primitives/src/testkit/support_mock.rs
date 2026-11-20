@@ -1,6 +1,4 @@
-use chrono::DateTime;
-
-use crate::{SupportAgent, SupportMessage, SupportMessageSender, SupportMessageStatus};
+use crate::{DateTime, SupportAgent, SupportMessage, SupportMessageSender, SupportMessageStatus};
 
 impl SupportMessage {
     pub fn mock(id: &str, timestamp: i64) -> Self {
@@ -9,7 +7,7 @@ impl SupportMessage {
             content: id.to_string(),
             sender: SupportMessageSender::User,
             status: SupportMessageStatus::Sent,
-            created_at: DateTime::from_timestamp(timestamp, 0).unwrap(),
+            created_at: DateTime::from_timestamp(timestamp),
             images: vec![],
         }
     }

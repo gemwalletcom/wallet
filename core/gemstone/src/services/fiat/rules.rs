@@ -147,7 +147,7 @@ mod tests {
 
     use super::*;
     use crate::config::fiat_config::get_fiat_config;
-    use primitives::{Asset, Chain};
+    use primitives::{Asset, Chain, DateTime};
 
     #[test]
     fn test_a_transaction_row_names_its_asset_provider_value_and_status() {
@@ -160,7 +160,7 @@ mod tests {
             fiat_amount: 25.0,
             fiat_currency: "USD".to_string(),
             value: BigUint::from(1_500_000_000_000_000_000u64),
-            created_at: chrono::Utc::now(),
+            created_at: DateTime::now(),
             details_url: Some("https://moonpay.test/1".to_string()),
         };
 

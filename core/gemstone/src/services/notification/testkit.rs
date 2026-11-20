@@ -1,8 +1,6 @@
 use std::sync::{Arc, Mutex};
 
-use chrono::{DateTime, Utc};
-
-use primitives::{InAppNotification, WalletId};
+use primitives::{DateTime, InAppNotification, WalletId};
 
 use super::{GemNotificationService, GemNotificationStore};
 use crate::alien::AlienProvider;
@@ -25,7 +23,7 @@ impl GemNotificationService {
 pub struct MemoryNotificationStore {
     pub unread: bool,
     pub saved: Mutex<Vec<InAppNotification>>,
-    pub read_before: Mutex<Vec<DateTime<Utc>>>,
+    pub read_before: Mutex<Vec<DateTime>>,
 }
 
 #[async_trait::async_trait]
@@ -35,7 +33,7 @@ impl GemNotificationStore for MemoryNotificationStore {
         Ok(())
     }
 
-    async fn mark_notifications_read(&self, _wallet_id: WalletId, created_before: DateTime<Utc>) -> Result<(), GemServiceError> {
+    async fn mark_notifications_read(&self, _wallet_id: WalletId, created_before: DateTime) -> Result<(), GemServiceError> {
         self.read_before.lock().unwrap().push(created_before);
         Ok(())
     }

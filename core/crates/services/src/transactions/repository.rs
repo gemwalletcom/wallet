@@ -2,8 +2,7 @@ use std::collections::HashSet;
 use std::time::Duration;
 
 use async_trait::async_trait;
-use chrono::NaiveDateTime;
-use primitives::{Asset, AssetBasic, AssetId, AssetPriceMetadata, Chain, ChainAddress, Device, MAX_QUERY_LIMIT, NFTAssetId, PriceData, ScanAddress, ScanVerdict, Transaction, TransactionId, TransactionsResponse};
+use primitives::{Asset, AssetBasic, AssetId, AssetPriceMetadata, Chain, ChainAddress, DateTime, Device, MAX_QUERY_LIMIT, NFTAssetId, PriceData, ScanAddress, ScanVerdict, Transaction, TransactionId, TransactionsResponse};
 use storage::{
     AssetFilter, AssetsRepository, ChartResult, Database, DatabaseError, DevicesRepository, NftRepository, ParserState, ParserStateRepository, PricesRepository, ScanAddressesRepository, ScanDetectionsRepository, TransactionFilter,
     TransactionPerpetualRecord, TransactionSwapRecord, TransactionUpdate, TransactionsPerpetualsRepository, TransactionsRepository, TransactionsSwapsRepository, WalletRecord, WalletsRepository,
@@ -14,7 +13,7 @@ pub(crate) struct WalletTransactionsQuery {
     pub(crate) device_row_id: i32,
     pub(crate) wallet_id: i32,
     pub(crate) asset_id: Option<AssetId>,
-    pub(crate) since: Option<NaiveDateTime>,
+    pub(crate) since: Option<DateTime>,
     pub(crate) limit: usize,
     pub(crate) offset: usize,
 }
@@ -48,7 +47,7 @@ pub(crate) trait Repository: Send + Sync {
     async fn get_asset(&self, asset_id: AssetId) -> Result<Asset, DatabaseError>;
     async fn get_assets(&self, asset_ids: Vec<AssetId>) -> Result<Vec<Asset>, DatabaseError>;
     async fn get_assets_with_prices(&self, filters: Vec<AssetFilter>, price_max_age: Duration) -> Result<Vec<AssetPriceMetadata>, DatabaseError>;
-    async fn get_asset_price_history(&self, asset_id: AssetId, at: NaiveDateTime) -> Result<AssetPriceHistory, DatabaseError>;
+    async fn get_asset_price_history(&self, asset_id: AssetId, at: DateTime) -> Result<AssetPriceHistory, DatabaseError>;
     async fn get_nft_asset_ids(&self, identifiers: Vec<String>) -> Result<Vec<NFTAssetId>, DatabaseError>;
     async fn set_transactions(&self, transactions: Vec<Transaction>, batch_size: usize) -> Result<HashSet<TransactionId>, DatabaseError>;
     async fn get_transactions(&self, filters: Vec<TransactionFilter>, limit: i64) -> Result<Vec<Transaction>, DatabaseError>;
@@ -169,7 +168,7 @@ impl Repository for PostgresRepository {
         self.database.run(move |client| client.get_assets_with_prices(filters, price_max_age)).await
     }
 
-    async fn get_asset_price_history(&self, asset_id: AssetId, at: NaiveDateTime) -> Result<AssetPriceHistory, DatabaseError> {
+    async fn get_asset_price_history(&self, asset_id: AssetId, at: DateTime) -> Result<AssetPriceHistory, DatabaseError> {
         self.database
             .run(move |client| {
                 Ok(AssetPriceHistory {

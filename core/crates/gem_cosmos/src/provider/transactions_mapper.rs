@@ -1,4 +1,3 @@
-use chrono::DateTime;
 use gem_encoding::decode_base64;
 use gem_hash::sha2::sha256;
 use num_bigint::BigUint;
@@ -62,8 +61,6 @@ pub fn map_transaction(cosmos_chain: CosmosChain, transaction: TransactionRespon
     let fee_asset_id = fee_coin.as_ref().map_or_else(|| native_asset_id.clone(), |coin| asset_id_from_denom(chain, &coin.denom, &default_denom));
 
     let memo = if body.memo.is_empty() { None } else { Some(body.memo.clone()) };
-
-    let created_at = DateTime::parse_from_rfc3339(&tx_response.timestamp).ok()?.into();
 
     if body.messages.len() != 1 {
         return None;
@@ -137,13 +134,13 @@ pub fn map_transaction(cosmos_chain: CosmosChain, transaction: TransactionRespon
         value,
         memo,
         None,
-        created_at,
+        tx_response.timestamp,
     ))
 }
 
 #[cfg(test)]
 mod tests {
-    use primitives::Chain;
+    use primitives::{Chain, DateTime};
 
     use super::*;
     use crate::models::transaction::{BroadcastResponse, TransactionResult};
@@ -214,7 +211,7 @@ mod tests {
                 BigUint::from(50000000u64),
                 Some("6439432658467882".to_string()),
                 None,
-                DateTime::parse_from_rfc3339("2025-06-20T04:09:19Z").unwrap().into(),
+                DateTime::parse_rfc3339("2025-06-20T04:09:19Z").unwrap(),
             )
         );
     }
@@ -259,7 +256,7 @@ mod tests {
                 BigUint::from(20000000000u64),
                 None,
                 None,
-                DateTime::parse_from_rfc3339("2026-03-03T17:24:03Z").unwrap().into(),
+                DateTime::parse_rfc3339("2026-03-03T17:24:03Z").unwrap(),
             )
         );
     }
@@ -284,7 +281,7 @@ mod tests {
                 BigUint::from(50000000000u64),
                 Some("thankyou".to_string()),
                 None,
-                DateTime::parse_from_rfc3339("2025-10-03T00:39:55Z").unwrap().into(),
+                DateTime::parse_rfc3339("2025-10-03T00:39:55Z").unwrap(),
             )
         );
     }
@@ -309,7 +306,7 @@ mod tests {
                 BigUint::from(17732657u64),
                 None,
                 None,
-                DateTime::parse_from_rfc3339("2025-06-21T20:33:42Z").unwrap().into(),
+                DateTime::parse_rfc3339("2025-06-21T20:33:42Z").unwrap(),
             )
         );
     }
@@ -334,7 +331,7 @@ mod tests {
                 BigUint::from(2385518u64),
                 None,
                 None,
-                DateTime::parse_from_rfc3339("2025-06-21T20:51:28Z").unwrap().into(),
+                DateTime::parse_rfc3339("2025-06-21T20:51:28Z").unwrap(),
             )
         );
     }

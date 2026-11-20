@@ -1,6 +1,8 @@
 use std::ops::RangeInclusive;
 
-use chrono::{DateTime, TimeDelta, Utc};
+use primitives::DateTime;
+
+use super::rules::fraction_of;
 
 pub const MIN_VISIBLE_POINTS: usize = 14;
 
@@ -52,10 +54,10 @@ impl GemChartZoom {
         self.scale > 1.0
     }
 
-    pub fn window(&self, first: DateTime<Utc>, last: DateTime<Utc>) -> RangeInclusive<DateTime<Utc>> {
-        let span = (last - first).num_milliseconds() as f64;
-        let end = last - TimeDelta::milliseconds((span * self.offset) as i64);
-        (end - TimeDelta::milliseconds((span / self.scale) as i64))..=end
+    pub fn window(&self, first: DateTime, last: DateTime) -> RangeInclusive<DateTime> {
+        let span = last - first;
+        let end = last - fraction_of(span, self.offset);
+        (end - fraction_of(span, self.scale.recip()))..=end
     }
 }
 
@@ -93,7 +95,7 @@ mod tests {
 
     #[test]
     fn test_window() {
-        let at = |seconds: i64| DateTime::from_timestamp(seconds, 0).unwrap();
+        let at = DateTime::from_timestamp;
 
         assert_eq!(GemChartZoom { scale: 4.0, offset: 0.0 }.window(at(0), at(1000)), at(750)..=at(1000));
         assert_eq!(GemChartZoom { scale: 4.0, offset: 0.25 }.window(at(0), at(1000)), at(500)..=at(750));

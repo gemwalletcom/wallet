@@ -10,8 +10,7 @@ use std::collections::HashSet;
 use std::future::Future;
 use std::sync::{Arc, Mutex};
 
-use chrono::Utc;
-use primitives::{SupportMessage, SupportMessageInput, SupportMessageStatus, SupportTyping};
+use primitives::{DateTime, SupportMessage, SupportMessageInput, SupportMessageStatus, SupportTyping};
 use uuid::Uuid;
 
 use crate::alien::AlienProvider;
@@ -68,7 +67,7 @@ impl GemSupportService {
     }
 
     pub async fn send_text(&self, content: String) -> Result<(), GemServiceError> {
-        let message = rules::pending_message(Uuid::new_v4().to_string(), content.clone(), vec![], Utc::now());
+        let message = rules::pending_message(Uuid::new_v4().to_string(), content.clone(), vec![], DateTime::now());
         self.deliver(message, self.api.client.send_support_message(SupportMessageInput { content })).await
     }
 
@@ -76,7 +75,7 @@ impl GemSupportService {
         let id = Uuid::new_v4().to_string();
         let file_name = format!("image-{id}.jpg");
         let pending_image = rules::pending_image(id.clone(), file_name.clone(), image.len() as u64);
-        let message = rules::pending_message(id, String::new(), vec![pending_image], Utc::now());
+        let message = rules::pending_message(id, String::new(), vec![pending_image], DateTime::now());
         self.deliver(message, self.api.client.send_support_image(image, file_name, "image/jpeg".to_string())).await
     }
 
@@ -148,8 +147,8 @@ mod tests {
             let service = GemSupportService::mock(store.clone());
             store
                 .save_messages(vec![
-                    rules::pending_message("abandoned".into(), "hi".into(), vec![], Utc::now()),
-                    rules::pending_message("in-flight".into(), "yo".into(), vec![], Utc::now()),
+                    rules::pending_message("abandoned".into(), "hi".into(), vec![], DateTime::now()),
+                    rules::pending_message("in-flight".into(), "yo".into(), vec![], DateTime::now()),
                 ])
                 .await
                 .unwrap();

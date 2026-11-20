@@ -1,4 +1,4 @@
-use chrono::{Duration, NaiveDate};
+use primitives::{DAY, DateTime};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Record)]
 pub struct GemDay {
@@ -60,27 +60,10 @@ impl GemDayBoundaries {
 #[uniffi::export]
 impl GemDay {
     pub fn boundaries(&self) -> GemDayBoundaries {
-        let yesterday = self.date().and_then(|date| date.checked_sub_signed(Duration::days(1))).map(GemDay::from);
+        let yesterday = DateTime::from_date(self.year, self.month, self.day).map(|date| (date - DAY).date());
         GemDayBoundaries {
             today: *self,
-            yesterday: yesterday.unwrap_or(*self),
-        }
-    }
-}
-
-impl GemDay {
-    fn date(&self) -> Option<NaiveDate> {
-        NaiveDate::from_ymd_opt(self.year, self.month, self.day)
-    }
-}
-
-impl From<NaiveDate> for GemDay {
-    fn from(date: NaiveDate) -> Self {
-        use chrono::Datelike;
-        Self {
-            year: date.year(),
-            month: date.month(),
-            day: date.day(),
+            yesterday: yesterday.map_or(*self, |(year, month, day)| GemDay { year, month, day }),
         }
     }
 }

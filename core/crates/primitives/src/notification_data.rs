@@ -1,5 +1,4 @@
-use crate::{Asset, NotificationType};
-use chrono::{DateTime, Utc};
+use crate::{Asset, DateTime, NotificationType};
 use num_bigint::BigUint;
 use serde::{Deserialize, Serialize};
 
@@ -13,8 +12,8 @@ pub struct NotificationData {
     pub notification_type: NotificationType,
     pub is_read: bool,
     pub metadata: Option<serde_json::Value>,
-    pub read_at: Option<DateTime<Utc>>,
-    pub created_at: DateTime<Utc>,
+    pub read_at: Option<DateTime>,
+    pub created_at: DateTime,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -1,13 +1,13 @@
-use chrono::{DateTime, Utc};
+use primitives::DateTime;
 
 pub struct ParseContext<'a, Transaction, Metadata> {
     pub transaction: &'a Transaction,
-    pub created_at: DateTime<Utc>,
+    pub created_at: DateTime,
     pub metadata: Metadata,
 }
 
 impl<'a, Transaction, Metadata> ParseContext<'a, Transaction, Metadata> {
-    pub fn new(transaction: &'a Transaction, created_at: DateTime<Utc>, metadata: Metadata) -> Self {
+    pub fn new(transaction: &'a Transaction, created_at: DateTime, metadata: Metadata) -> Self {
         Self { transaction, created_at, metadata }
     }
 }

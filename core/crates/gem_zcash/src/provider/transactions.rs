@@ -4,7 +4,7 @@ use async_trait::async_trait;
 use chain_traits::{ChainBlockTransactions, ChainProvider, ChainTransaction, ChainTransactions, TransactionIdRequest, TransactionsRequest, TransactionsResult};
 use gem_bitcoin::models::Address;
 use gem_client::Client;
-use primitives::Transaction;
+use primitives::{DateTime, Transaction};
 
 use super::{
     ZcashProvider,
@@ -24,7 +24,7 @@ impl<C: Client> ChainTransaction for ZcashProvider<C> {
         let Some(transaction) = self.client.get_transaction(&request.hash).await? else {
             return Ok(None);
         };
-        if transaction.block_height <= 0 || transaction.block_time <= 0 {
+        if transaction.block_height <= 0 || transaction.block_time <= DateTime::UNIX_EPOCH {
             return Ok(None);
         }
 

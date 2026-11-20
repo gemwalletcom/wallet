@@ -3,10 +3,9 @@ use std::sync::Mutex;
 use std::time::Duration;
 
 use async_trait::async_trait;
-use chrono::NaiveDateTime;
 use prices::{AssetPriceMapping, PriceAlertNotification, PriceAlertRules, PriceProviderAssetMetadata};
 use primitives::currency::Currency;
-use primitives::{AssetId, AssetPriceInfo, ChartPeriod, ChartTimeframe, FiatRate, FiatRateProvider, PriceAlert, PriceAlerts, PriceData, PriceId, PriceProvider, PriceProviderConfig};
+use primitives::{AssetId, AssetPriceInfo, ChartPeriod, ChartTimeframe, DateTime, FiatRate, FiatRateProvider, PriceAlert, PriceAlerts, PriceData, PriceId, PriceProvider, PriceProviderConfig};
 use storage::{AssetFilter, ChartPoint, ChartResult, DatabaseError, PriceAsset, PriceFilter};
 
 use crate::prices::repository::{ChartData, PortfolioPrice, Repository};
@@ -135,7 +134,7 @@ impl Repository for MemoryPricesRepository {
         Ok(0)
     }
 
-    async fn delete_charts(&self, _timeframe: ChartTimeframe, _before: NaiveDateTime) -> Result<usize, DatabaseError> {
+    async fn delete_charts(&self, _timeframe: ChartTimeframe, _before: DateTime) -> Result<usize, DatabaseError> {
         Ok(0)
     }
 
@@ -168,7 +167,7 @@ impl Repository for MemoryPricesRepository {
         Ok(vec![])
     }
 
-    async fn get_chart_prices(&self, price_ids: Vec<String>, _from: NaiveDateTime, _until: NaiveDateTime) -> Result<HashMap<String, f64>, DatabaseError> {
+    async fn get_chart_prices(&self, price_ids: Vec<String>, _from: DateTime, _until: DateTime) -> Result<HashMap<String, f64>, DatabaseError> {
         Ok(self.chart_prices.iter().filter(|(price_id, _)| price_ids.contains(price_id)).map(|(price_id, price)| (price_id.clone(), *price)).collect())
     }
 
@@ -210,7 +209,7 @@ impl Repository for MemoryPricesRepository {
         Ok(ids.len())
     }
 
-    async fn update_notified_price_alerts(&self, _rules: PriceAlertRules, _notified_before: NaiveDateTime, _now: NaiveDateTime, _price_max_age: Duration) -> Result<Vec<PriceAlertNotification>, DatabaseError> {
+    async fn update_notified_price_alerts(&self, _rules: PriceAlertRules, _notified_before: DateTime, _now: DateTime, _price_max_age: Duration) -> Result<Vec<PriceAlertNotification>, DatabaseError> {
         Ok(vec![])
     }
 }

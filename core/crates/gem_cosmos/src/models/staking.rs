@@ -1,4 +1,5 @@
 use num_bigint::BigUint;
+use primitives::DateTime;
 use serde::{Deserialize, Serialize};
 use serde_serializers::{deserialize_biguint_from_str, deserialize_f64_from_str};
 
@@ -61,7 +62,7 @@ pub struct UnbondingDelegation {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UnbondingDelegationEntry {
-    pub completion_time: String,
+    pub completion_time: DateTime,
     pub creation_height: String,
     #[serde(deserialize_with = "deserialize_biguint_from_str")]
     pub balance: BigUint,

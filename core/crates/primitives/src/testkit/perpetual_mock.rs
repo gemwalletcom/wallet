@@ -1,4 +1,4 @@
-use chrono::{TimeZone, Utc};
+use crate::DateTime;
 
 use crate::{
     AssetId, CancelOrderData, Chain, Perpetual, PerpetualConfirmData, PerpetualDirection, PerpetualId, PerpetualMarginType, PerpetualModifyConfirmData, PerpetualModifyPositionType, PerpetualOrderType, PerpetualPosition, PerpetualProvider,
@@ -130,7 +130,7 @@ impl PerpetualModifyConfirmData {
 
 impl PerpetualPortfolioTimeframeData {
     pub fn mock() -> Self {
-        let date = Utc.with_ymd_and_hms(2024, 1, 1, 0, 0, 0).unwrap();
+        let date = DateTime::from_date(2024, 1, 1).unwrap();
         Self {
             account_value_history: vec![ChartDateValue { date, value: 1000.0 }],
             pnl_history: vec![ChartDateValue { date, value: 50.0 }],

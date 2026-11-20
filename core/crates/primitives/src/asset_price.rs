@@ -1,11 +1,10 @@
-use chrono::{DateTime, Utc};
 use model_derive::Model;
 use serde::{Deserialize, Serialize};
 use strum::{AsRefStr, EnumString};
 
 use crate::currency::Currency;
 use crate::portfolio::ChartValuePercentage;
-use crate::{AssetId, Price};
+use crate::{AssetId, DateTime, Price};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Model)]
 #[model(swift = "Sendable, Equatable, Hashable")]
@@ -14,11 +13,11 @@ pub struct AssetPrice {
     pub asset_id: AssetId,
     pub price: f64,
     pub price_change_percentage_24h: f64,
-    pub updated_at: DateTime<Utc>,
+    pub updated_at: DateTime,
 }
 
 impl AssetPrice {
-    pub fn new(asset_id: AssetId, price: f64, price_change_percentage_24h: f64, updated_at: DateTime<Utc>) -> Self {
+    pub fn new(asset_id: AssetId, price: f64, price_change_percentage_24h: f64, updated_at: DateTime) -> Self {
         Self {
             asset_id,
             price,
@@ -28,7 +27,7 @@ impl AssetPrice {
     }
 
     pub fn empty(asset_id: AssetId) -> Self {
-        Self::new(asset_id, 0.0, 0.0, Utc::now())
+        Self::new(asset_id, 0.0, 0.0, DateTime::now())
     }
 
     pub fn has_price(&self) -> bool {
@@ -50,13 +49,13 @@ pub struct AssetMarket {
     #[model(skip)]
     pub all_time_high: Option<f64>,
     #[model(skip)]
-    pub all_time_high_date: Option<DateTime<Utc>>,
+    pub all_time_high_date: Option<DateTime>,
     #[model(skip)]
     pub all_time_high_change_percentage: Option<f64>,
     #[model(skip)]
     pub all_time_low: Option<f64>,
     #[model(skip)]
-    pub all_time_low_date: Option<DateTime<Utc>>,
+    pub all_time_low_date: Option<DateTime>,
     #[model(skip)]
     pub all_time_low_change_percentage: Option<f64>,
     pub all_time_high_value: Option<ChartValuePercentage>,
@@ -155,7 +154,7 @@ impl ChartPeriod {
         }
     }
 
-    pub fn minutes(&self) -> i32 {
+    pub fn minutes(&self) -> u64 {
         match self {
             ChartPeriod::Hour => 60,
             ChartPeriod::Day => 1440,

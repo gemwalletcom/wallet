@@ -1,7 +1,6 @@
-use chrono::{DateTime, Utc};
 use num_bigint::BigUint;
 
-use crate::{Asset, RedemptionResult, RedemptionStatus, RewardRedemption, RewardRedemptionOption, RewardRedemptionType, RewardStatus, Rewards};
+use crate::{Asset, DateTime, RedemptionResult, RedemptionStatus, RewardRedemption, RewardRedemptionOption, RewardRedemptionType, RewardStatus, Rewards};
 
 impl Rewards {
     pub fn mock(code: Option<&str>, status: RewardStatus) -> Self {
@@ -12,7 +11,7 @@ impl Rewards {
         }
     }
 
-    pub fn mock_pending(verify_after: DateTime<Utc>) -> Self {
+    pub fn mock_pending(verify_after: DateTime) -> Self {
         Self {
             used_referral_code: Some("friend".to_string()),
             verify_after: Some(verify_after),

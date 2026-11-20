@@ -1,4 +1,3 @@
-use chrono::TimeDelta;
 use primitives::{Asset, AssetId, ChartCandleStick, ChartCandleUpdate, ChartPeriod, Currency, Perpetual, PerpetualPosition, TransactionsFilter};
 
 use super::model::GemCandleChart;
@@ -125,16 +124,7 @@ impl GemCandleSession {
     pub fn chart(&self, asset: Asset, position: Option<PerpetualPosition>, transactions: Vec<GemTransactionRow>, utc_offset_seconds: i32) -> Option<GemCandleChart> {
         let provider = rules::provider(asset.chain())?;
         let price_decimals = GemPerpetual::new(provider).price_decimals(self.candles.last()?.close, asset.decimals);
-        chart::candle_chart(
-            &self.candles,
-            self.period,
-            price_decimals,
-            Currency::USD,
-            position.as_ref(),
-            &transactions,
-            self.zoom,
-            TimeDelta::seconds(i64::from(utc_offset_seconds)),
-        )
+        chart::candle_chart(&self.candles, self.period, price_decimals, Currency::USD, position.as_ref(), &transactions, self.zoom, utc_offset_seconds)
     }
 
     pub fn markers_request(&self, asset_id: AssetId) -> GemTransactionsRequest {
@@ -192,11 +182,11 @@ mod tests {
     use crate::formatted_number::GemNumberDisplay;
     use crate::precision::GemPrecision;
     use crate::services::error::GemServiceError;
-    use primitives::Chain;
+    use primitives::{Chain, DateTime, MINUTE};
 
     fn candle(timestamp: i64) -> ChartCandleStick {
         ChartCandleStick {
-            date: chrono::DateTime::from_timestamp(timestamp, 0).unwrap(),
+            date: DateTime::from_timestamp(timestamp),
             open: 1.0,
             high: 2.0,
             low: 0.5,
@@ -304,7 +294,7 @@ mod tests {
 
     #[test]
     fn test_on_zoom() {
-        let candles = ChartCandleStick::mock_series(chrono::DateTime::UNIX_EPOCH, TimeDelta::minutes(1), 70);
+        let candles = ChartCandleStick::mock_series(DateTime::UNIX_EPOCH, MINUTE, 70);
         let shown = session().on_result(loaded(session().request().unwrap(), candles.clone()));
         let zoomed = shown.on_zoom(100.0, 1.0);
         let refreshing = zoomed.on_refresh();
@@ -338,7 +328,7 @@ mod tests {
 
     #[test]
     fn test_on_pan() {
-        let shown = session().on_result(loaded(session().request().unwrap(), ChartCandleStick::mock_series(chrono::DateTime::UNIX_EPOCH, TimeDelta::minutes(1), 70)));
+        let shown = session().on_result(loaded(session().request().unwrap(), ChartCandleStick::mock_series(DateTime::UNIX_EPOCH, MINUTE, 70)));
 
         assert_eq!(shown.on_zoom(4.0, 1.0).on_pan(0.4).zoom, GemChartZoom { scale: 4.0, offset: 0.1 });
     }

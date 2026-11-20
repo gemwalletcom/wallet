@@ -771,9 +771,8 @@ fn price_value(data: &AssetData) -> Option<f64> {
 mod tests {
     use super::*;
     use crate::services::swap::testkit::mock_asset_data;
-    use chrono::Utc;
     use num_bigint::BigUint;
-    use primitives::{Asset, Chain, Price, PriceProvider};
+    use primitives::{Asset, Chain, DateTime, Price, PriceProvider};
 
     fn view(session: &GemSwapSession, available: u64) -> GemSwapViewState {
         session.view_state(Some(mock_asset_data(Chain::Ethereum, available)), Some(mock_asset_data(Chain::Solana, 0)), Currency::USD)
@@ -1218,7 +1217,7 @@ mod tests {
     #[test]
     fn test_each_side_reads_its_balance_and_value_and_the_pay_value_waits_for_no_receive_asset() {
         let pay = AssetData {
-            price: Some(Price::new(2.0, 0.0, Utc::now(), PriceProvider::Coingecko)),
+            price: Some(Price::new(2.0, 0.0, DateTime::now(), PriceProvider::Coingecko)),
             ..mock_asset_data(Chain::Ethereum, 1000)
         };
         let typed = GemSwapSession::default().on_input_changed("1".to_string(), Some(pay.asset.clone()), None, GemBigUint::from(1000u32), None, GemNumberFormat { decimal_separator: ".".to_string() });
@@ -1236,7 +1235,7 @@ mod tests {
         let session = GemSwapSession::mock_ready();
         let quote = session.quote().unwrap();
         let receive = AssetData {
-            price: Some(Price::new(100.0, 0.0, Utc::now(), PriceProvider::Coingecko)),
+            price: Some(Price::new(100.0, 0.0, DateTime::now(), PriceProvider::Coingecko)),
             ..mock_asset_data(Chain::Solana, 0)
         };
         let state = session.view_state(Some(mock_asset_data(Chain::Ethereum, 1000)), Some(receive.clone()), Currency::USD);
@@ -1364,7 +1363,7 @@ mod tests {
     }
 
     fn priced_view(session: &GemSwapSession) -> GemSwapViewState {
-        let price = |price| Some(Price::new(price, 0.0, Utc::now(), PriceProvider::Coingecko));
+        let price = |price| Some(Price::new(price, 0.0, DateTime::now(), PriceProvider::Coingecko));
         let pay = AssetData {
             price: price(10_000_000_000.0),
             ..mock_asset_data(Chain::Ethereum, 1000)
@@ -1518,7 +1517,7 @@ mod tests {
         let ready = GemSwapSession::mock_ready();
         let request = ready.quotes.as_ref().unwrap().request.clone();
         let receive = AssetData {
-            price: Some(Price::new(100.0, 0.0, Utc::now(), PriceProvider::Coingecko)),
+            price: Some(Price::new(100.0, 0.0, DateTime::now(), PriceProvider::Coingecko)),
             ..mock_asset_data(Chain::Solana, 0)
         };
         let shown = ready.view_state(Some(mock_asset_data(Chain::Ethereum, 1000)), Some(receive.clone()), Currency::USD);

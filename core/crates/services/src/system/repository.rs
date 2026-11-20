@@ -1,8 +1,7 @@
 use std::collections::HashSet;
 
 use async_trait::async_trait;
-use chrono::NaiveDateTime;
-use primitives::{Device, PlatformStore, Release};
+use primitives::{DateTime, Device, PlatformStore, Release};
 use storage::{Database, DatabaseError, DevicesRepository, ReleasesRepository, TransactionsRepository, WalletsRepository};
 
 pub(crate) struct TransactionCleanupResult {
@@ -13,11 +12,11 @@ pub(crate) struct TransactionCleanupResult {
 
 #[async_trait]
 pub(crate) trait Repository: Send + Sync {
-    async fn delete_subscriptions_after_days(&self, days: i64) -> Result<usize, DatabaseError>;
-    async fn delete_heavy_addresses(&self, min_count: i64, limit: i64, since: NaiveDateTime) -> Result<Option<TransactionCleanupResult>, DatabaseError>;
+    async fn delete_subscriptions_after_days(&self, days: u64) -> Result<usize, DatabaseError>;
+    async fn delete_heavy_addresses(&self, min_count: i64, limit: i64, since: DateTime) -> Result<Option<TransactionCleanupResult>, DatabaseError>;
     async fn get_update_enabled(&self, store: PlatformStore) -> Result<bool, DatabaseError>;
     async fn set_release_version(&self, store: PlatformStore, version: String) -> Result<(), DatabaseError>;
-    async fn get_inactive_devices(&self, min_days: i64, max_days: i64, push_enabled: Option<bool>) -> Result<Vec<Device>, DatabaseError>;
+    async fn get_inactive_devices(&self, min_days: u64, max_days: u64, push_enabled: Option<bool>) -> Result<Vec<Device>, DatabaseError>;
 }
 
 pub(crate) struct PostgresRepository {
@@ -32,11 +31,11 @@ impl PostgresRepository {
 
 #[async_trait]
 impl Repository for PostgresRepository {
-    async fn delete_subscriptions_after_days(&self, days: i64) -> Result<usize, DatabaseError> {
+    async fn delete_subscriptions_after_days(&self, days: u64) -> Result<usize, DatabaseError> {
         self.database.run(move |client| client.delete_devices_subscriptions_after_days(days)).await
     }
 
-    async fn delete_heavy_addresses(&self, min_count: i64, limit: i64, since: NaiveDateTime) -> Result<Option<TransactionCleanupResult>, DatabaseError> {
+    async fn delete_heavy_addresses(&self, min_count: i64, limit: i64, since: DateTime) -> Result<Option<TransactionCleanupResult>, DatabaseError> {
         self.database
             .run(move |client| {
                 let heavy_addresses = client.get_transactions_addresses(min_count, limit, since)?;
@@ -74,7 +73,7 @@ impl Repository for PostgresRepository {
             .await
     }
 
-    async fn get_inactive_devices(&self, min_days: i64, max_days: i64, push_enabled: Option<bool>) -> Result<Vec<Device>, DatabaseError> {
+    async fn get_inactive_devices(&self, min_days: u64, max_days: u64, push_enabled: Option<bool>) -> Result<Vec<Device>, DatabaseError> {
         self.database.run(move |client| client.get_inactive_devices(min_days, max_days, push_enabled)).await
     }
 }

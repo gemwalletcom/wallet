@@ -1,4 +1,3 @@
-use chrono::Utc;
 use gem_hypercore::perpetual_formatter::usdc_value;
 use num_bigint::BigInt;
 use primitives::swap::{ApprovalData, SwapQuoteDataType};
@@ -7,7 +6,7 @@ use primitives::{
     TransactionInputType, TransactionNFTTransferMetadata, TransactionPaymentMetadata, TransactionPerpetualMetadata, TransactionResourceTypeMetadata, TransactionState, TransactionSwapMetadata, TransactionType,
     TransactionWalletConnectMetadata, TransferDataOutputAction, TransferDataOutputType,
 };
-use primitives::{OptionStringExt, SwapProvider};
+use primitives::{DateTime, OptionStringExt, SwapProvider};
 
 use super::model::{GemConfirmDestination, GemConfirmRow, GemConfirmTitle, GemPendingTransactionInput, GemRecentActivity, GemRecipient, GemTransferData, GemTransferOutput};
 use crate::config::chain::is_memo_supported;
@@ -597,7 +596,7 @@ impl GemPendingTransactionInput {
             value,
             memo,
             metadata,
-            Utc::now(),
+            DateTime::now(),
         );
         transaction.block_number = transaction_metadata_block_number(&self.metadata);
         transaction.sequence = self.sequence.map(|sequence| sequence.to_string());

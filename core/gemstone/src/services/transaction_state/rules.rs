@@ -1,5 +1,4 @@
-use chrono::{DateTime, Utc};
-use primitives::{AssetId, Chain, JobConfiguration, PaymentLink, Transaction, TransactionChange, TransactionMetadata, TransactionState, TransactionType, chain_transaction_timeout, swap_transaction_timeout};
+use primitives::{AssetId, Chain, DateTime, JobConfiguration, PaymentLink, Transaction, TransactionChange, TransactionMetadata, TransactionState, TransactionType, chain_transaction_timeout, swap_transaction_timeout};
 
 use super::model::{GemPendingTransaction, GemTransactionStateUpdate, TransactionPostProcessing};
 use crate::payment::payment_record_hash;
@@ -16,16 +15,16 @@ pub fn poll_configuration(transaction: &Transaction) -> JobConfiguration {
     }
 }
 
-pub fn has_timed_out(transaction: &Transaction, state: TransactionState, now: DateTime<Utc>) -> bool {
+pub fn has_timed_out(transaction: &Transaction, state: TransactionState, now: DateTime) -> bool {
     if state.is_completed() {
         return false;
     }
     let chain = transaction.asset_id.chain;
-    let timeout_ms = match state {
+    let timeout = match state {
         TransactionState::InTransit => swap_transaction_timeout(chain, destination_chain(transaction, state).unwrap_or(chain)),
-        TransactionState::Pending | TransactionState::Confirmed | TransactionState::Failed | TransactionState::Reverted | TransactionState::Refunded => u64::from(chain_transaction_timeout(chain)),
+        TransactionState::Pending | TransactionState::Confirmed | TransactionState::Failed | TransactionState::Reverted | TransactionState::Refunded => chain_transaction_timeout(chain),
     };
-    (now - transaction.created_at).num_milliseconds() > timeout_ms as i64
+    now - transaction.created_at > timeout
 }
 
 pub fn post_processing(transaction: &Transaction, previous_state: TransactionState, state: TransactionState) -> Option<TransactionPostProcessing> {
@@ -95,7 +94,7 @@ pub fn payment_link(transaction: &Transaction) -> Option<PaymentLink> {
     (payment_record_hash(&link).as_deref() == Some(transaction.hash())).then_some(link)
 }
 
-pub fn pending_nonces(pending: &[GemPendingTransaction], chain: Chain, sender: &str, now: DateTime<Utc>) -> Vec<u64> {
+pub fn pending_nonces(pending: &[GemPendingTransaction], chain: Chain, sender: &str, now: DateTime) -> Vec<u64> {
     pending
         .iter()
         .map(|pending| &pending.transaction)
@@ -111,7 +110,7 @@ pub fn assets_to_enable(transactions: &[Transaction]) -> Vec<AssetId> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use primitives::{PaymentMerchant, SwapProvider, TransactionId, TransactionPaymentMetadata, TransactionSwapMetadata};
+    use primitives::{HOUR, PaymentMerchant, SwapProvider, TransactionId, TransactionPaymentMetadata, TransactionSwapMetadata};
 
     #[test]
     fn test_poll_configuration() {
@@ -135,7 +134,7 @@ mod tests {
 
     #[test]
     fn test_pending_nonces() {
-        let now = Utc::now();
+        let now = DateTime::now();
         let pending = [GemPendingTransaction::mock_with_sequence(5)];
 
         assert_eq!(pending_nonces(&[], Chain::Ethereum, "0xfrom", now), Vec::<u64>::new());
@@ -146,7 +145,7 @@ mod tests {
         assert_eq!(pending_nonces(&pending, Chain::Ethereum, "0xother", now), Vec::<u64>::new(), "every address has its own nonces");
         assert_eq!(pending_nonces(&pending, Chain::SmartChain, "0xfrom", now), Vec::<u64>::new(), "every network has its own nonces");
         assert_eq!(
-            pending_nonces(&pending, Chain::Ethereum, "0xfrom", now + chrono::Duration::hours(1)),
+            pending_nonces(&pending, Chain::Ethereum, "0xfrom", now + HOUR),
             Vec::<u64>::new(),
             "a send pending past its timeout was likely dropped, and a nonce after it would never be mined"
         );

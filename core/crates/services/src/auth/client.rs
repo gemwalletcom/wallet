@@ -1,8 +1,7 @@
 use std::{error::Error, sync::Arc};
 
 use cacher::AuthNonceCacher;
-use chrono::Utc;
-use primitives::AuthNonce;
+use primitives::{AuthNonce, DateTime};
 use uuid::Uuid;
 
 pub struct AuthClient {
@@ -17,7 +16,7 @@ impl AuthClient {
     pub async fn get_nonce(&self, device_id: &str) -> Result<AuthNonce, Box<dyn Error + Send + Sync>> {
         let auth_nonce = AuthNonce {
             nonce: Uuid::new_v4().to_string(),
-            timestamp: Utc::now().timestamp() as u32,
+            timestamp: DateTime::now().timestamp() as u32,
         };
         self.nonces.add_nonce(device_id, &auth_nonce).await?;
         Ok(auth_nonce)

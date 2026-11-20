@@ -52,8 +52,7 @@ impl SearchClient {
 
 #[cfg(test)]
 mod tests {
-    use chrono::Utc;
-    use primitives::{Asset, AssetMarket, AssetPriceInfo, Chain, MAX_QUERY_LIMIT, Price, PriceProvider};
+    use primitives::{Asset, AssetMarket, AssetPriceInfo, Chain, DateTime, MAX_QUERY_LIMIT, Price, PriceProvider};
 
     use super::*;
     use crate::testkit::{MemoryPriceCacher, MemorySearchProvider};
@@ -61,7 +60,7 @@ mod tests {
     fn price_info(chain: Chain, price: f64) -> AssetPriceInfo {
         AssetPriceInfo {
             asset_id: AssetId::from_chain(chain),
-            price: Price::new(price, 1.0, Utc::now(), PriceProvider::Coingecko),
+            price: Price::new(price, 1.0, DateTime::now(), PriceProvider::Coingecko),
             market: AssetMarket::mock(),
         }
     }

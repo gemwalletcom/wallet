@@ -72,10 +72,9 @@ impl BscParser {
 
 #[cfg(test)]
 mod tests {
-    use chrono::DateTime;
     use gem_evm::rpc::model::Transaction;
     use gem_evm::rpc::parsers::ProtocolParsers;
-    use primitives::{AssetId, Chain, TransactionState, TransactionType, testkit::json_rpc::load_json_rpc_result};
+    use primitives::{AssetId, Chain, DateTime, TransactionState, TransactionType, testkit::json_rpc::load_json_rpc_result};
 
     use super::BscParser;
     use crate::constants::STAKE_HUB_ADDRESS;

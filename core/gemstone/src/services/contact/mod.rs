@@ -3,12 +3,11 @@ pub mod rules;
 pub mod store;
 
 use crate::services::error::GemServiceError;
-use chrono::Utc;
 use std::sync::Arc;
 use uuid::Uuid;
 
 use primitives::contact::ContactAddress;
-use primitives::{Contact, Payment};
+use primitives::{Contact, DateTime, Payment};
 
 use crate::payment::GemPaymentService;
 use crate::services::file::{GemFileStore, IMAGE_EXTENSION};
@@ -59,7 +58,7 @@ impl GemContactService {
             GemContactAvatar::Image { image_url } => Some(image_url),
             GemContactAvatar::Rendered { image } => Some(self.save_avatar(image)?),
         };
-        let contact = rules::contact(input.existing.as_ref(), input.id, input.name, input.description, image_url, Utc::now());
+        let contact = rules::contact(input.existing.as_ref(), input.id, input.name, input.description, image_url, DateTime::now());
         match input.existing {
             Some(existing) => {
                 self.update_contact(contact.clone(), input.addresses).await?;

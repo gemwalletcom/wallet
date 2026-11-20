@@ -1,7 +1,8 @@
 use std::collections::HashMap;
 
+use date_time::deserialize_datetime_from_seconds;
 use num_bigint::BigUint;
-use primitives::{SwapProvider, TransactionState};
+use primitives::{DateTime, SwapProvider, TransactionState};
 use serde::{Deserialize, Serialize};
 use serde_json::value::RawValue;
 use serde_serializers::{deserialize_biguint_from_str, deserialize_option_biguint_from_str};
@@ -181,7 +182,8 @@ pub struct NftTransferDetails {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TransactionMessage {
     pub hash: String,
-    pub now: i64,
+    #[serde(deserialize_with = "deserialize_datetime_from_seconds")]
+    pub now: DateTime,
     #[serde(deserialize_with = "deserialize_biguint_from_str")]
     pub total_fees: BigUint,
     pub description: Option<TransactionDescription>,

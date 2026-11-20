@@ -1,16 +1,16 @@
 use std::collections::HashMap;
 
-use chrono::{NaiveDate, NaiveDateTime, Timelike};
 use diesel::dsl::sql;
 use diesel::prelude::*;
 use diesel::sql_types::{Array, Timestamp, VarChar};
-use primitives::{ChartPeriod, ChartTimeframe};
+use primitives::{ChartPeriod, ChartTimeframe, DateTime, HOUR};
 
 use crate::models::chart::{ChartRow, DailyChartRow, HourlyChartRow};
 use crate::models::min_max::{DataPoint, MinMax};
 use crate::schema::charts::dsl::{charts, created_at as raw_created_at, price as raw_price, price_id as raw_price_id};
 use crate::schema::charts_daily::dsl::{charts_daily, created_at as daily_created_at, price as daily_price, price_id as daily_price_id};
 use crate::schema::charts_hourly::dsl::{charts_hourly, created_at as hourly_created_at, price as hourly_price, price_id as hourly_price_id};
+use crate::sql_types::DateTimeRow;
 use crate::{DatabaseClient, DatabaseError};
 
 enum ChartGranularity {
@@ -21,19 +21,23 @@ enum ChartGranularity {
     Daily,
 }
 
-pub type ChartResult = (chrono::NaiveDateTime, f64);
+pub type ChartResult = (DateTime, f64);
+
+fn chart_result((date, price): (DateTimeRow, f64)) -> ChartResult {
+    (date.into(), price)
+}
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ChartPoint {
     pub price_id: String,
     pub price: f64,
-    pub created_at: NaiveDateTime,
+    pub created_at: DateTime,
 }
 
 #[derive(Debug, Clone)]
 pub enum ChartFilter {
-    CreatedBefore(NaiveDateTime),
-    CreatedAfter(NaiveDateTime),
+    CreatedBefore(DateTime),
+    CreatedAfter(DateTime),
     PriceIds(Vec<String>),
 }
 
@@ -54,19 +58,19 @@ pub(crate) fn insert_chart_rows(client: &mut DatabaseClient, timeframe: ChartTim
     }
 }
 
-pub(crate) fn aggregate_chart_rows(client: &mut DatabaseClient, values: Vec<(String, NaiveDateTime)>) -> Result<(), diesel::result::Error> {
-    let mut buckets = HashMap::<(NaiveDate, u32), (NaiveDateTime, Vec<String>)>::new();
+pub(crate) fn aggregate_chart_rows(client: &mut DatabaseClient, values: Vec<(String, DateTime)>) -> Result<(), diesel::result::Error> {
+    let mut buckets = HashMap::<DateTime, (DateTime, Vec<String>)>::new();
     for (price_id, created_at) in values {
-        buckets.entry((created_at.date(), created_at.hour())).or_insert_with(|| (created_at, Vec::new())).1.push(price_id);
+        buckets.entry(created_at.truncated(HOUR)).or_insert_with(|| (created_at, Vec::new())).1.push(price_id);
     }
     for (created_at, price_ids) in buckets.into_values() {
         diesel::sql_query("SELECT aggregate_hourly_charts($1, $2)")
             .bind::<Array<VarChar>, _>(&price_ids)
-            .bind::<Timestamp, _>(created_at)
+            .bind::<Timestamp, _>(DateTimeRow::from(created_at))
             .execute(&mut client.connection)?;
         diesel::sql_query("SELECT aggregate_daily_charts($1, $2)")
             .bind::<Array<VarChar>, _>(&price_ids)
-            .bind::<Timestamp, _>(created_at)
+            .bind::<Timestamp, _>(DateTimeRow::from(created_at))
             .execute(&mut client.connection)?;
     }
     Ok(())
@@ -76,7 +80,7 @@ pub trait ChartsRepository {
     fn add_charts(&mut self, timeframe: ChartTimeframe, values: Vec<ChartPoint>) -> Result<usize, DatabaseError>;
     fn get_charts(&mut self, price_id: &str, period: &ChartPeriod) -> Result<Vec<ChartResult>, DatabaseError>;
     fn update_chart_aggregates(&mut self, timeframe: ChartTimeframe) -> Result<usize, DatabaseError>;
-    fn delete_charts(&mut self, timeframe: ChartTimeframe, before: NaiveDateTime) -> Result<usize, DatabaseError>;
+    fn delete_charts(&mut self, timeframe: ChartTimeframe, before: DateTime) -> Result<usize, DatabaseError>;
     fn get_charts_by_filter(&mut self, filters: Vec<ChartFilter>) -> Result<Vec<(String, f64)>, DatabaseError>;
 }
 
@@ -97,22 +101,25 @@ impl ChartsRepository for DatabaseClient {
                 .filter(sql::<diesel::sql_types::Bool>(&created_at_filter))
                 .group_by(sql::<diesel::sql_types::Numeric>("1"))
                 .order(sql::<diesel::sql_types::Numeric>("1").asc())
-                .load(&mut self.connection)?,
+                .load::<(DateTimeRow, f64)>(&mut self.connection)?,
             ChartGranularity::Hourly | ChartGranularity::Hour6 => charts_hourly
                 .select((sql::<diesel::sql_types::Timestamp>(date_selection.as_str()), sql::<diesel::sql_types::Double>("AVG(price)")))
                 .filter(hourly_price_id.eq(price_id))
                 .filter(sql::<diesel::sql_types::Bool>(&created_at_filter))
                 .group_by(sql::<diesel::sql_types::Numeric>("1"))
                 .order(sql::<diesel::sql_types::Numeric>("1").asc())
-                .load(&mut self.connection)?,
+                .load::<(DateTimeRow, f64)>(&mut self.connection)?,
             ChartGranularity::Daily => charts_daily
                 .select((sql::<diesel::sql_types::Timestamp>(date_selection.as_str()), sql::<diesel::sql_types::Double>("AVG(price)")))
                 .filter(daily_price_id.eq(price_id))
                 .filter(sql::<diesel::sql_types::Bool>(&created_at_filter))
                 .group_by(sql::<diesel::sql_types::Numeric>("1"))
                 .order(sql::<diesel::sql_types::Numeric>("1").asc())
-                .load(&mut self.connection)?,
-        })
+                .load::<(DateTimeRow, f64)>(&mut self.connection)?,
+        }
+        .into_iter()
+        .map(chart_result)
+        .collect())
     }
 
     fn update_chart_aggregates(&mut self, timeframe: ChartTimeframe) -> Result<usize, DatabaseError> {
@@ -124,11 +131,11 @@ impl ChartsRepository for DatabaseClient {
         Ok(diesel::sql_query(query).execute(&mut self.connection)?)
     }
 
-    fn delete_charts(&mut self, timeframe: ChartTimeframe, before: NaiveDateTime) -> Result<usize, DatabaseError> {
+    fn delete_charts(&mut self, timeframe: ChartTimeframe, before: DateTime) -> Result<usize, DatabaseError> {
         Ok(match timeframe {
-            ChartTimeframe::Raw => diesel::delete(charts.filter(raw_created_at.lt(before))).execute(&mut self.connection)?,
-            ChartTimeframe::Hourly => diesel::delete(charts_hourly.filter(hourly_created_at.lt(before))).execute(&mut self.connection)?,
-            ChartTimeframe::Daily => diesel::delete(charts_daily.filter(daily_created_at.lt(before))).execute(&mut self.connection)?,
+            ChartTimeframe::Raw => diesel::delete(charts.filter(raw_created_at.lt(DateTimeRow::from(before)))).execute(&mut self.connection)?,
+            ChartTimeframe::Hourly => diesel::delete(charts_hourly.filter(hourly_created_at.lt(DateTimeRow::from(before)))).execute(&mut self.connection)?,
+            ChartTimeframe::Daily => diesel::delete(charts_daily.filter(daily_created_at.lt(DateTimeRow::from(before)))).execute(&mut self.connection)?,
         })
     }
 
@@ -136,42 +143,43 @@ impl ChartsRepository for DatabaseClient {
         let query = filters
             .into_iter()
             .fold(charts.distinct_on(raw_price_id).order_by((raw_price_id, raw_created_at.desc())).into_boxed(), |q, filter| match filter {
-                ChartFilter::CreatedBefore(at) => q.filter(raw_created_at.le(at)),
-                ChartFilter::CreatedAfter(at) => q.filter(raw_created_at.ge(at)),
+                ChartFilter::CreatedBefore(at) => q.filter(raw_created_at.le(DateTimeRow::from(at))),
+                ChartFilter::CreatedAfter(at) => q.filter(raw_created_at.ge(DateTimeRow::from(at))),
                 ChartFilter::PriceIds(ids) => q.filter(raw_price_id.eq_any(ids)),
             });
         Ok(query.select((raw_price_id, raw_price)).load(&mut self.connection)?)
     }
 }
 
-pub(crate) fn chart_price_at(client: &mut DatabaseClient, price_id: &str, at: NaiveDateTime) -> Result<Option<ChartResult>, diesel::result::Error> {
+pub(crate) fn chart_price_at(client: &mut DatabaseClient, price_id: &str, at: DateTime) -> Result<Option<ChartResult>, diesel::result::Error> {
     if let Some(point) = charts
         .filter(raw_price_id.eq(price_id))
-        .filter(raw_created_at.le(at))
+        .filter(raw_created_at.le(DateTimeRow::from(at)))
         .order(raw_created_at.desc())
         .select((raw_created_at, raw_price))
-        .first::<ChartResult>(&mut client.connection)
+        .first::<(DateTimeRow, f64)>(&mut client.connection)
         .optional()?
     {
-        return Ok(Some(point));
+        return Ok(Some(chart_result(point)));
     }
     if let Some(point) = charts_hourly
         .filter(hourly_price_id.eq(price_id))
-        .filter(hourly_created_at.le(at))
+        .filter(hourly_created_at.le(DateTimeRow::from(at)))
         .order(hourly_created_at.desc())
         .select((hourly_created_at, hourly_price))
-        .first::<ChartResult>(&mut client.connection)
+        .first::<(DateTimeRow, f64)>(&mut client.connection)
         .optional()?
     {
-        return Ok(Some(point));
+        return Ok(Some(chart_result(point)));
     }
     charts_daily
         .filter(daily_price_id.eq(price_id))
-        .filter(daily_created_at.le(at))
+        .filter(daily_created_at.le(DateTimeRow::from(at)))
         .order(daily_created_at.desc())
         .select((daily_created_at, daily_price))
-        .first::<ChartResult>(&mut client.connection)
+        .first::<(DateTimeRow, f64)>(&mut client.connection)
         .optional()
+        .map(|point| point.map(chart_result))
 }
 
 pub(crate) fn chart_extremes(client: &mut DatabaseClient, price_id: &str, timeframe: ChartTimeframe) -> Result<MinMax<f64>, diesel::result::Error> {
@@ -182,7 +190,7 @@ pub(crate) fn chart_extremes(client: &mut DatabaseClient, price_id: &str, timefr
                 .filter(raw_price.gt(0.0))
                 .order_by(raw_price.desc())
                 .select((raw_price, raw_created_at))
-                .first::<(f64, NaiveDateTime)>(&mut client.connection)
+                .first::<(f64, DateTimeRow)>(&mut client.connection)
                 .optional()?
                 .map(DataPoint::from);
             let min = charts
@@ -190,7 +198,7 @@ pub(crate) fn chart_extremes(client: &mut DatabaseClient, price_id: &str, timefr
                 .filter(raw_price.gt(0.0))
                 .order_by(raw_price.asc())
                 .select((raw_price, raw_created_at))
-                .first::<(f64, NaiveDateTime)>(&mut client.connection)
+                .first::<(f64, DateTimeRow)>(&mut client.connection)
                 .optional()?
                 .map(DataPoint::from);
             Ok(MinMax { max, min })
@@ -201,7 +209,7 @@ pub(crate) fn chart_extremes(client: &mut DatabaseClient, price_id: &str, timefr
                 .filter(hourly_price.gt(0.0))
                 .order_by(hourly_price.desc())
                 .select((hourly_price, hourly_created_at))
-                .first::<(f64, NaiveDateTime)>(&mut client.connection)
+                .first::<(f64, DateTimeRow)>(&mut client.connection)
                 .optional()?
                 .map(DataPoint::from);
             let min = charts_hourly
@@ -209,7 +217,7 @@ pub(crate) fn chart_extremes(client: &mut DatabaseClient, price_id: &str, timefr
                 .filter(hourly_price.gt(0.0))
                 .order_by(hourly_price.asc())
                 .select((hourly_price, hourly_created_at))
-                .first::<(f64, NaiveDateTime)>(&mut client.connection)
+                .first::<(f64, DateTimeRow)>(&mut client.connection)
                 .optional()?
                 .map(DataPoint::from);
             Ok(MinMax { max, min })
@@ -220,7 +228,7 @@ pub(crate) fn chart_extremes(client: &mut DatabaseClient, price_id: &str, timefr
                 .filter(daily_price.gt(0.0))
                 .order_by(daily_price.desc())
                 .select((daily_price, daily_created_at))
-                .first::<(f64, NaiveDateTime)>(&mut client.connection)
+                .first::<(f64, DateTimeRow)>(&mut client.connection)
                 .optional()?
                 .map(DataPoint::from);
             let min = charts_daily
@@ -228,7 +236,7 @@ pub(crate) fn chart_extremes(client: &mut DatabaseClient, price_id: &str, timefr
                 .filter(daily_price.gt(0.0))
                 .order_by(daily_price.asc())
                 .select((daily_price, daily_created_at))
-                .first::<(f64, NaiveDateTime)>(&mut client.connection)
+                .first::<(f64, DateTimeRow)>(&mut client.connection)
                 .optional()?
                 .map(DataPoint::from);
             Ok(MinMax { max, min })

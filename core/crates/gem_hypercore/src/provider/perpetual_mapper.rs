@@ -271,8 +271,7 @@ mod tests {
         metadata::{AssetMetadata, HypercoreUniverseResponse, UniverseAsset},
         position::{AssetPosition, AssetPositions, CumulativeFunding, Leverage, LeverageType, MarginSummary, Position, PositionType},
     };
-    use chrono::DateTime;
-    use primitives::{PerpetualDirection, PerpetualMarginType, perpetual_provider::PerpetualProvider};
+    use primitives::{DateTime, PerpetualDirection, PerpetualMarginType, perpetual_provider::PerpetualProvider};
 
     #[test]
     fn test_map_perpetual_addresses() {
@@ -284,14 +283,14 @@ mod tests {
                 PerpetualAddress {
                     provider: PerpetualProvider::Hypercore,
                     address: "0x0000000000000000000000000000000000000001".to_string(),
-                    referred_at: DateTime::from_timestamp_millis(1753127993370).unwrap(),
+                    referred_at: DateTime::from_timestamp_millis(1753127993370),
                     cumulative_volume_usd: 190.0,
                     cumulative_referral_earned_usd: 19.0,
                 },
                 PerpetualAddress {
                     provider: PerpetualProvider::Hypercore,
                     address: "0x0000000000000000000000000000000000000002".to_string(),
-                    referred_at: DateTime::from_timestamp_millis(1753127994370).unwrap(),
+                    referred_at: DateTime::from_timestamp_millis(1753127994370),
                     cumulative_volume_usd: 0.0,
                     cumulative_referral_earned_usd: 0.0,
                 },
@@ -518,7 +517,7 @@ mod tests {
 
         let candlesticks = vec![
             Candlestick {
-                t: 1640995200000u64,
+                t: DateTime::from_timestamp_millis(1640995200000),
                 s: "BTC".to_string(),
                 i: "1h".to_string(),
                 o: "50000.0".to_string(),
@@ -528,7 +527,7 @@ mod tests {
                 v: "100.5".to_string(),
             },
             Candlestick {
-                t: 1640998800000u64,
+                t: DateTime::from_timestamp_millis(1640998800000),
                 s: "BTC".to_string(),
                 i: "1h".to_string(),
                 o: "50500.0".to_string(),
@@ -831,7 +830,7 @@ mod tests {
         use crate::testkit::*;
 
         let account_day = HypercorePortfolioTimeframeData {
-            account_value_history: vec![HypercoreDataPoint { timestamp_ms: 1640995200000, value: 2000.0 }],
+            account_value_history: vec![HypercoreDataPoint::from((1_640_995_200_000, "2000".to_string()))],
             ..HypercorePortfolioTimeframeData::mock("1")
         };
         let response = HypercorePortfolioResponse {

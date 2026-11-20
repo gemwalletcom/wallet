@@ -72,7 +72,7 @@ impl ChartClient {
         Ok(charts
             .into_iter()
             .map(|(ts, price)| ChartValue {
-                timestamp: ts.and_utc().timestamp() as i32,
+                timestamp: ts.timestamp() as i32,
                 value: (price * rate_multiplier) as f32,
             })
             .collect())
@@ -85,17 +85,16 @@ mod tests {
     use std::sync::Mutex;
 
     use async_trait::async_trait;
-    use chrono::{DateTime, TimeDelta};
     use config_keys::RateLimitWindow;
     use prices::{AssetPriceFull, AssetPriceMapping, PriceProvider, PriceProviderAsset};
-    use primitives::{AssetId, Chain, FiatRate};
+    use primitives::{AssetId, Chain, DateTime, FiatRate};
 
     use super::*;
     use crate::testkit::{MemoryChartCandlesCacher, MemoryConfigRepository, MemoryPricesRepository, MemoryRateLimiter};
 
     #[tokio::test]
     async fn test_get_charts_prices_converts_to_currency() {
-        let at = DateTime::from_timestamp(1_700_000_000, 0).unwrap().naive_utc();
+        let at = DateTime::from_timestamp(1_700_000_000);
         let repository = MemoryPricesRepository::default()
             .with_fiat_rates(vec![FiatRate { symbol: Currency::USD, rate: 1.0 }, FiatRate { symbol: Currency::EUR, rate: 0.5 }])
             .with_charts(vec![(at, 100.0)]);
@@ -111,7 +110,7 @@ mod tests {
 
     fn candle() -> ChartCandleStick {
         ChartCandleStick {
-            date: DateTime::from_timestamp(1_700_000_000, 0).unwrap(),
+            date: DateTime::from_timestamp(1_700_000_000),
             open: 1.0,
             high: 3.0,
             low: 0.5,
@@ -198,7 +197,7 @@ mod tests {
     #[tokio::test]
     async fn test_candles_merge_down_to_the_configured_limit() {
         let provider = Arc::new(StubProvider {
-            candles: ChartCandleStick::mock_series(DateTime::UNIX_EPOCH, TimeDelta::hours(4), 6),
+            candles: ChartCandleStick::mock_series(DateTime::UNIX_EPOCH, Duration::from_hours(4), 6),
             ..Default::default()
         });
         let providers: PriceProviders = HashMap::from([(PriceProvider::Coingecko, provider as Arc<dyn PriceAssetsProvider>)]);
@@ -213,7 +212,7 @@ mod tests {
 
         let candles = client.get_candles(&AssetId::from_chain(Chain::Bitcoin), ChartPeriod::Month, IP).await.unwrap();
 
-        assert_eq!(candles.iter().map(|candle| candle.date).collect::<Vec<_>>(), vec![DateTime::UNIX_EPOCH, DateTime::UNIX_EPOCH + TimeDelta::hours(12)]);
+        assert_eq!(candles.iter().map(|candle| candle.date).collect::<Vec<_>>(), vec![DateTime::UNIX_EPOCH, DateTime::UNIX_EPOCH + Duration::from_hours(12)]);
     }
 
     #[tokio::test]

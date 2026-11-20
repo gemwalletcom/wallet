@@ -28,4 +28,3 @@ gem_evm = { path = "../gem_evm", features = ["rpc"] }
 gem_client = { path = "../gem_client" }
 settings = { path = "../settings" }
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }
-chrono = { workspace = true }

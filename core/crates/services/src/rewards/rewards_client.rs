@@ -1,12 +1,13 @@
 use std::error::Error;
 use std::sync::Arc;
+use std::time::Duration;
 
 use cacher::{GLOBAL_RATE_LIMIT_SCOPE, RateLimitCacher};
 use config_keys::{ConfigKey, RateLimitKey, RateLimitWindow};
 use gem_tracing::error_with_fields;
 use localizer::LanguageLocalizer;
 use primitives::rewards::{RewardRedemptionOption, RewardStatus};
-use primitives::{Localize, NaiveDateTimeExt, Platform, ReferralLeaderboard, RewardEvent, Rewards, now};
+use primitives::{DateTime, Localize, Platform, ReferralLeaderboard, RewardEvent, Rewards};
 use pusher::PushProvider;
 use rewards::{ReferralError, ReferralValidationError, RewardsError, RiskScoringInput, UsernameError, UsernameRules};
 use storage::{DatabaseError, DeviceRecord, WalletRecord};
@@ -62,8 +63,8 @@ impl RewardsClient {
 
     pub async fn get_rewards_by_wallet_id(&self, device: &DeviceRecord, wallet_id: i32, locale: &str) -> Result<Rewards, Box<dyn Error + Send + Sync>> {
         let rules = username_rules(&self.config).await?;
-        let eligibility_days = self.referral_eligibility_days().await?;
-        match self.wallet_rewards(device, wallet_id, rules, eligibility_days).await {
+        let eligibility = self.config.get_duration(ConfigKey::ReferralEligibility).await?;
+        match self.wallet_rewards(device, wallet_id, rules, eligibility).await {
             Ok(rewards) => Ok(Rewards {
                 disable_reason: rewards.disable_reason.map(|_| LanguageLocalizer::new_with_language(locale).notification_rewards_disabled_description()),
                 ..rewards
@@ -73,11 +74,11 @@ impl RewardsClient {
         }
     }
 
-    async fn wallet_rewards(&self, device: &DeviceRecord, wallet_id: i32, rules: UsernameRules, eligibility_days: i64) -> Result<Rewards, DatabaseError> {
+    async fn wallet_rewards(&self, device: &DeviceRecord, wallet_id: i32, rules: UsernameRules, eligibility: Duration) -> Result<Rewards, DatabaseError> {
         let rewards = self.repository.get_rewards(wallet_id, rules).await?;
         let facts = self.repository.get_referral_use_facts(wallet_id, device.id).await?;
         Ok(Rewards {
-            use_referral_code_until: Some(facts.eligibility_ends_at(device.created_at, eligibility_days).and_utc()),
+            use_referral_code_until: Some(facts.eligibility_ends_at(device.created_at, eligibility)),
             ..rewards
         })
     }
@@ -189,10 +190,6 @@ impl RewardsClient {
         }
     }
 
-    async fn referral_eligibility_days(&self) -> Result<i64, DatabaseError> {
-        Ok((self.config.get_duration(ConfigKey::ReferralEligibility).await?.as_secs() / 86400) as i64)
-    }
-
     async fn validate_and_score_referral(&self, device: &DeviceRecord, wallet_id: i32, referrer_username: &str, ip_address: &str, user_agent: &str) -> ReferralProcessResult {
         match self.validate_and_score_referral_inner(device, wallet_id, referrer_username, ip_address, user_agent).await {
             Ok(result) => result,
@@ -215,10 +212,10 @@ impl RewardsClient {
         }
 
         let multiplier = referrer_multiplier(&self.config, &referrer_info.status).await.map_err(ReferralError::internal)?;
-        let current = now();
+        let current = DateTime::now();
         let cooldown = self.config.get_duration(ConfigKey::ReferralCooldown).await.map_err(ReferralError::internal)?;
         let limits = self.config.get_rate_limit(RateLimitKey::ReferralPerUserLimit).await.map_err(ReferralError::internal)?;
-        let eligibility_days = self.referral_eligibility_days().await.map_err(ReferralError::internal)?;
+        let eligibility = self.config.get_duration(ConfigKey::ReferralEligibility).await.map_err(ReferralError::internal)?;
 
         let check = ReferralUseCheck {
             referrer_username: referrer_username.to_string(),
@@ -226,9 +223,9 @@ impl RewardsClient {
             wallet_id,
             device_id: device.id,
             device_created_at: device.created_at,
-            window_limits: RateLimitWindow::ALL.iter().map(|window| (current.ago(window.duration()), limits.get(*window) * multiplier)).collect(),
-            cooldown_since: current.ago(cooldown),
-            eligibility_days,
+            window_limits: RateLimitWindow::ALL.iter().map(|window| (current - window.duration(), limits.get(*window) * multiplier)).collect(),
+            cooldown_since: current - cooldown,
+            eligibility,
         };
         self.repository.get_referral_use_check(check).await.map_err(ReferralError::internal)??;
 
@@ -251,7 +248,7 @@ impl RewardsClient {
         self.consume_referral_limits([(RateLimitKey::ReferralPerCountryLimit, ip_result.country_code.as_str())]).await?;
 
         let risk_score_config = risk_score_config(&self.config).await.map_err(ReferralError::internal)?;
-        let since = now().ago(risk_score_config.lookback);
+        let since = DateTime::now() - risk_score_config.lookback;
 
         let scoring_input = RiskScoringInput {
             username: referrer_username.to_string(),

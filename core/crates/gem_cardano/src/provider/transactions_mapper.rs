@@ -1,9 +1,8 @@
 use crate::models::rpc::Transaction;
-use chrono::DateTime;
 use num_bigint::BigUint;
-use primitives::{TransactionState, TransactionType, chain::Chain, transaction_utxo::TransactionUtxoInput};
+use primitives::{DateTime, TransactionState, TransactionType, chain::Chain, transaction_utxo::TransactionUtxoInput};
 
-pub fn map_transaction(chain: Chain, created_at: &str, transaction: &Transaction) -> Option<primitives::Transaction> {
+pub fn map_transaction(chain: Chain, created_at: DateTime, transaction: &Transaction) -> Option<primitives::Transaction> {
     let inputs: Vec<TransactionUtxoInput> = transaction
         .inputs
         .iter()
@@ -25,8 +24,6 @@ pub fn map_transaction(chain: Chain, created_at: &str, transaction: &Transaction
     if inputs.is_empty() || outputs.is_empty() {
         return None;
     }
-    let created_at = DateTime::parse_from_rfc3339(created_at).ok()?.into();
-
     let transaction = primitives::Transaction::new_with_utxo(
         transaction.hash.clone(),
         chain.as_asset_id(),
@@ -65,7 +62,7 @@ mod tests {
             fee: 100u32.into(),
         };
 
-        let result = map_transaction(Chain::Cardano, "2023-01-01T00:00:00Z", &transaction);
+        let result = map_transaction(Chain::Cardano, DateTime::parse_rfc3339("2023-01-01T00:00:00Z").unwrap(), &transaction);
         assert!(result.is_some());
 
         let mapped_tx = result.unwrap();

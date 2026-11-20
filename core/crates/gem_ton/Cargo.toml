@@ -19,8 +19,8 @@ chain_integration_tests = ["rpc", "reqwest"]
 [dependencies]
 serde = { workspace = true }
 serde_json = { workspace = true, features = ["raw_value"] }
-chrono = { workspace = true, features = ["serde"] }
 primitives = { path = "../primitives" }
+date_time = { path = "../date_time", features = ["serde"] }
 num-bigint = { workspace = true }
 gem_encoding = { path = "../gem_encoding" }
 

@@ -564,7 +564,7 @@ pub struct GemConfirmViewState {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use primitives::{ApplicationMetadata, ApprovalData, SimulationHeader, SimulationPayloadField, SimulationPayloadFieldKind, SimulationPayloadFieldType, TransferDataExtra};
+    use primitives::{ApplicationMetadata, ApprovalData, DateTime, SimulationHeader, SimulationPayloadField, SimulationPayloadFieldKind, SimulationPayloadFieldType, TransferDataExtra};
 
     fn explorer_link(_: Chain, _: String) -> BlockExplorerLink {
         BlockExplorerLink { name: String::new(), link: String::new() }
@@ -682,7 +682,7 @@ mod tests {
 
     #[test]
     fn test_metadata_pairs_each_balance_with_its_own_price() {
-        let now = chrono::Utc::now();
+        let now = DateTime::now();
         let metadata = GemConfirmMetadata {
             asset_balance: GemAssetBalance::zero(AssetId::from_chain(primitives::Chain::Solana)),
             fee_asset_balance: GemAssetBalance::zero(AssetId::from_chain(primitives::Chain::Bitcoin)),

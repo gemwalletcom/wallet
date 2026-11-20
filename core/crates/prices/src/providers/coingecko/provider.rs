@@ -159,7 +159,7 @@ mod tests {
     use std::sync::{Arc, Mutex};
 
     use gem_client::{ClientError, testkit::MockClient};
-    use primitives::Chain;
+    use primitives::{Chain, DateTime};
 
     use super::*;
 
@@ -276,7 +276,7 @@ mod tests {
         assert_eq!(
             candles,
             vec![ChartCandleStick {
-                date: chrono::DateTime::from_timestamp(1_700_000_000, 0).unwrap(),
+                date: DateTime::from_timestamp(1_700_000_000),
                 open: 1.5,
                 high: 3.0,
                 low: 1.0,

@@ -1,6 +1,5 @@
-use chrono::{DateTime, NaiveDateTime, Utc};
 use num_bigint::{BigInt, BigUint};
-use primitives::{AssetId, NFTAssetId, NFTCollectionId, PerpetualId, StakeChain, TransactionId, WalletId};
+use primitives::{AssetId, DateTime, NFTAssetId, NFTCollectionId, PerpetualId, StakeChain, TransactionId, WalletId};
 use std::str::FromStr;
 
 uniffi::custom_type!(StakeChain, String, {
@@ -78,27 +77,12 @@ uniffi::custom_type!(GemInt, i64, {
     try_lift: |value| usize::try_from(value).map_err(|_| uniffi::deps::anyhow::Error::msg("Invalid integer")),
 });
 
-pub type DateTimeUtc = DateTime<Utc>;
+pub type DateTimeUtc = DateTime;
 
 uniffi::custom_type!(DateTimeUtc, i64, {
     remote,
     lower: |value: DateTimeUtc| value.timestamp(),
-    try_lift: |timestamp| {
-        DateTime::<Utc>::from_timestamp(timestamp, 0)
-            .ok_or_else(|| uniffi::deps::anyhow::Error::msg("Invalid timestamp"))
-    },
-});
-
-pub type NaiveDateTimeUtc = NaiveDateTime;
-
-uniffi::custom_type!(NaiveDateTimeUtc, i64, {
-    remote,
-    lower: |value: NaiveDateTimeUtc| value.and_utc().timestamp(),
-    try_lift: |timestamp| {
-        DateTime::<Utc>::from_timestamp(timestamp, 0)
-            .map(|value| value.naive_utc())
-            .ok_or_else(|| uniffi::deps::anyhow::Error::msg("Invalid timestamp"))
-    },
+    try_lift: |timestamp| Ok(DateTime::from_timestamp(timestamp)),
 });
 
 #[cfg(test)]

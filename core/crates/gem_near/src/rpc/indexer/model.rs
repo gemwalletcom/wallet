@@ -1,9 +1,11 @@
 use std::iter;
 
+use date_time::deserialize_datetime_from_nanos;
 use num_bigint::{BigInt, BigUint};
+use primitives::DateTime;
 use primitives::TransactionState;
 use serde::{Deserialize, Serialize};
-use serde_serializers::{deserialize_bigint_from_str, deserialize_u64_from_str};
+use serde_serializers::deserialize_bigint_from_str;
 
 use crate::models::transaction::{BroadcastTransaction, ExecutionStatus, Outcome};
 
@@ -35,8 +37,8 @@ pub(super) struct FastNearTransfer {
     #[serde(deserialize_with = "deserialize_bigint_from_str")]
     pub amount: BigInt,
     pub asset_id: String,
-    #[serde(deserialize_with = "deserialize_u64_from_str")]
-    pub block_timestamp: u64,
+    #[serde(deserialize_with = "deserialize_datetime_from_nanos")]
+    pub block_timestamp: DateTime,
     pub predecessor_id: String,
     pub other_account_id: Option<String>,
     pub receipt_account_id: String,
@@ -98,7 +100,8 @@ pub(super) struct FastNearReceiptData {
 #[derive(Debug, Deserialize)]
 pub(super) struct FastNearExecutionOutcome {
     pub block_height: u64,
-    pub block_timestamp: u64,
+    #[serde(deserialize_with = "deserialize_datetime_from_nanos")]
+    pub block_timestamp: DateTime,
     pub outcome: Outcome,
 }
 

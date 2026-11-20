@@ -1,11 +1,11 @@
 use std::time::Duration;
 
-use chrono::Utc;
 use diesel::prelude::*;
 use diesel::upsert::excluded;
-use primitives::ScanVerdict;
+use primitives::{DateTime, ScanVerdict};
 
 use crate::models::{NewScanDetectionRow, ScanDetectionRow};
+use crate::sql_types::DateTimeRow;
 use crate::{DatabaseClient, DatabaseError};
 
 pub trait ScanDetectionsRepository {
@@ -15,11 +15,11 @@ pub trait ScanDetectionsRepository {
 
 impl ScanDetectionsRepository for DatabaseClient {
     fn get_scan_detections(&mut self, targets: Vec<String>, max_age: Duration) -> Result<Vec<ScanVerdict>, DatabaseError> {
-        let since = Utc::now().naive_utc() - max_age;
+        let since = DateTime::now() - max_age;
         use crate::schema::scan_detections::dsl::*;
         Ok(scan_detections
             .filter(target.eq_any(targets))
-            .filter(updated_at.ge(since))
+            .filter(updated_at.ge(DateTimeRow::from(since)))
             .select(ScanDetectionRow::as_select())
             .load(&mut self.connection)?
             .into_iter()

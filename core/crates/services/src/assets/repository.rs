@@ -2,9 +2,8 @@ use std::collections::HashSet;
 use std::time::Duration;
 
 use async_trait::async_trait;
-use chrono::NaiveDateTime;
 use primitives::{
-    Asset, AssetAddress, AssetAssociation, AssetBalance, AssetBasic, AssetFull, AssetId, AssetIdVecExt, AssetPriceMetadata, AssetVecExt, Chain, ChainAddress, ListId, Perpetual, PriceProvider, ScanAddress, asset_score::AssetRank,
+    Asset, AssetAddress, AssetAssociation, AssetBalance, AssetBasic, AssetFull, AssetId, AssetIdVecExt, AssetPriceMetadata, AssetVecExt, Chain, ChainAddress, DateTime, ListId, Perpetual, PriceProvider, ScanAddress, asset_score::AssetRank,
     fiat_assets::AssetCatalog,
 };
 use storage::{
@@ -30,7 +29,7 @@ pub(crate) trait Repository: Send + Sync {
     async fn get_asset_full(&self, asset_id: AssetId, price_max_age: Duration) -> Result<AssetFull, DatabaseError>;
     async fn get_assets(&self, asset_ids: Vec<AssetId>) -> Result<Vec<Asset>, DatabaseError>;
     async fn get_assets_with_prices(&self, filters: Vec<AssetFilter>, price_max_age: Duration) -> Result<Vec<AssetPriceMetadata>, DatabaseError>;
-    async fn get_wallet_assets_with_prices(&self, device_id: i32, wallet_id: i32, since: Option<NaiveDateTime>, filters: Vec<AssetFilter>, price_max_age: Duration) -> Result<Vec<AssetPriceMetadata>, DatabaseError>;
+    async fn get_wallet_assets_with_prices(&self, device_id: i32, wallet_id: i32, since: Option<DateTime>, filters: Vec<AssetFilter>, price_max_age: Duration) -> Result<Vec<AssetPriceMetadata>, DatabaseError>;
     async fn add_assets(&self, assets: Vec<AssetBasic>) -> Result<usize, DatabaseError>;
     async fn update_assets(&self, filters: Vec<AssetFilter>, updates: Vec<AssetUpdate>) -> Result<usize, DatabaseError>;
     async fn set_asset_associations(&self, id: String, associations: Vec<AssetAssociation>) -> Result<usize, DatabaseError>;
@@ -40,7 +39,7 @@ pub(crate) trait Repository: Send + Sync {
     async fn update_token_addresses(&self, chain_address: ChainAddress, balances: Vec<AssetBalance>) -> Result<TokenAddressesUpdate, DatabaseError>;
     async fn update_image_flags(&self, chain: Chain, asset_ids: HashSet<AssetId>) -> Result<(usize, usize), DatabaseError>;
     async fn update_price_flags(&self) -> Result<(usize, usize), DatabaseError>;
-    async fn update_usage_ranks(&self, windows: Vec<(NaiveDateTime, i64)>, retain_since: NaiveDateTime, batch_size: usize) -> Result<usize, DatabaseError>;
+    async fn update_usage_ranks(&self, windows: Vec<(DateTime, i64)>, retain_since: DateTime, batch_size: usize) -> Result<usize, DatabaseError>;
     async fn update_perpetuals(&self, assets: Vec<Asset>, asset_updates: Vec<AssetUpdate>, perpetuals: Vec<Perpetual>) -> Result<Result<usize, DatabaseError>, DatabaseError>;
     async fn get_asset_catalog(&self) -> Result<AssetCatalog, DatabaseError>;
     async fn get_list_tag(&self, tag_id: String) -> Result<Option<Tag>, DatabaseError>;
@@ -91,7 +90,7 @@ impl Repository for PostgresRepository {
         self.database.run(move |client| client.get_assets_with_prices(filters, price_max_age)).await
     }
 
-    async fn get_wallet_assets_with_prices(&self, device_id: i32, wallet_id: i32, since: Option<NaiveDateTime>, filters: Vec<AssetFilter>, price_max_age: Duration) -> Result<Vec<AssetPriceMetadata>, DatabaseError> {
+    async fn get_wallet_assets_with_prices(&self, device_id: i32, wallet_id: i32, since: Option<DateTime>, filters: Vec<AssetFilter>, price_max_age: Duration) -> Result<Vec<AssetPriceMetadata>, DatabaseError> {
         self.database
             .run(move |client| {
                 let chain_addresses = client.get_subscriptions_by_wallet_id(device_id, wallet_id)?;
@@ -188,7 +187,7 @@ impl Repository for PostgresRepository {
             .await
     }
 
-    async fn update_usage_ranks(&self, windows: Vec<(NaiveDateTime, i64)>, retain_since: NaiveDateTime, batch_size: usize) -> Result<usize, DatabaseError> {
+    async fn update_usage_ranks(&self, windows: Vec<(DateTime, i64)>, retain_since: DateTime, batch_size: usize) -> Result<usize, DatabaseError> {
         self.database
             .run(move |client| {
                 let counts = windows.into_iter().map(|(since, weight)| Ok((client.get_asset_usage_counts(since)?, weight))).collect::<Result<Vec<_>, DatabaseError>>()?;

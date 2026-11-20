@@ -1,7 +1,8 @@
 use core::str;
 
+use date_time::deserialize_datetime_from_seconds;
 use gem_encoding::decode_base64;
-use primitives::TransactionState;
+use primitives::{DateTime, TransactionState};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -19,8 +20,8 @@ pub struct TransactionsParams {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Transaction {
     pub id: String,
-    #[serde(rename = "round-time")]
-    pub round_time: i64,
+    #[serde(rename = "round-time", deserialize_with = "deserialize_datetime_from_seconds")]
+    pub round_time: DateTime,
     pub fee: Option<i64>,
     pub sender: Option<String>,
     pub note: Option<String>,

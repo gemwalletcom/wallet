@@ -20,6 +20,7 @@ chain_integration_tests = ["rpc", "reqwest"]
 
 [dependencies]
 primitives = { path = "../primitives" }
+date_time = { path = "../date_time", features = ["serde"] }
 chain_primitives = { path = "../chain_primitives", optional = true }
 bcs = { workspace = true }
 gem_encoding = { path = "../gem_encoding", features = ["base58"] }
@@ -29,7 +30,6 @@ gem_jsonrpc = { path = "../gem_jsonrpc", features = ["client"], optional = true 
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 serde_serializers = { path = "../serde_serializers", features = ["bigint"] }
-chrono = { workspace = true }
 num-traits = { workspace = true }
 
 futures = { workspace = true, optional = true }

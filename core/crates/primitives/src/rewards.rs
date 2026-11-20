@@ -1,9 +1,8 @@
-use chrono::{DateTime, Utc};
 use num_bigint::BigUint;
 use serde::{Deserialize, Serialize};
 use strum::{AsRefStr, EnumIter, EnumString};
 
-use crate::Asset;
+use crate::{Asset, DateTime};
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, EnumString, AsRefStr, PartialEq, Eq, Hash)]
 #[serde(rename_all = "camelCase")]
@@ -95,14 +94,14 @@ pub struct Rewards {
     pub used_referral_code: Option<String>,
     pub status: RewardStatus,
     #[serde(skip)]
-    pub created_at: chrono::NaiveDateTime,
-    pub verify_after: Option<DateTime<Utc>>,
+    pub created_at: DateTime,
+    pub verify_after: Option<DateTime>,
     pub redemption_options: Vec<RewardRedemptionOption>,
     pub disable_reason: Option<String>,
     #[serde(default)]
     pub referral_allowance: ReferralAllowance,
     #[serde(default)]
-    pub use_referral_code_until: Option<DateTime<Utc>>,
+    pub use_referral_code_until: Option<DateTime>,
 }
 
 fn invite_reward_points() -> i32 {
@@ -118,7 +117,7 @@ impl Default for Rewards {
             points: 0,
             used_referral_code: None,
             status: RewardStatus::Unverified,
-            created_at: chrono::DateTime::<Utc>::UNIX_EPOCH.naive_utc(),
+            created_at: DateTime::UNIX_EPOCH,
             verify_after: None,
             redemption_options: vec![],
             disable_reason: None,
@@ -141,7 +140,7 @@ pub struct RewardEvent {
     pub username: String,
     pub event: RewardEventType,
     pub points: i32,
-    pub created_at: DateTime<Utc>,
+    pub created_at: DateTime,
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -151,7 +150,7 @@ pub struct RewardRedemption {
     pub option: RewardRedemptionOption,
     pub status: RedemptionStatus,
     pub transaction_id: Option<String>,
-    pub created_at: DateTime<Utc>,
+    pub created_at: DateTime,
 }
 
 #[derive(Clone, Copy, Debug, Serialize, Deserialize, EnumString, EnumIter, AsRefStr, PartialEq)]

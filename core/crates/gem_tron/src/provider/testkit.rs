@@ -1,4 +1,7 @@
 #[cfg(test)]
+use primitives::DateTime;
+
+#[cfg(test)]
 use crate::address::TronAddress;
 #[cfg(test)]
 use crate::models::account::{TronAccount, TronAccountOwnerPermission, TronAccountPermission, TronAccountPermissionKey, TronAccountUsage, TronFrozen, TronUnfrozen, TronVote};
@@ -56,10 +59,10 @@ impl TronAccountUsage {
 
 #[cfg(test)]
 impl TronUnfrozen {
-    pub fn mock(unfreeze_amount: u64, unfreeze_expire_time: u64) -> Self {
+    pub fn mock(unfreeze_amount: u64, unfreeze_expire_millis: i64) -> Self {
         Self {
             unfreeze_amount,
-            unfreeze_expire_time: Some(unfreeze_expire_time),
+            unfreeze_expire_time: Some(DateTime::from_timestamp_millis(unfreeze_expire_millis)),
         }
     }
 }
@@ -169,7 +172,7 @@ impl TransactionReceiptData {
             id: "test_id".to_string(),
             fee: Some(1000),
             block_number: 79874795,
-            block_time_stamp: 1770288900000,
+            block_time_stamp: DateTime::from_timestamp_millis(1770288900000),
             result: None,
             receipt: TransactionReceipt { result: Some(result.to_string()) },
             log: None,

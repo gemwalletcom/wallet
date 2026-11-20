@@ -41,9 +41,8 @@ impl EverstakeParser {
 
 #[cfg(test)]
 mod tests {
-    use chrono::DateTime;
     use gem_evm::rpc::parsers::ProtocolParsers;
-    use primitives::{Chain, TransactionType, testkit::json_rpc::load_json_rpc_result};
+    use primitives::{Chain, DateTime, TransactionType, testkit::json_rpc::load_json_rpc_result};
 
     use super::EverstakeParser;
     use crate::constants::{EVERSTAKE_ACCOUNTING_ADDRESS, EVERSTAKE_POOL_ADDRESS};

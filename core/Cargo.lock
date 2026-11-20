@@ -271,7 +271,6 @@ version = "2.114.100"
 dependencies = [
  "axum",
  "chain_providers",
- "chrono",
  "config_keys",
  "defi",
  "fiat",
@@ -1297,7 +1296,6 @@ name = "chain_traits"
 version = "2.114.100"
 dependencies = [
  "async-trait",
- "chrono",
  "futures",
  "num-bigint 0.5.1",
  "primitives",
@@ -1389,7 +1387,6 @@ name = "coingecko"
 version = "2.114.100"
 dependencies = [
  "chain_primitives",
- "chrono",
  "gem_client",
  "primitives",
  "reqwest",
@@ -1786,6 +1783,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4583a4551df46e2792f82ceeac45e850d2e2d5debba0b91f102385cda5b11f06"
 
 [[package]]
+name = "date_time"
+version = "2.114.100"
+dependencies = [
+ "date_time",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "defi"
 version = "2.114.100"
 dependencies = [
@@ -1883,7 +1889,6 @@ checksum = "e3b934ddbdcb2abb9f9fc9c30bd47bcc5618b615eea1d334cda5fdf8ff9b072a"
 dependencies = [
  "bitflags",
  "byteorder",
- "chrono",
  "diesel_derives",
  "downcast-rs",
  "itoa",
@@ -2232,7 +2237,6 @@ dependencies = [
  "alloy-primitives",
  "alloy-sol-types",
  "async-trait",
- "chrono",
  "everstake",
  "gem_client",
  "gem_evm",
@@ -2595,7 +2599,7 @@ version = "2.114.100"
 dependencies = [
  "async-trait",
  "chain_traits",
- "chrono",
+ "date_time",
  "gem_algorand",
  "gem_client",
  "gem_encoding",
@@ -2633,7 +2637,7 @@ dependencies = [
  "bcs",
  "chain_primitives",
  "chain_traits",
- "chrono",
+ "date_time",
  "ed25519-dalek",
  "futures",
  "gem_aptos",
@@ -2672,7 +2676,7 @@ dependencies = [
  "bech32",
  "bitcoin",
  "chain_traits",
- "chrono",
+ "date_time",
  "futures",
  "gem_bitcoin",
  "gem_client",
@@ -2696,7 +2700,6 @@ dependencies = [
  "alloy-primitives",
  "alloy-sol-types",
  "async-trait",
- "chrono",
  "gem_bsc",
  "gem_client",
  "gem_evm",
@@ -2713,7 +2716,6 @@ dependencies = [
  "async-trait",
  "bech32",
  "chain_traits",
- "chrono",
  "curve25519-dalek",
  "futures",
  "gem_cardano",
@@ -2751,7 +2753,6 @@ dependencies = [
  "async-trait",
  "bech32",
  "chain_traits",
- "chrono",
  "futures",
  "gem_client",
  "gem_cosmos",
@@ -2829,7 +2830,6 @@ dependencies = [
  "async-trait",
  "blockscout",
  "chain_traits",
- "chrono",
  "etherscan",
  "futures",
  "gem_client",
@@ -2868,7 +2868,7 @@ dependencies = [
  "alloy-primitives",
  "async-trait",
  "chain_traits",
- "chrono",
+ "date_time",
  "futures",
  "gem_client",
  "gem_evm",
@@ -2932,7 +2932,6 @@ dependencies = [
  "alloy-primitives",
  "alloy-sol-types",
  "async-trait",
- "chrono",
  "gem_client",
  "gem_evm",
  "gem_jsonrpc",
@@ -2951,7 +2950,7 @@ version = "2.114.100"
 dependencies = [
  "async-trait",
  "chain_traits",
- "chrono",
+ "date_time",
  "futures",
  "gem_client",
  "gem_encoding",
@@ -2990,7 +2989,7 @@ version = "2.114.100"
 dependencies = [
  "async-trait",
  "chain_traits",
- "chrono",
+ "date_time",
  "futures",
  "gem_client",
  "gem_crypto",
@@ -3016,8 +3015,8 @@ dependencies = [
  "async-trait",
  "borsh",
  "chain_traits",
- "chrono",
  "curve25519-dalek",
+ "date_time",
  "futures",
  "gem_client",
  "gem_encoding",
@@ -3042,7 +3041,6 @@ version = "2.114.100"
 dependencies = [
  "async-trait",
  "chain_traits",
- "chrono",
  "futures",
  "gem_client",
  "gem_encoding",
@@ -3069,7 +3067,7 @@ dependencies = [
  "bcs",
  "chain_primitives",
  "chain_traits",
- "chrono",
+ "date_time",
  "futures",
  "gem_client",
  "gem_encoding",
@@ -3113,7 +3111,7 @@ version = "2.114.100"
 dependencies = [
  "async-trait",
  "chain_traits",
- "chrono",
+ "date_time",
  "futures",
  "gem_client",
  "gem_encoding",
@@ -3133,7 +3131,7 @@ dependencies = [
 name = "gem_tracing"
 version = "2.114.100"
 dependencies = [
- "chrono",
+ "date_time",
 ]
 
 [[package]]
@@ -3145,7 +3143,7 @@ dependencies = [
  "async-trait",
  "chain_primitives",
  "chain_traits",
- "chrono",
+ "date_time",
  "futures",
  "gem_client",
  "gem_encoding",
@@ -3169,7 +3167,6 @@ dependencies = [
 name = "gem_wallet_connect"
 version = "2.114.100"
 dependencies = [
- "chrono",
  "gem_encoding",
  "gem_evm",
  "gem_solana",
@@ -3186,7 +3183,6 @@ version = "2.114.100"
 dependencies = [
  "async-trait",
  "chain_traits",
- "chrono",
  "futures",
  "gem_client",
  "gem_encoding",
@@ -3232,7 +3228,6 @@ dependencies = [
  "block_explorers",
  "chain_primitives",
  "chain_traits",
- "chrono",
  "everstake",
  "futures",
  "gem_algorand",
@@ -4817,7 +4812,6 @@ version = "2.114.100"
 dependencies = [
  "async-trait",
  "chain_traits",
- "chrono",
  "coingecko",
  "coinmarketcap",
  "futures",
@@ -4874,7 +4868,7 @@ dependencies = [
 name = "primitives"
 version = "2.114.100"
 dependencies = [
- "chrono",
+ "date_time",
  "gem_encoding",
  "model_derive",
  "num-bigint 0.5.1",
@@ -5300,7 +5294,6 @@ dependencies = [
  "alloy-primitives",
  "async-trait",
  "chain_traits",
- "chrono",
  "config_keys",
  "gem_client",
  "gem_evm",
@@ -5924,7 +5917,6 @@ dependencies = [
  "chain_primitives",
  "chain_providers",
  "chain_traits",
- "chrono",
  "coingecko",
  "config_keys",
  "defi",
@@ -6208,7 +6200,6 @@ checksum = "a2eb9349b6444b326872e140eb1cf5e7c522154d69e7a0ffb0fb81c06b37543f"
 name = "storage"
 version = "2.114.100"
 dependencies = [
- "chrono",
  "config_keys",
  "diesel",
  "diesel_migrations",
@@ -6274,7 +6265,6 @@ checksum = "13c2bddecc57b384dee18652358fb23172facb8a2c51ccc10d74c157bdea3292"
 name = "support"
 version = "2.114.100"
 dependencies = [
- "chrono",
  "hmac 0.13.0",
  "primitives",
  "sha2 0.11.0",
@@ -6292,7 +6282,6 @@ dependencies = [
  "borsh",
  "chain_primitives",
  "chain_traits",
- "chrono",
  "futures",
  "gem_aptos",
  "gem_bitcoin",

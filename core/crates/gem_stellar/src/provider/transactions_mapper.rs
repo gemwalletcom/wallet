@@ -1,7 +1,6 @@
 use crate::constants::{TRANSACTION_TYPE_CREATE_ACCOUNT, TRANSACTION_TYPE_PATH_PAYMENT_STRICT_SEND, TRANSACTION_TYPE_PAYMENT};
 use crate::models::transaction::{Payment, StellarTransactionBroadcast};
 use crate::provider::balances_mapper::map_asset_id;
-use chrono::DateTime;
 use num_bigint::BigUint;
 use primitives::{AssetId, SwapProvider, Transaction, TransactionSwapMetadata, TransactionSwapReferralFee, TransactionType, chain::Chain, swap::STELLAR_REFERRAL_ADDRESS};
 use std::error::Error;
@@ -78,7 +77,7 @@ fn map_swap(chain: Chain, swap: &Payment, fee: Option<&Payment>) -> Option<Trans
         from_value,
         swap.get_memo(),
         serde_json::to_value(metadata).ok(),
-        DateTime::parse_from_rfc3339(&swap.created_at).ok()?.into(),
+        swap.created_at,
     ))
 }
 
@@ -86,8 +85,6 @@ pub fn map_transaction(chain: Chain, transaction: Payment) -> Option<Transaction
     match transaction.payment_type.as_str() {
         TRANSACTION_TYPE_PAYMENT | TRANSACTION_TYPE_CREATE_ACCOUNT => {
             if transaction.clone().asset_type.unwrap_or_default() == "native" || transaction.clone().payment_type.as_str() == TRANSACTION_TYPE_CREATE_ACCOUNT {
-                let created_at = DateTime::parse_from_rfc3339(&transaction.created_at).ok()?.into();
-
                 return Some(Transaction::new(
                     transaction.clone().transaction_hash,
                     chain.as_asset_id(),
@@ -101,7 +98,7 @@ pub fn map_transaction(chain: Chain, transaction: Payment) -> Option<Transaction
                     transaction.get_value()?,
                     transaction.clone().get_memo(),
                     None,
-                    created_at,
+                    transaction.created_at,
                 ));
             }
 

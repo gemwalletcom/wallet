@@ -53,8 +53,7 @@ impl WebhooksClient {
 
 #[cfg(test)]
 mod tests {
-    use chrono::Utc;
-    use primitives::Chain;
+    use primitives::{Chain, DateTime};
     use serde_json::json;
     use streamer::QueueName;
     use support::testkit::chatwoot_webhook_headers;
@@ -66,7 +65,7 @@ mod tests {
     const BODY: &str = r#"{"event":"message_created"}"#;
 
     fn signed_headers(body: &str) -> HashMap<String, String> {
-        chatwoot_webhook_headers(SECRET, body, Utc::now().timestamp())
+        chatwoot_webhook_headers(SECRET, body, DateTime::now().timestamp())
     }
 
     #[tokio::test]

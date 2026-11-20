@@ -12,9 +12,8 @@ pub(crate) mod testkit;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
-use chrono::{DateTime, Utc};
 use gem_wallet_connect::{WalletConnectVerifier, validate_domain, validate_sign_message_account};
-use primitives::{Account, ApplicationMetadata, Chain, Platform, Wallet, WalletConnection, WalletConnectionSession, WalletConnectionSessionProposal, WalletConnectionVerificationStatus};
+use primitives::{Account, ApplicationMetadata, Chain, DateTime, Platform, Wallet, WalletConnection, WalletConnectionSession, WalletConnectionSessionProposal, WalletConnectionVerificationStatus};
 
 use crate::application;
 use crate::config::docs::DocsUrl;
@@ -183,12 +182,8 @@ impl GemWalletConnectService {
         }
     }
 
-    pub(crate) fn session(&self, topic: String, accounts: Vec<String>, expire_at: i64, metadata: ApplicationMetadata) -> Result<WalletConnectionSession, GemServiceError> {
-        let chains = rules::account_chains(&accounts);
-        let expire_at = DateTime::<Utc>::from_timestamp(expire_at, 0).ok_or_else(|| GemServiceError::InvalidInput {
-            msg: format!("invalid session expiry {expire_at}"),
-        })?;
-        Ok(rules::session(topic, chains, expire_at, metadata))
+    pub(crate) fn session(&self, topic: String, accounts: Vec<String>, expire_at: i64, metadata: ApplicationMetadata) -> WalletConnectionSession {
+        rules::session(topic, rules::account_chains(&accounts), DateTime::from_timestamp(expire_at), metadata)
     }
 
     pub async fn config_session_properties(&self, properties: HashMap<String, String>, caip2_chains: Vec<String>, accounts: Vec<Account>) -> HashMap<String, String> {
@@ -217,7 +212,7 @@ impl GemWalletConnectService {
             return GemWalletConnectOutcome::Ignored;
         }
         let expiry = request.expiry;
-        if rules::is_expired(expiry, Utc::now()) {
+        if rules::is_expired(expiry, DateTime::now()) {
             return GemWalletConnectOutcome::expired();
         }
         let Ok(connection) = self.connection(&request.topic).await else {
@@ -233,7 +228,7 @@ impl GemWalletConnectService {
         match self.request_response(&request, chain_id, domain).await {
             Ok(outcome) => outcome,
             Err(GemServiceError::Expired) => GemWalletConnectOutcome::expired(),
-            Err(_) if rules::is_expired(expiry, Utc::now()) => GemWalletConnectOutcome::expired(),
+            Err(_) if rules::is_expired(expiry, DateTime::now()) => GemWalletConnectOutcome::expired(),
             Err(GemServiceError::Cancelled) => GemWalletConnectOutcome::rejected(),
             Err(error) => GemWalletConnectOutcome::failed(GemWalletConnectFailure::Failed { error: error.text() }),
         }
@@ -362,7 +357,7 @@ impl GemWalletConnectService {
     }
 
     fn ensure_live(&self, expiry: Option<u64>) -> Result<(), GemServiceError> {
-        match rules::is_expired(expiry, Utc::now()) {
+        match rules::is_expired(expiry, DateTime::now()) {
             true => Err(GemServiceError::Cancelled),
             false => Ok(()),
         }
@@ -411,6 +406,7 @@ mod tests {
     use num_bigint::BigUint;
     use primitives::testkit::signer_mock::TEST_PRIVATE_KEY_SOLANA_ADDRESS;
     use primitives::{ApprovalData, WalletId};
+    use std::time::Duration;
 
     #[test]
     fn test_the_connections_view_links_the_walletconnect_guide() {
@@ -605,7 +601,7 @@ mod tests {
 
             let expired = service
                 .request_outcome(GemWalletConnectSessionRequest {
-                    expiry: Some((Utc::now() - chrono::TimeDelta::seconds(1)).timestamp() as u64),
+                    expiry: Some((DateTime::now() - Duration::from_secs(1)).timestamp() as u64),
                     ..GemWalletConnectSessionRequest::mock("expired")
                 })
                 .await;
@@ -613,7 +609,7 @@ mod tests {
 
             let live = service
                 .request_outcome(GemWalletConnectSessionRequest {
-                    expiry: Some((Utc::now() + chrono::TimeDelta::seconds(300)).timestamp() as u64),
+                    expiry: Some((DateTime::now() + Duration::from_secs(300)).timestamp() as u64),
                     ..GemWalletConnectSessionRequest::mock("live")
                 })
                 .await;

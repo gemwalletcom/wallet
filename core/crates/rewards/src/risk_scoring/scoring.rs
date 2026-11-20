@@ -1,8 +1,8 @@
 use std::collections::HashSet;
 use std::time::Duration;
 
-use primitives::RiskSignal;
 use primitives::rewards::RewardStatus;
+use primitives::{DateTime, RiskSignal};
 
 use super::model::{RiskScore, RiskScoreBreakdown, RiskScoreConfig, RiskSignalInput};
 
@@ -196,9 +196,9 @@ pub fn calculate_risk_score(
 }
 
 fn count_signals_in_recent_window(signals: &[&RiskSignal], window: Duration) -> (i64, f64) {
-    let now = chrono::Utc::now().naive_utc();
+    let now = DateTime::now();
     let window_secs = window.as_secs() as i64;
-    let recent: Vec<_> = signals.iter().filter(|s| now.signed_duration_since(s.created_at).num_seconds() <= window_secs).collect();
+    let recent: Vec<_> = signals.iter().filter(|s| (now - s.created_at).as_secs() <= window.as_secs()).collect();
     let count = recent.len() as i64;
     if count <= 1 {
         return (count, 1.0);
@@ -207,7 +207,7 @@ fn count_signals_in_recent_window(signals: &[&RiskSignal], window: Duration) -> 
     let (Some(min), Some(max)) = (timestamps.iter().min(), timestamps.iter().max()) else {
         return (count, 1.0);
     };
-    let span_secs = max.signed_duration_since(*min).num_seconds().max(1);
+    let span_secs = (*max - *min).as_secs().max(1) as i64;
     let speed_multiplier = 1.0 + (window_secs - span_secs) as f64 / window_secs as f64;
     (count, speed_multiplier)
 }

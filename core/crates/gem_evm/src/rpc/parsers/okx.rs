@@ -144,10 +144,9 @@ mod tests {
     use crate::rpc::parsers::{ProtocolParsers, WITHDRAWAL_TOPIC};
     use alloy_primitives::U256;
     use alloy_sol_types::{SolCall, SolEvent};
-    use chrono::DateTime;
     use num_bigint::BigUint;
     use primitives::{
-        Chain, SwapProvider, TransactionState, TransactionType,
+        Chain, DateTime, SwapProvider, TransactionState, TransactionType,
         asset_constants::{BASE_USDC_TOKEN_ID, BASE_WETH_TOKEN_ID, ETHEREUM_USDC_TOKEN_ID},
         hex::encode_with_0x,
         testkit::json_rpc::load_json_rpc_result,
@@ -156,7 +155,7 @@ mod tests {
     const COMMISSION_TRAILER: &str = "800000000000000000000000eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee3ca20afc2aaa0000004c4b400d9dab1a248f63b0a48965ba8435e4de7497a3dc";
 
     fn map_transaction(chain: &Chain, transaction: &Transaction, receipt: &TransactionReceipt) -> PrimitivesTransaction {
-        ProtocolParsers::map_transaction(chain, transaction, receipt, DateTime::from_timestamp(1743373403, 0).unwrap()).unwrap()
+        ProtocolParsers::map_transaction(chain, transaction, receipt, DateTime::from_timestamp(1743373403)).unwrap()
     }
 
     #[test]

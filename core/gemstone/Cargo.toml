@@ -67,7 +67,6 @@ gem_encoding = { path = "../crates/gem_encoding", features = ["base58"] }
 # uniffi
 uniffi.workspace = true
 
-chrono = { workspace = true }
 uuid = { workspace = true }
 
 serde.workspace = true

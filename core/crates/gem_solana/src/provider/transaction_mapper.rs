@@ -1,4 +1,3 @@
-use chrono::DateTime;
 use gem_encoding::decode_base58;
 use num_bigint::{BigUint, Sign};
 
@@ -9,7 +8,7 @@ use crate::{
     models::{BlockTransaction, BlockTransactions, Instruction, SingleTransaction, TokenBalanceChange, TransactionSignature},
 };
 use primitives::{
-    AssetId, Chain, NFTAssetId, OptionStringExt, SwapProvider, Transaction, TransactionNFTTransferMetadata, TransactionState, TransactionSwapMetadata, TransactionSwapReferralFee, TransactionType, swap::SOLANA_REFERRAL_ADDRESS,
+    AssetId, Chain, DateTime, NFTAssetId, OptionStringExt, SwapProvider, Transaction, TransactionNFTTransferMetadata, TransactionState, TransactionSwapMetadata, TransactionSwapReferralFee, TransactionType, swap::SOLANA_REFERRAL_ADDRESS,
 };
 
 use super::parsers::ProtocolParsers;
@@ -204,7 +203,7 @@ pub fn map_single_transaction(transaction: SingleTransaction) -> Option<primitiv
     map_transaction(&block_transaction, transaction.block_time)
 }
 
-pub fn map_transaction(transaction: &BlockTransaction, block_time: i64) -> Option<primitives::Transaction> {
+pub fn map_transaction(transaction: &BlockTransaction, created_at: DateTime) -> Option<primitives::Transaction> {
     if transaction.transaction.signatures.len() > 2 {
         return None;
     }
@@ -215,7 +214,6 @@ pub fn map_transaction(transaction: &BlockTransaction, block_time: i64) -> Optio
     let fee = transaction.meta.fee;
     let state = if transaction.meta.has_error() { TransactionState::Reverted } else { TransactionState::Confirmed };
     let fee_asset_id = chain.as_asset_id();
-    let created_at = DateTime::from_timestamp(block_time, 0)?;
     let memo = map_memo(&transaction.transaction.message.instructions, account_keys);
 
     if let Some(transaction) = ProtocolParsers::map_transaction(transaction, created_at, memo.as_deref()) {
@@ -488,7 +486,7 @@ mod tests {
             BigUint::from(5_000_000u64),
             None,
             None,
-            DateTime::from_timestamp(1789191680, 0).unwrap(),
+            DateTime::from_timestamp(1789191680),
         )
         .with_data(Some("0x0b9c60da27a3b413404b4c0000000000c6a8c2d31b9e05f9f719c821dff2de43bc811d4efabd39565a355977c7143370".to_string()));
 
@@ -505,7 +503,7 @@ mod tests {
         assert_eq!(transaction.to, "2xSHLfiPs3aEhzbLnYbyzWYMEaYnwSwJwAnVh5CwHWwX");
         assert_eq!(transaction.value, BigUint::from(1u64));
         assert_eq!(transaction.fee, BigUint::from(10000u64));
-        assert_eq!(transaction.created_at, DateTime::from_timestamp(1687444563, 0).unwrap());
+        assert_eq!(transaction.created_at, DateTime::from_timestamp(1687444563));
 
         let metadata: TransactionNFTTransferMetadata = serde_json::from_value(transaction.metadata.unwrap()).unwrap();
         assert_eq!(metadata.asset_id, NFTAssetId::new(Chain::Solana, SPL_NFT_MINT, SPL_NFT_MINT));
@@ -521,7 +519,7 @@ mod tests {
         assert_eq!(transaction.to, "FGbkx8rYTPJubjyScReeps6GA83D1nSmFr3BrN7buokb");
         assert_eq!(transaction.value, BigUint::from(1u64));
         assert_eq!(transaction.fee, BigUint::from(7500u64));
-        assert_eq!(transaction.created_at, DateTime::from_timestamp(1779221552, 0).unwrap());
+        assert_eq!(transaction.created_at, DateTime::from_timestamp(1779221552));
 
         let metadata: TransactionNFTTransferMetadata = serde_json::from_value(transaction.metadata.unwrap()).unwrap();
         assert_eq!(metadata.asset_id, NFTAssetId::new(Chain::Solana, PNFT_MINT, PNFT_MINT));
@@ -537,7 +535,7 @@ mod tests {
         assert_eq!(transaction.to, "G7B17AigRCGvwnxFc5U8zY5T3NBGduLzT7KYApNU2VdR");
         assert_eq!(transaction.value, BigUint::from(0u64));
         assert_eq!(transaction.fee, BigUint::from(79998u64));
-        assert_eq!(transaction.created_at, DateTime::from_timestamp(1752111467, 0).unwrap());
+        assert_eq!(transaction.created_at, DateTime::from_timestamp(1752111467));
 
         let metadata: TransactionNFTTransferMetadata = serde_json::from_value(transaction.metadata.unwrap()).unwrap();
         assert_eq!(metadata.asset_id, NFTAssetId::new(Chain::Solana, CORE_COLLECTION, CORE_ASSET));
@@ -547,7 +545,7 @@ mod tests {
     fn test_transaction_swap_token_to_sol() {
         let result: JsonRpcResult<BlockTransaction> = serde_json::from_str(include_str!("../../testdata/swap_token_to_sol.json")).unwrap();
 
-        let transaction = map_transaction(&result.result, 1).unwrap();
+        let transaction = map_transaction(&result.result, DateTime::from_timestamp(1)).unwrap();
         let expected = TransactionSwapMetadata::new(
             AssetId::from_token(Chain::Solana, "BKpSnSdNdANUxKPsn4AQ8mf4b9BoeVs9JD1Q8cVkpump"),
             BigUint::from(393647577456u64),
@@ -563,7 +561,7 @@ mod tests {
     fn test_transaction_swap_token_to_token() {
         let result: JsonRpcResult<BlockTransaction> = serde_json::from_str(include_str!("../../testdata/swap_token_to_token.json")).unwrap();
 
-        let transaction = map_transaction(&result.result, 1).unwrap();
+        let transaction = map_transaction(&result.result, DateTime::from_timestamp(1)).unwrap();
         let expected = TransactionSwapMetadata::new(
             AssetId::from_token(Chain::Solana, PYUSD_TOKEN_MINT),
             BigUint::from(1000000u64),
@@ -579,7 +577,7 @@ mod tests {
     fn test_transaction_swap_sol_to_token() {
         let result: JsonRpcResult<BlockTransaction> = serde_json::from_str(include_str!("../../testdata/swap_sol_to_token.json")).unwrap();
 
-        let transaction = map_transaction(&result.result, 1).unwrap();
+        let transaction = map_transaction(&result.result, DateTime::from_timestamp(1)).unwrap();
         let expected = TransactionSwapMetadata {
             referral_fee: Some(TransactionSwapReferralFee {
                 asset_id: AssetId::from_token(Chain::Solana, USDT_TOKEN_MINT),
@@ -601,7 +599,7 @@ mod tests {
     fn test_transaction_swap_jupiter_referral_fee() {
         let result: JsonRpcResult<BlockTransaction> = serde_json::from_str(include_str!("../../testdata/swap_jupiter_referral_fee.json")).unwrap();
 
-        let transaction = map_transaction(&result.result, 1).unwrap();
+        let transaction = map_transaction(&result.result, DateTime::from_timestamp(1)).unwrap();
         let metadata = transaction.swap_metadata().unwrap();
 
         assert_eq!(metadata.from_asset, AssetId::from_token(Chain::Solana, "LinkhB3afbBKb2EQQu7s7umdZceV3wcvAUJhQAfQ23L"));
@@ -621,7 +619,7 @@ mod tests {
     fn test_transaction_swap_jupiter_new_token_account_rent() {
         let result: JsonRpcResult<BlockTransaction> = serde_json::from_str(include_str!("../../testdata/swap_jupiter_new_token_account_rent.json")).unwrap();
 
-        let transaction = map_transaction(&result.result, 1).unwrap();
+        let transaction = map_transaction(&result.result, DateTime::from_timestamp(1)).unwrap();
         let metadata = transaction.swap_metadata().unwrap();
 
         assert_eq!(transaction.transaction_type, TransactionType::Swap);
@@ -642,7 +640,7 @@ mod tests {
     fn test_transaction_swap_okx_token_to_token() {
         let result: JsonRpcResult<BlockTransaction> = serde_json::from_str(include_str!("../../testdata/swap_okx_token_to_token.json")).unwrap();
 
-        let transaction = map_transaction(&result.result, 1).unwrap();
+        let transaction = map_transaction(&result.result, DateTime::from_timestamp(1)).unwrap();
         let expected = TransactionSwapMetadata {
             referral_fee: Some(TransactionSwapReferralFee {
                 asset_id: SOLANA_USDC_ASSET_ID.clone(),
@@ -668,7 +666,7 @@ mod tests {
     fn test_transaction_transfer_sol() {
         let result: JsonRpcResult<BlockTransaction> = serde_json::from_str(include_str!("../../testdata/transfer_sol.json")).unwrap();
 
-        let transaction = map_transaction(&result.result, 1751394455).unwrap();
+        let transaction = map_transaction(&result.result, DateTime::from_timestamp(1751394455)).unwrap();
         let expected = Transaction::new(
             "t6DpS6U7G2UG4QwDq4mPM7F45Rnttxp2pHGRwTYsF7frxAs7KmSWWDcpMneMUULbKndkZy8iUvSU1AZUsqzDCPN".to_string(),
             Chain::Solana.as_asset_id(),
@@ -682,7 +680,7 @@ mod tests {
             BigUint::from(2173u64),
             None,
             None,
-            DateTime::from_timestamp(1751394455, 0).unwrap(),
+            DateTime::from_timestamp(1751394455),
         );
 
         assert_eq!(transaction, expected);
@@ -703,7 +701,7 @@ mod tests {
     fn test_transaction_transfer_sol_with_compute() {
         let result: JsonRpcResult<BlockTransaction> = serde_json::from_str(include_str!("../../testdata/transfer_sol_with_compute.json")).unwrap();
 
-        let transaction = map_transaction(&result.result, 1750884182).unwrap();
+        let transaction = map_transaction(&result.result, DateTime::from_timestamp(1750884182)).unwrap();
         let expected = Transaction::new(
             "2QeBm7G7qLmVTCVKAkbSUuZvcFjg6mBRVqaVSKWSZsTqJxHVTzMUwxDtu1Myfu8RzpUv5YMEBFFpGbwVM9ZQY8DL".to_string(),
             Chain::Solana.as_asset_id(),
@@ -717,7 +715,7 @@ mod tests {
             BigUint::from(69000000u64),
             None,
             None,
-            DateTime::from_timestamp(1750884182, 0).unwrap(),
+            DateTime::from_timestamp(1750884182),
         );
 
         assert_eq!(transaction, expected);
@@ -739,7 +737,7 @@ mod tests {
             BigUint::from(66825800u64),
             None,
             None,
-            DateTime::from_timestamp(1786173123, 0).unwrap(),
+            DateTime::from_timestamp(1786173123),
         );
 
         assert_eq!(transaction, expected);
@@ -749,7 +747,7 @@ mod tests {
     fn test_transaction_error_maps_to_reverted() {
         let result: JsonRpcResult<BlockTransaction> = serde_json::from_str(include_str!("../../testdata/transaction_reverted_program_account_not_found.json")).unwrap();
 
-        let transaction = map_transaction(&result.result, 1).unwrap();
+        let transaction = map_transaction(&result.result, DateTime::from_timestamp(1)).unwrap();
 
         assert_eq!(transaction.state, TransactionState::Reverted);
     }
@@ -770,7 +768,7 @@ mod tests {
             BigUint::from(100000u64),
             None,
             None,
-            DateTime::from_timestamp(1753346616, 0).unwrap(),
+            DateTime::from_timestamp(1753346616),
         );
 
         assert_eq!(transaction, expected);
@@ -792,7 +790,7 @@ mod tests {
             BigUint::from(19000000u64),
             Some("ck:262:operator:m:1787598390".to_string()),
             None,
-            DateTime::from_timestamp(1787598395, 0).unwrap(),
+            DateTime::from_timestamp(1787598395),
         );
 
         assert_eq!(transaction, expected);
@@ -814,7 +812,7 @@ mod tests {
             BigUint::from(24737625u64),
             None,
             None,
-            DateTime::from_timestamp(1774244726, 0).unwrap(),
+            DateTime::from_timestamp(1774244726),
         );
 
         assert_eq!(transaction, expected);
@@ -838,7 +836,7 @@ mod tests {
     #[test]
     fn test_transaction_chainflip_vault_swap() {
         let result: JsonRpcResult<BlockTransaction> = serde_json::from_str(include_str!("../../testdata/chainflip_vault_swap.json")).unwrap();
-        let transaction = map_transaction(&result.result, 1772283531).unwrap();
+        let transaction = map_transaction(&result.result, DateTime::from_timestamp(1772283531)).unwrap();
 
         assert_eq!(transaction.transaction_type, TransactionType::SmartContractCall);
         assert_eq!(transaction.from, "CabroWmzUzcqqGvprUoC7RnJznuwX6qf5W1tSSaomri7");

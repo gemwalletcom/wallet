@@ -1,5 +1,4 @@
-use chrono::{DateTime, Utc};
-use primitives::{AssetId, AssetLink, AssetMarket, PriceData, PriceId, PriceProvider};
+use primitives::{AssetId, AssetLink, AssetMarket, DateTime, PriceData, PriceId, PriceProvider};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct AssetPriceMapping {
@@ -59,13 +58,13 @@ pub struct AssetPriceFull {
     pub mapping: AssetPriceMapping,
     pub price: f64,
     pub price_change_percentage_24h: Option<f64>,
-    pub updated_at: DateTime<Utc>,
+    pub updated_at: DateTime,
     pub provider: PriceProvider,
     pub market: Option<AssetMarket>,
 }
 
 impl AssetPriceFull {
-    pub fn new(mapping: AssetPriceMapping, price: f64, price_change_percentage_24h: Option<f64>, updated_at: DateTime<Utc>, provider: PriceProvider, market: Option<AssetMarket>) -> Self {
+    pub fn new(mapping: AssetPriceMapping, price: f64, price_change_percentage_24h: Option<f64>, updated_at: DateTime, provider: PriceProvider, market: Option<AssetMarket>) -> Self {
         Self {
             mapping,
             price,
@@ -77,11 +76,11 @@ impl AssetPriceFull {
     }
 
     pub fn simple(mapping: AssetPriceMapping, price: f64, price_change_percentage_24h: Option<f64>, provider: PriceProvider) -> Self {
-        Self::new(mapping, price, price_change_percentage_24h, Utc::now(), provider, None)
+        Self::new(mapping, price, price_change_percentage_24h, DateTime::now(), provider, None)
     }
 
     pub fn from_provider_asset(asset: PriceProviderAsset, provider: PriceProvider) -> Self {
-        Self::new(asset.mapping, asset.price.unwrap_or_default(), asset.price_change_percentage_24h, Utc::now(), provider, asset.market)
+        Self::new(asset.mapping, asset.price.unwrap_or_default(), asset.price_change_percentage_24h, DateTime::now(), provider, asset.market)
     }
 
     pub fn as_price_data(&self) -> PriceData {

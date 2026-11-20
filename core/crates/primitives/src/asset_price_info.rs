@@ -69,14 +69,13 @@ impl AssetPriceInfo {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::Chain;
-    use chrono::Utc;
+    use crate::{Chain, DateTime};
 
     #[test]
     fn test_all_time_change_percentage() {
         let info = AssetPriceInfo {
             asset_id: AssetId::from(Chain::Bitcoin, None),
-            price: Price::new(80.0, 5.0, Utc::now(), crate::PriceProvider::Coingecko),
+            price: Price::new(80.0, 5.0, DateTime::now(), crate::PriceProvider::Coingecko),
             market: AssetMarket {
                 market_cap: None,
                 market_cap_fdv: None,

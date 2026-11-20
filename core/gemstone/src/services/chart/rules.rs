@@ -1,8 +1,8 @@
 use std::collections::BTreeMap;
 use std::ops::{Range, RangeInclusive};
+use std::time::Duration;
 
-use chrono::{DateTime, TimeDelta, Utc};
-use primitives::{Asset, AssetLink, AssetMarket, AssetPrice, BlockExplorerLink, ChartCandleStick, ChartDateValue, ChartPeriod, ChartValue, ChartValuePercentage, Currency, PriceAlert, PriceChangeCalculator};
+use primitives::{Asset, AssetLink, AssetMarket, AssetPrice, BlockExplorerLink, ChartCandleStick, ChartDateValue, ChartPeriod, ChartValue, ChartValuePercentage, Currency, DateTime, PriceAlert, PriceChangeCalculator};
 
 use super::model::{GemChartBounds, GemChartData, GemChartDateStyle, GemChartHeader, GemChartValueType};
 use super::points::reduced_points;
@@ -41,7 +41,10 @@ const CANDLE_MAX_DECIMALS: usize = 12;
 pub fn converted_values(prices: Vec<ChartValue>, rate: f64) -> Vec<ChartDateValue> {
     let mut values: Vec<ChartDateValue> = prices
         .into_iter()
-        .filter_map(|price| DateTime::from_timestamp(price.timestamp as i64, 0).map(|date| ChartDateValue { date, value: price.value as f64 * rate }))
+        .map(|price| ChartDateValue {
+            date: DateTime::from_timestamp(price.timestamp as i64),
+            value: price.value as f64 * rate,
+        })
         .collect();
     values.sort_by_key(|value| value.date);
     values
@@ -94,7 +97,7 @@ pub fn base_value(values: &[ChartDateValue]) -> f64 {
     values.iter().find(|value| value.value != 0.0).or_else(|| values.first()).map_or(0.0, |value| value.value)
 }
 
-pub fn current_value(values: &[ChartDateValue], latest: Option<AssetPrice>, now: DateTime<Utc>, period: ChartPeriod, base_value: f64) -> Option<GemChartCurrent> {
+pub fn current_value(values: &[ChartDateValue], latest: Option<AssetPrice>, now: DateTime, period: ChartPeriod, base_value: f64) -> Option<GemChartCurrent> {
     let latest = latest?;
     let is_newer = values.last().is_none_or(|last| latest.updated_at > last.date);
     is_newer.then(|| GemChartCurrent {
@@ -105,7 +108,7 @@ pub fn current_value(values: &[ChartDateValue], latest: Option<AssetPrice>, now:
 }
 
 pub fn chart_with_price(chart: GemChart, price: Option<AssetPrice>, period: ChartPeriod) -> GemChart {
-    match current_value(&chart.values, price, Utc::now(), period, chart.base_value) {
+    match current_value(&chart.values, price, DateTime::now(), period, chart.base_value) {
         Some(current) => GemChart { current: Some(current), ..chart },
         None => chart,
     }
@@ -244,16 +247,16 @@ fn chart_bounds(values: &[ChartDateValue], currency: Currency) -> GemChartBounds
     }
 }
 
-pub fn fraction_of(span: TimeDelta, fraction: f64) -> TimeDelta {
-    TimeDelta::milliseconds((span.num_milliseconds() as f64 * fraction) as i64)
+pub fn fraction_of(span: Duration, fraction: f64) -> Duration {
+    Duration::from_millis((span.as_millis() as f64 * fraction) as u64)
 }
 
-pub fn nearest_index(dates: impl Iterator<Item = DateTime<Utc>>, window: RangeInclusive<DateTime<Utc>>, fraction: f64) -> Option<usize> {
+pub fn nearest_index(dates: impl Iterator<Item = DateTime>, window: RangeInclusive<DateTime>, fraction: f64) -> Option<usize> {
     let date = *window.start() + fraction_of(*window.end() - *window.start(), fraction.clamp(0.0, 1.0));
     dates
         .enumerate()
         .filter(|(_, candidate)| window.contains(candidate))
-        .min_by_key(|(_, candidate)| (*candidate - date).abs())
+        .min_by_key(|(_, candidate)| candidate.abs_diff(date))
         .map(|(index, _)| index)
 }
 
@@ -291,7 +294,7 @@ pub fn zoomed_chart(data: GemChartData, zoom: GemChartZoom) -> GemChartData {
     }
 }
 
-fn visible_range(values: &[ChartDateValue], window: &RangeInclusive<DateTime<Utc>>) -> Range<usize> {
+fn visible_range(values: &[ChartDateValue], window: &RangeInclusive<DateTime>) -> Range<usize> {
     values.partition_point(|value| value.date < *window.start())..values.partition_point(|value| value.date <= *window.end())
 }
 
@@ -404,7 +407,7 @@ mod tests {
 
     #[test]
     fn test_nearest_index() {
-        let at = |seconds: i64| DateTime::from_timestamp(seconds, 0).unwrap();
+        let at = DateTime::from_timestamp;
         let dates = [at(0), at(60), at(120)];
 
         assert_eq!(nearest_index(dates.into_iter(), at(0)..=at(120), 0.4), Some(1));
@@ -414,7 +417,7 @@ mod tests {
 
     #[test]
     fn test_zoomed_chart() {
-        let at = |milliseconds: i64| DateTime::from_timestamp_millis(milliseconds).unwrap();
+        let at = DateTime::from_timestamp_millis;
         let data = price_chart_data(GemChart::mock(ChartDateValue::mock_series(600)), ChartPeriod::Day, Currency::USD).unwrap();
         let whole = zoomed_chart(data.clone(), GemChartZoom::default());
         let zoomed = zoomed_chart(data, GemChartZoom { scale: 3.0, offset: 0.25 });
@@ -464,7 +467,7 @@ mod tests {
     #[test]
     fn test_price_chart_data_appends_the_current_point_after_history() {
         let current = GemChartCurrent {
-            date: DateTime::from_timestamp(2_000, 0).unwrap(),
+            date: DateTime::from_timestamp(2_000),
             value: 200.0,
             change_percentage: 4.2,
         };
@@ -569,12 +572,12 @@ mod tests {
     #[test]
     fn test_current_value_is_only_a_price_newer_than_the_chart() {
         let points = [ChartDateValue::mock(10, 1.0), ChartDateValue::mock(20, 1.0)];
-        let newer = AssetPrice::new(AssetId::from_chain(primitives::Chain::Bitcoin), 9.0, 4.2, DateTime::from_timestamp(30, 0).unwrap());
+        let newer = AssetPrice::new(AssetId::from_chain(primitives::Chain::Bitcoin), 9.0, 4.2, DateTime::from_timestamp(30));
         let same_age = AssetPrice {
-            updated_at: DateTime::from_timestamp(20, 0).unwrap(),
+            updated_at: DateTime::from_timestamp(20),
             ..newer.clone()
         };
-        let now = DateTime::from_timestamp(500, 0).unwrap();
+        let now = DateTime::from_timestamp(500);
 
         let current = current_value(&points, Some(newer.clone()), now, ChartPeriod::Day, 1.0).expect("current");
         assert_eq!(current.value, 9.0);
@@ -584,7 +587,7 @@ mod tests {
         assert_eq!(current_value(&points, Some(newer.clone()), now, ChartPeriod::Week, 0.0).unwrap().change_percentage, 0.0);
 
         assert_eq!(
-            current_value(&points, Some(newer.clone()), DateTime::from_timestamp(15, 0).unwrap(), ChartPeriod::Day, 1.0).unwrap().date,
+            current_value(&points, Some(newer.clone()), DateTime::from_timestamp(15), ChartPeriod::Day, 1.0).unwrap().date,
             newer.updated_at,
             "a device clock behind the server still places the live price after the last chart point"
         );
@@ -603,7 +606,7 @@ mod tests {
 
     #[test]
     fn test_chart_bounds_pad_the_range_and_point_at_the_first_extremes() {
-        let points = |values: &[f64]| values.iter().map(|value| ChartDateValue { date: Utc::now(), value: *value }).collect::<Vec<_>>();
+        let points = |values: &[f64]| values.iter().map(|value| ChartDateValue { date: DateTime::now(), value: *value }).collect::<Vec<_>>();
 
         let bounds = chart_bounds(&points(&[100.0, 150.0, 80.0, 120.0, 80.0]), Currency::USD);
         assert_eq!((bounds.lower_index, bounds.upper_index), (2, 1));
@@ -738,7 +741,7 @@ mod tests {
         let asset = Asset::mock();
         let auto = PriceAlert::new_auto(asset.id.clone(), Currency::USD);
         let mut notified = PriceAlert::new_price(asset.id.clone(), Currency::USD, 120.0, PriceAlertDirection::Up);
-        notified.last_notified_at = Some(Utc::now());
+        notified.last_notified_at = Some(DateTime::now());
         let first = |price: Option<f64>, alerts: Vec<PriceAlert>| chart_sections(&asset, Currency::USD, price, None, Some(alerts), vec![], None).into_iter().next();
 
         assert_eq!(first(Some(1.0), vec![]), Some(set_price_alert()));
@@ -764,7 +767,7 @@ mod tests {
 
     fn candle(open: f64, high: f64, low: f64, close: f64) -> ChartCandleStick {
         ChartCandleStick {
-            date: DateTime::from_timestamp(1_000, 0).unwrap(),
+            date: DateTime::from_timestamp(1_000),
             open,
             high,
             low,
@@ -776,7 +779,7 @@ mod tests {
     #[test]
     fn test_converted_candles_converts_every_price_and_sorts_by_date() {
         let later = ChartCandleStick {
-            date: DateTime::from_timestamp(2_000, 0).unwrap(),
+            date: DateTime::from_timestamp(2_000),
             ..candle(1.0, 2.0, 0.5, 1.5)
         };
 
@@ -789,7 +792,7 @@ mod tests {
     #[test]
     fn test_candles_with_price_moves_the_last_candle_to_a_newer_price() {
         let candles = vec![candle(1.0, 2.0, 0.5, 1.5)];
-        let price = |price: f64, seconds: i64| Some(AssetPrice::new(AssetId::from_chain(primitives::Chain::Bitcoin), price, 0.0, DateTime::from_timestamp(seconds, 0).unwrap()));
+        let price = |price: f64, seconds: i64| Some(AssetPrice::new(AssetId::from_chain(primitives::Chain::Bitcoin), price, 0.0, DateTime::from_timestamp(seconds)));
 
         assert_eq!(candles_with_price(&candles, price(3.0, 2_000)), vec![candle(1.0, 3.0, 0.5, 3.0)]);
         assert_eq!(candles_with_price(&candles, price(0.25, 2_000)), vec![candle(1.0, 2.0, 0.25, 0.25)]);

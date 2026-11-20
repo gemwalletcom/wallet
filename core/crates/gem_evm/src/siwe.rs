@@ -1,6 +1,5 @@
 use alloy_primitives::Address;
-use chrono::DateTime;
-use primitives::{Chain, ChainType, domain::parse_domain};
+use primitives::{Chain, ChainType, DateTime, domain::parse_domain};
 use url::Url;
 
 use crate::domain::host_with_port;
@@ -74,7 +73,7 @@ impl SiweMessage {
             return Err("Invalid nonce".to_string());
         }
 
-        DateTime::parse_from_rfc3339(&self.issued_at).map_err(|_| "Invalid timestamp".to_string())?;
+        DateTime::parse_rfc3339(&self.issued_at).ok_or_else(|| "Invalid timestamp".to_string())?;
 
         let uri = Url::parse(&self.uri).map_err(|_| "Invalid URI".to_string())?;
         let domain_url = parse_domain(&self.domain).ok_or("Invalid domain".to_string())?;
