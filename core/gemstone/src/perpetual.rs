@@ -142,7 +142,7 @@ impl GemAutocloseEstimator {
 
     pub fn is_profit(&self, price: Option<f64>, tpsl_type: TpslType) -> bool {
         match price {
-            Some(price) => self.inner.pnl(price) >= 0.0,
+            Some(price) => self.inner.roe(price) >= 0.0,
             None => tpsl_type == TpslType::TakeProfit,
         }
     }
@@ -188,7 +188,7 @@ mod tests {
     }
 
     #[test]
-    fn test_a_target_price_reads_as_profit_from_its_pnl_and_falls_back_to_the_trigger_kind() {
+    fn test_a_target_price_reads_as_profit_from_its_return_and_falls_back_to_the_trigger_kind() {
         let estimator = GemAutocloseEstimator::new(100.0, 1.0, PerpetualDirection::Long, 5);
 
         assert!(estimator.is_profit(Some(110.0), TpslType::StopLoss));

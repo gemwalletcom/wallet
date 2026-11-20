@@ -494,7 +494,7 @@ impl GemPerpetualAmountSession {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::formatted_number::GemNumberUnit;
+    use crate::formatted_number::{GemNumberUnit, GemValueTone};
     use crate::services::perpetual::model::GemPerpetualTransferData;
     use primitives::Chain;
 
@@ -637,6 +637,23 @@ mod tests {
         assert_eq!(sheet.stop_loss_text, "98");
         assert_eq!(sheet.modify.take_profit.price, Some(105.0));
         assert_eq!(session.autoclose_session("abc".to_string()).estimate.size, 0.0);
+    }
+
+    #[test]
+    fn test_the_autoclose_defaults_before_an_amount_name_their_outcome_from_the_trigger_side() {
+        for direction in [PerpetualDirection::Long, PerpetualDirection::Short] {
+            let action = GemPerpetualPositionAction::Open {
+                data: GemPerpetualTransferData {
+                    direction: direction.clone(),
+                    ..GemPerpetualTransferData::mock()
+                },
+            };
+            let state = perpetual_session(action, ".").autoclose_session(String::new()).view_state();
+
+            assert_eq!(state.take_profit.estimate_title, GemLocalizedText::ExpectedProfit, "{direction:?}");
+            assert_eq!(state.stop_loss.estimate_title, GemLocalizedText::ExpectedLoss, "{direction:?}");
+            assert_eq!(state.stop_loss.tone, GemValueTone::Negative, "{direction:?}");
+        }
     }
 
     #[test]
