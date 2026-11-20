@@ -34,6 +34,7 @@ env:
   SCCACHE_GHA_ENABLED: "true"
   RUSTC_WRAPPER: "sccache"
   SIMULATOR_OS: "27.0"
+  PARALLEL_TESTING: "NO"
 
 jobs:
   unit_test:
@@ -48,6 +49,10 @@ jobs:
 
       - name: Setup iOS CI
         uses: ./.github/actions/setup-ios-ci
+
+      - name: Boot iOS Simulator
+        working-directory: ios
+        run: just boot-simulator
 
       - name: Install dependencies
         working-directory: ios
