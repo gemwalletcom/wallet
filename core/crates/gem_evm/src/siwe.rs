@@ -140,23 +140,23 @@ mod tests {
         let raw = "hello world";
         let result = SiweMessage::try_parse(raw);
         assert!(result.is_none());
-        assert!(!SiweMessage::is_sign_in(raw));
     }
 
     #[test]
     fn test_is_sign_in() {
         let message = mock_siwe_message_full();
-        assert!(SiweMessage::is_sign_in(&message));
-        for incomplete in [
-            message.replace("URI: https://login.xyz", "URI:  "),
-            message.replace("Issued At: 2024-04-01T12:00:00Z", "Issued At:  "),
-            message.replace("Nonce: 8hK9pX32", ""),
+        for (raw, is_sign_in, parses) in [
+            (message.clone(), true, true),
+            (message.replace("URI: https://login.xyz", "URI:  "), true, false),
+            (message.replace("Issued At: 2024-04-01T12:00:00Z", "Issued At:  "), true, false),
+            (message.replace("Nonce: 8hK9pX32\n", ""), true, false),
+            (format!("Hello\n{message}"), false, false),
+            ("hello world".to_string(), false, false),
+            (String::new(), false, false),
         ] {
-            assert!(SiweMessage::is_sign_in(&incomplete), "{incomplete}");
-            assert_eq!(SiweMessage::try_parse(&incomplete), None, "{incomplete}");
+            assert_eq!(SiweMessage::is_sign_in(&raw), is_sign_in, "{raw}");
+            assert_eq!(SiweMessage::try_parse(&raw).is_some(), parses, "{raw}");
         }
-        assert!(!SiweMessage::is_sign_in(""));
-        assert!(!SiweMessage::is_sign_in("Hello\nlogin.xyz wants you to sign in with your Ethereum account:"));
     }
 
     #[test]

@@ -226,36 +226,22 @@ mod tests {
 
     #[test]
     fn test_validate_eip191_siwe() {
-        assert!(
-            validate_sign_message(&SignMessageValidation::mock(Chain::Ethereum, &SignDigestType::Eip191, &mock_siwe_message_hex("thepoc.xyz", 137), "https://thepoc.xyz"))
-                .unwrap_err()
-                .contains("Chain ID mismatch")
-        );
-        assert!(
-            validate_sign_message(&SignMessageValidation::mock(Chain::Ethereum, &SignDigestType::Eip191, &mock_siwe_message_hex("evil.com", 1), "https://thepoc.xyz"))
-                .unwrap_err()
-                .contains("Domain mismatch")
-        );
-        assert!(
-            validate_sign_message(&SignMessageValidation::mock(Chain::Ethereum, &SignDigestType::Eip191, &mock_siwe_message("0xother.xyz", 1), "https://evil.com"))
-                .unwrap_err()
-                .contains("Domain mismatch")
-        );
-        let unknown_chain = mock_siwe_message("evil.com", 1).replace("Chain ID: 1", "Chain ID: 99999999999999999999999");
-        assert!(
-            validate_sign_message(&SignMessageValidation::mock(Chain::Ethereum, &SignDigestType::Eip191, &unknown_chain, "https://thepoc.xyz"))
-                .unwrap_err()
-                .contains("Chain ID mismatch"),
-            "a sign-in for another site is refused whatever chain id it names"
-        );
-        for (field, blank) in [("URI: https://evil.com", "URI:  "), ("Issued At: 2026-03-06T01:56:42.927Z", "Issued At:  "), ("Nonce: gmdhs9w9yfrl2kf2\n", "")] {
-            let incomplete = mock_siwe_message("evil.com", 1).replace(field, blank);
-            assert_eq!(
-                validate_sign_message(&SignMessageValidation::mock(Chain::Ethereum, &SignDigestType::Eip191, &incomplete, "https://thepoc.xyz")),
-                Err("Invalid SIWE message".to_string()),
-                "a message that opens as a sign-in is never signed as plain text: {field}"
-            );
+        let other_site = mock_siwe_message("evil.com", 1);
+        for (data, session_domain, error) in [
+            (mock_siwe_message_hex("thepoc.xyz", 137), "https://thepoc.xyz", "Chain ID mismatch"),
+            (mock_siwe_message_hex("evil.com", 1), "https://thepoc.xyz", "Domain mismatch"),
+            (mock_siwe_message("0xother.xyz", 1), "https://evil.com", "Domain mismatch"),
+            (other_site.replace("Chain ID: 1", "Chain ID: 99999999999999999999999"), "https://thepoc.xyz", "Chain ID mismatch"),
+            (other_site.replace("URI: https://evil.com", "URI:  "), "https://thepoc.xyz", "Invalid SIWE message"),
+            (other_site.replace("Issued At: 2026-03-06T01:56:42.927Z", "Issued At:  "), "https://thepoc.xyz", "Invalid SIWE message"),
+            (other_site.replace("Nonce: gmdhs9w9yfrl2kf2\n", ""), "https://thepoc.xyz", "Invalid SIWE message"),
+        ] {
+            let result = validate_sign_message(&SignMessageValidation::mock(Chain::Ethereum, &SignDigestType::Eip191, &data, session_domain));
+            assert!(result.unwrap_err().starts_with(error), "a message that opens as a sign-in is signed only for the app asking: {data}");
         }
-        assert!(validate_sign_message(&SignMessageValidation::mock(Chain::Ethereum, &SignDigestType::Eip191, "0x48656c6c6f", "https://example.com")).is_ok());
+
+        for (data, session_domain) in [(mock_siwe_message_hex("thepoc.xyz", 1), "https://thepoc.xyz"), ("0x48656c6c6f".to_string(), "https://example.com")] {
+            assert_eq!(validate_sign_message(&SignMessageValidation::mock(Chain::Ethereum, &SignDigestType::Eip191, &data, session_domain)), Ok(()), "{data}");
+        }
     }
 }
