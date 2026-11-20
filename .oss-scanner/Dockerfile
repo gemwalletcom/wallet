@@ -1,5 +1,5 @@
 # OSS Scanner image: builds the Core workspace and its tests for offline scanning.
-FROM mirror.gcr.io/library/rust:1.100.0-trixie@sha256:e19840879045c951c905d0eaa9887f3439c62000e429963371b376bac8d38c31
+FROM mirror.gcr.io/library/rust:1.100.0-trixie@sha256:223cc32ddca8f3ee90c436dbc94b6b5f052ea7f9653c5201e9612f08ad7d21b8
 ENV DEBIAN_FRONTEND=noninteractive \
     CARGO_TERM_COLOR=never \
     CARGO_INCREMENTAL=0
