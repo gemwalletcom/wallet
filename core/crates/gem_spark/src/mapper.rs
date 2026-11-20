@@ -31,7 +31,7 @@ pub fn map_transfer(transfer: &WalletTransfer) -> Option<LightningPayment> {
 fn is_payment(transfer_type: TransferType) -> bool {
     match transfer_type {
         TransferType::PreimageSwap | TransferType::Transfer | TransferType::UtxoSwap => true,
-        TransferType::CooperativeExit | TransferType::Swap | TransferType::CounterSwap | TransferType::PrimarySwapV3 | TransferType::CounterSwapV3 => false,
+        TransferType::CooperativeExit | TransferType::Swap | TransferType::CounterSwap | TransferType::PrimarySwapV3 | TransferType::CounterSwapV3 | TransferType::Unknown => false,
     }
 }
 
@@ -50,7 +50,8 @@ fn payment_status(status: TransferStatus, direction: &TransferDirection) -> Ligh
         | TransferStatus::SenderInitiatedCoordinator
         | TransferStatus::ReceiverKeyTweakLocked
         | TransferStatus::ReceiverKeyTweakApplied
-        | TransferStatus::ApplyingSenderKeyTweak => LightningPaymentStatus::Pending,
+        | TransferStatus::ApplyingSenderKeyTweak
+        | TransferStatus::Unknown => LightningPaymentStatus::Pending,
     }
 }
 

@@ -5,7 +5,7 @@ use std::sync::{Arc, LazyLock, Mutex, PoisonError};
 use bitcoin::secp256k1::ecdsa::Signature;
 use bitcoin::secp256k1::{Message, PublicKey, Secp256k1};
 use primitives::time::unix_timestamp;
-use spark_wallet::{DefaultSigner, ListTransfersRequest, Network, Order, PagingFilter, SparkSignerAdapter, SparkWallet, SparkWalletConfig, TransferId, WalletBuilder};
+use spark_wallet::{DefaultSigner, InvoicePreimage, ListTransfersRequest, Network, Order, PagingFilter, SparkSignerAdapter, SparkWallet, SparkWalletConfig, TransferId, WalletBuilder};
 
 use crate::address::SparkAddress;
 use crate::error::LightningError;
@@ -72,7 +72,7 @@ impl LightningWallet {
     }
 
     pub async fn create_invoice(&self) -> Result<String, LightningError> {
-        Ok(self.wallet.create_lightning_invoice(0, None, None, None, false).await?.invoice)
+        Ok(self.wallet.create_lightning_invoice(0, None, InvoicePreimage::FromSigner, None, None, false).await?.invoice)
     }
 
     pub async fn send_fee(&self, invoice: &LightningInvoice, amount_sats: u64) -> Result<u64, LightningError> {
