@@ -8,6 +8,7 @@ import com.gemwallet.android.application.wallet_connect.cases.DisconnectWalletCo
 import com.gemwallet.android.application.wallet_connect.cases.PairWalletConnect
 import com.gemwallet.android.application.wallet_connect.cases.RespondWalletConnectRequest
 import com.gemwallet.android.application.wallet_connect.cases.SyncWalletConnectSessions
+import com.gemwallet.android.data.coordinators.wallet_connect.SignatureVerifier
 import com.gemwallet.android.data.coordinators.wallet_connect.WalletConnectCoordinator
 import com.gemwallet.android.data.coordinators.wallet_connect.WalletConnectListener
 import com.gemwallet.android.data.coordinators.wallet_connect.WalletConnectRelay
@@ -59,6 +60,7 @@ object WalletConnectModule {
             provider = alienProvider,
             transport = relay,
             listener = listener,
+            verifier = SignatureVerifier(),
             platform = Platform.ANDROID,
         )
 
