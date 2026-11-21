@@ -1,4 +1,4 @@
-use borsh::BorshDeserialize;
+use gem_encoding::borsh::{DecodeError, Reader};
 use gem_solana::{Pubkey, anchor::AnchorAccount, find_program_address, instructions::program_ids::pump_amm_program, wrapped_sol::wrapped_sol_mint};
 use primitives::decode_hex_literal;
 use std::iter::repeat;
@@ -16,7 +16,7 @@ const POOL_ACCOUNT_LEN: usize = 287;
 const MAYHEM_TOKEN_SUPPLY: u128 = 1_000_000_000_000_000;
 const NO_COIN_CREATOR: Pubkey = Pubkey::new([0; 32]);
 
-#[derive(Debug, Clone, PartialEq, BorshDeserialize)]
+#[derive(Debug, Clone, PartialEq)]
 pub(crate) struct Pool {
     _bump_and_index: [u8; 3],
     _creator: Pubkey,
@@ -44,6 +44,26 @@ pub(super) struct Reserves {
 
 impl AnchorAccount for Pool {
     const NAME: &'static str = "Pool";
+
+    fn read(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        Ok(Self {
+            _bump_and_index: reader.bytes()?,
+            _creator: Pubkey::read(reader)?,
+            base_mint: Pubkey::read(reader)?,
+            quote_mint: Pubkey::read(reader)?,
+            _lp_mint: Pubkey::read(reader)?,
+            pool_base_token_account: Pubkey::read(reader)?,
+            pool_quote_token_account: Pubkey::read(reader)?,
+            lp_supply: reader.u64()?,
+            coin_creator: Pubkey::read(reader)?,
+            is_mayhem_mode: reader.bool()?,
+            is_cashback_coin: reader.bool()?,
+            virtual_quote_reserves: reader.i128()?,
+            _creator_fee_bps_and_flags: reader.bytes()?,
+            protocol_fees: reader.u64()?,
+            creator_fees: reader.u64()?,
+        })
+    }
 }
 
 impl DexPool for Pool {

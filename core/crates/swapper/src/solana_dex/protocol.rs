@@ -1,4 +1,4 @@
-use borsh::{BorshDeserialize, BorshSerialize};
+use gem_encoding::borsh::{DecodeError, Reader};
 use gem_solana::{
     DEFAULT_SWAP_GAS_LIMIT, Instruction, Pubkey, SolanaDataSlice, SolanaProgramAccountsFilter,
     models::{Clock, TokenAccount},
@@ -32,10 +32,14 @@ pub(crate) fn token_amount(account: &Option<Vec<u8>>) -> Result<u64, SwapperErro
     Ok(TokenAccount::decode(account_data(account)?)?.amount)
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, BorshDeserialize)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub(crate) struct ActivationType(u8);
 
 impl ActivationType {
+    pub fn read(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        reader.u8().map(Self)
+    }
+
     pub fn current_point(&self, clock: &Clock) -> Option<u64> {
         match self.0 {
             ACTIVATION_BY_SLOT => Some(clock.slot),
@@ -108,10 +112,15 @@ impl PoolSwap<'_> {
     }
 }
 
-#[derive(BorshSerialize)]
 pub(crate) struct SwapAmounts {
     pub amount_in: u64,
     pub minimum_out: u64,
+}
+
+impl SwapAmounts {
+    pub fn encode(&self) -> Vec<u8> {
+        [self.amount_in.to_le_bytes(), self.minimum_out.to_le_bytes()].concat()
+    }
 }
 
 pub(crate) trait DexPool {

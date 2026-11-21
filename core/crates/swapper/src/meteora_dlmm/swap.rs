@@ -1,4 +1,3 @@
-use borsh::BorshSerialize;
 use gem_solana::{
     AccountMeta, Instruction, Pubkey, anchor,
     instructions::program_ids::{memo_program, meteora_dlmm_program},
@@ -15,10 +14,20 @@ const SWAP2: &str = "swap2";
 const EVENT_AUTHORITY: Pubkey = Pubkey::new(decode_hex_literal("b270d67fa98c51cf0213051358962baf35742bed59c9d9445e9c0d0c85c7cd91"));
 pub(super) const SWAP_BIN_ARRAYS: usize = 3;
 
-#[derive(BorshSerialize)]
 struct SwapParameters {
     amounts: SwapAmounts,
     remaining_accounts_slices: Vec<(u8, u8)>,
+}
+
+impl SwapParameters {
+    fn encode(&self) -> Vec<u8> {
+        [
+            self.amounts.encode(),
+            (self.remaining_accounts_slices.len() as u32).to_le_bytes().to_vec(),
+            self.remaining_accounts_slices.iter().flat_map(|(accounts_type, length)| [*accounts_type, *length]).collect(),
+        ]
+        .concat()
+    }
 }
 
 pub(super) fn swap2_instruction(address: &Pubkey, pair: &Pair, swap: &PoolSwap) -> Result<Instruction, SwapperError> {
@@ -55,7 +64,7 @@ pub(super) fn swap2_instruction(address: &Pubkey, pair: &Pair, swap: &PoolSwap) 
         amounts: swap.amounts(),
         remaining_accounts_slices: vec![],
     };
-    Ok(anchor::instruction(meteora_dlmm_program(), SWAP2, &parameters, accounts))
+    Ok(anchor::instruction(meteora_dlmm_program(), SWAP2, &parameters.encode(), accounts))
 }
 
 #[cfg(test)]

@@ -1,4 +1,4 @@
-use borsh::BorshDeserialize;
+use gem_encoding::borsh::{DecodeError, Reader};
 use gem_solana::{Pubkey, anchor::AnchorAccount, find_program_address, instructions::program_ids::raydium_clmm_program};
 
 use super::tick_math::{MAX_SQRT_PRICE, MIN_SQRT_PRICE};
@@ -11,7 +11,7 @@ const SWAP_TICK_ARRAYS: usize = 3;
 const SWAP_DISABLED: u8 = 1 << 4;
 const DYNAMIC_FEE_INFO_LEN: usize = 80;
 
-#[derive(Debug, Clone, Copy, PartialEq, BorshDeserialize)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub(super) struct DynamicFeeInfo {
     pub filter_period: u16,
     pub decay_period: u16,
@@ -38,7 +38,7 @@ impl SwapTickArrays {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, BorshDeserialize)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub(super) struct AmmConfig {
     _bump: u8,
     _index: u16,
@@ -47,7 +47,7 @@ pub(super) struct AmmConfig {
     pub trade_fee_rate: u32,
 }
 
-#[derive(Debug, Clone, PartialEq, BorshDeserialize)]
+#[derive(Debug, Clone, PartialEq)]
 pub(crate) struct PoolState {
     _bump: [u8; 1],
     pub amm_config: Pubkey,
@@ -75,12 +75,67 @@ pub(crate) struct PoolState {
     dynamic_fee_info: [u8; DYNAMIC_FEE_INFO_LEN],
 }
 
+impl DynamicFeeInfo {
+    fn read(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        Ok(Self {
+            filter_period: reader.u16()?,
+            decay_period: reader.u16()?,
+            reduction_factor: reader.u16()?,
+            dynamic_fee_control: reader.u32()?,
+            max_volatility_accumulator: reader.u32()?,
+            tick_spacing_index_reference: reader.i32()?,
+            volatility_reference: reader.u32()?,
+            volatility_accumulator: reader.u32()?,
+            last_update_timestamp: reader.u64()?,
+        })
+    }
+}
+
 impl AnchorAccount for AmmConfig {
     const NAME: &'static str = "AmmConfig";
+
+    fn read(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        Ok(Self {
+            _bump: reader.u8()?,
+            _index: reader.u16()?,
+            _owner: Pubkey::read(reader)?,
+            _protocol_fee_rate: reader.u32()?,
+            trade_fee_rate: reader.u32()?,
+        })
+    }
 }
 
 impl AnchorAccount for PoolState {
     const NAME: &'static str = "PoolState";
+
+    fn read(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        Ok(Self {
+            _bump: reader.bytes()?,
+            amm_config: Pubkey::read(reader)?,
+            _owner: Pubkey::read(reader)?,
+            token_mint_0: Pubkey::read(reader)?,
+            token_mint_1: Pubkey::read(reader)?,
+            token_vault_0: Pubkey::read(reader)?,
+            token_vault_1: Pubkey::read(reader)?,
+            observation_key: Pubkey::read(reader)?,
+            _mint_decimals: reader.bytes()?,
+            tick_spacing: reader.u16()?,
+            liquidity: reader.u128()?,
+            sqrt_price: reader.u128()?,
+            tick_current: reader.i32()?,
+            _fee_growths_and_protocol_fees: reader.bytes()?,
+            _padding: reader.bytes()?,
+            status: reader.u8()?,
+            fee_on: reader.u8()?,
+            _seed_index_and_padding: reader.bytes()?,
+            _reward_infos: reader.bytes()?,
+            tick_array_bitmap: reader.array(Reader::u64)?,
+            _padding_and_fund_fees: reader.bytes()?,
+            open_time: reader.u64()?,
+            _recent_epoch: reader.u64()?,
+            dynamic_fee_info: reader.bytes()?,
+        })
+    }
 }
 
 impl DexPool for PoolState {
@@ -131,7 +186,7 @@ impl PoolState {
         if self.dynamic_fee_info.iter().all(|byte| *byte == 0) {
             return Ok(None);
         }
-        DynamicFeeInfo::deserialize(&mut &self.dynamic_fee_info[..]).map(Some).map_err(SwapperError::compute_quote_error)
+        Reader::decode_prefix(&self.dynamic_fee_info, DynamicFeeInfo::read).map(Some).map_err(SwapperError::compute_quote_error)
     }
 
     pub fn ticks_in_array(&self) -> i32 {

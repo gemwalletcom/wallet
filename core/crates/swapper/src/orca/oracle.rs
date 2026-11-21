@@ -1,4 +1,4 @@
-use borsh::BorshDeserialize;
+use gem_encoding::borsh::{DecodeError, Reader};
 use gem_solana::{Pubkey, anchor::AnchorAccount};
 
 use crate::{
@@ -8,7 +8,7 @@ use crate::{
 
 const MAX_REFERENCE_AGE: u64 = 3_600;
 
-#[derive(Debug, Clone, Copy, PartialEq, BorshDeserialize)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 struct AdaptiveFeeConstants {
     filter_period: u16,
     decay_period: u16,
@@ -20,7 +20,7 @@ struct AdaptiveFeeConstants {
     _reserved: [u8; 16],
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, BorshDeserialize)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 struct AdaptiveFeeVariables {
     last_reference_update_timestamp: u64,
     last_major_swap_timestamp: u64,
@@ -30,7 +30,7 @@ struct AdaptiveFeeVariables {
     _reserved: [u8; 16],
 }
 
-#[derive(Debug, Clone, PartialEq, BorshDeserialize)]
+#[derive(Debug, Clone, PartialEq)]
 pub(super) struct Oracle {
     whirlpool: Pubkey,
     trade_enable_timestamp: u64,
@@ -49,8 +49,32 @@ pub(super) struct AdaptiveFee {
     upper_bound: Option<(i32, u128)>,
 }
 
+impl AdaptiveFeeConstants {
+    fn read(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        Ok(Self {
+            filter_period: reader.u16()?,
+            decay_period: reader.u16()?,
+            reduction_factor: reader.u16()?,
+            adaptive_fee_control_factor: reader.u32()?,
+            max_volatility_accumulator: reader.u32()?,
+            tick_group_size: reader.u16()?,
+            _major_swap_threshold_ticks: reader.u16()?,
+            _reserved: reader.bytes()?,
+        })
+    }
+}
+
 impl AnchorAccount for Oracle {
     const NAME: &'static str = "Oracle";
+
+    fn read(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        Ok(Self {
+            whirlpool: Pubkey::read(reader)?,
+            trade_enable_timestamp: reader.u64()?,
+            constants: AdaptiveFeeConstants::read(reader)?,
+            variables: AdaptiveFeeVariables::read(reader)?,
+        })
+    }
 }
 
 impl Oracle {
@@ -88,6 +112,17 @@ impl Oracle {
 }
 
 impl AdaptiveFeeVariables {
+    fn read(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        Ok(Self {
+            last_reference_update_timestamp: reader.u64()?,
+            last_major_swap_timestamp: reader.u64()?,
+            volatility_reference: reader.u32()?,
+            tick_group_index_reference: reader.i32()?,
+            volatility_accumulator: reader.u32()?,
+            _reserved: reader.bytes()?,
+        })
+    }
+
     fn referenced(self, tick_group_index: i32, timestamp: u64, constants: &AdaptiveFeeConstants) -> Result<Self, SwapperError> {
         let latest_timestamp = self.last_reference_update_timestamp.max(self.last_major_swap_timestamp);
         let elapsed = timestamp.checked_sub(latest_timestamp).ok_or_else(|| SwapperError::compute_quote_error("Oracle is ahead of the chain clock"))?;

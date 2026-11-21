@@ -1,4 +1,4 @@
-use borsh::BorshDeserialize;
+use gem_encoding::borsh::{DecodeError, Reader};
 use gem_solana::{Pubkey, SolanaDataSlice, anchor::AnchorAccount};
 
 use crate::{
@@ -18,7 +18,7 @@ const CREATOR_FEE_ON_BOTH_TOKENS: u8 = 0;
 const CREATOR_FEE_ON_TOKEN_0: u8 = 1;
 const CREATOR_FEE_ON_TOKEN_1: u8 = 2;
 
-#[derive(Debug, Clone, PartialEq, BorshDeserialize)]
+#[derive(Debug, Clone, PartialEq)]
 pub(crate) struct Pool {
     pub amm_config: Pubkey,
     _pool_creator: Pubkey,
@@ -49,7 +49,7 @@ pub(crate) struct Pool {
     creator_fees_token_1: u64,
 }
 
-#[derive(Debug, Clone, PartialEq, BorshDeserialize)]
+#[derive(Debug, Clone, PartialEq)]
 pub(crate) struct AmmConfig {
     _bump: u8,
     _disable_create_pool: u8,
@@ -65,10 +65,57 @@ pub(crate) struct AmmConfig {
 
 impl AnchorAccount for Pool {
     const NAME: &'static str = "PoolState";
+
+    fn read(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        Ok(Self {
+            amm_config: Pubkey::read(reader)?,
+            _pool_creator: Pubkey::read(reader)?,
+            token_0_vault: Pubkey::read(reader)?,
+            token_1_vault: Pubkey::read(reader)?,
+            _lp_mint: Pubkey::read(reader)?,
+            token_0_mint: Pubkey::read(reader)?,
+            token_1_mint: Pubkey::read(reader)?,
+            _token_0_program: Pubkey::read(reader)?,
+            _token_1_program: Pubkey::read(reader)?,
+            observation_key: Pubkey::read(reader)?,
+            _auth_bump: reader.u8()?,
+            status: reader.u8()?,
+            _lp_mint_decimals: reader.u8()?,
+            _mint_0_decimals: reader.u8()?,
+            _mint_1_decimals: reader.u8()?,
+            lp_supply: reader.u64()?,
+            protocol_fees_token_0: reader.u64()?,
+            protocol_fees_token_1: reader.u64()?,
+            fund_fees_token_0: reader.u64()?,
+            fund_fees_token_1: reader.u64()?,
+            open_time: reader.u64()?,
+            _recent_epoch: reader.u64()?,
+            creator_fee_on: reader.u8()?,
+            enable_creator_fee: reader.u8()?,
+            _padding1: reader.bytes()?,
+            creator_fees_token_0: reader.u64()?,
+            creator_fees_token_1: reader.u64()?,
+        })
+    }
 }
 
 impl AnchorAccount for AmmConfig {
     const NAME: &'static str = "AmmConfig";
+
+    fn read(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        Ok(Self {
+            _bump: reader.u8()?,
+            _disable_create_pool: reader.u8()?,
+            _index: reader.u16()?,
+            trade_fee_rate: reader.u64()?,
+            _protocol_fee_rate: reader.u64()?,
+            _fund_fee_rate: reader.u64()?,
+            _create_pool_fee: reader.u64()?,
+            _protocol_owner: Pubkey::read(reader)?,
+            _fund_owner: Pubkey::read(reader)?,
+            creator_fee_rate: reader.u64()?,
+        })
+    }
 }
 
 impl DexPool for Pool {

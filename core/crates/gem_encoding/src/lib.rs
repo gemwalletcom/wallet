@@ -2,6 +2,8 @@ mod crc16;
 mod error;
 mod hex;
 mod percent_encoding;
+#[cfg(feature = "borsh")]
+pub mod borsh;
 #[cfg(feature = "protobuf")]
 pub mod protobuf;
 

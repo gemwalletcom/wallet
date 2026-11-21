@@ -1,8 +1,8 @@
-use borsh::BorshDeserialize;
+use gem_encoding::borsh::{DecodeError, Reader};
 use primitives::swap::HUNDRED_PERCENT_IN_BPS;
 use std::iter::once;
 
-use crate::{Pubkey, SolanaError, error::Result};
+use crate::{Pubkey, SolanaError, error::Result as SolanaResult};
 
 const MINT_LEN: usize = 82;
 const SUPPLY_OFFSET: usize = 36;
@@ -20,20 +20,14 @@ const NON_TRANSFERABLE: u16 = 9;
 const TRANSFER_HOOK: u16 = 14;
 const PAUSABLE: u16 = 26;
 
-#[derive(BorshDeserialize)]
-struct ExtensionHeader {
-    extension_type: u16,
-    length: u16,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, BorshDeserialize)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct TransferFee {
     pub epoch: u64,
     pub maximum_fee: u64,
     pub basis_points: u16,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, BorshDeserialize)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct TransferFeeConfig {
     pub older: TransferFee,
     pub newer: TransferFee,
@@ -56,7 +50,7 @@ pub struct Mint {
 }
 
 impl Mint {
-    pub fn decode(data: &[u8]) -> Result<Self> {
+    pub fn decode(data: &[u8]) -> SolanaResult<Self> {
         let invalid = || SolanaError::invalid_input("Invalid mint account");
         let supply = data.get(SUPPLY_OFFSET..).and_then(<[u8]>::first_chunk).map(|bytes| u64::from_le_bytes(*bytes)).ok_or_else(invalid)?;
         let extensions = match (data.len(), data.get(ACCOUNT_TYPE_OFFSET)) {
@@ -88,7 +82,24 @@ impl Mint {
     }
 }
 
+impl TransferFee {
+    fn read(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        Ok(Self {
+            epoch: reader.u64()?,
+            maximum_fee: reader.u64()?,
+            basis_points: reader.u16()?,
+        })
+    }
+}
+
 impl TransferFeeConfig {
+    fn read(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        Ok(Self {
+            older: TransferFee::read(reader)?,
+            newer: TransferFee::read(reader)?,
+        })
+    }
+
     fn fee(&self, epoch: u64, amount: u64) -> u64 {
         let fee = if epoch >= self.newer.epoch { self.newer } else { self.older };
         let raw_fee = (u128::from(amount) * u128::from(fee.basis_points)).div_ceil(u128::from(HUNDRED_PERCENT_IN_BPS));
@@ -96,25 +107,25 @@ impl TransferFeeConfig {
     }
 }
 
-fn decode_extensions(tlv: &[u8]) -> Result<Vec<MintExtension>> {
+fn decode_extensions(tlv: &[u8]) -> SolanaResult<Vec<MintExtension>> {
     let invalid = || SolanaError::invalid_input("Invalid mint extension");
-    let Some((header, rest)) = tlv.split_at_checked(TLV_HEADER_LEN) else {
+    let Some((header, rest)) = tlv.split_first_chunk::<TLV_HEADER_LEN>() else {
         return Ok(vec![]);
     };
-    let header = ExtensionHeader::try_from_slice(header).map_err(|_| invalid())?;
-    if header.extension_type == UNINITIALIZED {
+    let extension_type = u16::from_le_bytes([header[0], header[1]]);
+    if extension_type == UNINITIALIZED {
         return Ok(vec![]);
     }
-    let (value, rest) = rest.split_at_checked(usize::from(header.length)).ok_or_else(invalid)?;
-    Ok(once(decode_extension(header.extension_type, value)?).chain(decode_extensions(rest)?).collect())
+    let (value, rest) = rest.split_at_checked(usize::from(u16::from_le_bytes([header[2], header[3]]))).ok_or_else(invalid)?;
+    Ok(once(decode_extension(extension_type, value)?).chain(decode_extensions(rest)?).collect())
 }
 
-fn decode_extension(extension_type: u16, value: &[u8]) -> Result<MintExtension> {
+fn decode_extension(extension_type: u16, value: &[u8]) -> SolanaResult<MintExtension> {
     let invalid = || SolanaError::invalid_input("Invalid mint extension");
     match extension_type {
         TRANSFER_FEE_CONFIG => {
             let fees = value.get(TRANSFER_FEES_OFFSET..).ok_or_else(invalid)?;
-            Ok(MintExtension::TransferFee(TransferFeeConfig::deserialize(&mut &fees[..]).map_err(|_| invalid())?))
+            Ok(MintExtension::TransferFee(Reader::decode_prefix(fees, TransferFeeConfig::read).map_err(|_| invalid())?))
         }
         TRANSFER_HOOK => {
             let program_id = value.get(32..64).ok_or_else(invalid)?;

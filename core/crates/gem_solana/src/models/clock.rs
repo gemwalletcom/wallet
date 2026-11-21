@@ -1,6 +1,6 @@
-use borsh::BorshDeserialize;
+use gem_encoding::borsh::{DecodeError, Reader};
 
-#[derive(Debug, Clone, Copy, PartialEq, BorshDeserialize)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Clock {
     pub slot: u64,
     pub epoch_start_timestamp: i64,
@@ -10,6 +10,18 @@ pub struct Clock {
 }
 
 impl Clock {
+    pub fn decode(data: &[u8]) -> Result<Self, DecodeError> {
+        Reader::decode(data, |reader| {
+            Ok(Self {
+                slot: reader.u64()?,
+                epoch_start_timestamp: reader.i64()?,
+                epoch: reader.u64()?,
+                leader_schedule_epoch: reader.u64()?,
+                unix_timestamp: reader.i64()?,
+            })
+        })
+    }
+
     pub fn timestamp(&self) -> u64 {
         u64::try_from(self.unix_timestamp).unwrap_or_default()
     }
@@ -25,7 +37,7 @@ mod tests {
         let data = decode_base64("+ZJIGwAAAAB7mtFqAAAAACMEAAAAAAAAJAQAAAAAAAD0b9JqAAAAAA==").unwrap();
 
         assert_eq!(
-            Clock::try_from_slice(&data).unwrap(),
+            Clock::decode(&data).unwrap(),
             Clock {
                 slot: 457_741_049,
                 epoch_start_timestamp: 1_792_121_467,

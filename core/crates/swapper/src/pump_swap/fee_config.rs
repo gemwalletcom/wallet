@@ -1,4 +1,4 @@
-use borsh::BorshDeserialize;
+use gem_encoding::borsh::{DecodeError, Reader};
 use gem_solana::{Pubkey, anchor::AnchorAccount, wrapped_sol::wrapped_sol_mint};
 use primitives::decode_hex_literal;
 
@@ -6,20 +6,20 @@ pub(super) const PUMP_FEES_PROGRAM: Pubkey = Pubkey::new(decode_hex_literal("0c3
 pub(super) const FEE_CONFIG: Pubkey = Pubkey::new(decode_hex_literal("41246ecc7d78fe81e41773a46965419937923a07644797df6f3eb514426010cb"));
 const BPS: u128 = 10_000;
 
-#[derive(Debug, Clone, Copy, PartialEq, BorshDeserialize)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub(super) struct Fees {
     pub lp_fee_bps: u64,
     pub protocol_fee_bps: u64,
     pub creator_fee_bps: u64,
 }
 
-#[derive(Debug, Clone, PartialEq, BorshDeserialize)]
+#[derive(Debug, Clone, PartialEq)]
 struct FeeTier {
     market_cap_lamports_threshold: u128,
     fees: Fees,
 }
 
-#[derive(Debug, Clone, PartialEq, BorshDeserialize)]
+#[derive(Debug, Clone, PartialEq)]
 pub(super) struct FeeConfig {
     _bump: u8,
     _admin: Pubkey,
@@ -28,8 +28,27 @@ pub(super) struct FeeConfig {
     stable_fee_tiers: Vec<FeeTier>,
 }
 
+impl FeeTier {
+    fn read(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        Ok(Self {
+            market_cap_lamports_threshold: reader.u128()?,
+            fees: Fees::read(reader)?,
+        })
+    }
+}
+
 impl AnchorAccount for FeeConfig {
     const NAME: &'static str = "FeeConfig";
+
+    fn read(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        Ok(Self {
+            _bump: reader.u8()?,
+            _admin: Pubkey::read(reader)?,
+            _flat_fees: Fees::read(reader)?,
+            fee_tiers: reader.vec(FeeTier::read)?,
+            stable_fee_tiers: reader.vec(FeeTier::read)?,
+        })
+    }
 }
 
 impl FeeConfig {
@@ -44,6 +63,14 @@ impl FeeConfig {
 }
 
 impl Fees {
+    fn read(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        Ok(Self {
+            lp_fee_bps: reader.u64()?,
+            protocol_fee_bps: reader.u64()?,
+            creator_fee_bps: reader.u64()?,
+        })
+    }
+
     pub fn quote_after_fees(&self, quote_in: u128) -> Option<u128> {
         let total_bps = u128::from(self.lp_fee_bps) + u128::from(self.protocol_fee_bps) + u128::from(self.creator_fee_bps);
         let quote = quote_in * BPS / (BPS + total_bps);

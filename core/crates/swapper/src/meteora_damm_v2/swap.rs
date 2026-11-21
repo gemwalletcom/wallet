@@ -30,7 +30,7 @@ pub(super) fn swap_instruction(address: &Pubkey, pool: &Pool, swap: &PoolSwap) -
         AccountMeta::new_readonly(EVENT_AUTHORITY),
         AccountMeta::new_readonly(meteora_damm_v2_program()),
     ];
-    Ok(anchor::instruction(meteora_damm_v2_program(), SWAP, &swap.amounts(), accounts))
+    Ok(anchor::instruction(meteora_damm_v2_program(), SWAP, &swap.amounts().encode(), accounts))
 }
 
 #[cfg(test)]

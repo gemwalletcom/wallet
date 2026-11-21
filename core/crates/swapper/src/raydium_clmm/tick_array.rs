@@ -1,10 +1,9 @@
-use borsh::BorshDeserialize;
+use gem_encoding::borsh::{DecodeError, Reader};
 use gem_solana::{Pubkey, anchor::AnchorAccount, find_program_address, instructions::program_ids::raydium_clmm_program};
 
 use super::pool::{PoolState, SwapTickArrays, TICK_ARRAY_SIZE};
 use crate::SwapperError;
 
-#[derive(BorshDeserialize)]
 struct TickState {
     _tick: i32,
     liquidity_net: i128,
@@ -16,15 +15,37 @@ struct TickState {
     _unfilled_ratio_and_padding: [u8; 28],
 }
 
-#[derive(BorshDeserialize)]
 struct TickArrayState {
     pool_id: Pubkey,
     start_tick_index: i32,
-    ticks: [TickState; TICK_ARRAY_SIZE as usize],
+    ticks: Vec<TickState>,
+}
+
+impl TickState {
+    fn read(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        Ok(Self {
+            _tick: reader.i32()?,
+            liquidity_net: reader.i128()?,
+            liquidity_gross: reader.u128()?,
+            _fee_and_reward_growths: reader.bytes()?,
+            _order_phase: reader.u64()?,
+            orders_amount: reader.u64()?,
+            part_filled_orders_remaining: reader.u64()?,
+            _unfilled_ratio_and_padding: reader.bytes()?,
+        })
+    }
 }
 
 impl AnchorAccount for TickArrayState {
     const NAME: &'static str = "TickArrayState";
+
+    fn read(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        Ok(Self {
+            pool_id: Pubkey::read(reader)?,
+            start_tick_index: reader.i32()?,
+            ticks: reader.list(TICK_ARRAY_SIZE as usize, TickState::read)?,
+        })
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
