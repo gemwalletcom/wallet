@@ -124,7 +124,7 @@ extension GemListRow {
                     title: title.text,
                     subtitle: status.statusTitle,
                     subtitleStyle: status.statusStyle,
-                    imageStyle: .list(assetImage: status.statusAssetImage),
+                    imageStyle: ListItemImageStyle(assetImage: status.statusAssetImage, imageSize: .list.badge, cornerRadiusType: .none),
                     infoAction: infoAction(info, onInfo: onInfo),
                 ),
             )

@@ -176,6 +176,7 @@ struct GemListRowItemTests {
         #expect(model.subtitle == Localized.Asset.Verification.suspicious)
         #expect(model.subtitleStyle.color == Colors.red)
         #expect(model.imageStyle?.assetImage == AssetImage(placeholder: Images.TokenStatus.risk))
+        #expect(model.imageStyle?.imageSize == .list.badge)
         #expect(opened == .assetStatus(status: .suspicious))
     }
 
