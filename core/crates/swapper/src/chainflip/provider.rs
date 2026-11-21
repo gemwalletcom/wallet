@@ -1,29 +1,24 @@
-use alloy_primitives::Address;
-use alloy_sol_types::SolCall;
 use async_trait::async_trait;
 use gem_client::Client;
-use gem_evm::contracts::IERC20;
 use gem_evm::u256::biguint_to_u256;
-use gem_evm::u256::u256_to_biguint;
-use gem_solana::{DEFAULT_SWAP_GAS_LIMIT, TOKEN_PROGRAM, anchor::global_discriminator, token_account::get_token_account};
-use gem_tron::address::TronAddress;
+use gem_solana::DEFAULT_SWAP_GAS_LIMIT;
 use num_bigint::BigUint;
 use num_traits::ToPrimitive;
-use std::{fmt::Debug, str::FromStr, sync::Arc, time::Duration};
+use std::{fmt::Debug, sync::Arc, time::Duration};
 
 use super::{
     ChainflipRouteData,
     broker::{
-        AccountMeta, AssetsResponse, BrokerClient, ChainflipAsset, DcaParameters, DepositChannelRequest, EvmVaultSwapResponse, QuoteDetails, QuoteRequest as ChainflipQuoteRequest, QuoteResponse, QuoteType, RefundParameters,
-        SolanaVaultSwapResponse, TronVaultSwapResponse, VaultSwapChainExtras, VaultSwapExtras, VaultSwapResponse, VaultSwapSolanaExtras,
+        AssetsResponse, BrokerClient, ChainflipAsset, DcaParameters, DepositChannelRequest, QuoteDetails, QuoteRequest as ChainflipQuoteRequest, QuoteResponse, QuoteType, RefundParameters, VaultSwapChainExtras, VaultSwapExtras,
+        VaultSwapResponse, VaultSwapSolanaExtras,
     },
     client::{ChainflipClient, SUPPORTED_ASSETS, map_swap_result},
-    contracts::IVault,
     destination::VaultSwapDestination,
     price::{price_after_slippage, price_to_hex_price},
     refund::VaultSwapRefund,
     seed::generate_random_seed,
     tx_builder,
+    vault_swap::VaultSwap,
 };
 use crate::{
     Contracts, Deployment, FetchQuoteData, ProviderType, Quote, QuoteRequest, SwapAmountMode, SwapResult, SwapResultRequest, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData, SwapperSlippage,
@@ -35,20 +30,17 @@ use crate::{
 };
 use primitives::{
     AssetId, Chain, ChainType, MINUTE,
-    hex::{decode_hex, encode_with_0x},
+    hex::encode_with_0x,
     swap::{ApprovalData, SlippageMode},
 };
 
 const DEFAULT_SWAP_ERC20_GAS_LIMIT: u64 = 100_000;
 const REFUND_RETRY_BLOCKS: u32 = 150;
 const ASSETS_CACHE_TTL: Duration = MINUTE.saturating_mul(5);
-const ETHEREUM_VAULT: &str = "0xF5e10380213880111522dd0efD3dbb45b9f62Bcc";
+pub(super) const ETHEREUM_VAULT: &str = "0xF5e10380213880111522dd0efD3dbb45b9f62Bcc";
 const ARBITRUM_VAULT: &str = "0x79001a5e762f3bEFC8e5871b42F6734e00498920";
 const BSC_VAULT: &str = "0x79001a5e762f3bEFC8e5871b42F6734e00498920";
-const SOLANA_VAULT: &str = "J88B7gmadHzTNGiy54c9Ms8BsEXNdB2fntFyhKpk3qoT";
-const SOLANA_NATIVE_SWAP: &str = "x_swap_native";
-const SOLANA_TOKEN_SWAP: &str = "x_swap_token";
-const SOLANA_SOURCE_TOKEN_ACCOUNT_INDEX: usize = 3;
+pub(super) const SOLANA_VAULT: &str = "J88B7gmadHzTNGiy54c9Ms8BsEXNdB2fntFyhKpk3qoT";
 pub(super) const TRON_VAULT: &str = "TEcDijvKSXcfWT7S6rd44H5vNgufm7Y4XC";
 
 pub const VAULT_ADDRESSES: &[Deployment] = &[
@@ -214,125 +206,6 @@ fn vault_address(chain: Chain) -> Result<&'static str, SwapperError> {
     VAULT_ADDRESSES.iter().find(|vault| vault.chain == chain).map(|vault| vault.contract).ok_or(SwapperError::InvalidRoute)
 }
 
-fn vault_mismatch(chain: Chain, broker: &str) -> SwapperError {
-    SwapperError::TransactionError(format!("Chainflip {chain} vault mismatch: broker={broker}"))
-}
-
-fn amount_mismatch(input_amount: &BigUint, broker: impl std::fmt::Display) -> SwapperError {
-    SwapperError::TransactionError(format!("Chainflip swap amount mismatch: quote={input_amount}, broker={broker}"))
-}
-
-fn invalid_calldata(chain: Chain) -> SwapperError {
-    SwapperError::TransactionError(format!("invalid Chainflip {chain} vault swap calldata"))
-}
-
-fn source_token_mismatch(broker: impl Debug) -> SwapperError {
-    SwapperError::TransactionError(format!("Chainflip source token mismatch: broker={broker:?}"))
-}
-
-fn validate_amount(input_amount: &BigUint, broker_amount: &BigUint) -> Result<(), SwapperError> {
-    if broker_amount != input_amount {
-        return Err(amount_mismatch(input_amount, broker_amount));
-    }
-    Ok(())
-}
-
-fn vault_swap_value(token_id: Option<&str>, input_amount: &BigUint, broker_value: &BigUint) -> Result<BigUint, SwapperError> {
-    match token_id {
-        None => validate_amount(input_amount, broker_value).map(|()| input_amount.clone()),
-        Some(_) if *broker_value == BigUint::ZERO => Ok(BigUint::ZERO),
-        Some(_) => Err(SwapperError::TransactionError(format!("Chainflip token swap value must be zero: broker={broker_value}"))),
-    }
-}
-
-fn validate_evm_vault_swap(chain: Chain, token_id: Option<&str>, input_amount: &BigUint, destination: &VaultSwapDestination, refund: &VaultSwapRefund, response: &EvmVaultSwapResponse) -> Result<BigUint, SwapperError> {
-    let vault = Address::from_str(vault_address(chain)?).unwrap_or_default();
-    if Address::from_str(&response.to).ok() != Some(vault) {
-        return Err(vault_mismatch(chain, &response.to));
-    }
-    let value = vault_swap_value(token_id, input_amount, &response.value)?;
-    let calldata = decode_hex(&response.calldata).map_err(|_| invalid_calldata(chain))?;
-    match token_id {
-        None => {
-            let call = IVault::xSwapNativeCall::abi_decode(&calldata).map_err(|_| invalid_calldata(chain))?;
-            destination.validate_call(call.dstChain, &call.dstAddress, call.dstToken)?;
-            refund.validate(&call.cfParameters).map(|()| value)
-        }
-        Some(token_id) => {
-            let call = IVault::xSwapTokenCall::abi_decode(&calldata).map_err(|_| invalid_calldata(chain))?;
-            destination.validate_call(call.dstChain, &call.dstAddress, call.dstToken)?;
-            refund.validate(&call.cfParameters)?;
-            if Address::from_str(token_id).ok() != Some(call.srcToken) {
-                return Err(source_token_mismatch(call.srcToken));
-            }
-            validate_amount(input_amount, &u256_to_biguint(&call.amount)).map(|()| value)
-        }
-    }
-}
-
-fn validate_solana_source(wallet_address: &str, token_id: Option<&str>, data: &[u8], accounts: &[AccountMeta]) -> Result<(), SwapperError> {
-    let instruction = if token_id.is_some() { SOLANA_TOKEN_SWAP } else { SOLANA_NATIVE_SWAP };
-    if !data.starts_with(&global_discriminator(instruction)) {
-        return Err(invalid_calldata(Chain::Solana));
-    }
-    let Some(token_id) = token_id else {
-        return Ok(());
-    };
-    let source = accounts.get(SOLANA_SOURCE_TOKEN_ACCOUNT_INDEX).map(|account| account.pubkey.as_str());
-    let token_account = get_token_account(wallet_address, token_id, TOKEN_PROGRAM).map_err(|_| source_token_mismatch(source))?;
-    if source != Some(token_account.as_str()) {
-        return Err(source_token_mismatch(source));
-    }
-    Ok(())
-}
-
-fn validate_solana_vault_swap(wallet_address: &str, token_id: Option<&str>, input_amount: &BigUint, destination: &VaultSwapDestination, refund: &VaultSwapRefund, response: &SolanaVaultSwapResponse) -> Result<(), SwapperError> {
-    if response.program_id != SOLANA_VAULT {
-        return Err(vault_mismatch(Chain::Solana, &response.program_id));
-    }
-    let data = decode_hex(&response.data).map_err(|_| invalid_calldata(Chain::Solana))?;
-    validate_solana_source(wallet_address, token_id, &data, &response.accounts)?;
-    let amount = data.get(8..16).and_then(|bytes| bytes.try_into().ok()).map(u64::from_le_bytes).ok_or_else(|| invalid_calldata(Chain::Solana))?;
-    let cf_parameters = destination.validate_solana(&data)?;
-    refund.validate(cf_parameters)?;
-    validate_amount(input_amount, &BigUint::from(amount))
-}
-
-fn tron_trc20_transfer(calldata: &str) -> Result<IERC20::transferCall, SwapperError> {
-    decode_hex(calldata).ok().and_then(|data| IERC20::transferCall::abi_decode(&data).ok()).ok_or_else(|| invalid_calldata(Chain::Tron))
-}
-
-fn validate_tron_vault_swap(token_id: Option<&str>, input_amount: &BigUint, destination: &VaultSwapDestination, refund: &VaultSwapRefund, response: &TronVaultSwapResponse) -> Result<(TronAddress, BigUint), SwapperError> {
-    let note = decode_hex(&response.note).map_err(|_| invalid_calldata(Chain::Tron))?;
-    let cf_parameters = destination.validate_tron(&note)?;
-    refund.validate(cf_parameters)?;
-    let is_vault = |address: &TronAddress| address.to_string() == TRON_VAULT;
-    let value = vault_swap_value(token_id, input_amount, &response.value)?;
-    match token_id {
-        None => {
-            let vault = TronAddress::from_hex_or_base58(&response.to).filter(is_vault).ok_or_else(|| vault_mismatch(Chain::Tron, &response.to))?;
-            let calldata = decode_hex(&response.calldata).map_err(|_| invalid_calldata(Chain::Tron))?;
-            if !calldata.is_empty() {
-                return Err(invalid_calldata(Chain::Tron));
-            }
-            Ok((vault, value))
-        }
-        Some(token_id) => {
-            let source_token = response
-                .source_token_address
-                .as_deref()
-                .and_then(TronAddress::from_hex_or_base58)
-                .filter(|source_token| TronAddress::from_hex_or_base58(token_id) == Some(*source_token))
-                .ok_or_else(|| source_token_mismatch(&response.source_token_address))?;
-            let transfer = tron_trc20_transfer(&response.calldata)?;
-            if !is_vault(&TronAddress::from(transfer.to)) {
-                return Err(vault_mismatch(Chain::Tron, &transfer.to.to_string()));
-            }
-            validate_amount(input_amount, &u256_to_biguint(&transfer.value)).map(|()| (source_token, value))
-        }
-    }
-}
-
 #[async_trait]
 impl<CX, BR> Swapper for ChainflipProvider<CX, BR>
 where
@@ -404,8 +277,14 @@ where
             return Ok(SwapperQuoteData::new_transfer(response.deposit_address()?, input_amount, None));
         }
         let source_chain_type = from_asset.chain.chain_type();
-        let destination = VaultSwapDestination::new(&quote.request.to_asset.asset_id(), &quote.request.destination_address)?;
-        let refund = VaultSwapRefund::new(from_asset.chain, refund_parameters.clone());
+        let vault_swap = VaultSwap {
+            vault: vault_address(from_asset.chain)?,
+            wallet: quote.request.wallet_address.clone(),
+            token_id: from_asset.token_id.clone(),
+            amount: input_amount.clone(),
+            destination: VaultSwapDestination::new(&quote.request.to_asset.asset_id(), &quote.request.destination_address)?,
+            refund: VaultSwapRefund::new(from_asset.chain, refund_parameters.clone()),
+        };
         let extra_params = match source_chain_type {
             ChainType::Ethereum => VaultSwapExtras::Evm(VaultSwapChainExtras {
                 chain,
@@ -439,18 +318,19 @@ where
         let (response, approval) = futures::try_join!(broker, self.vault_approval(&from_asset, &quote.request.wallet_address, &input_amount))?;
         match (source_chain_type, response) {
             (ChainType::Ethereum, VaultSwapResponse::Evm(response)) => {
-                let value = validate_evm_vault_swap(from_asset.chain, from_asset.token_id.as_deref(), &input_amount, &destination, &refund, &response)?;
+                let value = vault_swap.validate_evm(&response)?;
                 let gas_limit = get_swap_gas_limit_with_approval(&approval, None, DEFAULT_SWAP_ERC20_GAS_LIMIT);
 
-                Ok(SwapperQuoteData::new_contract(vault_address(from_asset.chain)?.to_string(), value, response.calldata, approval, gas_limit))
+                Ok(SwapperQuoteData::new_contract(vault_swap.vault.to_string(), value, response.calldata, approval, gas_limit))
             }
             (ChainType::Tron, VaultSwapResponse::Tron(response)) => {
-                let (to, value) = validate_tron_vault_swap(from_asset.token_id.as_deref(), &input_amount, &destination, &refund, &response)?;
+                let (to, value) = vault_swap.validate_tron(&response)?;
                 tx_builder::build_tron_quote_data(&response, to, value)
             }
             (ChainType::Solana, VaultSwapResponse::Solana(response)) => {
-                validate_solana_vault_swap(&quote.request.wallet_address, from_asset.token_id.as_deref(), &input_amount, &destination, &refund, &response)?;
-                let data = tx_builder::build_solana_transaction(&quote.request.wallet_address, &response)?;
+                let instruction = tx_builder::solana_instruction(&response)?;
+                vault_swap.validate_solana(&instruction)?;
+                let data = tx_builder::build_solana_transaction(&quote.request.wallet_address, instruction)?;
                 Ok(SwapperQuoteData::new_contract(response.program_id, BigUint::ZERO, data, None, Some(DEFAULT_SWAP_GAS_LIMIT.to_string())))
             }
             _ => Err(SwapperError::InvalidRoute),
@@ -480,15 +360,15 @@ mod tests {
     use crate::{
         ProviderData, SwapperQuoteAsset,
         alien::mock::ProviderMock,
-        chainflip::testkit::{ETHEREUM_NATIVE_MIN_PRICE, SOLANA_MIN_PRICE, TRON_NOTE, arbitrum_usdc_destination, bitcoin_destination, ethereum_native_refund, ethereum_usdc_refund, mock_refund, mock_routes, solana_refund, tron_refund},
+        chainflip::testkit::{TRON_NOTE, mock_routes},
     };
     use gem_client::testkit::MockClient;
     use primitives::AssetId;
     use primitives::Chain;
-    use primitives::asset_constants::{SOLANA_USDC_TOKEN_ID, SOLANA_USDT_TOKEN_ID, TRON_USDT_TOKEN_ID};
+    use primitives::asset_constants::TRON_USDT_TOKEN_ID;
     use primitives::known_assets::ARBITRUM_USDC;
     use primitives::swap::SwapStatus;
-    use primitives::testkit::signer_mock::{TEST_EVM_RECIPIENT, TEST_EVM_SENDER, TEST_POLKADOT_SENDER, TEST_PRIVATE_KEY_SOLANA_ADDRESS, TEST_SOLANA_SENDER, TEST_TRON_SENDER};
+    use primitives::testkit::signer_mock::{TEST_EVM_RECIPIENT, TEST_EVM_SENDER, TEST_POLKADOT_SENDER, TEST_TRON_SENDER};
     use std::sync::atomic::{AtomicUsize, Ordering};
 
     #[test]
@@ -654,118 +534,6 @@ mod tests {
         }
     }
 
-    #[test]
-    fn test_validate_tron_vault_swap_pins_native_amount_to_quote() {
-        let response = TronVaultSwapResponse::mock();
-
-        assert_eq!(
-            validate_tron_vault_swap(None, &BigUint::from(50_000_000u32), &arbitrum_usdc_destination(), &tron_refund(), &response),
-            Ok((TronAddress::parse(TRON_VAULT).unwrap(), BigUint::from(50_000_000u32)))
-        );
-        assert_eq!(
-            validate_tron_vault_swap(None, &BigUint::from(40_000_000u32), &arbitrum_usdc_destination(), &tron_refund(), &response),
-            Err(amount_mismatch(&BigUint::from(40_000_000u32), &response.value))
-        );
-        assert_eq!(
-            validate_tron_vault_swap(None, &BigUint::from(50_000_000u32), &bitcoin_destination(), &solana_refund(), &response),
-            Err(SwapperError::TransactionError("Chainflip Bitcoin destination mismatch".to_string()))
-        );
-    }
-
-    #[test]
-    fn test_validate_tron_vault_swap_rejects_native_calldata() {
-        let call = IVault::xSwapNativeCall {
-            dstChain: 4,
-            dstAddress: vec![0x66; 20].into(),
-            dstToken: 7,
-            cfParameters: vec![].into(),
-        };
-        let response = TronVaultSwapResponse {
-            calldata: encode_with_0x(&call.abi_encode()),
-            ..TronVaultSwapResponse::mock()
-        };
-
-        assert_eq!(
-            validate_tron_vault_swap(None, &BigUint::from(50_000_000u32), &arbitrum_usdc_destination(), &tron_refund(), &response),
-            Err(invalid_calldata(Chain::Tron))
-        );
-        assert_eq!(
-            validate_tron_vault_swap(
-                None,
-                &BigUint::from(50_000_000u32),
-                &arbitrum_usdc_destination(),
-                &tron_refund(),
-                &TronVaultSwapResponse { calldata: String::new(), ..response }
-            ),
-            Ok((TronAddress::parse(TRON_VAULT).unwrap(), BigUint::from(50_000_000u32)))
-        );
-    }
-
-    #[test]
-    fn test_validate_tron_vault_swap_rejects_token_native_value() {
-        let response = TronVaultSwapResponse {
-            calldata: "0xa9059cbb".to_string(),
-            value: BigUint::from(1u32),
-            source_token_address: Some(TRON_USDT_TOKEN_ID.to_string()),
-            ..TronVaultSwapResponse::mock()
-        };
-
-        assert_eq!(
-            validate_tron_vault_swap(Some(TRON_USDT_TOKEN_ID), &BigUint::from(10_000_000u32), &arbitrum_usdc_destination(), &tron_refund(), &response),
-            Err(SwapperError::TransactionError("Chainflip token swap value must be zero: broker=1".to_string()))
-        );
-    }
-
-    #[test]
-    fn test_validate_tron_vault_swap_pins_token_amount_to_calldata() {
-        let response = TronVaultSwapResponse {
-            calldata: "0xa9059cbb00000000000000000000000032e07e5dfcb75c2977adddc593eb8d6b6e71f96e0000000000000000000000000000000000000000000000000000000000989680".to_string(),
-            value: BigUint::ZERO,
-            source_token_address: Some("0xa614f803b6fd780986a42c78ec9c7f77e6ded13c".to_string()),
-            ..TronVaultSwapResponse::mock()
-        };
-
-        assert_eq!(
-            validate_tron_vault_swap(Some(TRON_USDT_TOKEN_ID), &BigUint::from(10_000_000u32), &arbitrum_usdc_destination(), &tron_refund(), &response),
-            Ok((TronAddress::parse(TRON_USDT_TOKEN_ID).unwrap(), BigUint::ZERO))
-        );
-        assert_eq!(
-            validate_tron_vault_swap(Some(TRON_USDT_TOKEN_ID), &BigUint::from(9_999_999u32), &arbitrum_usdc_destination(), &tron_refund(), &response),
-            Err(amount_mismatch(&BigUint::from(9_999_999u32), BigUint::from(10_000_000u32)))
-        );
-    }
-
-    #[test]
-    fn test_validate_tron_vault_swap_requires_the_vault() {
-        let native = TronVaultSwapResponse {
-            to: "TDMakP1fbWc7XXoSWZpujpjRAuePPEn4oi".to_string(),
-            ..TronVaultSwapResponse::mock()
-        };
-        let token = TronVaultSwapResponse {
-            calldata: "0xa9059cbb0000000000000000000000002523ae929fecd9d665f472f59b99a8ce6b1795100000000000000000000000000000000000000000000000000000000000989680".to_string(),
-            value: BigUint::ZERO,
-            source_token_address: Some(TRON_USDT_TOKEN_ID.to_string()),
-            ..TronVaultSwapResponse::mock()
-        };
-        let other_token = TronVaultSwapResponse {
-            source_token_address: Some("TXYZopYRdj2D9XRtbG411XZZ3kM5VkAeBf".to_string()),
-            ..token.clone()
-        };
-
-        assert_eq!(
-            validate_tron_vault_swap(None, &BigUint::from(50_000_000u32), &arbitrum_usdc_destination(), &tron_refund(), &native),
-            Err(vault_mismatch(Chain::Tron, "TDMakP1fbWc7XXoSWZpujpjRAuePPEn4oi"))
-        );
-        assert_eq!(
-            validate_tron_vault_swap(Some(TRON_USDT_TOKEN_ID), &BigUint::from(10_000_000u32), &arbitrum_usdc_destination(), &tron_refund(), &token),
-            Err(vault_mismatch(Chain::Tron, "0x2523AE929feCd9D665f472F59B99a8CE6b179510"))
-        );
-        assert_eq!(
-            validate_tron_vault_swap(Some(TRON_USDT_TOKEN_ID), &BigUint::from(10_000_000u32), &arbitrum_usdc_destination(), &tron_refund(), &other_token),
-            Err(source_token_mismatch(&other_token.source_token_address))
-        );
-    }
-
     #[tokio::test]
     async fn test_quote_data_sends_native_trx_to_the_vault() {
         let broker = MockClient::new().with_post(|path, _| {
@@ -804,153 +572,6 @@ mod tests {
         let data = provider.get_quote_data(&quote, FetchQuoteData::None).await.unwrap();
         assert_eq!(data.to, TRON_VAULT);
         assert_eq!(data.value, quote.from_value);
-    }
-
-    #[test]
-    fn test_validate_evm_vault_swap() {
-        let native: EvmVaultSwapResponse = serde_json::from_str(include_str!("broker/test/vault_swap_eth_native.json")).unwrap();
-        let usdc: EvmVaultSwapResponse = serde_json::from_str(include_str!("broker/test/vault_swap_eth_usdc.json")).unwrap();
-        let usdc_id = Some(primitives::asset_constants::ETHEREUM_USDC_TOKEN_ID);
-        let usdt_id = Some(primitives::asset_constants::ETHEREUM_USDT_TOKEN_ID);
-        let eth_amount = BigUint::from(100_000_000_000_000_000u64);
-        let usdc_amount = BigUint::from(500_000_000u64);
-        let other_target = EvmVaultSwapResponse {
-            to: TEST_EVM_RECIPIENT.to_string(),
-            ..native.clone()
-        };
-
-        assert_eq!(validate_evm_vault_swap(Chain::Ethereum, None, &eth_amount, &bitcoin_destination(), &ethereum_native_refund(), &native), Ok(eth_amount.clone()));
-        assert_eq!(validate_evm_vault_swap(Chain::Ethereum, usdc_id, &usdc_amount, &bitcoin_destination(), &ethereum_usdc_refund(), &usdc), Ok(BigUint::ZERO));
-        assert_eq!(
-            validate_evm_vault_swap(Chain::Ethereum, None, &eth_amount, &bitcoin_destination(), &ethereum_native_refund(), &other_target),
-            Err(vault_mismatch(Chain::Ethereum, TEST_EVM_RECIPIENT))
-        );
-        assert_eq!(
-            validate_evm_vault_swap(Chain::Arbitrum, None, &eth_amount, &bitcoin_destination(), &ethereum_native_refund(), &native),
-            Err(vault_mismatch(Chain::Arbitrum, &native.to))
-        );
-        let bsc_native = EvmVaultSwapResponse { to: BSC_VAULT.to_string(), ..native.clone() };
-        let bsc_refund = mock_refund(Chain::SmartChain, TEST_EVM_SENDER, ETHEREUM_NATIVE_MIN_PRICE);
-        assert_eq!(validate_evm_vault_swap(Chain::SmartChain, None, &eth_amount, &bitcoin_destination(), &bsc_refund, &bsc_native), Ok(eth_amount.clone()));
-        assert_eq!(
-            validate_evm_vault_swap(Chain::SmartChain, None, &eth_amount, &bitcoin_destination(), &bsc_refund, &native),
-            Err(vault_mismatch(Chain::SmartChain, &native.to))
-        );
-        assert_eq!(
-            validate_evm_vault_swap(Chain::Ethereum, None, &BigUint::from(1u32), &bitcoin_destination(), &ethereum_native_refund(), &native),
-            Err(amount_mismatch(&BigUint::from(1u32), &eth_amount))
-        );
-        assert_eq!(
-            validate_evm_vault_swap(Chain::Ethereum, usdc_id, &BigUint::from(1u32), &bitcoin_destination(), &ethereum_usdc_refund(), &usdc),
-            Err(amount_mismatch(&BigUint::from(1u32), &usdc_amount))
-        );
-        assert_eq!(
-            validate_evm_vault_swap(Chain::Ethereum, usdt_id, &usdc_amount, &bitcoin_destination(), &ethereum_usdc_refund(), &usdc),
-            Err(source_token_mismatch(Address::from_str(primitives::asset_constants::ETHEREUM_USDC_TOKEN_ID).unwrap()))
-        );
-        assert_eq!(
-            validate_evm_vault_swap(
-                Chain::Ethereum,
-                usdc_id,
-                &usdc_amount,
-                &bitcoin_destination(),
-                &ethereum_native_refund(),
-                &EvmVaultSwapResponse { value: BigUint::ZERO, ..native }
-            ),
-            Err(invalid_calldata(Chain::Ethereum))
-        );
-    }
-
-    #[test]
-    fn test_validate_evm_vault_swap_binds_destination() {
-        let native: EvmVaultSwapResponse = serde_json::from_str(include_str!("broker/test/vault_swap_eth_native.json")).unwrap();
-        let usdc: EvmVaultSwapResponse = serde_json::from_str(include_str!("broker/test/vault_swap_eth_usdc.json")).unwrap();
-        let usdc_id = Some(primitives::asset_constants::ETHEREUM_USDC_TOKEN_ID);
-        let other_address = VaultSwapDestination::new(&AssetId::from_chain(Chain::Bitcoin), "bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh").unwrap();
-        let mismatch = Err(SwapperError::TransactionError("Chainflip Bitcoin destination mismatch".to_string()));
-
-        assert_eq!(
-            validate_evm_vault_swap(Chain::Ethereum, None, &BigUint::from(100_000_000_000_000_000u64), &other_address, &ethereum_native_refund(), &native),
-            mismatch
-        );
-        assert_eq!(validate_evm_vault_swap(Chain::Ethereum, usdc_id, &BigUint::from(500_000_000u64), &other_address, &ethereum_usdc_refund(), &usdc), mismatch);
-        assert!(validate_evm_vault_swap(Chain::Ethereum, None, &BigUint::from(100_000_000_000_000_000u64), &arbitrum_usdc_destination(), &tron_refund(), &native).is_err());
-    }
-
-    #[test]
-    fn test_validate_vault_swap_binds_refund() {
-        let mismatch = SwapperError::TransactionError("Chainflip refund mismatch".to_string());
-        let other_address = "0x1111111111111111111111111111111111111111";
-
-        let native: EvmVaultSwapResponse = serde_json::from_str(include_str!("broker/test/vault_swap_eth_native.json")).unwrap();
-        let usdc: EvmVaultSwapResponse = serde_json::from_str(include_str!("broker/test/vault_swap_eth_usdc.json")).unwrap();
-        let usdc_id = Some(primitives::asset_constants::ETHEREUM_USDC_TOKEN_ID);
-        let eth_amount = BigUint::from(100_000_000_000_000_000u64);
-        let other_refund = mock_refund(Chain::Ethereum, other_address, ETHEREUM_NATIVE_MIN_PRICE);
-        let other_price = mock_refund(Chain::Ethereum, TEST_EVM_SENDER, "0x3292bb84399604d6d7d2345");
-        assert_eq!(validate_evm_vault_swap(Chain::Ethereum, None, &eth_amount, &bitcoin_destination(), &other_refund, &native), Err(mismatch.clone()));
-        assert_eq!(validate_evm_vault_swap(Chain::Ethereum, None, &eth_amount, &bitcoin_destination(), &other_price, &native), Err(mismatch.clone()));
-        assert_eq!(
-            validate_evm_vault_swap(Chain::Ethereum, usdc_id, &BigUint::from(500_000_000u64), &bitcoin_destination(), &other_refund, &usdc),
-            Err(mismatch.clone())
-        );
-
-        let solana: SolanaVaultSwapResponse = serde_json::from_str(include_str!("broker/test/vault_swap_sol_native.json")).unwrap();
-        let other_solana = mock_refund(Chain::Solana, "7g2rVN8fAAQdPh1mkajpvELqYa3gWvFXJsBLnKfEQfqy", SOLANA_MIN_PRICE);
-        assert_eq!(
-            validate_solana_vault_swap(TEST_SOLANA_SENDER, None, &BigUint::from(500_000_000u64), &bitcoin_destination(), &other_solana, &solana),
-            Err(mismatch.clone())
-        );
-
-        let tron = TronVaultSwapResponse::mock();
-        let other_tron = mock_refund(Chain::Tron, TRON_VAULT, "0x0");
-        assert_eq!(validate_tron_vault_swap(None, &BigUint::from(50_000_000u32), &arbitrum_usdc_destination(), &other_tron, &tron), Err(mismatch));
-    }
-
-    #[test]
-    fn test_validate_solana_vault_swap() {
-        let response: SolanaVaultSwapResponse = serde_json::from_str(include_str!("broker/test/vault_swap_sol_native.json")).unwrap();
-        let amount = BigUint::from(500_000_000u64);
-        let other_program = SolanaVaultSwapResponse {
-            program_id: "11111111111111111111111111111111".to_string(),
-            ..response.clone()
-        };
-
-        assert_eq!(validate_solana_vault_swap(TEST_SOLANA_SENDER, None, &amount, &bitcoin_destination(), &solana_refund(), &response), Ok(()));
-        assert_eq!(
-            validate_solana_vault_swap(TEST_SOLANA_SENDER, None, &BigUint::from(1u32), &bitcoin_destination(), &solana_refund(), &response),
-            Err(amount_mismatch(&BigUint::from(1u32), &amount))
-        );
-        assert_eq!(
-            validate_solana_vault_swap(TEST_SOLANA_SENDER, None, &amount, &bitcoin_destination(), &solana_refund(), &other_program),
-            Err(vault_mismatch(Chain::Solana, "11111111111111111111111111111111"))
-        );
-        assert!(validate_solana_vault_swap(TEST_SOLANA_SENDER, None, &amount, &arbitrum_usdc_destination(), &solana_refund(), &response).is_err());
-
-        let usdc: SolanaVaultSwapResponse = serde_json::from_str(include_str!("broker/test/vault_swap_sol_usdc.json")).unwrap();
-        let usdc_amount = BigUint::from(100_000_000u64);
-        let usdc_account = Some(usdc.accounts[SOLANA_SOURCE_TOKEN_ACCOUNT_INDEX].pubkey.as_str());
-
-        assert_eq!(
-            validate_solana_vault_swap(TEST_SOLANA_SENDER, Some(SOLANA_USDC_TOKEN_ID), &usdc_amount, &bitcoin_destination(), &solana_refund(), &usdc),
-            Ok(())
-        );
-        assert_eq!(
-            validate_solana_vault_swap(TEST_SOLANA_SENDER, None, &usdc_amount, &bitcoin_destination(), &solana_refund(), &usdc),
-            Err(invalid_calldata(Chain::Solana))
-        );
-        assert_eq!(
-            validate_solana_vault_swap(TEST_SOLANA_SENDER, Some(SOLANA_USDC_TOKEN_ID), &amount, &bitcoin_destination(), &solana_refund(), &response),
-            Err(invalid_calldata(Chain::Solana))
-        );
-        assert_eq!(
-            validate_solana_vault_swap(TEST_SOLANA_SENDER, Some(SOLANA_USDT_TOKEN_ID), &usdc_amount, &bitcoin_destination(), &solana_refund(), &usdc),
-            Err(source_token_mismatch(usdc_account))
-        );
-        assert_eq!(
-            validate_solana_vault_swap(TEST_PRIVATE_KEY_SOLANA_ADDRESS, Some(SOLANA_USDC_TOKEN_ID), &usdc_amount, &bitcoin_destination(), &solana_refund(), &usdc),
-            Err(source_token_mismatch(usdc_account))
-        );
     }
 
     #[tokio::test]

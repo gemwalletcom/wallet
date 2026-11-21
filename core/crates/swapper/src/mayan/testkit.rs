@@ -3,27 +3,7 @@ use super::{
     model::{MayanFastMctpQuote, MayanMctpQuote, MayanQuote, MayanQuoteCommon, MayanSwiftQuote, MayanToken, SolanaClientSwap},
     wormhole_chain::WormholeChain,
 };
-use gem_solana::Instruction;
-use primitives::{
-    SolanaAccountMeta, SolanaInstruction,
-    asset_constants::{BASE_USDC_TOKEN_ID, ETHEREUM_USDC_TOKEN_ID, SOLANA_USDC_TOKEN_ID, SUI_USDC_TOKEN_ID},
-};
-
-pub fn mock_solana_instruction(instruction: Instruction) -> SolanaInstruction {
-    SolanaInstruction {
-        program_id: instruction.program_id.to_string(),
-        accounts: instruction
-            .accounts
-            .into_iter()
-            .map(|account| SolanaAccountMeta {
-                pubkey: account.pubkey.to_string(),
-                is_signer: account.is_signer,
-                is_writable: account.is_writable,
-            })
-            .collect(),
-        data: gem_encoding::encode_base64(&instruction.data),
-    }
-}
+use primitives::asset_constants::{BASE_USDC_TOKEN_ID, ETHEREUM_USDC_TOKEN_ID, SOLANA_USDC_TOKEN_ID, SUI_USDC_TOKEN_ID};
 
 impl SolanaClientSwap {
     pub fn mock_usdt() -> Self {
