@@ -3,7 +3,7 @@ use std::sync::{Arc, Mutex};
 use num_bigint::{BigInt, BigUint};
 use primitives::{Asset, AssetData, AssetId, Balance, Chain, RecentActivityType, WalletId};
 use swapper::testkit::MockSwapper;
-use swapper::{QuoteDataInput, ProviderType, Quote, QuoteRequest, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData};
+use swapper::{Binding, QuoteDataInput, ProviderType, Quote, QuoteRequest, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData};
 
 use super::GemSwapService;
 use super::model::{GemSwapButtonInput, GemSwapPair};
@@ -172,6 +172,10 @@ impl Swapper for SilentSwapper {
 
     fn supported_assets(&self) -> Vec<SwapperChainAsset> {
         vec![SwapperChainAsset::All(Chain::Ethereum)]
+    }
+
+    fn binding(&self, _from_asset: &AssetId) -> Binding {
+        Binding::BuiltOnDevice
     }
 
     fn amount_mode(&self, _request: &QuoteRequest) -> SwapAmountMode {
