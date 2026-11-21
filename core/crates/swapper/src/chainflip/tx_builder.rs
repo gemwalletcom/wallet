@@ -2,7 +2,7 @@ use std::str::FromStr;
 
 use gem_encoding::encode_base64;
 use gem_solana::{
-    AccountMeta, BLOCKHASH_SET_AT_SIGNING, DEFAULT_SWAP_GAS_LIMIT, InstructionBuilder, Pubkey, TransactionBuilder,
+    AccountMeta, BLOCKHASH_SET_AT_SIGNING, DEFAULT_SWAP_GAS_LIMIT, Instruction, InstructionBuilder, Pubkey, TransactionBuilder,
     compute_budget::{set_compute_unit_limit, set_compute_unit_price},
 };
 use gem_tron::address::TronAddress;
@@ -30,8 +30,7 @@ pub(super) fn build_tron_quote_data(response: &TronVaultSwapResponse, to: TronAd
     })
 }
 
-pub(super) fn build_solana_transaction(fee_payer: &str, response: &SolanaVaultSwapResponse) -> Result<String, SwapperError> {
-    let fee_payer = Pubkey::from_str(fee_payer).map_err(|_| SwapperError::transaction_error("Invalid fee payer"))?;
+pub(super) fn solana_instruction(response: &SolanaVaultSwapResponse) -> Result<Instruction, SwapperError> {
     let program_id = Pubkey::from_str(&response.program_id).map_err(|_| SwapperError::transaction_error("Invalid program ID"))?;
     let data = decode_hex(&response.data).map_err(|_| SwapperError::transaction_error("Invalid data"))?;
     let accounts = response
@@ -45,7 +44,11 @@ pub(super) fn build_solana_transaction(fee_payer: &str, response: &SolanaVaultSw
             })
         })
         .collect::<Result<_, SwapperError>>()?;
-    let instruction = InstructionBuilder::new(program_id).accounts(accounts).data(data).build();
+    Ok(InstructionBuilder::new(program_id).accounts(accounts).data(data).build())
+}
+
+pub(super) fn build_solana_transaction(fee_payer: &str, instruction: Instruction) -> Result<String, SwapperError> {
+    let fee_payer = Pubkey::from_str(fee_payer).map_err(|_| SwapperError::transaction_error("Invalid fee payer"))?;
     let mut transaction_builder = TransactionBuilder::new(fee_payer, BLOCKHASH_SET_AT_SIGNING);
     transaction_builder.add_instructions(vec![set_compute_unit_price(0), set_compute_unit_limit(DEFAULT_SWAP_GAS_LIMIT), instruction]);
 
@@ -109,7 +112,7 @@ mod tests {
         let wallet_address = "A21o4asMbFHYadqXdLusT9Bvx9xaC5YV9gcaidjqtdXC";
         let response: JsonRpcResponse<SolanaVaultSwapResponse> = serde_json::from_str(include_str!("./test/chainflip_sol_arb_usdc_quote_data.json"))?;
 
-        let tx_b64 = build_solana_transaction(wallet_address, &response.result)?;
+        let tx_b64 = build_solana_transaction(wallet_address, solana_instruction(&response.result)?)?;
         crate::contract_check::verify_solana_programs(&tx_b64, &["J88B7gmadHzTNGiy54c9Ms8BsEXNdB2fntFyhKpk3qoT"])?;
 
         assert_eq!(

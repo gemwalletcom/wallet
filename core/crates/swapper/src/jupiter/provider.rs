@@ -116,7 +116,7 @@ where
         let build = self.http_client.get_build(&build_request).await?;
         let to_value = build.out_amount.parse::<BigUint>().map_err(SwapperError::compute_quote_error)?;
         let slippage_bps = build.slippage_bps;
-        let route_data = build.into_transaction(&build_request.taker, &build_request.fee_account)?;
+        let route_data = build.into_transaction(&build_request)?;
 
         Ok(Quote {
             from_value: request.value.clone(),

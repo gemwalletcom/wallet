@@ -1,6 +1,6 @@
 use crate::{
     Result,
-    instructions::program_ids::{associated_token_program, system_program},
+    instructions::program_ids::{associated_token_program, system_program, token_2022_program, token_program},
     types::{AccountMeta, Instruction, Pubkey, find_program_address},
 };
 
@@ -36,10 +36,15 @@ pub fn get_associated_token_address_with_program_id(wallet: &Pubkey, mint: &Pubk
     find_program_address(&associated_token_program(), &seeds).map(|(address, _)| address)
 }
 
+pub fn is_associated_token_address(address: &Pubkey, wallet: &Pubkey, mint: &Pubkey) -> bool {
+    [token_program(), token_2022_program()]
+        .iter()
+        .any(|program| get_associated_token_address_with_program_id(wallet, mint, program).is_ok_and(|associated| associated == *address))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::instructions::program_ids::{token_2022_program, token_program};
 
     #[test]
     fn test_associated_token_instruction_and_address() {
@@ -58,5 +63,10 @@ mod tests {
             vec![payer, token_address, wallet, mint, system_program(), token_program()]
         );
         assert_eq!(instruction.data, [CREATE_IDEMPOTENT_DISCRIMINANT]);
+
+        assert!(is_associated_token_address(&token_address, &wallet, &mint));
+        assert!(is_associated_token_address(&token_2022_address, &wallet, &mint));
+        assert!(!is_associated_token_address(&token_address, &payer, &mint));
+        assert!(!is_associated_token_address(&wallet, &wallet, &mint));
     }
 }

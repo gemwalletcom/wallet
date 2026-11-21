@@ -1,40 +1,38 @@
+use std::iter::once;
+
 use gem_encoding::encode_base64;
 use gem_solana::{
-    AddressLookupTableAccount, Base64InstructionData, JUPITER_PROGRAM_ID, MAX_COMPUTE_UNIT_LIMIT, MAX_TRANSACTION_SIZE, Pubkey, TransactionBuilder,
+    AddressLookupTableAccount, MAX_COMPUTE_UNIT_LIMIT, MAX_TRANSACTION_SIZE, Pubkey, TransactionBuilder,
     compute_budget::{parse_compute_unit_limit_data, set_compute_unit_limit, with_compute_unit_price},
-    decode_instruction, decode_instructions,
 };
 
-use super::model::BuildResponse;
+use super::model::{BuildRequest, BuildResponse};
+use super::swap_instructions::{RouteDestination, SwapInstructions};
 use crate::SwapperError;
 
 impl BuildResponse {
-    pub(super) fn into_transaction(self, payer: &str, fee_account: &str) -> Result<String, SwapperError> {
-        if self.swap_instruction.program_id != JUPITER_PROGRAM_ID {
-            return Err(SwapperError::compute_quote_error("Invalid Jupiter swap program"));
+    pub(super) fn into_transaction(self, request: &BuildRequest) -> Result<String, SwapperError> {
+        if self.tip_instruction.is_some() || !self.other_instructions.is_empty() {
+            return Err(SwapperError::InvalidRoute);
         }
-        if !self.swap_instruction.accounts.iter().any(|account| account.pubkey == payer && account.is_signer) {
-            return Err(SwapperError::compute_quote_error("Jupiter swap authority does not match the taker"));
-        }
-        if self.tip_instruction.is_some() {
-            return Err(SwapperError::compute_quote_error("Unexpected Jupiter tip instruction"));
-        }
-        if !self.swap_instruction.accounts.iter().any(|account| account.pubkey == fee_account && account.is_writable) {
+        if !self.swap_instruction.accounts.iter().any(|account| account.pubkey == request.fee_account && account.is_writable) {
             return Err(SwapperError::compute_quote_error("Jupiter referral fee is missing from the swap instruction"));
         }
 
-        let payer = Pubkey::from_base58(payer).map_err(SwapperError::transaction_error)?;
+        let payer = Pubkey::from_base58(&request.taker).map_err(SwapperError::transaction_error)?;
+        let input_mint = Pubkey::from_base58(&request.input_mint).map_err(SwapperError::transaction_error)?;
+        let output_mint = Pubkey::from_base58(&request.output_mint).map_err(SwapperError::transaction_error)?;
+        let amount = request.amount.parse::<u64>().map_err(SwapperError::transaction_error)?;
+        let swap = SwapInstructions::new(self.compute_budget_instructions, self.setup_instructions, self.swap_instruction, self.cleanup_instruction)?;
+        swap.verify(&payer, &input_mint, amount, RouteDestination::WalletAccount(output_mint))?;
 
-        let compute_budget_instructions = decode_instructions::<Base64InstructionData>(self.compute_budget_instructions)
-            .map_err(SwapperError::transaction_error)?
-            .into_iter()
-            .filter(|instruction| parse_compute_unit_limit_data(&instruction.data).is_none());
-        let compute_budget = with_compute_unit_price(std::iter::once(set_compute_unit_limit(MAX_COMPUTE_UNIT_LIMIT)).chain(compute_budget_instructions).collect(), 0);
-        let setup = decode_instructions::<Base64InstructionData>(self.setup_instructions).map_err(SwapperError::transaction_error)?;
-        let swap = decode_instruction::<Base64InstructionData>(self.swap_instruction).map_err(SwapperError::transaction_error)?;
-        let cleanup = self.cleanup_instruction.map(decode_instruction::<Base64InstructionData>).transpose().map_err(SwapperError::transaction_error)?;
-        let other = decode_instructions::<Base64InstructionData>(self.other_instructions).map_err(SwapperError::transaction_error)?;
-        let instructions = [compute_budget, setup, vec![swap], cleanup.into_iter().collect(), other].concat();
+        let compute_budget = with_compute_unit_price(
+            once(set_compute_unit_limit(MAX_COMPUTE_UNIT_LIMIT))
+                .chain(swap.compute_budget.into_iter().filter(|instruction| parse_compute_unit_limit_data(&instruction.data).is_none()))
+                .collect(),
+            0,
+        );
+        let instructions = [compute_budget, swap.setup, vec![swap.swap], swap.cleanup.into_iter().collect()].concat();
 
         let lookup_tables = self
             .addresses_by_lookup_table_address
@@ -57,21 +55,38 @@ impl BuildResponse {
 
 #[cfg(test)]
 mod tests {
-    use super::super::testkit::{TEST_FEE_ACCOUNT, TEST_PAYER};
     use super::*;
     use gem_solana::models::SolanaAccountMeta;
     use gem_solana::{USDC_TOKEN_MINT, decode_transaction};
 
     #[test]
     fn test_into_transaction() {
-        let transaction = BuildResponse::mock().into_transaction(TEST_PAYER, TEST_FEE_ACCOUNT).unwrap();
+        let transaction = BuildResponse::mock().into_transaction(&BuildRequest::mock()).unwrap();
         let decoded = decode_transaction(&transaction).unwrap();
         assert_eq!(decoded.get_compute_unit_limit(), Some(MAX_COMPUTE_UNIT_LIMIT));
-        assert_eq!(decoded.get_compute_unit_price(), Some(0));
+        assert_eq!(decoded.get_compute_unit_price(), Some(9054), "the reply's priority fee stays until the signer sets the wallet's own");
+        assert!(BuildResponse::mock_usdc_sol().into_transaction(&BuildRequest::mock_usdc_sol()).is_ok());
 
         assert_eq!(
-            BuildResponse::mock().into_transaction(TEST_PAYER, USDC_TOKEN_MINT),
+            BuildResponse::mock().into_transaction(&BuildRequest::mock_usdc_sol()),
+            Err(SwapperError::InvalidRoute),
+            "a reply for another pair than the one quoted"
+        );
+        assert_eq!(
+            BuildResponse::mock().into_transaction(&BuildRequest {
+                fee_account: USDC_TOKEN_MINT.to_string(),
+                ..BuildRequest::mock()
+            }),
             Err(SwapperError::ComputeQuoteError("Jupiter referral fee is missing from the swap instruction".to_string()))
+        );
+        assert_eq!(
+            BuildResponse {
+                other_instructions: vec![BuildResponse::mock().swap_instruction],
+                ..BuildResponse::mock()
+            }
+            .into_transaction(&BuildRequest::mock()),
+            Err(SwapperError::InvalidRoute),
+            "an instruction outside the swap's steps"
         );
 
         let mut build = BuildResponse::mock();
@@ -81,7 +96,7 @@ mod tests {
             is_writable: false,
         });
         assert_eq!(
-            build.into_transaction(TEST_PAYER, TEST_FEE_ACCOUNT),
+            build.into_transaction(&BuildRequest::mock()),
             Err(SwapperError::TransactionError("Jupiter transaction requires more than one signer".to_string()))
         );
     }
