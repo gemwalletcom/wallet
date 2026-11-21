@@ -47,7 +47,6 @@ private extension [GemDurationPart] {
         guard isEmpty == false else { return nil }
         let formatter = DateComponentsFormatter()
         formatter.allowedUnits = NSCalendar.Unit(map(\.unit.calendarUnit))
-        formatter.zeroFormattingBehavior = .dropAll
         formatter.unitsStyle = style
         formatter.calendar = calendar
         return formatter.string(from: components)
