@@ -1,4 +1,4 @@
-use borsh::BorshDeserialize;
+use gem_encoding::borsh::{BorshDeserialize, DecodeError, Reader};
 use gem_solana::{Pubkey, anchor::AnchorAccount};
 
 use crate::{
@@ -8,7 +8,7 @@ use crate::{
 
 const MAX_REFERENCE_AGE: u64 = 3_600;
 
-#[derive(Debug, Clone, Copy, PartialEq, BorshDeserialize)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 struct AdaptiveFeeConstants {
     filter_period: u16,
     decay_period: u16,
@@ -16,26 +16,63 @@ struct AdaptiveFeeConstants {
     adaptive_fee_control_factor: u32,
     max_volatility_accumulator: u32,
     tick_group_size: u16,
-    _major_swap_threshold_ticks: u16,
-    _reserved: [u8; 16],
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, BorshDeserialize)]
+impl BorshDeserialize for AdaptiveFeeConstants {
+    fn deserialize_reader(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        let value = Self {
+            filter_period: reader.read()?,
+            decay_period: reader.read()?,
+            reduction_factor: reader.read()?,
+            adaptive_fee_control_factor: reader.read()?,
+            max_volatility_accumulator: reader.read()?,
+            tick_group_size: reader.read()?,
+        };
+        reader.skip(18)?;
+        Ok(value)
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
 struct AdaptiveFeeVariables {
     last_reference_update_timestamp: u64,
     last_major_swap_timestamp: u64,
     volatility_reference: u32,
     tick_group_index_reference: i32,
     volatility_accumulator: u32,
-    _reserved: [u8; 16],
 }
 
-#[derive(Debug, Clone, PartialEq, BorshDeserialize)]
+impl BorshDeserialize for AdaptiveFeeVariables {
+    fn deserialize_reader(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        let value = Self {
+            last_reference_update_timestamp: reader.read()?,
+            last_major_swap_timestamp: reader.read()?,
+            volatility_reference: reader.read()?,
+            tick_group_index_reference: reader.read()?,
+            volatility_accumulator: reader.read()?,
+        };
+        reader.skip(16)?;
+        Ok(value)
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub(super) struct Oracle {
     whirlpool: Pubkey,
     trade_enable_timestamp: u64,
     constants: AdaptiveFeeConstants,
     variables: AdaptiveFeeVariables,
+}
+
+impl BorshDeserialize for Oracle {
+    fn deserialize_reader(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        Ok(Self {
+            whirlpool: reader.read()?,
+            trade_enable_timestamp: reader.read()?,
+            constants: reader.read()?,
+            variables: reader.read()?,
+        })
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]

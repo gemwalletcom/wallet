@@ -1,6 +1,5 @@
 use alloy_primitives::U256;
-use borsh::BorshDeserialize;
-use std::io::{Error, ErrorKind, Read};
+use gem_encoding::borsh::{BorshDeserialize, DecodeError, Reader};
 
 use crate::clmm::Q64_RESOLUTION;
 
@@ -14,36 +13,69 @@ const MARKET_CAP_SCHEDULER_LINEAR: u8 = 3;
 const MARKET_CAP_SCHEDULER_EXPONENTIAL: u8 = 4;
 const BASE_FEE_LEN: usize = 32;
 
-#[derive(Debug, Clone, Copy, PartialEq, BorshDeserialize)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub(super) struct TimeScheduler {
     cliff_fee_numerator: u64,
     mode: u8,
-    _padding: [u8; 5],
     number_of_period: u16,
     period_frequency: u64,
     reduction_factor: u64,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, BorshDeserialize)]
+impl BorshDeserialize for TimeScheduler {
+    fn deserialize_reader(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        Ok(Self {
+            cliff_fee_numerator: reader.read()?,
+            mode: reader.read()?,
+            number_of_period: reader.skip(5)?.read()?,
+            period_frequency: reader.read()?,
+            reduction_factor: reader.read()?,
+        })
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub(super) struct MarketCapScheduler {
     cliff_fee_numerator: u64,
     mode: u8,
-    _padding: [u8; 5],
     number_of_period: u16,
     sqrt_price_step_bps: u32,
     scheduler_expiration_duration: u32,
     reduction_factor: u64,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, BorshDeserialize)]
+impl BorshDeserialize for MarketCapScheduler {
+    fn deserialize_reader(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        Ok(Self {
+            cliff_fee_numerator: reader.read()?,
+            mode: reader.read()?,
+            number_of_period: reader.skip(5)?.read()?,
+            sqrt_price_step_bps: reader.read()?,
+            scheduler_expiration_duration: reader.read()?,
+            reduction_factor: reader.read()?,
+        })
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub(super) struct RateLimiter {
     cliff_fee_numerator: u64,
-    _mode: u8,
-    _padding: [u8; 5],
     fee_increment_bps: u16,
     max_limiter_duration: u32,
     max_fee_bps: u32,
     reference_amount: u64,
+}
+
+impl BorshDeserialize for RateLimiter {
+    fn deserialize_reader(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        Ok(Self {
+            cliff_fee_numerator: reader.read()?,
+            fee_increment_bps: reader.skip(6)?.read()?,
+            max_limiter_duration: reader.read()?,
+            max_fee_bps: reader.read()?,
+            reference_amount: reader.read()?,
+        })
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -53,21 +85,25 @@ pub(super) enum BaseFee {
     RateLimiter(RateLimiter),
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, BorshDeserialize)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub(super) struct DynamicFee {
     initialized: u8,
-    _padding: [u8; 7],
-    _max_volatility_accumulator: u32,
     variable_fee_control: u32,
     bin_step: u16,
-    _filter_period: u16,
-    _decay_period: u16,
-    _reduction_factor: u16,
-    _last_update_timestamp: u64,
-    _bin_step_u128: u128,
-    _sqrt_price_reference: u128,
     volatility_accumulator: u128,
-    _volatility_reference: u128,
+}
+
+impl BorshDeserialize for DynamicFee {
+    fn deserialize_reader(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        let value = Self {
+            initialized: reader.read()?,
+            variable_fee_control: reader.skip(11)?.read()?,
+            bin_step: reader.read()?,
+            volatility_accumulator: reader.skip(46)?.read()?,
+        };
+        reader.skip(16)?;
+        Ok(value)
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -80,13 +116,13 @@ pub(super) struct FeePoint {
 }
 
 impl BorshDeserialize for BaseFee {
-    fn deserialize_reader<R: Read>(reader: &mut R) -> std::io::Result<Self> {
-        let data = <[u8; BASE_FEE_LEN]>::deserialize_reader(reader)?;
+    fn deserialize_reader(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        let data: [u8; BASE_FEE_LEN] = reader.bytes()?;
         match data[8] {
             TIME_SCHEDULER_LINEAR | TIME_SCHEDULER_EXPONENTIAL => Ok(Self::TimeScheduler(TimeScheduler::try_from_slice(&data)?)),
             RATE_LIMITER => Ok(Self::RateLimiter(RateLimiter::try_from_slice(&data)?)),
             MARKET_CAP_SCHEDULER_LINEAR | MARKET_CAP_SCHEDULER_EXPONENTIAL => Ok(Self::MarketCapScheduler(MarketCapScheduler::try_from_slice(&data)?)),
-            mode => Err(Error::new(ErrorKind::InvalidData, format!("unknown base fee mode {mode}"))),
+            mode => Err(DecodeError::UnexpectedTag(mode)),
         }
     }
 }
@@ -176,7 +212,6 @@ mod tests {
         TimeScheduler {
             cliff_fee_numerator: CLIFF,
             mode,
-            _padding: [0; 5],
             number_of_period: 100,
             period_frequency,
             reduction_factor: 100,
@@ -212,7 +247,6 @@ mod tests {
         let scheduler = MarketCapScheduler {
             cliff_fee_numerator: CLIFF,
             mode: MARKET_CAP_SCHEDULER_LINEAR,
-            _padding: [0; 5],
             number_of_period: 100,
             sqrt_price_step_bps: 50,
             scheduler_expiration_duration: 86_400,
@@ -229,8 +263,6 @@ mod tests {
     fn test_rate_limiter() {
         let limiter = RateLimiter {
             cliff_fee_numerator: CLIFF,
-            _mode: RATE_LIMITER,
-            _padding: [0; 5],
             fee_increment_bps: 10,
             max_limiter_duration: 600,
             max_fee_bps: 5_000,
@@ -246,18 +278,9 @@ mod tests {
     fn test_variable_fee() {
         let fee = DynamicFee {
             initialized: 1,
-            _padding: [0; 7],
-            _max_volatility_accumulator: 14_460_000,
             variable_fee_control: 956,
             bin_step: 1,
-            _filter_period: 10,
-            _decay_period: 120,
-            _reduction_factor: 5_000,
-            _last_update_timestamp: 0,
-            _bin_step_u128: 1_844_674_407_370_955,
-            _sqrt_price_reference: 0,
             volatility_accumulator: 60_000,
-            _volatility_reference: 0,
         };
 
         assert_eq!(fee.variable_fee(), Some(35));

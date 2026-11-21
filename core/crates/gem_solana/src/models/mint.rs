@@ -1,15 +1,13 @@
-use borsh::BorshDeserialize;
+use gem_encoding::borsh::{BorshDeserialize, DecodeError, Reader};
 use primitives::swap::HUNDRED_PERCENT_IN_BPS;
-use std::iter::once;
 
-use crate::{Pubkey, SolanaError, error::Result};
+use crate::{Pubkey, SolanaError, error::Result as SolanaResult};
 
 const MINT_LEN: usize = 82;
 const SUPPLY_OFFSET: usize = 36;
 const ACCOUNT_TYPE_OFFSET: usize = 165;
 const EXTENSIONS_OFFSET: usize = 166;
 const MINT_ACCOUNT_TYPE: u8 = 1;
-const TLV_HEADER_LEN: usize = 4;
 const TRANSFER_FEES_OFFSET: usize = 72;
 const FROZEN_ACCOUNT_STATE: u8 = 2;
 
@@ -20,23 +18,50 @@ const NON_TRANSFERABLE: u16 = 9;
 const TRANSFER_HOOK: u16 = 14;
 const PAUSABLE: u16 = 26;
 
-#[derive(BorshDeserialize)]
 struct ExtensionHeader {
     extension_type: u16,
     length: u16,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, BorshDeserialize)]
+impl BorshDeserialize for ExtensionHeader {
+    fn deserialize_reader(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        Ok(Self {
+            extension_type: reader.read()?,
+            length: reader.read()?,
+        })
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct TransferFee {
     pub epoch: u64,
     pub maximum_fee: u64,
     pub basis_points: u16,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, BorshDeserialize)]
+impl BorshDeserialize for TransferFee {
+    fn deserialize_reader(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        Ok(Self {
+            epoch: reader.read()?,
+            maximum_fee: reader.read()?,
+            basis_points: reader.read()?,
+        })
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct TransferFeeConfig {
     pub older: TransferFee,
     pub newer: TransferFee,
+}
+
+impl BorshDeserialize for TransferFeeConfig {
+    fn deserialize_reader(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        Ok(Self {
+            older: reader.read()?,
+            newer: reader.read()?,
+        })
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -56,7 +81,7 @@ pub struct Mint {
 }
 
 impl Mint {
-    pub fn decode(data: &[u8]) -> Result<Self> {
+    pub fn decode(data: &[u8]) -> SolanaResult<Self> {
         let invalid = || SolanaError::invalid_input("Invalid mint account");
         let supply = data.get(SUPPLY_OFFSET..).and_then(<[u8]>::first_chunk).map(|bytes| u64::from_le_bytes(*bytes)).ok_or_else(invalid)?;
         let extensions = match (data.len(), data.get(ACCOUNT_TYPE_OFFSET)) {
@@ -96,20 +121,20 @@ impl TransferFeeConfig {
     }
 }
 
-fn decode_extensions(tlv: &[u8]) -> Result<Vec<MintExtension>> {
+fn decode_extensions(mut tlv: &[u8]) -> SolanaResult<Vec<MintExtension>> {
     let invalid = || SolanaError::invalid_input("Invalid mint extension");
-    let Some((header, rest)) = tlv.split_at_checked(TLV_HEADER_LEN) else {
-        return Ok(vec![]);
-    };
-    let header = ExtensionHeader::try_from_slice(header).map_err(|_| invalid())?;
-    if header.extension_type == UNINITIALIZED {
-        return Ok(vec![]);
+    let mut extensions = vec![];
+    while let Ok(header) = ExtensionHeader::deserialize(&mut tlv)
+        && header.extension_type != UNINITIALIZED
+    {
+        let (value, rest) = tlv.split_at_checked(usize::from(header.length)).ok_or_else(invalid)?;
+        extensions.push(decode_extension(header.extension_type, value)?);
+        tlv = rest;
     }
-    let (value, rest) = rest.split_at_checked(usize::from(header.length)).ok_or_else(invalid)?;
-    Ok(once(decode_extension(header.extension_type, value)?).chain(decode_extensions(rest)?).collect())
+    Ok(extensions)
 }
 
-fn decode_extension(extension_type: u16, value: &[u8]) -> Result<MintExtension> {
+fn decode_extension(extension_type: u16, value: &[u8]) -> SolanaResult<MintExtension> {
     let invalid = || SolanaError::invalid_input("Invalid mint extension");
     match extension_type {
         TRANSFER_FEE_CONFIG => {
@@ -181,6 +206,13 @@ mod tests {
         );
         assert_eq!(Mint::decode(&[0; 10]), Err(SolanaError::invalid_input("Invalid mint account")));
         assert_eq!(Mint::decode(&[0; 165]), Err(SolanaError::invalid_input("Invalid mint account")));
+        assert_eq!(
+            Mint::decode(&[vec![0; ACCOUNT_TYPE_OFFSET], vec![MINT_ACCOUNT_TYPE], [NON_TRANSFERABLE.to_le_bytes(), [0; 2]].concat().repeat(20_000)].concat()),
+            Ok(Mint {
+                supply: 0,
+                extensions: vec![MintExtension::NonTransferable; 20_000]
+            })
+        );
     }
 
     #[test]

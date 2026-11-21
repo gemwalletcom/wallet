@@ -1,4 +1,4 @@
-use borsh::BorshDeserialize;
+use gem_encoding::borsh::{BorshDeserialize, DecodeError, Reader};
 use gem_solana::{Pubkey, anchor::AnchorAccount, find_program_address, instructions::program_ids::pump_amm_program, wrapped_sol::wrapped_sol_mint};
 use primitives::decode_hex_literal;
 use std::iter::repeat;
@@ -16,13 +16,10 @@ const POOL_ACCOUNT_LEN: usize = 287;
 const MAYHEM_TOKEN_SUPPLY: u128 = 1_000_000_000_000_000;
 const NO_COIN_CREATOR: Pubkey = Pubkey::new([0; 32]);
 
-#[derive(Debug, Clone, PartialEq, BorshDeserialize)]
+#[derive(Debug, Clone, PartialEq)]
 pub(crate) struct Pool {
-    _bump_and_index: [u8; 3],
-    _creator: Pubkey,
     pub base_mint: Pubkey,
     pub quote_mint: Pubkey,
-    _lp_mint: Pubkey,
     pub pool_base_token_account: Pubkey,
     pub pool_quote_token_account: Pubkey,
     pub lp_supply: u64,
@@ -30,9 +27,26 @@ pub(crate) struct Pool {
     is_mayhem_mode: bool,
     pub is_cashback_coin: bool,
     virtual_quote_reserves: i128,
-    _creator_fee_bps_and_flags: [u8; 10],
     protocol_fees: u64,
     creator_fees: u64,
+}
+
+impl BorshDeserialize for Pool {
+    fn deserialize_reader(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        Ok(Self {
+            base_mint: reader.skip(35)?.read()?,
+            quote_mint: reader.read()?,
+            pool_base_token_account: reader.skip(32)?.read()?,
+            pool_quote_token_account: reader.read()?,
+            lp_supply: reader.read()?,
+            coin_creator: reader.read()?,
+            is_mayhem_mode: reader.read()?,
+            is_cashback_coin: reader.read()?,
+            virtual_quote_reserves: reader.read()?,
+            protocol_fees: reader.skip(10)?.read()?,
+            creator_fees: reader.read()?,
+        })
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -109,9 +123,10 @@ impl Reserves {
 mod tests {
     use super::*;
     use crate::{
-        pump_swap::testkit::{TEST_TOKEN_2022_MINT, TEST_USDC_POOL, mock_pool_snapshot},
+        pump_swap::testkit::{TEST_SOL_POOL, TEST_TOKEN_2022_MINT, TEST_USDC_POOL, mock_pool_snapshot},
         solana_dex::testkit::TEST_TOS_MINT,
     };
+    use gem_solana::WSOL_TOKEN_ADDRESS;
 
     #[test]
     fn test_addresses() {
@@ -143,5 +158,21 @@ mod tests {
             }
         );
         assert_eq!(Pool::decode_padded(&data[..211]).unwrap().coin_creator, NO_COIN_CREATOR);
+    }
+
+    #[test]
+    fn test_decode() {
+        let pool = mock_pool_snapshot(TEST_SOL_POOL).pool;
+
+        assert_eq!(
+            [pool.base_mint, pool.quote_mint, pool.pool_base_token_account, pool.pool_quote_token_account, pool.coin_creator].map(|key| key.to_base58()),
+            [
+                "HmjCoarLh5duURfJ333DwfFiPyTCgFT35pRSAoP8pump",
+                WSOL_TOKEN_ADDRESS,
+                "2tRN1rrMzfRgBDsPK6Zrxxvg7fupNAGmkv1o7zkLHcbt",
+                "7wzWcdSxjeNx7CZcAzAyV3inRvHLzKHG6wKtQn516wJG",
+                "9rMGbDobAM3sSzLVASEg344B392QC13pCkYLVocFnZMd",
+            ]
+        );
     }
 }

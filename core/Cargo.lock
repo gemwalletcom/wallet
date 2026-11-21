@@ -1084,30 +1084,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "borsh"
-version = "1.8.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a88b7ea17d208c4193f2c1e6de3c35fe71f98c96982d5ced308bdcc749ff6e1f"
-dependencies = [
- "borsh-derive",
- "bytes",
- "cfg_aliases",
-]
-
-[[package]]
-name = "borsh-derive"
-version = "1.8.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d8f347189c62a579b8cd5f80714efa178f52e461dc2e6d701d264f5ff22e566c"
-dependencies = [
- "once_cell",
- "proc-macro-crate",
- "proc-macro2",
- "quote",
- "syn 2.0.119",
-]
-
-[[package]]
 name = "bs58"
 version = "0.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2936,7 +2912,6 @@ name = "gem_solana"
 version = "2.114.102"
 dependencies = [
  "async-trait",
- "borsh",
  "chain_traits",
  "curve25519-dalek",
  "date_time",
@@ -6126,7 +6101,6 @@ dependencies = [
  "alloy-sol-types",
  "async-trait",
  "bcs",
- "borsh",
  "chain_primitives",
  "chain_traits",
  "futures",

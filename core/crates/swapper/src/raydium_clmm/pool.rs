@@ -1,4 +1,4 @@
-use borsh::BorshDeserialize;
+use gem_encoding::borsh::{BorshDeserialize, DecodeError, Reader};
 use gem_solana::{Pubkey, anchor::AnchorAccount, find_program_address, instructions::program_ids::raydium_clmm_program};
 
 use super::tick_math::{MAX_SQRT_PRICE, MIN_SQRT_PRICE};
@@ -11,7 +11,7 @@ const SWAP_TICK_ARRAYS: usize = 3;
 const SWAP_DISABLED: u8 = 1 << 4;
 const DYNAMIC_FEE_INFO_LEN: usize = 80;
 
-#[derive(Debug, Clone, Copy, PartialEq, BorshDeserialize)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub(super) struct DynamicFeeInfo {
     pub filter_period: u16,
     pub decay_period: u16,
@@ -22,6 +22,22 @@ pub(super) struct DynamicFeeInfo {
     pub volatility_reference: u32,
     pub volatility_accumulator: u32,
     pub last_update_timestamp: u64,
+}
+
+impl BorshDeserialize for DynamicFeeInfo {
+    fn deserialize_reader(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        Ok(Self {
+            filter_period: reader.read()?,
+            decay_period: reader.read()?,
+            reduction_factor: reader.read()?,
+            dynamic_fee_control: reader.read()?,
+            max_volatility_accumulator: reader.read()?,
+            tick_spacing_index_reference: reader.read()?,
+            volatility_reference: reader.read()?,
+            volatility_accumulator: reader.read()?,
+            last_update_timestamp: reader.read()?,
+        })
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -38,41 +54,56 @@ impl SwapTickArrays {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, BorshDeserialize)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub(super) struct AmmConfig {
-    _bump: u8,
-    _index: u16,
-    _owner: Pubkey,
-    _protocol_fee_rate: u32,
     pub trade_fee_rate: u32,
 }
 
-#[derive(Debug, Clone, PartialEq, BorshDeserialize)]
+impl BorshDeserialize for AmmConfig {
+    fn deserialize_reader(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        Ok(Self { trade_fee_rate: reader.skip(39)?.read()? })
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub(crate) struct PoolState {
-    _bump: [u8; 1],
     pub amm_config: Pubkey,
-    _owner: Pubkey,
     pub token_mint_0: Pubkey,
     pub token_mint_1: Pubkey,
     pub token_vault_0: Pubkey,
     pub token_vault_1: Pubkey,
     pub observation_key: Pubkey,
-    _mint_decimals: [u8; 2],
     pub tick_spacing: u16,
     pub liquidity: u128,
     pub sqrt_price: u128,
     pub tick_current: i32,
-    _fee_growths_and_protocol_fees: [u8; 52],
-    _padding: [u8; 64],
     status: u8,
     fee_on: u8,
-    _seed_index_and_padding: [u8; 6],
-    _reward_infos: [u8; 507],
     tick_array_bitmap: [u64; 16],
-    _padding_and_fund_fees: [u8; 48],
     open_time: u64,
-    _recent_epoch: u64,
     dynamic_fee_info: [u8; DYNAMIC_FEE_INFO_LEN],
+}
+
+impl BorshDeserialize for PoolState {
+    fn deserialize_reader(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        Ok(Self {
+            amm_config: reader.skip(1)?.read()?,
+            token_mint_0: reader.skip(32)?.read()?,
+            token_mint_1: reader.read()?,
+            token_vault_0: reader.read()?,
+            token_vault_1: reader.read()?,
+            observation_key: reader.read()?,
+            tick_spacing: reader.skip(2)?.read()?,
+            liquidity: reader.read()?,
+            sqrt_price: reader.read()?,
+            tick_current: reader.read()?,
+            status: reader.skip(116)?.read()?,
+            fee_on: reader.read()?,
+            tick_array_bitmap: reader.skip(513)?.read()?,
+            open_time: reader.skip(48)?.read()?,
+            dynamic_fee_info: reader.skip(8)?.bytes()?,
+        })
+    }
 }
 
 impl AnchorAccount for AmmConfig {
@@ -206,5 +237,22 @@ mod tests {
         assert!(!extension.is_fee_on_input(false));
         assert!(limit_orders.is_fee_on_input(true));
         assert!(limit_orders.is_fee_on_input(false));
+    }
+
+    #[test]
+    fn test_decode() {
+        let pool = mock_pool_snapshot(TEST_LIMIT_ORDER_POOL).pool;
+
+        assert_eq!(
+            [pool.amm_config, pool.token_mint_0, pool.token_mint_1, pool.token_vault_0, pool.token_vault_1, pool.observation_key].map(|key| key.to_base58()),
+            [
+                "9iFER3bpjf1PTTCQCfTRu17EJgvsxo9pVyA9QWwEuX4x",
+                USDC_TOKEN_MINT,
+                "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+                "4iJQGzZpys4N13rGXbsB3NqehPkrgrcmDUEcLw7D6GKL",
+                "7NQjToK5NenQZvhPRc1nC1URuKJ4nuLxGPdTbpTiz9EN",
+                "3YZE41e4GKm9Uqvx6H4QA1FdyxT15nEjUP8LbvdiDF2t",
+            ]
+        );
     }
 }

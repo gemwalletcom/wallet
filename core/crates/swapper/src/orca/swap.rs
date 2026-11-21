@@ -1,4 +1,4 @@
-use borsh::BorshSerialize;
+use gem_encoding::borsh::BorshSerialize;
 use gem_solana::{
     AccountMeta, Instruction, Pubkey, anchor,
     instructions::program_ids::{memo_program, orca_whirlpool_program},
@@ -16,13 +16,18 @@ const TWO_HOP_SWAP_V2: &str = "two_hop_swap_v2";
 const SUPPLEMENTAL_TICK_ARRAYS: u8 = 6;
 const SWAP_TICK_ARRAYS: usize = 3;
 
-#[derive(BorshSerialize)]
 struct RemainingAccountsSlice {
     accounts_type: u8,
     length: u8,
 }
 
-#[derive(BorshSerialize)]
+impl BorshSerialize for RemainingAccountsSlice {
+    fn serialize(&self, writer: &mut Vec<u8>) {
+        self.accounts_type.serialize(writer);
+        self.length.serialize(writer);
+    }
+}
+
 struct SwapV2Args {
     amount: u64,
     other_amount_threshold: u64,
@@ -32,7 +37,17 @@ struct SwapV2Args {
     remaining_accounts_info: Option<Vec<RemainingAccountsSlice>>,
 }
 
-#[derive(BorshSerialize)]
+impl BorshSerialize for SwapV2Args {
+    fn serialize(&self, writer: &mut Vec<u8>) {
+        self.amount.serialize(writer);
+        self.other_amount_threshold.serialize(writer);
+        self.sqrt_price_limit.serialize(writer);
+        self.amount_specified_is_input.serialize(writer);
+        self.a_to_b.serialize(writer);
+        self.remaining_accounts_info.serialize(writer);
+    }
+}
+
 struct TwoHopSwapV2Args {
     amount: u64,
     other_amount_threshold: u64,
@@ -42,6 +57,19 @@ struct TwoHopSwapV2Args {
     sqrt_price_limit_one: u128,
     sqrt_price_limit_two: u128,
     remaining_accounts_info: Option<Vec<RemainingAccountsSlice>>,
+}
+
+impl BorshSerialize for TwoHopSwapV2Args {
+    fn serialize(&self, writer: &mut Vec<u8>) {
+        self.amount.serialize(writer);
+        self.other_amount_threshold.serialize(writer);
+        self.amount_specified_is_input.serialize(writer);
+        self.a_to_b_one.serialize(writer);
+        self.a_to_b_two.serialize(writer);
+        self.sqrt_price_limit_one.serialize(writer);
+        self.sqrt_price_limit_two.serialize(writer);
+        self.remaining_accounts_info.serialize(writer);
+    }
 }
 
 pub(super) fn swap_v2_instruction(address: &Pubkey, whirlpool: &Whirlpool, swap: &PoolSwap) -> Result<Instruction, SwapperError> {

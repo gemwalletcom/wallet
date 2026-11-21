@@ -1,13 +1,22 @@
-use gem_encoding::{decode_base58, encode_base58};
+use gem_encoding::{
+    borsh::{BorshDeserialize, DecodeError, Reader},
+    decode_base58, encode_base58,
+};
 use std::{cmp::Ordering, fmt, str::FromStr};
 
-use borsh::{BorshDeserialize, BorshSerialize};
 use serde::{Deserialize, Deserializer, Serialize, Serializer, de::Error as DeserializeError};
 
 use crate::{Result as SolanaResult, SolanaError};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, BorshSerialize, BorshDeserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Pubkey([u8; 32]);
+
+impl BorshDeserialize for Pubkey {
+    #[inline]
+    fn deserialize_reader(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        reader.bytes().map(Self)
+    }
+}
 
 impl FromStr for Pubkey {
     type Err = SolanaError;

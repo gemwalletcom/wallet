@@ -1,8 +1,10 @@
 use crate::Pubkey;
-use borsh::{BorshDeserialize, BorshSerialize};
-use gem_encoding::decode_base64;
+use gem_encoding::{
+    borsh::{BorshDeserialize, DecodeError, Reader},
+    decode_base64,
+};
 
-#[derive(BorshSerialize, BorshDeserialize, PartialEq, Eq, Debug, Clone, Copy)]
+#[derive(PartialEq, Eq, Debug, Clone, Copy)]
 pub enum Key {
     Uninitialized,
     AssetV1,
@@ -12,14 +14,39 @@ pub enum Key {
     CollectionV1,
 }
 
-#[derive(BorshSerialize, BorshDeserialize, PartialEq, Eq, Debug, Clone)]
+impl BorshDeserialize for Key {
+    fn deserialize_reader(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        match reader.read::<u8>()? {
+            0 => Ok(Self::Uninitialized),
+            1 => Ok(Self::AssetV1),
+            2 => Ok(Self::HashedAssetV1),
+            3 => Ok(Self::PluginHeaderV1),
+            4 => Ok(Self::PluginRegistryV1),
+            5 => Ok(Self::CollectionV1),
+            tag => Err(DecodeError::UnexpectedTag(tag)),
+        }
+    }
+}
+
+#[derive(PartialEq, Eq, Debug, Clone)]
 pub enum UpdateAuthority {
     None,
     Address(Pubkey),
     Collection(Pubkey),
 }
 
-#[derive(BorshSerialize, BorshDeserialize, PartialEq, Eq, Debug, Clone)]
+impl BorshDeserialize for UpdateAuthority {
+    fn deserialize_reader(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        match reader.read::<u8>()? {
+            0 => Ok(Self::None),
+            1 => Ok(Self::Address(reader.read()?)),
+            2 => Ok(Self::Collection(reader.read()?)),
+            tag => Err(DecodeError::UnexpectedTag(tag)),
+        }
+    }
+}
+
+#[derive(PartialEq, Eq, Debug, Clone)]
 pub struct AssetV1 {
     pub key: Key,
     pub owner: Pubkey,
@@ -27,6 +54,19 @@ pub struct AssetV1 {
     pub name: String,
     pub uri: String,
     pub seq: Option<u64>,
+}
+
+impl BorshDeserialize for AssetV1 {
+    fn deserialize_reader(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        Ok(Self {
+            key: reader.read()?,
+            owner: reader.read()?,
+            update_authority: reader.read()?,
+            name: reader.read()?,
+            uri: reader.read()?,
+            seq: reader.read()?,
+        })
+    }
 }
 
 impl AssetV1 {

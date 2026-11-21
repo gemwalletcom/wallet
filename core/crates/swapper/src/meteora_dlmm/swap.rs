@@ -1,4 +1,3 @@
-use borsh::BorshSerialize;
 use gem_solana::{
     AccountMeta, Instruction, Pubkey, anchor,
     instructions::program_ids::{memo_program, meteora_dlmm_program},
@@ -8,18 +7,12 @@ use primitives::decode_hex_literal;
 use super::{bin::BinArray, pair::Pair};
 use crate::{
     SwapperError,
-    solana_dex::{DexPool, PoolSwap, SwapAmounts},
+    solana_dex::{DexPool, PoolSwap},
 };
 
 const SWAP2: &str = "swap2";
 const EVENT_AUTHORITY: Pubkey = Pubkey::new(decode_hex_literal("b270d67fa98c51cf0213051358962baf35742bed59c9d9445e9c0d0c85c7cd91"));
 pub(super) const SWAP_BIN_ARRAYS: usize = 3;
-
-#[derive(BorshSerialize)]
-struct SwapParameters {
-    amounts: SwapAmounts,
-    remaining_accounts_slices: Vec<(u8, u8)>,
-}
 
 pub(super) fn swap2_instruction(address: &Pubkey, pair: &Pair, swap: &PoolSwap) -> Result<Instruction, SwapperError> {
     let swap_for_y = pair.swap_direction(&swap.input.mint, &swap.output.mint)?;
@@ -51,11 +44,8 @@ pub(super) fn swap2_instruction(address: &Pubkey, pair: &Pair, swap: &PoolSwap) 
         bin_arrays,
     ]
     .concat();
-    let parameters = SwapParameters {
-        amounts: swap.amounts(),
-        remaining_accounts_slices: vec![],
-    };
-    Ok(anchor::instruction(meteora_dlmm_program(), SWAP2, &parameters, accounts))
+    let remaining_accounts_slices: Vec<(u8, u8)> = vec![];
+    Ok(anchor::instruction(meteora_dlmm_program(), SWAP2, &(swap.amounts(), remaining_accounts_slices), accounts))
 }
 
 #[cfg(test)]
