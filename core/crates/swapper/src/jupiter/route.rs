@@ -1,10 +1,46 @@
 use gem_encoding::borsh::{BorshDeserialize, DecodeError, Reader};
-use gem_solana::{Instruction, JUPITER_PROGRAM_ID, Pubkey, anchor::instruction_arguments};
+use gem_solana::{
+    Instruction, JUPITER_PROGRAM_ID, Pubkey,
+    anchor::{global_discriminator, instruction_arguments},
+    associated_token::is_associated_token_address,
+};
 
 use crate::fees::subtract_bps;
 
 const ROUTE: &str = "route_v2";
 const SHARED_ACCOUNTS_ROUTE: &str = "shared_accounts_route_v2";
+
+struct RouteLayout {
+    instruction: &'static str,
+    authority: usize,
+    source: usize,
+    destination: usize,
+    user_destination: Option<usize>,
+}
+
+const ROUTE_LAYOUTS: [RouteLayout; 3] = [
+    RouteLayout {
+        instruction: ROUTE,
+        authority: 0,
+        source: 1,
+        destination: 7,
+        user_destination: Some(2),
+    },
+    RouteLayout {
+        instruction: SHARED_ACCOUNTS_ROUTE,
+        authority: 1,
+        source: 2,
+        destination: 5,
+        user_destination: None,
+    },
+    RouteLayout {
+        instruction: "route",
+        authority: 1,
+        source: 2,
+        destination: 4,
+        user_destination: Some(3),
+    },
+];
 
 #[derive(Debug, PartialEq, Eq)]
 pub(super) struct RouteArguments {
@@ -32,37 +68,48 @@ impl RouteArguments {
 }
 
 #[derive(Debug, PartialEq, Eq)]
-pub(super) struct JupiterRoute {
+pub(crate) struct RouteAccounts {
     pub authority: Pubkey,
     pub source: Pubkey,
     pub destination: Pubkey,
+}
+
+impl RouteAccounts {
+    pub(crate) fn decode(instruction: &Instruction) -> Option<Self> {
+        if instruction.program_id.to_base58() != JUPITER_PROGRAM_ID {
+            return None;
+        }
+        let layout = ROUTE_LAYOUTS.iter().find(|layout| instruction.data.starts_with(&global_discriminator(layout.instruction)))?;
+        let destination = match (instruction.account(layout.destination)?, layout.user_destination) {
+            (placeholder, Some(user_destination)) if *placeholder == instruction.program_id => instruction.account(user_destination)?,
+            (destination, _) => destination,
+        };
+        Some(Self {
+            authority: *instruction.account(layout.authority)?,
+            source: *instruction.account(layout.source)?,
+            destination: *destination,
+        })
+    }
+
+    pub(crate) fn spends_from(&self, wallet: &Pubkey, mint: &Pubkey) -> bool {
+        self.authority == *wallet && is_associated_token_address(&self.source, wallet, mint)
+    }
+}
+
+#[derive(Debug, PartialEq, Eq)]
+pub(super) struct JupiterRoute {
+    pub accounts: RouteAccounts,
     pub arguments: RouteArguments,
 }
 
 impl JupiterRoute {
     pub(super) fn decode(instruction: &Instruction) -> Option<Self> {
-        if instruction.program_id.to_base58() != JUPITER_PROGRAM_ID {
-            return None;
-        }
-        if let Ok(arguments) = instruction_arguments::<RouteArguments>(&instruction.data, ROUTE) {
-            let destination = match instruction.account(7)? {
-                placeholder if *placeholder == instruction.program_id => instruction.account(2)?,
-                destination => destination,
-            };
-            return Some(Self {
-                authority: *instruction.account(0)?,
-                source: *instruction.account(1)?,
-                destination: *destination,
-                arguments,
-            });
-        }
-        let (_, arguments) = instruction_arguments::<(u8, RouteArguments)>(&instruction.data, SHARED_ACCOUNTS_ROUTE).ok()?;
-        Some(Self {
-            authority: *instruction.account(1)?,
-            source: *instruction.account(2)?,
-            destination: *instruction.account(5)?,
-            arguments,
-        })
+        let accounts = RouteAccounts::decode(instruction)?;
+        let arguments = match instruction_arguments::<RouteArguments>(&instruction.data, ROUTE) {
+            Ok(arguments) => arguments,
+            Err(_) => instruction_arguments::<(u8, RouteArguments)>(&instruction.data, SHARED_ACCOUNTS_ROUTE).ok()?.1,
+        };
+        Some(Self { accounts, arguments })
     }
 }
 
@@ -70,9 +117,7 @@ impl JupiterRoute {
 mod tests {
     use super::*;
     use crate::jupiter::{model::BuildResponse, testkit::TEST_PAYER};
-    use gem_solana::{
-        AccountMeta, Base64InstructionData, USDC_TOKEN_MINT, anchor::global_discriminator, associated_token::get_associated_token_address_with_program_id, decode_instruction, instructions::program_ids::token_program, wrapped_sol,
-    };
+    use gem_solana::{AccountMeta, Base64InstructionData, USDC_TOKEN_MINT, associated_token::get_associated_token_address_with_program_id, decode_instruction, instructions::program_ids::token_program, wrapped_sol};
 
     #[test]
     fn test_decode() {
@@ -85,9 +130,11 @@ mod tests {
         assert_eq!(
             JupiterRoute::decode(&route),
             Some(JupiterRoute {
-                authority: wallet,
-                source: wrapped_sol,
-                destination: usdc,
+                accounts: RouteAccounts {
+                    authority: wallet,
+                    source: wrapped_sol,
+                    destination: usdc,
+                },
                 arguments: RouteArguments {
                     in_amount: 100_000_000,
                     quoted_out_amount: 6_829_563,
@@ -100,9 +147,11 @@ mod tests {
         assert_eq!(
             JupiterRoute::decode(&shared_accounts_route),
             Some(JupiterRoute {
-                authority: wallet,
-                source: usdc,
-                destination: wrapped_sol,
+                accounts: RouteAccounts {
+                    authority: wallet,
+                    source: usdc,
+                    destination: wrapped_sol,
+                },
                 arguments: RouteArguments {
                     in_amount: 20_000_000,
                     quoted_out_amount: 289_924_882,
@@ -114,7 +163,7 @@ mod tests {
 
         let mut explicit_destination = route.clone();
         explicit_destination.accounts[7] = AccountMeta::new_writable(wrapped_sol);
-        assert_eq!(JupiterRoute::decode(&explicit_destination).map(|route| route.destination), Some(wrapped_sol));
+        assert_eq!(RouteAccounts::decode(&explicit_destination).map(|accounts| accounts.destination), Some(wrapped_sol));
 
         let other_program = Instruction {
             program_id: token_program(),

@@ -138,7 +138,7 @@ where
             RelayChain::Tron => mapper::map_tron_quote_data(&response, approval),
             RelayChain::Solana => {
                 let step = response.get_solana_step().ok_or(SwapperError::InvalidRoute)?;
-                solana::build_quote_data(&quote.request.wallet_address, step, self.rpc_provider.clone()).await
+                solana::build_quote_data(quote, step, self.rpc_provider.clone()).await
             }
             RelayChain::Ton => mapper::map_ton_quote_data(&response),
             RelayChain::Xrp => mapper::map_xrp_quote_data(&response, &quote.from_value),

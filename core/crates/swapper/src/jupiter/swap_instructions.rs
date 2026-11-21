@@ -41,11 +41,10 @@ impl SwapInstructions {
     pub(crate) fn verify(&self, quoted: &QuotedRoute) -> Result<(), SwapperError> {
         let route = JupiterRoute::decode(&self.swap).ok_or(SwapperError::InvalidRoute)?;
         let pays_destination = match quoted.destination {
-            RouteDestination::WalletAccount(mint) => is_associated_token_address(&route.destination, &quoted.wallet, &mint),
-            RouteDestination::Account(destination) => route.destination == destination,
+            RouteDestination::WalletAccount(mint) => is_associated_token_address(&route.accounts.destination, &quoted.wallet, &mint),
+            RouteDestination::Account(destination) => route.accounts.destination == destination,
         };
-        let is_quoted = route.authority == quoted.wallet
-            && is_associated_token_address(&route.source, &quoted.wallet, &quoted.input_mint)
+        let is_quoted = route.accounts.spends_from(&quoted.wallet, &quoted.input_mint)
             && route.arguments.in_amount <= quoted.amount
             && route.arguments.minimum_out() >= quoted.minimum_out
             && route.arguments.platform_fee_bps <= quoted.platform_fee_bps
