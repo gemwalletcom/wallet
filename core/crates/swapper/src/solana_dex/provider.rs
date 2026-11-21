@@ -24,7 +24,7 @@ use super::{
     transaction::DexTransaction,
 };
 use crate::{
-    Contracts, QuoteDataInput, ProviderType, Quote, QuoteRequest, RpcClient, RpcProvider, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperQuoteData,
+    Binding, Contracts, QuoteDataInput, ProviderType, Quote, QuoteRequest, RpcClient, RpcProvider, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperQuoteData,
     client_factory::create_client_with_chain,
     error::INVALID_ADDRESS,
     fees::{FeeSide, default_referral_fees, on_chain_referral_fees, subtract_bps},
@@ -488,8 +488,8 @@ impl<P: DexProtocol, C: Client + Clone + Send + Sync + 'static> Swapper for Sola
         vec![SwapperChainAsset::All(Chain::Solana)]
     }
 
-    fn contracts(&self, _from_asset: &AssetId) -> Contracts {
-        Contracts::new(vec![P::PROGRAM])
+    fn binding(&self, _from_asset: &AssetId) -> Binding {
+        Binding::Contracts(Contracts::new(vec![P::PROGRAM]))
     }
 
     fn amount_mode(&self, _request: &QuoteRequest) -> SwapAmountMode {

@@ -16,7 +16,7 @@ use crate::{
             address::native_address_to_bytes32,
             amount::{fractional_amount, gas_drop_amount, min_amount_out, optional_bps_u8, required_u64, value_to_query},
             route::quote_destination_address,
-            solana::{SolanaLedgerDeposit, append_client_swap_instructions, append_ledger_deposit_instructions, solana_error, wrap_instruction_in_cpi_proxy},
+            solana::{SolanaLedgerDeposit, append_client_swap_instructions, append_ledger_deposit_instructions, client_swap_route, solana_error, wrap_instruction_in_cpi_proxy},
         },
         wormhole_chain::{WormholeChain, id_for_name as wormhole_chain_id},
     },
@@ -142,7 +142,8 @@ where
         ))
         .await?;
 
-    let lookup_table_addresses = append_client_swap_instructions(instructions, swap, &context.user, &context.relayer, &context.ledger_account, &route.from_token.contract, &route.effective_amount_in64)?;
+    let quoted = client_swap_route(&context.user, &context.ledger_account, route)?;
+    let lookup_table_addresses = append_client_swap_instructions(instructions, swap, &context.relayer, &quoted)?;
 
     add_ledger_instruction(route, context, fractional_amount(min_middle_amount, CCTP_TOKEN_DECIMALS)?, instructions)?;
 

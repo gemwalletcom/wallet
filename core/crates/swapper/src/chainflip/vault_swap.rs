@@ -4,7 +4,7 @@ use alloy_primitives::Address;
 use alloy_sol_types::SolCall;
 use gem_encoding::borsh::{BorshDeserialize, DecodeError, Reader};
 use gem_evm::{contracts::IERC20, u256::u256_to_biguint};
-use gem_solana::{Instruction, Pubkey, anchor::global_discriminator, associated_token::is_associated_token_address};
+use gem_solana::{Instruction, Pubkey, anchor::instruction_arguments, associated_token::is_associated_token_address};
 use gem_tron::address::TronAddress;
 use num_bigint::BigUint;
 use primitives::hex::decode_hex;
@@ -19,7 +19,6 @@ use crate::SwapperError;
 
 const SOLANA_NATIVE_SWAP: &str = "x_swap_native";
 const SOLANA_TOKEN_SWAP: &str = "x_swap_token";
-const SOLANA_DISCRIMINATOR_LENGTH: usize = 8;
 const SOLANA_SOURCE_TOKEN_ACCOUNT: usize = 3;
 
 struct SolanaSwapParameters {
@@ -46,7 +45,6 @@ impl BorshDeserialize for SolanaSwapParameters {
 
 #[derive(Debug, Clone)]
 pub struct VaultSwap {
-    pub(super) vault: &'static str,
     pub(super) wallet: String,
     pub(super) token_id: Option<String>,
     pub(super) amount: BigUint,
@@ -56,10 +54,6 @@ pub struct VaultSwap {
 
 impl VaultSwap {
     pub(super) fn validate_evm(&self, response: &EvmVaultSwapResponse) -> Result<BigUint, SwapperError> {
-        let vault = Address::from_str(self.vault).map_err(|_| SwapperError::InvalidRoute)?;
-        if Address::from_str(&response.to).ok() != Some(vault) {
-            return Err(SwapperError::InvalidRoute);
-        }
         let value = self.value(&response.value)?;
         let calldata = decode_hex(&response.calldata).map_err(|_| SwapperError::InvalidRoute)?;
         match self.token_id.as_deref() {
@@ -82,29 +76,15 @@ impl VaultSwap {
     }
 
     pub(super) fn validate_tron(&self, response: &TronVaultSwapResponse) -> Result<(TronAddress, BigUint), SwapperError> {
-        let is_vault = |address: &TronAddress| address.to_string() == self.vault;
         let value = self.value(&response.value)?;
-        let to = match self.token_id.as_deref() {
-            None => {
-                let vault = TronAddress::from_hex_or_base58(&response.to).filter(is_vault).ok_or(SwapperError::InvalidRoute)?;
-                if !decode_hex(&response.calldata).map_err(|_| SwapperError::InvalidRoute)?.is_empty() {
-                    return Err(SwapperError::InvalidRoute);
-                }
-                vault
-            }
-            Some(token_id) => {
-                let source_token = response
-                    .source_token_address
-                    .as_deref()
-                    .and_then(TronAddress::from_hex_or_base58)
-                    .filter(|source_token| TronAddress::from_hex_or_base58(token_id) == Some(*source_token))
-                    .ok_or(SwapperError::InvalidRoute)?;
-                let transfer = decode_hex(&response.calldata).ok().and_then(|calldata| IERC20::transferCall::abi_decode(&calldata).ok()).ok_or(SwapperError::InvalidRoute)?;
-                if !is_vault(&TronAddress::from(transfer.to)) {
-                    return Err(SwapperError::InvalidRoute);
-                }
+        let calldata = decode_hex(&response.calldata).map_err(|_| SwapperError::InvalidRoute)?;
+        let to = match self.token_id {
+            None if calldata.is_empty() => TronAddress::from_hex_or_base58(&response.to).ok_or(SwapperError::InvalidRoute)?,
+            None => return Err(SwapperError::InvalidRoute),
+            Some(_) => {
+                let transfer = IERC20::transferCall::abi_decode(&calldata).map_err(|_| SwapperError::InvalidRoute)?;
                 self.validate_amount(&u256_to_biguint(&transfer.value))?;
-                source_token
+                response.source_token_address.as_deref().and_then(TronAddress::from_hex_or_base58).ok_or(SwapperError::InvalidRoute)?
             }
         };
         let note = decode_hex(&response.note).map_err(|_| SwapperError::InvalidRoute)?;
@@ -113,25 +93,18 @@ impl VaultSwap {
     }
 
     pub(super) fn validate_solana(&self, instruction: &Instruction) -> Result<(), SwapperError> {
-        if instruction.program_id.to_base58() != self.vault {
-            return Err(SwapperError::InvalidRoute);
-        }
         let name = match self.token_id {
             None => SOLANA_NATIVE_SWAP,
             Some(_) => SOLANA_TOKEN_SWAP,
         };
-        let (discriminator, mut arguments) = instruction.data.split_at_checked(SOLANA_DISCRIMINATOR_LENGTH).ok_or(SwapperError::InvalidRoute)?;
-        if discriminator != global_discriminator(name) {
-            return Err(SwapperError::InvalidRoute);
-        }
+        let parameters = instruction_arguments::<SolanaSwapParameters>(&instruction.data, name).map_err(|_| SwapperError::InvalidRoute)?;
         if let Some(token_id) = &self.token_id {
             let wallet = Pubkey::from_base58(&self.wallet).map_err(|_| SwapperError::InvalidRoute)?;
             let mint = Pubkey::from_base58(token_id).map_err(|_| SwapperError::InvalidRoute)?;
-            if !instruction.accounts.get(SOLANA_SOURCE_TOKEN_ACCOUNT).is_some_and(|account| is_associated_token_address(&account.pubkey, &wallet, &mint)) {
+            if !instruction.account(SOLANA_SOURCE_TOKEN_ACCOUNT).is_some_and(|account| is_associated_token_address(account, &wallet, &mint)) {
                 return Err(SwapperError::InvalidRoute);
             }
         }
-        let parameters = SolanaSwapParameters::deserialize(&mut arguments).map_err(|_| SwapperError::InvalidRoute)?;
         if parameters.ccm != NO_CCM {
             return Err(SwapperError::InvalidRoute);
         }
@@ -165,11 +138,12 @@ mod tests {
         testkit::{ETHEREUM_NATIVE_MIN_PRICE, SOLANA_MIN_PRICE, arbitrum_usdc_destination, ethereum_usdc_refund, ethereum_vault_swap, mock_refund, solana_vault_swap, tron_vault_swap},
         tx_builder::solana_instruction,
     };
+    use gem_solana::anchor::global_discriminator;
     use primitives::{
         AssetId, Chain,
         asset_constants::{ETHEREUM_USDC_TOKEN_ID, ETHEREUM_USDT_TOKEN_ID, SOLANA_USDC_TOKEN_ID, SOLANA_USDT_TOKEN_ID, TRON_USDT_TOKEN_ID},
         hex::encode_with_0x,
-        testkit::signer_mock::{TEST_BITCOIN_SENDER, TEST_EVM_RECIPIENT, TEST_EVM_SENDER, TEST_PRIVATE_KEY_SOLANA_ADDRESS},
+        testkit::signer_mock::{TEST_BITCOIN_SENDER, TEST_EVM_SENDER, TEST_PRIVATE_KEY_SOLANA_ADDRESS},
     };
 
     #[test]
@@ -188,14 +162,6 @@ mod tests {
         assert_eq!(token_swap.validate_evm(&usdc), Ok(BigUint::ZERO));
 
         for (refused, response, reason) in [
-            (
-                swap.clone(),
-                EvmVaultSwapResponse {
-                    to: TEST_EVM_RECIPIENT.to_string(),
-                    ..native.clone()
-                },
-                "a call to another contract",
-            ),
             (VaultSwap { amount: BigUint::from(1u32), ..swap.clone() }, native.clone(), "a native amount other than quoted"),
             (
                 VaultSwap {
@@ -306,31 +272,7 @@ mod tests {
                 },
                 "a native deposit that also runs a call",
             ),
-            (token_swap.clone(), TronVaultSwapResponse { value: BigUint::from(1u32), ..token.clone() }, "a token swap that also sends coins"),
-            (
-                swap.clone(),
-                TronVaultSwapResponse {
-                    to: "TDMakP1fbWc7XXoSWZpujpjRAuePPEn4oi".to_string(),
-                    ..native.clone()
-                },
-                "a coin sent elsewhere than the vault",
-            ),
-            (
-                token_swap.clone(),
-                TronVaultSwapResponse {
-                    calldata: "0xa9059cbb0000000000000000000000002523ae929fecd9d665f472f59b99a8ce6b1795100000000000000000000000000000000000000000000000000000000000989680".to_string(),
-                    ..token.clone()
-                },
-                "a token sent elsewhere than the vault",
-            ),
-            (
-                token_swap,
-                TronVaultSwapResponse {
-                    source_token_address: Some("TXYZopYRdj2D9XRtbG411XZZ3kM5VkAeBf".to_string()),
-                    ..token
-                },
-                "a token other than quoted",
-            ),
+            (token_swap, TronVaultSwapResponse { value: BigUint::from(1u32), ..token }, "a token swap that also sends coins"),
             (
                 VaultSwap {
                     destination: ethereum_vault_swap().destination,
@@ -368,18 +310,10 @@ mod tests {
         assert_eq!(token_swap.validate_solana(&usdc), Ok(()));
 
         let mut with_message = native.clone();
-        with_message.data[SOLANA_DISCRIMINATOR_LENGTH + size_of::<u64>() + 3 * size_of::<u32>() + TEST_BITCOIN_SENDER.len()] = 1;
+        with_message.data[global_discriminator(SOLANA_NATIVE_SWAP).len() + size_of::<u64>() + 3 * size_of::<u32>() + TEST_BITCOIN_SENDER.len()] = 1;
         for (refused, instruction, reason) in [
             (swap.clone(), with_message, "a payout that also runs a contract message"),
             (VaultSwap { amount: BigUint::from(1u32), ..swap.clone() }, native.clone(), "an amount other than quoted"),
-            (
-                swap.clone(),
-                Instruction {
-                    program_id: Pubkey::new([0; 32]),
-                    ..native.clone()
-                },
-                "another program",
-            ),
             (
                 VaultSwap {
                     destination: arbitrum_usdc_destination(),

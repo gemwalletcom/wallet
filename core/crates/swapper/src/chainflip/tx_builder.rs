@@ -113,7 +113,7 @@ mod tests {
         let response: JsonRpcResponse<SolanaVaultSwapResponse> = serde_json::from_str(include_str!("./test/chainflip_sol_arb_usdc_quote_data.json"))?;
 
         let tx_b64 = build_solana_transaction(wallet_address, solana_instruction(&response.result)?)?;
-        crate::contract_check::verify_solana_programs(&tx_b64, &["J88B7gmadHzTNGiy54c9Ms8BsEXNdB2fntFyhKpk3qoT"])?;
+        crate::contract_check::verify_solana(&tx_b64, wallet_address, &["J88B7gmadHzTNGiy54c9Ms8BsEXNdB2fntFyhKpk3qoT"])?;
 
         assert_eq!(
             tx_b64,

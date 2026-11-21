@@ -7,6 +7,12 @@ pub struct Instruction {
     pub data: Vec<u8>,
 }
 
+impl Instruction {
+    pub fn account(&self, position: usize) -> Option<&Pubkey> {
+        self.accounts.get(position).map(|account| &account.pubkey)
+    }
+}
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct AccountMeta {
     pub pubkey: Pubkey,

@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use futures::future::{join_all, try_join_all};
 use primitives::{AssetId, Chain};
 
-use crate::{Contracts, QuoteDataInput, ProviderType, Quote, QuoteRequest, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData, cross_chain::VaultAddresses};
+use crate::{Binding, QuoteDataInput, ProviderType, Quote, QuoteRequest, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData, cross_chain::VaultAddresses};
 
 #[derive(Debug)]
 pub(crate) struct ProviderGroup {
@@ -38,8 +38,15 @@ impl Swapper for ProviderGroup {
         assets.iter().enumerate().filter(|(index, asset)| !assets[..*index].contains(asset)).map(|(_, asset)| asset.clone()).collect()
     }
 
-    fn contracts(&self, from_asset: &AssetId) -> Contracts {
-        self.members_for(from_asset.chain).map(|(_, member)| member.contracts(from_asset)).collect()
+    fn binding(&self, from_asset: &AssetId) -> Binding {
+        Binding::Contracts(
+            self.members_for(from_asset.chain)
+                .filter_map(|(_, member)| match member.binding(from_asset) {
+                    Binding::Contracts(contracts) => Some(contracts),
+                    Binding::DepositAddress | Binding::BuiltOnDevice => None,
+                })
+                .collect(),
+        )
     }
 
     fn amount_mode(&self, request: &QuoteRequest) -> SwapAmountMode {
@@ -83,6 +90,7 @@ mod tests {
     use primitives::Chain;
 
     use super::*;
+    use crate::Contracts;
     use crate::testkit::MockSwapper;
 
     fn quote(request: &QuoteRequest, to_value: u64) -> Result<Quote, SwapperError> {
@@ -139,7 +147,7 @@ mod tests {
             .with_contracts(vec!["other_chain"]);
         let group = group(vec![("clmm", clmm), ("amm", amm), ("solana", solana)]);
 
-        assert_eq!(group.contracts(&Chain::Ethereum.as_asset_id()), Contracts::new(vec!["clmm", "amm"]));
+        assert_eq!(group.binding(&Chain::Ethereum.as_asset_id()), Binding::Contracts(Contracts::new(vec!["clmm", "amm"])));
     }
 
     #[tokio::test]

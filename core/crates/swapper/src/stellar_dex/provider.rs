@@ -1,5 +1,7 @@
 use super::model::StellarRoute;
-use crate::{QuoteDataInput, ProviderType, Quote, QuoteRequest, RpcClient, RpcProvider, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData, client_factory::create_stellar_client, fees::fee_side};
+use crate::{
+    Binding, QuoteDataInput, ProviderType, Quote, QuoteRequest, RpcClient, RpcProvider, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData, client_factory::create_stellar_client, fees::fee_side,
+};
 use async_trait::async_trait;
 use chain_traits::ChainBalances;
 use gem_client::Client;
@@ -47,6 +49,10 @@ impl<C: Client> Swapper for StellarDex<C> {
 
     fn supported_assets(&self) -> Vec<SwapperChainAsset> {
         vec![SwapperChainAsset::All(Chain::Stellar)]
+    }
+
+    fn binding(&self, _from_asset: &AssetId) -> Binding {
+        Binding::BuiltOnDevice
     }
 
     fn amount_mode(&self, _request: &QuoteRequest) -> SwapAmountMode {

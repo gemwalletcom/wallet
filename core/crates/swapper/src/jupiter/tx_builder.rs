@@ -7,11 +7,16 @@ use gem_solana::{
 };
 
 use super::model::{BuildRequest, BuildResponse};
-use super::swap_instructions::{RouteDestination, SwapInstructions};
+use super::route::minimum_out;
+use super::swap_instructions::{QuotedRoute, RouteDestination, SwapInstructions};
 use crate::SwapperError;
 
 impl BuildResponse {
-    pub(super) fn into_transaction(self, request: &BuildRequest) -> Result<String, SwapperError> {
+    pub(super) fn lookup_table_addresses(&self) -> Vec<String> {
+        self.addresses_by_lookup_table_address.iter().flatten().map(|(key, _)| key.to_string()).collect()
+    }
+
+    pub(super) fn into_transaction(self, request: &BuildRequest, lookup_tables: &[AddressLookupTableAccount]) -> Result<String, SwapperError> {
         if self.tip_instruction.is_some() || !self.other_instructions.is_empty() {
             return Err(SwapperError::InvalidRoute);
         }
@@ -20,11 +25,19 @@ impl BuildResponse {
         }
 
         let payer = Pubkey::from_base58(&request.taker).map_err(SwapperError::transaction_error)?;
-        let input_mint = Pubkey::from_base58(&request.input_mint).map_err(SwapperError::transaction_error)?;
-        let output_mint = Pubkey::from_base58(&request.output_mint).map_err(SwapperError::transaction_error)?;
-        let amount = request.amount.parse::<u64>().map_err(SwapperError::transaction_error)?;
+        let quoted = QuotedRoute {
+            wallet: payer,
+            input_mint: Pubkey::from_base58(&request.input_mint).map_err(SwapperError::transaction_error)?,
+            amount: request.amount.parse::<u64>().map_err(SwapperError::transaction_error)?,
+            minimum_out: minimum_out(
+                self.out_amount.parse::<u64>().map_err(SwapperError::compute_quote_error)?,
+                u16::try_from(self.slippage_bps).map_err(SwapperError::compute_quote_error)?,
+            ),
+            platform_fee_bps: u16::try_from(request.platform_fee_bps).map_err(SwapperError::compute_quote_error)?,
+            destination: RouteDestination::WalletAccount(Pubkey::from_base58(&request.output_mint).map_err(SwapperError::transaction_error)?),
+        };
         let swap = SwapInstructions::new(self.compute_budget_instructions, self.setup_instructions, self.swap_instruction, self.cleanup_instruction)?;
-        swap.verify(&payer, &input_mint, amount, RouteDestination::WalletAccount(output_mint))?;
+        swap.verify(&quoted)?;
 
         let compute_budget = with_compute_unit_price(
             once(set_compute_unit_limit(MAX_COMPUTE_UNIT_LIMIT))
@@ -34,14 +47,7 @@ impl BuildResponse {
         );
         let instructions = [compute_budget, swap.setup, vec![swap.swap], swap.cleanup.into_iter().collect()].concat();
 
-        let lookup_tables = self
-            .addresses_by_lookup_table_address
-            .into_iter()
-            .flatten()
-            .map(|(key, addresses)| AddressLookupTableAccount::new(key, addresses))
-            .collect::<Vec<_>>();
-
-        let transaction = TransactionBuilder::build_v0_transaction(payer, self.blockhash_with_metadata.blockhash, &instructions, &lookup_tables).map_err(SwapperError::transaction_error)?;
+        let transaction = TransactionBuilder::build_v0_transaction(payer, self.blockhash_with_metadata.blockhash, &instructions, lookup_tables).map_err(SwapperError::transaction_error)?;
         if transaction.num_required_signatures() != 1 {
             return Err(SwapperError::transaction_error("Jupiter transaction requires more than one signer"));
         }
@@ -61,22 +67,34 @@ mod tests {
 
     #[test]
     fn test_into_transaction() {
-        let transaction = BuildResponse::mock().into_transaction(&BuildRequest::mock()).unwrap();
+        let transaction = BuildResponse::mock().into_transaction(&BuildRequest::mock(), &BuildResponse::mock().mock_lookup_tables()).unwrap();
         let decoded = decode_transaction(&transaction).unwrap();
         assert_eq!(decoded.get_compute_unit_limit(), Some(MAX_COMPUTE_UNIT_LIMIT));
         assert_eq!(decoded.get_compute_unit_price(), Some(9054), "the reply's priority fee stays until the signer sets the wallet's own");
-        assert!(BuildResponse::mock_usdc_sol().into_transaction(&BuildRequest::mock_usdc_sol()).is_ok());
+        assert!(BuildResponse::mock_usdc_sol().into_transaction(&BuildRequest::mock_usdc_sol(), &BuildResponse::mock_usdc_sol().mock_lookup_tables()).is_ok());
 
         assert_eq!(
-            BuildResponse::mock().into_transaction(&BuildRequest::mock_usdc_sol()),
+            BuildResponse::mock().into_transaction(&BuildRequest::mock_usdc_sol(), &[]),
             Err(SwapperError::InvalidRoute),
             "a reply for another pair than the one quoted"
         );
         assert_eq!(
-            BuildResponse::mock().into_transaction(&BuildRequest {
-                fee_account: USDC_TOKEN_MINT.to_string(),
-                ..BuildRequest::mock()
-            }),
+            BuildResponse {
+                out_amount: "6900000".to_string(),
+                ..BuildResponse::mock()
+            }
+            .into_transaction(&BuildRequest::mock(), &[]),
+            Err(SwapperError::InvalidRoute),
+            "a reply that shows more than its route delivers"
+        );
+        assert_eq!(
+            BuildResponse::mock().into_transaction(
+                &BuildRequest {
+                    fee_account: USDC_TOKEN_MINT.to_string(),
+                    ..BuildRequest::mock()
+                },
+                &[]
+            ),
             Err(SwapperError::ComputeQuoteError("Jupiter referral fee is missing from the swap instruction".to_string()))
         );
         assert_eq!(
@@ -84,7 +102,7 @@ mod tests {
                 other_instructions: vec![BuildResponse::mock().swap_instruction],
                 ..BuildResponse::mock()
             }
-            .into_transaction(&BuildRequest::mock()),
+            .into_transaction(&BuildRequest::mock(), &[]),
             Err(SwapperError::InvalidRoute),
             "an instruction outside the swap's steps"
         );
@@ -95,8 +113,9 @@ mod tests {
             is_signer: true,
             is_writable: false,
         });
+        let lookup_tables = build.mock_lookup_tables();
         assert_eq!(
-            build.into_transaction(&BuildRequest::mock()),
+            build.into_transaction(&BuildRequest::mock(), &lookup_tables),
             Err(SwapperError::TransactionError("Jupiter transaction requires more than one signer".to_string()))
         );
     }

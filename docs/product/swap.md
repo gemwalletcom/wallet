@@ -201,12 +201,12 @@ A stablecoin is one on the official list, USDT, USDC, USDS, USDe, USD1, USDG and
 
 ## Contract binding
 
-A provider may only move funds into contracts the app ships for it. Before Confirm signs, the app checks the transaction against that list: on EVM and Tron the contract called and every spender, on Solana every instruction's program, on TON every message. Standard Solana programs pass but may not approve a delegate, change an authority or reassign an account; the Solana check stops at the program, so where a transfer inside a standard program pays is not yet bound. A provider that names anything else is refused at Confirm, and left out of the quote list where its quote already names the contract. When a provider upgrades a contract, its swaps stop until the app update that ships the new address.
+Every provider declares, for each network, how its swaps are bound: to the contracts the app ships for it, to a deposit address the provider makes per swap, or to a transaction the app builds itself against shipped contracts. Before Confirm signs, the app checks every swap, bound or not: an approval or Permit2 signature is only for the token being swapped; on EVM and Tron a token swap sends no coin and a coin swap sends at most the amount quoted; a deposit sends at most the amount quoted. For a provider bound to contracts it also checks, on EVM and Tron, the contract called and every spender; on TON, every message; for a plain transfer, the address it pays; on Solana, every instruction: the provider's own programs, and standard steps that only set the network fee under a limit, create token accounts, wrap SOL into the wallet's own account, pay Gem's fee and close accounts back to the wallet, with SOL sent anywhere the check cannot tie to the wallet or to Gem limited to the rent of two token accounts. A provider that names anything else is refused at Confirm, and left out of the quote list where its quote already names the contract. When a provider upgrades a contract, its swaps stop until the app update that ships the new address.
 
 | Provider | Network | Bound to | Checked |
 |---|---|---|---|
 | THORChain | EVM token deposit | The router | In the quote list and at Confirm |
-| THORChain | Coin deposit | Not bound: the vault rotates | |
+| THORChain | Coin deposit, and tokens on other networks | Not bound: the vault rotates | |
 | OKX | EVM | The router, and its approval contract as the only spender | At Confirm |
 | OKX | Solana | Its program | At Confirm |
 | Relay | EVM | Its deposit contract, approval proxies and routers; only the deposit contract and approval proxies as spenders | In the quote list and at Confirm |
@@ -214,18 +214,21 @@ A provider may only move funds into contracts the app ships for it. Before Confi
 | Relay | XRP Ledger | Its depository, with exactly the amount quoted | In the quote list |
 | Relay | Solana | Its depository and forwarder programs, and Jupiter's | At Confirm |
 | Chainflip | EVM, Tron, Solana | The vault, exactly the amount and token quoted, the asset, network and address the swap pays out to, and the refund address, minimum price, and a refund sent as a plain transfer, with no contract message | At Confirm |
-| Mayan | EVM | The forwarder | At Confirm |
-| Mayan | Solana | Its programs, and Jupiter's; a swap before the bridge spends no more than the amount quoted, from the wallet's own account of the token quoted, and pays into the bridge's own account; the steps around it only create the wallet's token accounts or the bridge's, wrap SOL into the wallet's own account and close an account back to the wallet | At Confirm |
-| Bridgers | EVM, TON coin | The router | At Confirm |
-| Jupiter | Solana | Its program; the swap spends no more than the amount quoted, from the wallet's own account of the token quoted, and pays into the wallet's own account of the token received; the steps around it only create the wallet's token accounts, wrap SOL into the wallet's own account and close an account back to the wallet | In the quote list and at Confirm |
+| Mayan | EVM | The forwarder; the route spends only the asset quoted, and no more than the amount quoted | At Confirm |
+| Mayan | Solana | Its programs, and Jupiter's; the route spends only the asset quoted, and no more than the amount quoted; a swap before the bridge spends from the wallet's own account of that token, takes no fee and pays into the bridge's own account, whose own instruction holds the least it accepts; the steps around it follow the Solana rules above | At Confirm |
+| Bridgers | EVM, TON coin, XRP Ledger | The router | At Confirm |
+| Jupiter | Solana | Its program; the swap spends no more than the amount quoted, from the wallet's own account of the token quoted, delivers at least the minimum shown, takes no more than Gem's fee and pays into the wallet's own account of the token received; the steps around it follow the Solana rules above; the transaction reads its lookup tables from the network | In the quote list and at Confirm |
 | Orca, Raydium, PumpSwap, Meteora | Solana | Their programs | At Confirm |
 | Aero | EVM | The Metarouter | At Confirm |
+| Uniswap, PancakeSwap, Oku, Wagmi, Aerodrome | EVM | The Universal Router, with Permit2 and the router as spenders | At Confirm |
+| SunSwap | Tron | Its Universal Router, with its Permit2 and the router as spenders | At Confirm |
+| Across | EVM | The spoke pool | At Confirm |
 | Relay, Chainflip, Near Intents, swaps.xyz | Bitcoin and other deposit-address swaps | Not bound: a deposit address made per swap | |
-| Mayan on Sui; Bridgers for TON tokens and XRP | | Not bound | |
+| Mayan on Sui; Bridgers for TON tokens | | Not bound | |
 | DeDust, STON.fi | TON tokens | Not bound: the sender's own jetton wallet, which comes from the TON node | |
 | Hyperliquid | HYPE and UBTC against USDC | The pair's market, shipped with the app | |
 | Hyperliquid | Any other pair | Not bound: the market comes from the Hyperliquid node | |
-| Uniswap family, Across, SunSwap, STON.fi, DeDust, Hyperion, Cetus, DeepBook, Stellar DEX, XRP Ledger DEX | All | Built on the device against shipped contracts | |
+| STON.fi, DeDust, Hyperion, Cetus, DeepBook, Stellar DEX, XRP Ledger DEX | All | Built on the device against shipped contracts | |
 
 A known contract shows under its provider's name, such as `SunSwap Router`; the shared Uniswap Permit2 shows as `Permit2`.
 
@@ -241,4 +244,4 @@ None recorded.
 - A slow provider never holds back a quote another provider already gave.
 - Swap never signs anything: the confirmation screen holds the only authentication and signs the trade it showed.
 - The Slippage row reads Auto on both screens until the user picks a value.
-- A swap only calls, and only approves, contracts the app ships for that provider and network ([Contract binding](#contract-binding)).
+- A swap only approves the token it swaps, never sends more than the amount quoted, and only calls and approves contracts the app ships for that provider and network ([Contract binding](#contract-binding)).

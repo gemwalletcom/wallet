@@ -1,5 +1,5 @@
 use super::{
-    Contracts, SwapperQuoteData, contract_check,
+    Binding, SwapperQuoteData, contract_check,
     cross_chain::VaultAddresses,
     error::SwapperError,
     models::{QuoteDataInput, ProviderType, Quote, QuoteRequest, SwapAmountMode, SwapResult, SwapResultRequest, SwapperChainAsset},
@@ -18,9 +18,7 @@ pub trait Swapper: Send + Sync + Debug {
     fn native_attachment(&self) -> Option<BigUint> {
         None
     }
-    fn contracts(&self, _from_asset: &AssetId) -> Contracts {
-        Contracts::default()
-    }
+    fn binding(&self, from_asset: &AssetId) -> Binding;
     async fn preload_routes(&self, _from_asset: &AssetId, _to_asset: &AssetId) {}
     async fn get_quote(&self, request: &QuoteRequest) -> Result<Quote, SwapperError>;
     async fn get_quote_data(&self, quote: &Quote, data: QuoteDataInput) -> Result<SwapperQuoteData, SwapperError>;
@@ -41,8 +39,7 @@ impl<'a> dyn Swapper + 'a {
         self.supported_assets().iter().map(SwapperChainAsset::get_chain).collect()
     }
 
-    pub fn verify_contracts(&self, quote: &Quote, data: &SwapperQuoteData) -> Result<(), SwapperError> {
-        let from_asset = quote.request.from_asset.asset_id();
-        contract_check::verify(&from_asset, &self.contracts(&from_asset), data)
+    pub fn verify_binding(&self, quote: &Quote, data: &SwapperQuoteData) -> Result<(), SwapperError> {
+        contract_check::verify(quote, &self.binding(&quote.request.from_asset.asset_id()), data)
     }
 }

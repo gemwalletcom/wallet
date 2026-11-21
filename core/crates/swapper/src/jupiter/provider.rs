@@ -3,7 +3,7 @@ use futures::try_join;
 use gem_client::Client;
 use gem_jsonrpc::client::JsonRpcClient;
 use gem_solana::{
-    JUPITER_PROGRAM_ID, MAX_COMPUTE_UNIT_LIMIT, SolanaAccountEncoding, SolanaRpc, SolanaTokenProgramIdExt, TOKEN_PROGRAM, get_pubkey_by_str,
+    JUPITER_PROGRAM_ID, MAX_COMPUTE_UNIT_LIMIT, SolanaAccountEncoding, SolanaClient, SolanaRpc, SolanaTokenProgramIdExt, TOKEN_PROGRAM, get_pubkey_by_str,
     models::{AccountData, ValueResult},
     token_account::get_token_account,
 };
@@ -12,7 +12,7 @@ use primitives::{AssetId, Chain, SolanaTokenProgramId};
 
 use super::{client::JupiterClient, model::BuildRequest};
 use crate::{
-    Contracts, QuoteDataInput, ProviderData, ProviderType, Quote, QuoteRequest, Route, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteAsset, SwapperQuoteData,
+    Binding, Contracts, QuoteDataInput, ProviderData, ProviderType, Quote, QuoteRequest, Route, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteAsset, SwapperQuoteData,
     error::INVALID_ADDRESS,
     fees::{SOLANA_FEE_MINTS, on_chain_referral_fees},
 };
@@ -94,8 +94,8 @@ where
         SwapAmountMode::Fixed
     }
 
-    fn contracts(&self, _from_asset: &AssetId) -> Contracts {
-        Contracts::new(vec![JUPITER_PROGRAM_ID])
+    fn binding(&self, _from_asset: &AssetId) -> Binding {
+        Binding::Contracts(Contracts::new(vec![JUPITER_PROGRAM_ID]))
     }
 
     async fn get_quote(&self, request: &QuoteRequest) -> Result<Quote, SwapperError> {
@@ -116,7 +116,11 @@ where
         let build = self.http_client.get_build(&build_request).await?;
         let to_value = build.out_amount.parse::<BigUint>().map_err(SwapperError::compute_quote_error)?;
         let slippage_bps = build.slippage_bps;
-        let route_data = build.into_transaction(&build_request)?;
+        let lookup_tables = SolanaClient::new(self.rpc_client.clone())
+            .get_address_lookup_tables(build.lookup_table_addresses())
+            .await
+            .map_err(SwapperError::transaction_error)?;
+        let route_data = build.into_transaction(&build_request, &lookup_tables)?;
 
         Ok(Quote {
             from_value: request.value.clone(),
@@ -235,7 +239,7 @@ mod swap_integration_tests {
 
         let quote_data = provider.get_quote_data(&quote, QuoteDataInput::None).await?;
         let swapper: &dyn Swapper = &provider;
-        swapper.verify_contracts(&quote, &quote_data)?;
+        swapper.verify_binding(&quote, &quote_data)?;
         assert_eq!(quote_data.to, JUPITER_PROGRAM_ID);
         assert!(decode_base64(&quote_data.data).unwrap().len() <= MAX_TRANSACTION_SIZE);
 

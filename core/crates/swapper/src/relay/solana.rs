@@ -17,11 +17,14 @@ fn transaction(step: &SolanaStepData) -> Result<SolanaTransaction, SwapperError>
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::relay::model::RelayQuoteResponse;
+    use crate::{
+        contract_check::verify_solana,
+        relay::{contracts::contracts, model::RelayQuoteResponse},
+    };
     use gem_solana::{AddressLookupTableAccount, Pubkey, decode_transaction};
     use num_bigint::BigUint;
-    use primitives::contract_constants::SOLANA_RELAY_DEPOSITORY_PROGRAM_ID;
     use primitives::hex;
+    use primitives::{Chain, contract_constants::SOLANA_RELAY_DEPOSITORY_PROGRAM_ID};
 
     #[test]
     fn test_build_transaction() {
@@ -29,7 +32,7 @@ mod tests {
         let step = response.get_solana_step().unwrap();
 
         let quote_data = transaction(step).unwrap().encode("4Nd1mBQtrMJVYVfKf2PJy9NZUZdTAsp7D4xWLs4gDB4T", &[]).unwrap();
-        crate::contract_check::verify_solana_programs(&quote_data.data, &crate::relay::contracts::contracts(primitives::Chain::Solana).targets).unwrap();
+        verify_solana(&quote_data.data, "4Nd1mBQtrMJVYVfKf2PJy9NZUZdTAsp7D4xWLs4gDB4T", &contracts(Chain::Solana).targets).unwrap();
 
         let transaction = decode_transaction(&quote_data.data).unwrap();
         assert_eq!(transaction.num_required_signatures(), 1);
@@ -43,6 +46,8 @@ mod tests {
         assert_eq!(instructions[0].data, hex::decode("0d9e0ddf5fd51c0600e1f50500000000d8f6831d9a771a5b031cc86256987f54a9759e6107db24b07ec66eef4e555055").unwrap());
     }
 
+    const TEST_PAYER: &str = "7g2rVN8fAAQdPh1mkajpvELqYa3gWvFXJsBLnKfEQfqy";
+
     #[test]
     fn test_build_transaction_through_jupiter() {
         let response: RelayQuoteResponse = serde_json::from_str(include_str!("testdata/quote_cbbtc_to_base_usdc.json")).unwrap();
@@ -55,8 +60,8 @@ mod tests {
         }
         let lookup_table = AddressLookupTableAccount::new(Pubkey::new([7; 32]), accounts);
 
-        let quote_data = transaction(step).unwrap().encode("4Nd1mBQtrMJVYVfKf2PJy9NZUZdTAsp7D4xWLs4gDB4T", &[lookup_table]).unwrap();
+        let quote_data = transaction(step).unwrap().encode(TEST_PAYER, &[lookup_table]).unwrap();
 
-        crate::contract_check::verify_solana_programs(&quote_data.data, &crate::relay::contracts::contracts(primitives::Chain::Solana).targets).unwrap();
+        verify_solana(&quote_data.data, TEST_PAYER, &contracts(Chain::Solana).targets).unwrap();
     }
 }

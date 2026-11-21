@@ -22,6 +22,13 @@ impl FromIterator<Contracts> for Contracts {
     }
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Binding {
+    Contracts(Contracts),
+    DepositAddress,
+    BuiltOnDevice,
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Deployment {
     pub chain: Chain,

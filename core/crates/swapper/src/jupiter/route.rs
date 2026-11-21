@@ -1,43 +1,41 @@
-use gem_solana::{Instruction, JUPITER_PROGRAM_ID, Pubkey, anchor::global_discriminator};
+use gem_encoding::borsh::{BorshDeserialize, DecodeError, Reader};
+use gem_solana::{Instruction, JUPITER_PROGRAM_ID, Pubkey, anchor::instruction_arguments};
 
-const AMOUNT_LENGTH: usize = 8;
+const ROUTE: &str = "route_v2";
+const SHARED_ACCOUNTS_ROUTE: &str = "shared_accounts_route_v2";
+const BPS: u128 = 10_000;
 
-enum DestinationAccount {
-    Required(usize),
-    Optional { account: usize, user_account: usize },
+#[derive(Debug, PartialEq, Eq)]
+pub(super) struct RouteArguments {
+    pub in_amount: u64,
+    pub quoted_out_amount: u64,
+    pub slippage_bps: u16,
+    pub platform_fee_bps: u16,
 }
 
-struct RouteLayout {
-    name: &'static str,
-    authority: usize,
-    source: usize,
-    destination: DestinationAccount,
-    in_amount: usize,
+impl BorshDeserialize for RouteArguments {
+    fn deserialize_reader(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        Ok(Self {
+            in_amount: reader.read()?,
+            quoted_out_amount: reader.read()?,
+            slippage_bps: reader.read()?,
+            platform_fee_bps: reader.read()?,
+        })
+    }
 }
 
-const ROUTE_LAYOUTS: [RouteLayout; 2] = [
-    RouteLayout {
-        name: "route_v2",
-        authority: 0,
-        source: 1,
-        destination: DestinationAccount::Optional { account: 7, user_account: 2 },
-        in_amount: 8,
-    },
-    RouteLayout {
-        name: "shared_accounts_route_v2",
-        authority: 1,
-        source: 2,
-        destination: DestinationAccount::Required(5),
-        in_amount: 9,
-    },
-];
+impl RouteArguments {
+    pub(super) fn minimum_out(&self) -> u64 {
+        minimum_out(self.quoted_out_amount, self.slippage_bps)
+    }
+}
 
 #[derive(Debug, PartialEq, Eq)]
 pub(super) struct JupiterRoute {
     pub authority: Pubkey,
     pub source: Pubkey,
     pub destination: Pubkey,
-    pub in_amount: u64,
+    pub arguments: RouteArguments,
 }
 
 impl JupiterRoute {
@@ -45,30 +43,40 @@ impl JupiterRoute {
         if instruction.program_id.to_base58() != JUPITER_PROGRAM_ID {
             return None;
         }
-        let layout = ROUTE_LAYOUTS.iter().find(|layout| instruction.data.starts_with(&global_discriminator(layout.name)))?;
-        let account = |index: usize| instruction.accounts.get(index).map(|account| account.pubkey);
-        let destination = match layout.destination {
-            DestinationAccount::Required(index) => account(index)?,
-            DestinationAccount::Optional { account: index, user_account } => match account(index)? {
-                placeholder if placeholder == instruction.program_id => account(user_account)?,
+        if let Ok(arguments) = instruction_arguments::<RouteArguments>(&instruction.data, ROUTE) {
+            let destination = match instruction.account(7)? {
+                placeholder if *placeholder == instruction.program_id => instruction.account(2)?,
                 destination => destination,
-            },
-        };
-        let in_amount = instruction.data.get(layout.in_amount..layout.in_amount + AMOUNT_LENGTH)?.try_into().ok().map(u64::from_le_bytes)?;
+            };
+            return Some(Self {
+                authority: *instruction.account(0)?,
+                source: *instruction.account(1)?,
+                destination: *destination,
+                arguments,
+            });
+        }
+        let (_, arguments) = instruction_arguments::<(u8, RouteArguments)>(&instruction.data, SHARED_ACCOUNTS_ROUTE).ok()?;
         Some(Self {
-            authority: account(layout.authority)?,
-            source: account(layout.source)?,
-            destination,
-            in_amount,
+            authority: *instruction.account(1)?,
+            source: *instruction.account(2)?,
+            destination: *instruction.account(5)?,
+            arguments,
         })
     }
+}
+
+pub(super) fn minimum_out(quoted_out_amount: u64, slippage_bps: u16) -> u64 {
+    let kept = BPS.saturating_sub(u128::from(slippage_bps));
+    u64::try_from(u128::from(quoted_out_amount) * kept / BPS).unwrap_or_default()
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::jupiter::{model::BuildResponse, testkit::TEST_PAYER};
-    use gem_solana::{AccountMeta, Base64InstructionData, USDC_TOKEN_MINT, associated_token::get_associated_token_address_with_program_id, decode_instruction, instructions::program_ids::token_program, wrapped_sol};
+    use gem_solana::{
+        AccountMeta, Base64InstructionData, USDC_TOKEN_MINT, anchor::global_discriminator, associated_token::get_associated_token_address_with_program_id, decode_instruction, instructions::program_ids::token_program, wrapped_sol,
+    };
 
     #[test]
     fn test_decode() {
@@ -84,7 +92,12 @@ mod tests {
                 authority: wallet,
                 source: wrapped_sol,
                 destination: usdc,
-                in_amount: 100_000_000,
+                arguments: RouteArguments {
+                    in_amount: 100_000_000,
+                    quoted_out_amount: 6_829_563,
+                    slippage_bps: 100,
+                    platform_fee_bps: 50,
+                },
             }),
             "a route without its own destination pays into the user's destination account"
         );
@@ -94,7 +107,12 @@ mod tests {
                 authority: wallet,
                 source: usdc,
                 destination: wrapped_sol,
-                in_amount: 20_000_000,
+                arguments: RouteArguments {
+                    in_amount: 20_000_000,
+                    quoted_out_amount: 289_924_882,
+                    slippage_bps: 100,
+                    platform_fee_bps: 50,
+                },
             })
         );
 
@@ -114,13 +132,18 @@ mod tests {
             accounts: route.accounts[..7].to_vec(),
             ..route.clone()
         };
-        let short_data = Instruction {
-            data: route.data[..12].to_vec(),
-            ..route.clone()
-        };
+        let short_data = Instruction { data: route.data[..12].to_vec(), ..route };
         assert_eq!(JupiterRoute::decode(&other_program), None);
         assert_eq!(JupiterRoute::decode(&other_instruction), None, "a route whose amount sits behind its route plan is refused");
         assert_eq!(JupiterRoute::decode(&short_accounts), None);
         assert_eq!(JupiterRoute::decode(&short_data), None);
+    }
+
+    #[test]
+    fn test_minimum_out() {
+        assert_eq!(minimum_out(6_829_563, 100), 6_761_267);
+        assert_eq!(minimum_out(6_829_563, 0), 6_829_563);
+        assert_eq!(minimum_out(6_829_563, 10_000), 0);
+        assert_eq!(minimum_out(u64::MAX, u16::MAX), 0);
     }
 }

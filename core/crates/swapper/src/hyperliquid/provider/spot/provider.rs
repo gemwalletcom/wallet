@@ -11,13 +11,13 @@ use gem_hypercore::{
 use num_bigint::BigUint;
 use number_formatter::{BigNumberFormatter, Decimal, NumberFormatterError};
 use primitives::{
-    Chain, HOUR,
+    AssetId, Chain, HOUR,
     asset_constants::{HYPERCORE_SPOT_HYPE_ASSET_ID, HYPERCORE_SPOT_UBTC_ASSET_ID, HYPERCORE_SPOT_USDC_ASSET_ID},
     known_assets::{HYPERCORE_HYPE, HYPERCORE_SPOT_HYPE, HYPERCORE_SPOT_UBTC, HYPERCORE_SPOT_USDC},
 };
 
 use crate::{
-    QuoteDataInput, ProviderType, Quote, QuoteRequest, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteAsset, SwapperQuoteData,
+    Binding, QuoteDataInput, ProviderType, Quote, QuoteRequest, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteAsset, SwapperQuoteData,
     alien::{RpcClient, RpcProvider},
     client_factory::create_rpc_client,
     error::INVALID_AMOUNT,
@@ -130,6 +130,10 @@ impl Swapper for HyperCoreSpot {
 
     fn supported_assets(&self) -> Vec<SwapperChainAsset> {
         vec![SwapperChainAsset::Assets(Chain::HyperCore, vec![HYPERCORE_SPOT_USDC.id.clone(), HYPERCORE_SPOT_UBTC.id.clone()])]
+    }
+
+    fn binding(&self, _from_asset: &AssetId) -> Binding {
+        Binding::BuiltOnDevice
     }
 
     fn amount_mode(&self, _request: &QuoteRequest) -> SwapAmountMode {
