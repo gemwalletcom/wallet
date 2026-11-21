@@ -54,6 +54,7 @@ impl<C: Client + Clone> ChainNodeStatus for EthereumProvider<C> {
 mod tests {
     use super::*;
     use crate::rpc::EthereumClient;
+    use chain_traits::node_check::WalletProbe;
     use gem_jsonrpc::testkit::mock_jsonrpc_client;
     use primitives::EVMChain;
     use primitives::testkit::signer_mock::TEST_EVM_RECIPIENT;
@@ -67,10 +68,10 @@ mod tests {
         });
         let provider = EthereumProvider::new_rpc_only(EthereumClient::new(client, EVMChain::Monad));
 
-        let request = NodeCheckRequest::Wallet {
+        let request = NodeCheckRequest::Wallet(WalletProbe {
             address: TEST_EVM_RECIPIENT.to_string(),
             transaction_id: None,
-        };
+        });
 
         let report = provider.check_node(&request, &NodeSyncStatus::synced(1), Duration::ZERO).await;
 

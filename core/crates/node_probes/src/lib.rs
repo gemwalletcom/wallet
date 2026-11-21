@@ -1,4 +1,4 @@
-use chain_traits::node_check::{NodeCheckProfile, NodeCheckRequest};
+use chain_traits::node_check::{NodeCheckProfile, NodeCheckRequest, WalletProbe};
 use primitives::Chain;
 
 const DEFAULT_EVM_ADDRESS: &str = "0xBA4D1d35bCe0e8F28E5a3403e7a0b996c5d50AC4";
@@ -6,13 +6,13 @@ const DEFAULT_EVM_ADDRESS: &str = "0xBA4D1d35bCe0e8F28E5a3403e7a0b996c5d50AC4";
 pub fn node_check_request(chain: Chain, profile: NodeCheckProfile) -> NodeCheckRequest {
     match profile {
         NodeCheckProfile::Basic => NodeCheckRequest::Basic,
-        NodeCheckProfile::Parser if chain == Chain::Near => NodeCheckRequest::Basic,
-        NodeCheckProfile::Parser => NodeCheckRequest::Parser,
-        NodeCheckProfile::Wallet => wallet_node_check_request(chain),
+        NodeCheckProfile::Wallet => NodeCheckRequest::Wallet(wallet_probe(chain)),
+        NodeCheckProfile::Parser if chain == Chain::Near => NodeCheckRequest::Wallet(wallet_probe(chain)),
+        NodeCheckProfile::Parser => NodeCheckRequest::Parser(wallet_probe(chain)),
     }
 }
 
-fn wallet_node_check_request(chain: Chain) -> NodeCheckRequest {
+fn wallet_probe(chain: Chain) -> WalletProbe {
     let (address, transaction_id) = match chain {
         Chain::Bitcoin => ("bc1qk9cu0nj5czvalnvmlsyc8tmqh8d6f0v9plrrdr", Some("654c6a28f7ff1915d2b9abc2e18e32a37e0196203d64aced6221651f003f5e94")),
         Chain::BitcoinCash => ("qpcns7lget89x9km0t8ry5fk52e8lhl53q0a64gd65", Some("8d8da67e2a629e30520f105d9f8bb49568e691b1da862d9c01e6c4037a934210")),
@@ -73,7 +73,7 @@ fn wallet_node_check_request(chain: Chain) -> NodeCheckRequest {
         Chain::Arc => (DEFAULT_EVM_ADDRESS, Some("0xf5dfe1d860669f60fb911570d78c9928c8a8e71766a9470e697aa931a3de6d17")),
     };
 
-    NodeCheckRequest::Wallet {
+    WalletProbe {
         address: address.to_string(),
         transaction_id: transaction_id.map(str::to_string),
     }
@@ -88,7 +88,7 @@ mod tests {
     #[test]
     fn test_wallet_node_check_request() {
         for chain in Chain::all() {
-            let NodeCheckRequest::Wallet { address, transaction_id } = node_check_request(chain, NodeCheckProfile::Wallet) else {
+            let NodeCheckRequest::Wallet(WalletProbe { address, transaction_id }) = node_check_request(chain, NodeCheckProfile::Wallet) else {
                 panic!("wallet profile expected for {chain}");
             };
             assert!(!address.is_empty(), "wallet address missing for {chain}");
@@ -102,7 +102,8 @@ mod tests {
     }
 
     #[test]
-    fn test_near_parser_node_check_request() {
-        assert_eq!(node_check_request(Chain::Near, NodeCheckProfile::Parser), NodeCheckRequest::Basic);
+    fn test_parser_node_check_request_includes_wallet() {
+        assert_eq!(node_check_request(Chain::Ethereum, NodeCheckProfile::Parser), NodeCheckRequest::Parser(wallet_probe(Chain::Ethereum)));
+        assert_eq!(node_check_request(Chain::Near, NodeCheckProfile::Parser), NodeCheckRequest::Wallet(wallet_probe(Chain::Near)));
     }
 }

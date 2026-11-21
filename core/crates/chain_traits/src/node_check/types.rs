@@ -14,18 +14,31 @@ pub enum NodeCheckProfile {
 }
 
 #[derive(Debug, PartialEq, Eq)]
+pub struct WalletProbe {
+    pub address: String,
+    pub transaction_id: Option<String>,
+}
+
+#[derive(Debug, PartialEq, Eq)]
 pub enum NodeCheckRequest {
     Basic,
-    Wallet { address: String, transaction_id: Option<String> },
-    Parser,
+    Wallet(WalletProbe),
+    Parser(WalletProbe),
 }
 
 impl NodeCheckRequest {
     pub fn profile(&self) -> NodeCheckProfile {
         match self {
             Self::Basic => NodeCheckProfile::Basic,
-            Self::Wallet { .. } => NodeCheckProfile::Wallet,
-            Self::Parser => NodeCheckProfile::Parser,
+            Self::Wallet(_) => NodeCheckProfile::Wallet,
+            Self::Parser(_) => NodeCheckProfile::Parser,
+        }
+    }
+
+    pub fn wallet(&self) -> Option<&WalletProbe> {
+        match self {
+            Self::Basic => None,
+            Self::Wallet(probe) | Self::Parser(probe) => Some(probe),
         }
     }
 }

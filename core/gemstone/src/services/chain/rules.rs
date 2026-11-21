@@ -1,6 +1,6 @@
 use std::cmp::Reverse;
 
-use chain_traits::node_check::{NodeCheckProfile, NodeCheckRequest};
+use chain_traits::node_check::NodeCheckProfile;
 use node_probes::node_check_request;
 use primitives::{AssetId, Chain, ChainAsset, Wallet};
 
@@ -44,10 +44,7 @@ pub fn mismatched_network_id(chain: Chain, network_id: Option<&str>) -> Option<S
 
 pub fn node_verification_address(chain: Chain) -> Option<String> {
     match chain {
-        Chain::Polkadot => match node_check_request(chain, NodeCheckProfile::Wallet) {
-            NodeCheckRequest::Wallet { address, .. } => Some(address),
-            NodeCheckRequest::Basic | NodeCheckRequest::Parser => None,
-        },
+        Chain::Polkadot => node_check_request(chain, NodeCheckProfile::Wallet).wallet().map(|probe| probe.address.clone()),
         _ => None,
     }
 }
