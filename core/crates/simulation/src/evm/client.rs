@@ -1,9 +1,9 @@
 use std::error::Error;
 
 use gem_client::Client;
-use gem_evm::{eip712::EIP712Message, rpc::EthereumClient};
+use gem_evm::{eip712::EIP712Message, ethereum_address_checksum_or_original, rpc::EthereumClient};
 use primitives::hex;
-use primitives::{Chain, SimulationResult, SimulationSeverity, SimulationWarning, SimulationWarningType};
+use primitives::{Chain, SimulationPayloadField, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType, SimulationResult, SimulationSeverity, SimulationWarning, SimulationWarningType};
 
 use super::{
     approval_request::ApprovalRequest,
@@ -31,7 +31,15 @@ impl<'a, C: Client + Clone> SimulationClient<'a, C> {
     pub async fn simulate_evm_calldata(&self, chain: Chain, calldata: &[u8], contract_address: &str) -> Result<SimulationResult, Box<dyn Error + Send + Sync>> {
         match decode_evm_approval(chain, calldata, contract_address) {
             Some(approval) => self.simulate_approval(approval).await,
-            None => Ok(super::decode::simulate_evm_calldata(chain, calldata, contract_address)),
+            None => Ok(SimulationResult::new(
+                vec![],
+                vec![SimulationPayloadField::standard(
+                    SimulationPayloadFieldKind::Contract,
+                    ethereum_address_checksum_or_original(contract_address),
+                    SimulationPayloadFieldType::Address,
+                    SimulationPayloadFieldDisplay::Primary,
+                )],
+            )),
         }
     }
 

@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use crate::model::{FiatMapping, FiatProviderAsset};
 use crate::webhook::FiatWebhookRequest;
 use async_trait::async_trait;
@@ -31,47 +29,6 @@ pub trait FiatProvider: Send + Sync {
 
     async fn payment_methods(&self) -> Vec<PaymentType> {
         DEFAULT_PAYMENT_METHODS.to_vec()
-    }
-}
-
-#[async_trait]
-impl<T: Send + Sync> FiatProvider for Arc<T>
-where
-    T: FiatProvider + ?Sized,
-{
-    fn name(&self) -> FiatProviderName {
-        (**self).name()
-    }
-
-    async fn get_assets(&self) -> Result<Vec<FiatProviderAsset>, Box<dyn std::error::Error + Send + Sync>> {
-        (**self).get_assets().await
-    }
-    async fn get_countries(&self) -> Result<Vec<FiatProviderCountry>, Box<dyn std::error::Error + Send + Sync>> {
-        (**self).get_countries().await
-    }
-
-    async fn get_order_status(&self, order_id: &str) -> Result<FiatTransactionUpdate, Box<dyn std::error::Error + Send + Sync>> {
-        (**self).get_order_status(order_id).await
-    }
-
-    async fn parse_webhook(&self, request: FiatWebhookRequest) -> Result<FiatWebhook, Box<dyn std::error::Error + Send + Sync>> {
-        (**self).parse_webhook(request).await
-    }
-
-    async fn get_quote_buy(&self, request: FiatQuoteRequest, request_map: FiatMapping) -> Result<FiatQuoteResponse, Box<dyn std::error::Error + Send + Sync>> {
-        (**self).get_quote_buy(request, request_map).await
-    }
-
-    async fn get_quote_sell(&self, request: FiatQuoteRequest, request_map: FiatMapping) -> Result<FiatQuoteResponse, Box<dyn std::error::Error + Send + Sync>> {
-        (**self).get_quote_sell(request, request_map).await
-    }
-
-    async fn get_quote_url(&self, data: FiatQuoteUrlData) -> Result<FiatQuoteUrl, Box<dyn std::error::Error + Send + Sync>> {
-        (**self).get_quote_url(data).await
-    }
-
-    async fn payment_methods(&self) -> Vec<PaymentType> {
-        (**self).payment_methods().await
     }
 }
 
