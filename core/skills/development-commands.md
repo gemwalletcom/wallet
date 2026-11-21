@@ -22,6 +22,7 @@ just test <CRATE>               # Run unit tests for a specific crate
 just test <CRATE> <FILTER>      # Run matching unit tests in one crate
 just test "" <FILTER>           # Run matching workspace unit tests
 just build-integration-tests   # Compile all integration suites without running them
+just test-ci                    # CI: run workspace unit tests with every integration suite compiled
 just test-integration           # Run integration tests only
 cargo test --test integration_test --package <CRATE> --features <FEATURE>  # Manual integration test
 just fuzz [SECONDS]             # Fuzz every target in fuzz/ in parallel (default 600s); crash inputs land in fuzz/artifacts/<target>/
@@ -29,9 +30,9 @@ just fuzz [SECONDS]             # Fuzz every target in fuzz/ in parallel (defaul
 
 `just test <CRATE>` includes `--lib` and requires a library target. For binary-only packages such as `generate`, run `cargo test --locked -p generate --bins --all-features` instead.
 
-The optional filter matches test names (for example, `just test gemstone services::assets`). Omitting it keeps the full unit suite. Crate runs pass `--all-features` and skip `integration_tests`; workspace runs rely on feature unification across members. Check the test count so an unmatched filter is not mistaken for coverage.
+The optional filter matches test names (for example, `just test gemstone services::assets`). Omitting it keeps the full unit suite. Crate runs skip `integration_tests`; workspace runs rely on feature unification across members. Check the test count so an unmatched filter is not mistaken for coverage.
 
-`just build-integration-tests` compiles workspace library tests once with the union of the chain, swapper, fiat, NFT, price, security, and database integration features. Swap integration tests belong to the `swapper` crate. It does not run live tests; `just test-integration` runs each suite separately with serial test execution.
+`just build-integration-tests` compiles workspace library tests once with the union of the chain, swapper, fiat, NFT, price, security, and database integration features. Swap integration tests belong to the `swapper` crate. It does not run live tests; `just test-integration` runs each suite separately with serial test execution. CI runs `just test-ci`, which builds with the same features and skips `integration_tests` by name, so one build both runs the unit tests and proves every integration suite compiles.
 
 Cargo accepts one positional test filter. Run multiple filters as separate commands. Confirm the active worktree and run commands from the directory assumed by the path arguments. If parallel Cargo commands contend on workspace locks or do not return a clear final status, rerun the closing checks individually.
 
