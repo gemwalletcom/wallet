@@ -1,5 +1,7 @@
-use borsh::BorshDeserialize;
-use gem_encoding::decode_base58;
+use gem_encoding::{
+    borsh::{BorshDeserialize, DecodeError, Reader},
+    decode_base58,
+};
 use num_bigint::{BigUint, Sign};
 use primitives::decode_hex_literal;
 use primitives::hex;
@@ -30,10 +32,16 @@ struct DecodedDeposit {
     data: String,
 }
 
-#[derive(BorshDeserialize)]
 struct DepositArguments {
     amount: u64,
-    _id: [u8; 32],
+}
+
+impl BorshDeserialize for DepositArguments {
+    fn deserialize_reader(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        let value = Self { amount: reader.read()? };
+        reader.skip(32)?;
+        Ok(value)
+    }
 }
 
 impl TransactionParser<ParseContext<'_>, Transaction> for RelayParser {

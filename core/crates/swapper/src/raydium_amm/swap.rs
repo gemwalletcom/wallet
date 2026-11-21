@@ -1,4 +1,4 @@
-use borsh::to_vec;
+use gem_encoding::borsh::BorshSerialize;
 use gem_solana::{
     AccountMeta, Instruction, Pubkey,
     instructions::program_ids::{raydium_amm_program, token_program},
@@ -29,7 +29,7 @@ pub(super) fn swap_base_in_v2_instruction(address: &Pubkey, pool: &Pool, swap: &
     Ok(Instruction {
         program_id: raydium_amm_program(),
         accounts,
-        data: [vec![SWAP_BASE_IN_V2], to_vec(&swap.amounts()).unwrap_or_default()].concat(),
+        data: [vec![SWAP_BASE_IN_V2], swap.amounts().to_vec()].concat(),
     })
 }
 

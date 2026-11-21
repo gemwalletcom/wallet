@@ -7,9 +7,9 @@ use crate::metaplex::{
     uses::Uses,
 };
 use crate::{METAPLEX_PROGRAM, Pubkey, find_program_address};
-use borsh::{BorshDeserialize, BorshSerialize};
+use gem_encoding::borsh::{BorshDeserialize, DecodeError, Reader};
 
-#[derive(Clone, BorshDeserialize, BorshSerialize, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Metadata {
     pub key: Key,
     pub update_authority: Pubkey,
@@ -25,9 +25,37 @@ pub struct Metadata {
     pub programmable_config: Option<ProgrammableConfig>,
 }
 
-#[derive(BorshSerialize, BorshDeserialize, PartialEq, Eq, Debug, Clone)]
+impl BorshDeserialize for Metadata {
+    fn deserialize_reader(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        Ok(Self {
+            key: reader.read()?,
+            update_authority: reader.read()?,
+            mint: reader.read()?,
+            data: reader.read()?,
+            primary_sale_happened: reader.read()?,
+            is_mutable: reader.read()?,
+            edition_nonce: reader.read()?,
+            token_standard: reader.read()?,
+            collection: reader.read()?,
+            uses: reader.read()?,
+            collection_details: reader.read()?,
+            programmable_config: reader.read()?,
+        })
+    }
+}
+
+#[derive(PartialEq, Eq, Debug, Clone)]
 pub enum ProgrammableConfig {
     V1 { rule_set: Option<Pubkey> },
+}
+
+impl BorshDeserialize for ProgrammableConfig {
+    fn deserialize_reader(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        match reader.read::<u8>()? {
+            0 => Ok(Self::V1 { rule_set: reader.read()? }),
+            tag => Err(DecodeError::UnexpectedTag(tag)),
+        }
+    }
 }
 
 impl Metadata {

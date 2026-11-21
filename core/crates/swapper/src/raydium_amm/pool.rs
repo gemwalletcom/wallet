@@ -1,4 +1,4 @@
-use borsh::BorshDeserialize;
+use gem_encoding::borsh::{BorshDeserialize, DecodeError, Reader};
 use gem_solana::{Pubkey, SolanaDataSlice};
 
 use crate::{
@@ -16,67 +16,67 @@ const SWAP_STATUSES: [u64; 3] = [1, 6, 7];
 const WAITING_TRADE: u64 = 7;
 pub(super) const AUTHORITY_NONCE: u64 = 254;
 
-#[derive(Debug, Clone, PartialEq, BorshDeserialize)]
+#[derive(Debug, Clone, PartialEq)]
 struct Fees {
-    _min_separate_numerator: u64,
-    _min_separate_denominator: u64,
-    _trade_fee_numerator: u64,
-    _trade_fee_denominator: u64,
-    _pnl_numerator: u64,
-    _pnl_denominator: u64,
     swap_fee_numerator: u64,
     swap_fee_denominator: u64,
 }
 
-#[derive(Debug, Clone, PartialEq, BorshDeserialize)]
+impl BorshDeserialize for Fees {
+    fn deserialize_reader(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        Ok(Self {
+            swap_fee_numerator: reader.skip(48)?.read()?,
+            swap_fee_denominator: reader.read()?,
+        })
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
 struct StateData {
     need_take_pnl_coin: u64,
     need_take_pnl_pc: u64,
-    _total_pnl_pc: u64,
-    _total_pnl_coin: u64,
     pool_open_time: u64,
-    _padding: [u64; 2],
-    _orderbook_to_init_time: u64,
-    _swap_coin_in_amount: u128,
-    _swap_pc_out_amount: u128,
-    _swap_acc_pc_fee: u64,
-    _swap_pc_in_amount: u128,
-    _swap_coin_out_amount: u128,
-    _swap_acc_coin_fee: u64,
 }
 
-#[derive(Debug, Clone, PartialEq, BorshDeserialize)]
+impl BorshDeserialize for StateData {
+    fn deserialize_reader(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        let value = Self {
+            need_take_pnl_coin: reader.read()?,
+            need_take_pnl_pc: reader.read()?,
+            pool_open_time: reader.skip(16)?.read()?,
+        };
+        reader.skip(104)?;
+        Ok(value)
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub(crate) struct Pool {
     status: u64,
     nonce: u64,
-    _order_num: u64,
-    _depth: u64,
-    _coin_decimals: u64,
-    _pc_decimals: u64,
-    _state: u64,
-    _reset_flag: u64,
-    _min_size: u64,
-    _vol_max_cut_ratio: u64,
-    _amount_wave: u64,
-    _coin_lot_size: u64,
-    _pc_lot_size: u64,
-    _min_price_multiplier: u64,
-    _max_price_multiplier: u64,
-    _sys_decimal_value: u64,
     fees: Fees,
     state_data: StateData,
     pub coin_vault: Pubkey,
     pub pc_vault: Pubkey,
     pub coin_mint: Pubkey,
     pub pc_mint: Pubkey,
-    _lp_mint: Pubkey,
-    _open_orders: Pubkey,
-    _market: Pubkey,
-    _market_program: Pubkey,
-    _target_orders: Pubkey,
-    _padding1: [u64; 8],
-    _amm_owner: Pubkey,
     pub lp_amount: u64,
+}
+
+impl BorshDeserialize for Pool {
+    fn deserialize_reader(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        Ok(Self {
+            status: reader.read()?,
+            nonce: reader.read()?,
+            fees: reader.skip(112)?.read()?,
+            state_data: reader.read()?,
+            coin_vault: reader.read()?,
+            pc_vault: reader.read()?,
+            coin_mint: reader.read()?,
+            pc_mint: reader.read()?,
+            lp_amount: reader.skip(256)?.read()?,
+        })
+    }
 }
 
 impl DexPool for Pool {
@@ -124,6 +124,7 @@ mod tests {
         assert_eq!(u64::try_from(data.len()).unwrap(), LAYOUT.account_len);
         assert_eq!(at(LAYOUT.mint_offsets[0], 32), wrapped_sol_mint().as_bytes());
         assert_eq!(at(LAYOUT.mint_offsets[1], 32), Pubkey::from_base58(USDC_TOKEN_MINT).unwrap().as_bytes());
+        assert_eq!((snapshot.pool.coin_mint, snapshot.pool.pc_mint), (wrapped_sol_mint(), Pubkey::from_base58(USDC_TOKEN_MINT).unwrap()));
         assert_eq!(at(LAYOUT.depth.offset, LAYOUT.depth.length), snapshot.pool.lp_amount.to_le_bytes());
         assert_eq!(
             (snapshot.pool.status, snapshot.pool.nonce, snapshot.pool.fees.swap_fee_numerator, snapshot.pool.fees.swap_fee_denominator),

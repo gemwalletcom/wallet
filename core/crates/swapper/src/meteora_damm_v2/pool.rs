@@ -1,5 +1,5 @@
 use alloy_primitives::U256;
-use borsh::BorshDeserialize;
+use gem_encoding::borsh::{BorshDeserialize, DecodeError, Reader};
 use gem_solana::{Pubkey, SolanaDataSlice, anchor::AnchorAccount, models::Clock};
 
 use super::fee::{BaseFee, DynamicFee, FeePoint};
@@ -20,64 +20,64 @@ const ONLY_B: u8 = 1;
 const COMPOUNDING: u8 = 2;
 const Q128_RESOLUTION: usize = 128;
 
-#[derive(Debug, Clone, PartialEq, BorshDeserialize)]
+#[derive(Debug, Clone, PartialEq)]
 struct PoolFees {
     base_fee: BaseFee,
-    _base_fee_padding_1: u64,
-    _protocol_fee_percent: u8,
-    _padding_0: u8,
-    _referral_fee_percent: u8,
-    _padding_1: [u8; 3],
-    _compounding_fee_bps: u16,
     dynamic_fee: DynamicFee,
     init_sqrt_price: u128,
 }
 
-#[derive(Debug, Clone, PartialEq, BorshDeserialize)]
-struct PoolMetrics {
-    _total_lp_a_fee: u128,
-    _total_lp_b_fee: u128,
-    _total_protocol_a_fee: u64,
-    _total_protocol_b_fee: u64,
-    _padding_0: [u64; 2],
-    _total_position: u64,
-    _padding: u64,
+impl BorshDeserialize for PoolFees {
+    fn deserialize_reader(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        Ok(Self {
+            base_fee: reader.read()?,
+            dynamic_fee: reader.skip(16)?.read()?,
+            init_sqrt_price: reader.read()?,
+        })
+    }
 }
 
-#[derive(Debug, Clone, PartialEq, BorshDeserialize)]
+#[derive(Debug, Clone, PartialEq)]
 pub(crate) struct Pool {
     pool_fees: PoolFees,
     pub token_a_mint: Pubkey,
     pub token_b_mint: Pubkey,
     pub token_a_vault: Pubkey,
     pub token_b_vault: Pubkey,
-    _whitelisted_vault: Pubkey,
-    _padding_0: [u8; 32],
     pub liquidity: u128,
-    _padding_1: u128,
-    _protocol_a_fee: u64,
-    _protocol_b_fee: u64,
-    _dead_liquidity_fee_checkpoint: u64,
-    _padding_2: [u8; 8],
     sqrt_min_price: u128,
     sqrt_max_price: u128,
     sqrt_price: u128,
     activation_point: u64,
     activation_type: ActivationType,
     pool_status: u8,
-    _token_a_flag: u8,
-    _token_b_flag: u8,
     collect_fee_mode: u8,
-    _pool_type: u8,
     fee_version: u8,
-    _padding_3: u8,
-    _fee_a_per_liquidity: [u8; 32],
-    _fee_b_per_liquidity: [u8; 32],
-    _permanent_lock_liquidity: u128,
-    _metrics: PoolMetrics,
-    _creator: Pubkey,
     token_a_amount: u64,
     token_b_amount: u64,
+}
+
+impl BorshDeserialize for Pool {
+    fn deserialize_reader(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        Ok(Self {
+            pool_fees: reader.read()?,
+            token_a_mint: reader.read()?,
+            token_b_mint: reader.read()?,
+            token_a_vault: reader.read()?,
+            token_b_vault: reader.read()?,
+            liquidity: reader.skip(64)?.read()?,
+            sqrt_min_price: reader.skip(48)?.read()?,
+            sqrt_max_price: reader.read()?,
+            sqrt_price: reader.read()?,
+            activation_point: reader.read()?,
+            activation_type: reader.read()?,
+            pool_status: reader.read()?,
+            collect_fee_mode: reader.skip(2)?.read()?,
+            fee_version: reader.skip(1)?.read()?,
+            token_a_amount: reader.skip(193)?.read()?,
+            token_b_amount: reader.read()?,
+        })
+    }
 }
 
 impl AnchorAccount for Pool {
@@ -160,6 +160,7 @@ impl Pool {
 mod tests {
     use super::*;
     use crate::meteora_damm_v2::testkit::{TEST_BOTH_TOKEN_POOL, mock_pool_snapshot};
+    use gem_solana::WSOL_TOKEN_ADDRESS;
 
     #[test]
     fn test_quote_pool_state() {
@@ -207,5 +208,20 @@ mod tests {
         assert_eq!(at(LAYOUT.mint_offsets[0], 32), snapshot.pool.token_a_mint.as_bytes());
         assert_eq!(at(LAYOUT.mint_offsets[1], 32), snapshot.pool.token_b_mint.as_bytes());
         assert_eq!(at(LAYOUT.depth.offset, LAYOUT.depth.length), snapshot.pool.liquidity.to_le_bytes());
+    }
+
+    #[test]
+    fn test_decode() {
+        let pool = mock_pool_snapshot(TEST_BOTH_TOKEN_POOL).pool;
+
+        assert_eq!(
+            [pool.token_a_mint, pool.token_b_mint, pool.token_a_vault, pool.token_b_vault].map(|key| key.to_base58()),
+            [
+                "HmjCoarLh5duURfJ333DwfFiPyTCgFT35pRSAoP8pump",
+                WSOL_TOKEN_ADDRESS,
+                "2dc43wtcfvGVEfVmTzjJkEvZfoVPByZkM1vgaRMRTLYP",
+                "BYu51Sj9vCRuUTdbzU4dNxg4jugDsCNkrNxbTFPKUAsA",
+            ]
+        );
     }
 }

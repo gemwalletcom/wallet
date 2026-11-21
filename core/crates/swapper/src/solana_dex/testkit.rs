@@ -1,6 +1,5 @@
-use borsh::BorshDeserialize;
 use gem_client::testkit::MockClient;
-use gem_encoding::{decode_base64, encode_base64};
+use gem_encoding::{borsh::BorshDeserialize, decode_base64, encode_base64};
 use gem_jsonrpc::{client::JsonRpcClient, testkit::mock_jsonrpc_client};
 use gem_solana::{
     DEFAULT_SWAP_GAS_LIMIT, Instruction, Pubkey, USDC_TOKEN_MINT,

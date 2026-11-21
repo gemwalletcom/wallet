@@ -4,10 +4,12 @@ mod uses;
 
 pub mod metadata;
 use crate::metaplex::metadata::Metadata;
-use borsh::{BorshDeserialize, BorshSerialize};
-use gem_encoding::decode_base64;
+use gem_encoding::{
+    borsh::{BorshDeserialize, DecodeError, Reader},
+    decode_base64,
+};
 
-#[derive(BorshSerialize, BorshDeserialize, PartialEq, Eq, Debug, Clone, Copy)]
+#[derive(PartialEq, Eq, Debug, Clone, Copy)]
 pub enum Key {
     Uninitialized,
     EditionV1,
@@ -26,7 +28,30 @@ pub enum Key {
     HolderDelegate,
 }
 
-#[derive(BorshSerialize, BorshDeserialize, PartialEq, Eq, Debug, Clone, Copy)]
+impl BorshDeserialize for Key {
+    fn deserialize_reader(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        match reader.read::<u8>()? {
+            0 => Ok(Self::Uninitialized),
+            1 => Ok(Self::EditionV1),
+            2 => Ok(Self::MasterEditionV1),
+            3 => Ok(Self::ReservationListV1),
+            4 => Ok(Self::MetadataV1),
+            5 => Ok(Self::ReservationListV2),
+            6 => Ok(Self::MasterEditionV2),
+            7 => Ok(Self::EditionMarker),
+            8 => Ok(Self::UseAuthorityRecord),
+            9 => Ok(Self::CollectionAuthorityRecord),
+            10 => Ok(Self::TokenOwnedEscrow),
+            11 => Ok(Self::TokenRecord),
+            12 => Ok(Self::MetadataDelegate),
+            13 => Ok(Self::EditionMarkerV2),
+            14 => Ok(Self::HolderDelegate),
+            tag => Err(DecodeError::UnexpectedTag(tag)),
+        }
+    }
+}
+
+#[derive(PartialEq, Eq, Debug, Clone, Copy)]
 pub enum TokenStandard {
     NonFungible,
     FungibleAsset,
@@ -34,6 +59,20 @@ pub enum TokenStandard {
     NonFungibleEdition,
     ProgrammableNonFungible,
     ProgrammableNonFungibleEdition,
+}
+
+impl BorshDeserialize for TokenStandard {
+    fn deserialize_reader(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        match reader.read::<u8>()? {
+            0 => Ok(Self::NonFungible),
+            1 => Ok(Self::FungibleAsset),
+            2 => Ok(Self::Fungible),
+            3 => Ok(Self::NonFungibleEdition),
+            4 => Ok(Self::ProgrammableNonFungible),
+            5 => Ok(Self::ProgrammableNonFungibleEdition),
+            tag => Err(DecodeError::UnexpectedTag(tag)),
+        }
+    }
 }
 
 pub fn decode_metadata(base64_str: &str) -> Result<Metadata, Box<dyn std::error::Error>> {
