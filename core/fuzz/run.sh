@@ -18,6 +18,7 @@ seed solana_transaction '(AQ|Ag|Aw|gA)[A-Za-z0-9+/]{200,}={0,2}' 'base64 -d'
 seed sui_transaction 'AAA[A-Za-z0-9+/]{200,}={0,2}' 'base64 -d'
 seed ton_boc 'te6cc[A-Za-z0-9+/]+={0,2}' 'base64 -d'
 seed payment_url '(bitcoin|ethereum|solana|ton|xrp|wc):[^" ]+' cat
+seed url '(https?|wss?|gem|wc|blob):[^" ]+' cat
 seed wallet_import '"([a-z]+ ){11,23}[a-z]+"' 'sed s/^"/00/;s/"$//'
 seed zcash_transaction '0[456]000080[0-9a-f]{200,}' 'xxd -r -p'
 

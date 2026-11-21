@@ -1,5 +1,5 @@
 use crate::OptionStringExt;
-use url::Url;
+use gem_url::Url;
 
 use crate::url_query::query_value;
 use crate::{AssetId, Chain, GEM_HOST, GEM_URL_SCHEME, HTTPS_URL_SCHEME};

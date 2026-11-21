@@ -1,5 +1,6 @@
 use super::chain::Chain;
 use crate::{GEM_NODES_ASIA_HOST, GEM_NODES_EUROPE_HOST, GEM_NODES_HOST};
+use gem_url::Url;
 use serde::{Deserialize, Serialize};
 use strum::{AsRefStr, EnumString};
 
@@ -50,7 +51,7 @@ impl NodeRegion {
     }
 
     pub fn from_url(value: &str) -> Option<Self> {
-        let url = url::Url::parse(value).ok()?;
+        let url = Url::parse(value).ok()?;
         let host = url.host_str()?;
         Self::all().into_iter().find(|region| region.host() == host)
     }

@@ -1,11 +1,11 @@
 use super::amount;
 use super::error::{PaymentDecoderError, Result};
 use super::query;
+use gem_url::{Url, form_urlencoded};
 use primitives::{
     AssetId, Chain,
     payment::{Payment, PaymentAmount, PaymentLink, PaymentRequest},
 };
-use url::{Url, form_urlencoded};
 
 const TRANSACTION_LINK_PREFIX: &str = "https";
 

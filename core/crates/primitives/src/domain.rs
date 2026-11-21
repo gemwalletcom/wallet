@@ -1,4 +1,4 @@
-use url::Url;
+use gem_url::Url;
 
 pub fn parse_domain(domain: &str) -> Option<Url> {
     if domain.is_empty() || domain.contains(['/', '?', '#', '@', '\\']) || domain.chars().any(char::is_whitespace) {

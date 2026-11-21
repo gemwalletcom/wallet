@@ -1,0 +1,10 @@
+[package]
+name = "gem_url"
+version = { workspace = true }
+edition = { workspace = true }
+
+[dependencies]
+
+[dev-dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }

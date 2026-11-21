@@ -1,5 +1,5 @@
+use gem_url::{Host, Url, form_urlencoded};
 use primitives::{ApplicationMetadata, OptionStringExt};
-use url::{Host, Url, form_urlencoded};
 
 use crate::config::public::ASSETS_URL;
 
@@ -33,7 +33,7 @@ pub fn icon_url(metadata: &ApplicationMetadata) -> Option<String> {
     let website = public_url(&metadata.url)?;
     let icon = public_url(&metadata.icon).filter(|icon| icon.fragment().is_none() && icon.as_str().len() <= ICON_URL_MAX_LENGTH);
     let source = icon.map_or_else(|| website.origin().ascii_serialization(), |icon| icon.to_string());
-    let query = form_urlencoded::Serializer::new(String::new()).append_pair("url", &source).append_pair("size", APPLICATION_ICON_SIZE).finish();
+    let query = form_urlencoded::serialize([("url", source.as_str()), ("size", APPLICATION_ICON_SIZE)]);
     Some(format!("{ASSETS_URL}/proxy/icon?{query}"))
 }
 

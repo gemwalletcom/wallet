@@ -1,4 +1,4 @@
-use url::Url;
+use gem_url::Url;
 
 pub fn host_with_port(url_or_domain: &str) -> Option<String> {
     if url_or_domain.is_empty() {

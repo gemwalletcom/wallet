@@ -1,7 +1,7 @@
 use gem_evm::address::ethereum_address_checksum;
+use gem_url::Url;
 use number_formatter::BigNumberFormatter;
 use primitives::{AssetId, PaymentAmount, PaymentInvoice, PaymentLink, PaymentMerchant, PaymentPrice, PaymentQuote, PaymentRequest, PaymentStatus, TransactionType, TransferDataOutputType, WalletConnectCAIP2, WalletConnectCAIP19};
-use url::Url;
 
 use crate::PaymentTransaction;
 use crate::decoder::is_payment_host;

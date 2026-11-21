@@ -1,4 +1,4 @@
-use url::form_urlencoded::byte_serialize;
+use gem_url::form_urlencoded::byte_serialize;
 
 use crate::{BlockExplorer, ExplorerInput};
 
@@ -24,7 +24,7 @@ impl BlockExplorer for SwapsXyzScan {
     }
 
     fn get_swap_tx_url(&self, input: &ExplorerInput) -> String {
-        let hash = byte_serialize(input.hash.as_bytes()).collect::<String>();
+        let hash = byte_serialize(input.hash.as_bytes());
         format!("https://scan.swaps.xyz/transactions?search={hash}")
     }
 }
