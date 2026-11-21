@@ -213,7 +213,7 @@ A provider may only move funds into contracts the app ships for it. Before Confi
 | Relay | Solana | Its depository and forwarder programs, and Jupiter's | At Confirm |
 | Chainflip | EVM, Tron, Solana | The vault, exactly the amount and token quoted, the asset, network and address the swap pays out to, and the refund address, minimum price, and a refund sent as a plain transfer, with no contract message | At Confirm |
 | Mayan | EVM | The forwarder | At Confirm |
-| Mayan | Solana | Its programs, and Jupiter's | At Confirm |
+| Mayan | Solana | Its programs, and Jupiter's; a swap before the bridge pays into the bridge's own account, and the steps around it only create token accounts, wrap SOL into the wallet's own account and close an account back to the wallet | At Confirm |
 | Bridgers | EVM, TON coin | The router | At Confirm |
 | Jupiter, Orca, Raydium, PumpSwap, Meteora | Solana | Their programs | At Confirm |
 | Aero | EVM | The Metarouter | At Confirm |
