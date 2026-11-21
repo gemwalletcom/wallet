@@ -26,7 +26,6 @@ impl ChainStack {
 pub struct EvmChainConfig {
     pub min_priority_fee: u64,
     pub chain_stack: ChainStack,
-    pub base_fee_increase_percent: u32,
     pub is_ethereum_layer2: bool,
     pub native_currency: EvmNativeCurrency,
 }
@@ -140,7 +139,6 @@ static CHAIN_CONFIGS: LazyLock<Vec<ChainConfig>> = LazyLock::new(|| {
             evm: Some(EvmChainConfig {
                 min_priority_fee: 100_000,
                 chain_stack: ChainStack::Native,
-                base_fee_increase_percent: 100,
                 is_ethereum_layer2: false,
                 native_currency: EvmNativeCurrency::Wrapped(ETHEREUM_WETH_TOKEN_ID),
             }),
@@ -176,7 +174,6 @@ static CHAIN_CONFIGS: LazyLock<Vec<ChainConfig>> = LazyLock::new(|| {
             evm: Some(EvmChainConfig {
                 min_priority_fee: 50_000_000,
                 chain_stack: ChainStack::Native,
-                base_fee_increase_percent: 20,
                 is_ethereum_layer2: false,
                 native_currency: EvmNativeCurrency::Wrapped("0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c"),
             }),
@@ -242,7 +239,6 @@ static CHAIN_CONFIGS: LazyLock<Vec<ChainConfig>> = LazyLock::new(|| {
             evm: Some(EvmChainConfig {
                 min_priority_fee: 25_000_000_000,
                 chain_stack: ChainStack::Native,
-                base_fee_increase_percent: 20,
                 is_ethereum_layer2: false,
                 native_currency: EvmNativeCurrency::Wrapped("0x0d500B1d8E8eF31E21C99d1Db9A6444d3ADf1270"),
             }),
@@ -362,7 +358,6 @@ static CHAIN_CONFIGS: LazyLock<Vec<ChainConfig>> = LazyLock::new(|| {
             evm: Some(EvmChainConfig {
                 min_priority_fee: 0,
                 chain_stack: ChainStack::Arbitrum,
-                base_fee_increase_percent: 20,
                 is_ethereum_layer2: true,
                 native_currency: EvmNativeCurrency::Wrapped(ARBITRUM_WETH_TOKEN_ID),
             }),
@@ -488,7 +483,6 @@ static CHAIN_CONFIGS: LazyLock<Vec<ChainConfig>> = LazyLock::new(|| {
             evm: Some(EvmChainConfig {
                 min_priority_fee: 1_000_000,
                 chain_stack: ChainStack::Optimism,
-                base_fee_increase_percent: 20,
                 is_ethereum_layer2: true,
                 native_currency: EvmNativeCurrency::Wrapped(OPTIMISM_WETH_TOKEN_ID),
             }),
@@ -542,7 +536,6 @@ static CHAIN_CONFIGS: LazyLock<Vec<ChainConfig>> = LazyLock::new(|| {
             evm: Some(EvmChainConfig {
                 min_priority_fee: 1_000_000,
                 chain_stack: ChainStack::Optimism,
-                base_fee_increase_percent: 20,
                 is_ethereum_layer2: true,
                 native_currency: EvmNativeCurrency::Wrapped(BASE_WETH_TOKEN_ID),
             }),
@@ -566,7 +559,6 @@ static CHAIN_CONFIGS: LazyLock<Vec<ChainConfig>> = LazyLock::new(|| {
             evm: Some(EvmChainConfig {
                 min_priority_fee: 100_000_000,
                 chain_stack: ChainStack::Native,
-                base_fee_increase_percent: 20,
                 is_ethereum_layer2: false,
                 native_currency: EvmNativeCurrency::Wrapped("0xB31f66AA3C1e785363F0875A1B74E27b85FD66c7"),
             }),
@@ -638,7 +630,6 @@ static CHAIN_CONFIGS: LazyLock<Vec<ChainConfig>> = LazyLock::new(|| {
             evm: Some(EvmChainConfig {
                 min_priority_fee: 1_000_000,
                 chain_stack: ChainStack::Optimism,
-                base_fee_increase_percent: 20,
                 is_ethereum_layer2: false,
                 native_currency: EvmNativeCurrency::Wrapped(OPBNB_WETH_TOKEN_ID),
             }),
@@ -662,7 +653,6 @@ static CHAIN_CONFIGS: LazyLock<Vec<ChainConfig>> = LazyLock::new(|| {
             evm: Some(EvmChainConfig {
                 min_priority_fee: 3_500_000_000,
                 chain_stack: ChainStack::Native,
-                base_fee_increase_percent: 20,
                 is_ethereum_layer2: false,
                 native_currency: EvmNativeCurrency::Wrapped("0x21be370D5312f44cB42ce377BC9b8a0cEF1A4C83"),
             }),
@@ -686,7 +676,6 @@ static CHAIN_CONFIGS: LazyLock<Vec<ChainConfig>> = LazyLock::new(|| {
             evm: Some(EvmChainConfig {
                 min_priority_fee: 1_000_000,
                 chain_stack: ChainStack::Native,
-                base_fee_increase_percent: 20,
                 is_ethereum_layer2: false,
                 native_currency: EvmNativeCurrency::Wrapped("0xe91D153E0b41518A2Ce8Dd3D7944Fa863463a97d"),
             }),
@@ -800,7 +789,6 @@ static CHAIN_CONFIGS: LazyLock<Vec<ChainConfig>> = LazyLock::new(|| {
             evm: Some(EvmChainConfig {
                 min_priority_fee: 1_000_000_000,
                 chain_stack: ChainStack::Native,
-                base_fee_increase_percent: 20,
                 is_ethereum_layer2: false,
                 native_currency: EvmNativeCurrency::Wrapped("0xE30feDd158A2e3b13e9badaeABaFc5516e95e8C7"),
             }),
@@ -824,7 +812,6 @@ static CHAIN_CONFIGS: LazyLock<Vec<ChainConfig>> = LazyLock::new(|| {
             evm: Some(EvmChainConfig {
                 min_priority_fee: 1_000_000,
                 chain_stack: ChainStack::Native,
-                base_fee_increase_percent: 20,
                 is_ethereum_layer2: false,
                 native_currency: EvmNativeCurrency::Wrapped("0x0dc808adce2099a9f62aa87d9670745aba741746"),
             }),
@@ -848,7 +835,6 @@ static CHAIN_CONFIGS: LazyLock<Vec<ChainConfig>> = LazyLock::new(|| {
             evm: Some(EvmChainConfig {
                 min_priority_fee: 1_000_000,
                 chain_stack: ChainStack::Native,
-                base_fee_increase_percent: 20,
                 is_ethereum_layer2: true,
                 native_currency: EvmNativeCurrency::Wrapped(BLAST_WETH_TOKEN_ID),
             }),
@@ -890,7 +876,6 @@ static CHAIN_CONFIGS: LazyLock<Vec<ChainConfig>> = LazyLock::new(|| {
             evm: Some(EvmChainConfig {
                 min_priority_fee: 0,
                 chain_stack: ChainStack::ZkSync,
-                base_fee_increase_percent: 20,
                 is_ethereum_layer2: true,
                 native_currency: EvmNativeCurrency::Wrapped(ZKSYNC_WETH_TOKEN_ID),
             }),
@@ -914,7 +899,6 @@ static CHAIN_CONFIGS: LazyLock<Vec<ChainConfig>> = LazyLock::new(|| {
             evm: Some(EvmChainConfig {
                 min_priority_fee: 50_000_000,
                 chain_stack: ChainStack::Native,
-                base_fee_increase_percent: 20,
                 is_ethereum_layer2: true,
                 native_currency: EvmNativeCurrency::Wrapped(LINEA_WETH_TOKEN_ID),
             }),
@@ -938,7 +922,6 @@ static CHAIN_CONFIGS: LazyLock<Vec<ChainConfig>> = LazyLock::new(|| {
             evm: Some(EvmChainConfig {
                 min_priority_fee: 10_000_000,
                 chain_stack: ChainStack::Optimism,
-                base_fee_increase_percent: 20,
                 is_ethereum_layer2: true,
                 native_currency: EvmNativeCurrency::Wrapped("0x78c1b0C915c4FAA5FffA6CAbf0219DA63d7f4cb8"),
             }),
@@ -962,7 +945,6 @@ static CHAIN_CONFIGS: LazyLock<Vec<ChainConfig>> = LazyLock::new(|| {
             evm: Some(EvmChainConfig {
                 min_priority_fee: 10_000_000,
                 chain_stack: ChainStack::Optimism,
-                base_fee_increase_percent: 20,
                 is_ethereum_layer2: true,
                 native_currency: EvmNativeCurrency::Token(CELO_WETH_TOKEN_ID),
             }),
@@ -1004,7 +986,6 @@ static CHAIN_CONFIGS: LazyLock<Vec<ChainConfig>> = LazyLock::new(|| {
             evm: Some(EvmChainConfig {
                 min_priority_fee: 1_000_000,
                 chain_stack: ChainStack::Optimism,
-                base_fee_increase_percent: 20,
                 is_ethereum_layer2: true,
                 native_currency: EvmNativeCurrency::Wrapped(WORLD_WETH_TOKEN_ID),
             }),
@@ -1046,7 +1027,6 @@ static CHAIN_CONFIGS: LazyLock<Vec<ChainConfig>> = LazyLock::new(|| {
             evm: Some(EvmChainConfig {
                 min_priority_fee: 1_000_000,
                 chain_stack: ChainStack::Native,
-                base_fee_increase_percent: 20,
                 is_ethereum_layer2: false,
                 native_currency: EvmNativeCurrency::Wrapped("0x039e2fB66102314Ce7b64Ce5Ce3E5183bc94aD38"),
             }),
@@ -1106,7 +1086,6 @@ static CHAIN_CONFIGS: LazyLock<Vec<ChainConfig>> = LazyLock::new(|| {
             evm: Some(EvmChainConfig {
                 min_priority_fee: 100_000,
                 chain_stack: ChainStack::Native,
-                base_fee_increase_percent: 20,
                 is_ethereum_layer2: false,
                 native_currency: EvmNativeCurrency::Wrapped("0x6100E367285b01F48D07953803A2d8dCA5D19873"),
             }),
@@ -1148,7 +1127,6 @@ static CHAIN_CONFIGS: LazyLock<Vec<ChainConfig>> = LazyLock::new(|| {
             evm: Some(EvmChainConfig {
                 min_priority_fee: 0,
                 chain_stack: ChainStack::ZkSync,
-                base_fee_increase_percent: 20,
                 is_ethereum_layer2: true,
                 native_currency: EvmNativeCurrency::Wrapped("0x3439153EB7AF838Ad19d56E1571FBD09333C2809"),
             }),
@@ -1172,7 +1150,6 @@ static CHAIN_CONFIGS: LazyLock<Vec<ChainConfig>> = LazyLock::new(|| {
             evm: Some(EvmChainConfig {
                 min_priority_fee: 500_000_000,
                 chain_stack: ChainStack::Native,
-                base_fee_increase_percent: 20,
                 is_ethereum_layer2: false,
                 native_currency: EvmNativeCurrency::Wrapped("0x6969696969696969696969696969696969696969"),
             }),
@@ -1196,7 +1173,6 @@ static CHAIN_CONFIGS: LazyLock<Vec<ChainConfig>> = LazyLock::new(|| {
             evm: Some(EvmChainConfig {
                 min_priority_fee: 1_000_000,
                 chain_stack: ChainStack::Optimism,
-                base_fee_increase_percent: 20,
                 is_ethereum_layer2: true,
                 native_currency: EvmNativeCurrency::Wrapped(INK_WETH_TOKEN_ID),
             }),
@@ -1220,7 +1196,6 @@ static CHAIN_CONFIGS: LazyLock<Vec<ChainConfig>> = LazyLock::new(|| {
             evm: Some(EvmChainConfig {
                 min_priority_fee: 1_000_000,
                 chain_stack: ChainStack::Optimism,
-                base_fee_increase_percent: 20,
                 is_ethereum_layer2: true,
                 native_currency: EvmNativeCurrency::Wrapped(UNICHAIN_WETH_TOKEN_ID),
             }),
@@ -1244,7 +1219,6 @@ static CHAIN_CONFIGS: LazyLock<Vec<ChainConfig>> = LazyLock::new(|| {
             evm: Some(EvmChainConfig {
                 min_priority_fee: 1_000_000_000,
                 chain_stack: ChainStack::Native,
-                base_fee_increase_percent: 20,
                 is_ethereum_layer2: false,
                 native_currency: EvmNativeCurrency::Wrapped("0x5555555555555555555555555555555555555555"),
             }),
@@ -1298,7 +1272,6 @@ static CHAIN_CONFIGS: LazyLock<Vec<ChainConfig>> = LazyLock::new(|| {
             evm: Some(EvmChainConfig {
                 min_priority_fee: 1_000_000_000,
                 chain_stack: ChainStack::Native,
-                base_fee_increase_percent: 20,
                 is_ethereum_layer2: false,
                 native_currency: EvmNativeCurrency::Wrapped("0x3bd359C1119dA7Da1D913D1C4D2B7c461115433A"),
             }),
@@ -1334,7 +1307,6 @@ static CHAIN_CONFIGS: LazyLock<Vec<ChainConfig>> = LazyLock::new(|| {
             evm: Some(EvmChainConfig {
                 min_priority_fee: 1_000_000,
                 chain_stack: ChainStack::Native,
-                base_fee_increase_percent: 20,
                 is_ethereum_layer2: true,
                 native_currency: EvmNativeCurrency::Wrapped("0xe538905cf8410324e03a5a23c1c177a474d59b2b"),
             }),
@@ -1358,7 +1330,6 @@ static CHAIN_CONFIGS: LazyLock<Vec<ChainConfig>> = LazyLock::new(|| {
             evm: Some(EvmChainConfig {
                 min_priority_fee: 0,
                 chain_stack: ChainStack::Arbitrum,
-                base_fee_increase_percent: 20,
                 is_ethereum_layer2: true,
                 native_currency: EvmNativeCurrency::Wrapped(ROBINHOOD_WETH_TOKEN_ID),
             }),
@@ -1382,7 +1353,6 @@ static CHAIN_CONFIGS: LazyLock<Vec<ChainConfig>> = LazyLock::new(|| {
             evm: Some(EvmChainConfig {
                 min_priority_fee: 1_000_000,
                 chain_stack: ChainStack::Native,
-                base_fee_increase_percent: 20,
                 is_ethereum_layer2: false,
                 native_currency: EvmNativeCurrency::Mirrored { token: USDT0_OFT_TOKEN_ID, decimals: 6 },
             }),
@@ -1406,7 +1376,6 @@ static CHAIN_CONFIGS: LazyLock<Vec<ChainConfig>> = LazyLock::new(|| {
             evm: Some(EvmChainConfig {
                 min_priority_fee: 0,
                 chain_stack: ChainStack::Native,
-                base_fee_increase_percent: 20,
                 is_ethereum_layer2: false,
                 native_currency: EvmNativeCurrency::None,
             }),
@@ -1430,7 +1399,6 @@ static CHAIN_CONFIGS: LazyLock<Vec<ChainConfig>> = LazyLock::new(|| {
             evm: Some(EvmChainConfig {
                 min_priority_fee: 1_000_000,
                 chain_stack: ChainStack::Native,
-                base_fee_increase_percent: 20,
                 is_ethereum_layer2: false,
                 native_currency: EvmNativeCurrency::Mirrored { token: ARC_USDC_TOKEN_ID, decimals: 6 },
             }),
