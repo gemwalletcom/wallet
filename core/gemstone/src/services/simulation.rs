@@ -17,7 +17,7 @@ use primitives::{
     SimulationSeverity, SimulationWarning, SimulationWarningType, TransactionType, ValueAccess, VerificationStatus, WCEthereumTransaction,
 };
 
-use crate::duration_formatter::{GemDurationPart, countdown_parts};
+use crate::duration_formatter::countdown_parts;
 use crate::formatted_number::GemValueTone;
 use crate::models::copy::{GemCopy, address_copy};
 use crate::models::custom_types::GemBigInt;
@@ -268,7 +268,7 @@ fn stake_payload_row(field: &SimulationPayloadField) -> Option<GemListRow> {
         }),
         SimulationPayloadFieldKind::LockTime => field.value.parse::<i64>().ok().map(|seconds| GemListRow::Duration {
             title: GemListRowTitle::LockTime,
-            parts: lock_time_parts(seconds),
+            parts: countdown_parts(seconds),
             info: None,
             estimate: false,
         }),
@@ -305,12 +305,6 @@ fn stake_action_title(transaction_type: TransactionType) -> Option<GemListRowTit
         | TransactionType::EarnDeposit
         | TransactionType::EarnWithdraw => None,
     }
-}
-
-fn lock_time_parts(seconds: i64) -> Vec<GemDurationPart> {
-    let parts = countdown_parts(seconds);
-    let nonzero: Vec<GemDurationPart> = parts.iter().filter(|part| part.value != 0).cloned().collect();
-    if nonzero.is_empty() { parts } else { nonzero }
 }
 
 fn payload_title(field: &SimulationPayloadField) -> GemLocalizedText {
@@ -437,7 +431,7 @@ pub fn asset_status_rows(changes: &[SimulationBalanceChange], assets: &[AssetBas
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::duration_formatter::GemDurationUnit;
+    use crate::duration_formatter::{GemDurationPart, GemDurationUnit};
     use crate::services::assets::rules::default_asset_basic;
     use crate::services::node::GemNodeService;
     use crate::testkit::{TestAlienProvider, mock_wc_ethereum_transaction};
