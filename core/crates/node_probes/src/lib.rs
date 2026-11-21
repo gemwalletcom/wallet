@@ -5,10 +5,8 @@ const DEFAULT_EVM_ADDRESS: &str = "0xBA4D1d35bCe0e8F28E5a3403e7a0b996c5d50AC4";
 
 pub fn node_check_request(chain: Chain, profile: NodeCheckProfile) -> NodeCheckRequest {
     match profile {
-        NodeCheckProfile::Basic => NodeCheckRequest::Basic,
-        NodeCheckProfile::Wallet => NodeCheckRequest::Wallet(wallet_probe(chain)),
-        NodeCheckProfile::Parser if chain == Chain::Near => NodeCheckRequest::Wallet(wallet_probe(chain)),
-        NodeCheckProfile::Parser => NodeCheckRequest::Parser(wallet_probe(chain)),
+        NodeCheckProfile::Parser if chain != Chain::Near => NodeCheckRequest::Parser(wallet_probe(chain)),
+        NodeCheckProfile::Wallet | NodeCheckProfile::Parser => NodeCheckRequest::Wallet(wallet_probe(chain)),
     }
 }
 

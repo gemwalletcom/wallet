@@ -8,7 +8,6 @@ use strum::{Display, EnumString};
 #[strum(serialize_all = "snake_case")]
 pub enum NodeCheckProfile {
     #[default]
-    Basic,
     Wallet,
     Parser,
 }
@@ -21,7 +20,6 @@ pub struct WalletProbe {
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum NodeCheckRequest {
-    Basic,
     Wallet(WalletProbe),
     Parser(WalletProbe),
 }
@@ -29,16 +27,14 @@ pub enum NodeCheckRequest {
 impl NodeCheckRequest {
     pub fn profile(&self) -> NodeCheckProfile {
         match self {
-            Self::Basic => NodeCheckProfile::Basic,
             Self::Wallet(_) => NodeCheckProfile::Wallet,
             Self::Parser(_) => NodeCheckProfile::Parser,
         }
     }
 
-    pub fn wallet(&self) -> Option<&WalletProbe> {
+    pub fn wallet(&self) -> &WalletProbe {
         match self {
-            Self::Basic => None,
-            Self::Wallet(probe) | Self::Parser(probe) => Some(probe),
+            Self::Wallet(probe) | Self::Parser(probe) => probe,
         }
     }
 }

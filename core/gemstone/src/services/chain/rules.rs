@@ -44,7 +44,7 @@ pub fn mismatched_network_id(chain: Chain, network_id: Option<&str>) -> Option<S
 
 pub fn node_verification_address(chain: Chain) -> Option<String> {
     match chain {
-        Chain::Polkadot => node_check_request(chain, NodeCheckProfile::Wallet).wallet().map(|probe| probe.address.clone()),
+        Chain::Polkadot => Some(node_check_request(chain, NodeCheckProfile::Wallet).wallet().address.clone()),
         _ => None,
     }
 }

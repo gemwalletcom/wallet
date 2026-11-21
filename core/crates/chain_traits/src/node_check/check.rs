@@ -22,13 +22,11 @@ where
     if recorder.has_failed() {
         return recorder.finish();
     }
-    let recorder = match request.wallet() {
-        Some(probe) => record_wallet(state, &probe.address, probe.transaction_id.as_deref(), recorder).await,
-        None => recorder,
-    };
+    let probe = request.wallet();
+    let recorder = record_wallet(state, &probe.address, probe.transaction_id.as_deref(), recorder).await;
     let recorder = match request {
         NodeCheckRequest::Parser(_) => record_parser_blocks(state, recorder).await,
-        NodeCheckRequest::Basic | NodeCheckRequest::Wallet(_) => recorder,
+        NodeCheckRequest::Wallet(_) => recorder,
     };
     recorder.finish()
 }
@@ -132,13 +130,11 @@ pub trait ChainNodeStatus: ChainBlockTransactions + ChainState {
             return recorder.finish();
         };
 
-        let recorder = match request.wallet() {
-            Some(probe) => self.get_node_wallet_status(&probe.address, probe.transaction_id.as_deref(), block_number, recorder).await,
-            None => recorder,
-        };
+        let probe = request.wallet();
+        let recorder = self.get_node_wallet_status(&probe.address, probe.transaction_id.as_deref(), block_number, recorder).await;
         let recorder = match request {
             NodeCheckRequest::Parser(_) => record_parser_blocks(self, recorder).await,
-            NodeCheckRequest::Basic | NodeCheckRequest::Wallet(_) => recorder,
+            NodeCheckRequest::Wallet(_) => recorder,
         };
         recorder.finish()
     }
@@ -307,7 +303,7 @@ mod tests {
     fn records_node_status_latency() {
         let state = TestState::default();
         let status_latency = Duration::from_millis(42);
-        let report = futures::executor::block_on(check_node(&state, &NodeCheckRequest::Basic, &NodeSyncStatus::synced(100), status_latency));
+        let report = futures::executor::block_on(check_node(&state, &NodeCheckRequest::Wallet(probe(None)), &NodeSyncStatus::synced(100), status_latency));
 
         assert_eq!(report.get("latest_block_number").unwrap().latency_ms, 42);
         assert_eq!(state.latest_block_calls.load(Ordering::Relaxed), 0);
