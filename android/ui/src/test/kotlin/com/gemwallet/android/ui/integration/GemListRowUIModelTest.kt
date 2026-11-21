@@ -20,6 +20,7 @@ import com.gemwallet.android.ui.components.list_item.uiModel
 import com.gemwallet.android.ui.localization.label
 import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.style.textStyle
+import com.gemwallet.android.ui.theme.compactIconSize
 import io.mockk.every
 import io.mockk.mockk
 import org.junit.Assert.assertEquals
@@ -157,6 +158,7 @@ class GemListRowUIModelTest {
         assertEquals("Suspicious", item.model.subtitle)
         assertEquals(ListItemTextStyle.Negative, item.model.subtitleStyle)
         assertEquals(ListItemImage.Drawable(R.drawable.suspicious, style = ListItemImageStyle.Avatar), item.trailingImage)
+        assertEquals(compactIconSize, item.trailingImageSize)
         assertEquals(topic.infoSheet(), item.model.info)
     }
 

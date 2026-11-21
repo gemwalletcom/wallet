@@ -41,7 +41,6 @@ import com.gemwallet.android.ui.theme.headerIconSize
 import com.gemwallet.android.ui.theme.paddingDefault
 import com.gemwallet.android.ui.theme.paddingLarge
 import com.gemwallet.android.ui.theme.paddingSmall
-import com.gemwallet.android.ui.theme.smallIconSize
 import uniffi.gemstone.GemListRow
 import uniffi.gemstone.GemListSectionFooter
 import uniffi.gemstone.GemRowAction
@@ -112,7 +111,7 @@ fun GemListRowView(
                 minHeight = ListItemDefaults.plainMinHeight,
                 accessory = when {
                     row.trailingImage != null -> {
-                        { DataBadgeChevron(isShowChevron = selects) { ListItemImageView(image = row.trailingImage, size = smallIconSize) } }
+                        { DataBadgeChevron(isShowChevron = selects) { ListItemImageView(image = row.trailingImage, size = row.trailingImageSize) } }
                     }
 
                     openAddress != null || row.url != null || row.opensAnotherScreen || selects -> {
