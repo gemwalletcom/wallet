@@ -58,7 +58,10 @@ jobs:
       - name: Setup Rust
         uses: ./.github/actions/setup-rust-ci
 
-      - name: Run tests and build integration tests
+      - name: Build unit and integration tests
+        run: just build-integration-tests
+
+      - name: Run tests
         run: just test-ci
 
       - name: Check gemstone dependencies

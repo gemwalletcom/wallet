@@ -58,7 +58,7 @@ INTEGRATION_FEATURES := "chain_integration_tests,swapper/swap_integration_tests,
 
 build-integration-tests:
     @echo "Building all integration tests..."
-    cargo test --no-run --lib --workspace --features {{ INTEGRATION_FEATURES }}
+    cargo test --no-run --lib --bins --workspace --features {{ INTEGRATION_FEATURES }}
 
 test-ci:
     @echo "Running unit tests with every integration suite compiled..."
