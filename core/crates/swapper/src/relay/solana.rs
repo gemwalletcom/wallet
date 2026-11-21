@@ -1,15 +1,10 @@
 use std::sync::Arc;
 
-use gem_solana::{HexInstructionData, Pubkey, instructions_from_primitives};
+use gem_solana::{HexInstructionData, Pubkey, StandardInstruction, instructions_from_primitives};
 use primitives::Chain;
 
 use super::{contracts::contracts, model::SolanaStepData};
-use crate::{
-    SwapperError, SwapperQuoteData,
-    alien::RpcProvider,
-    contract_check::solana::{SolanaStep, verify_steps},
-    solana_dex::SolanaTransaction,
-};
+use crate::{SwapperError, SwapperQuoteData, alien::RpcProvider, contract_check::solana::verify_steps, solana_dex::SolanaTransaction};
 
 pub async fn build_quote_data(wallet_address: &str, step: &SolanaStepData, rpc_provider: Arc<dyn RpcProvider>) -> Result<SwapperQuoteData, SwapperError> {
     transaction(step, wallet_address)?.quote_data(wallet_address, rpc_provider).await
@@ -17,7 +12,7 @@ pub async fn build_quote_data(wallet_address: &str, step: &SolanaStepData, rpc_p
 
 fn transaction(step: &SolanaStepData, wallet_address: &str) -> Result<SolanaTransaction, SwapperError> {
     let instructions = instructions_from_primitives::<HexInstructionData>(step.instructions.clone()).map_err(SwapperError::transaction_error)?;
-    let steps: Vec<SolanaStep> = instructions.iter().map(SolanaStep::new).collect();
+    let steps: Vec<StandardInstruction> = instructions.iter().map(StandardInstruction::new).collect();
     verify_steps(&steps, &Pubkey::from_base58(wallet_address).map_err(SwapperError::transaction_error)?, &contracts(Chain::Solana).targets)?;
     Ok(SolanaTransaction::new(instructions, step.address_lookup_table_addresses.clone()))
 }

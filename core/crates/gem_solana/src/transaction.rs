@@ -4,10 +4,9 @@ use primitives::hex;
 use primitives::{AssetId, Chain, OptionStringExt, SolanaInstruction, TransactionType};
 
 use crate::{
-    AccountMeta, AddressLookupTableAccount, CompiledInstruction, Instruction, MAX_TRANSACTION_SIZE, Pubkey, TransactionBuilder, VersionedTransaction,
+    AccountMeta, AddressLookupTableAccount, Instruction, MAX_TRANSACTION_SIZE, Pubkey, StandardInstruction, TransactionBuilder, VersionedTransaction,
     instructions::{
-        associated_token::is_create_account_data,
-        program_ids::{SOLANA_ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID, SOLANA_COMPUTE_BUDGET_PROGRAM_ID, SOLANA_MEMO_PROGRAM_ID, SOLANA_SYSTEM_PROGRAM_ID, SOLANA_TOKEN_2022_PROGRAM_ID, SOLANA_TOKEN_PROGRAM_ID, system_program},
+        program_ids::{SOLANA_MEMO_PROGRAM_ID, system_program},
         system::is_advance_nonce_account_data,
     },
 };
@@ -79,25 +78,53 @@ impl VersionedTransactionExt for VersionedTransaction {
 }
 
 fn decode_transfer(transaction: &VersionedTransaction, signer: Option<&Pubkey>) -> Option<SolanaTransfer> {
-    let account_keys = transaction.account_keys();
-    let mut transfer = None;
-
-    for instruction in transaction.instructions() {
-        let program = account_keys.get(instruction.program_id_index as usize)?.to_base58();
-        let decoded = match program.as_str() {
-            SOLANA_SYSTEM_PROGRAM_ID => Some(system_transfer(instruction, account_keys, signer)?),
-            SOLANA_TOKEN_PROGRAM_ID | SOLANA_TOKEN_2022_PROGRAM_ID => Some(token_transfer(transaction, instruction, account_keys, signer)?),
-            SOLANA_ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID | SOLANA_MEMO_PROGRAM_ID | SOLANA_COMPUTE_BUDGET_PROGRAM_ID => None,
-            _ => return None,
-        };
-        if let Some(decoded) = decoded
-            && transfer.replace(decoded).is_some()
-        {
-            return None;
-        }
+    let keys = transaction.account_keys();
+    let instructions = transaction.instructions().iter().map(|instruction| StandardInstruction::compiled(instruction, keys)).collect::<Option<Vec<_>>>()?;
+    let [transfer] = instructions.iter().filter(|instruction| !is_transfer_setup(instruction)).collect::<Vec<_>>()[..] else {
+        return None;
+    };
+    match *transfer {
+        StandardInstruction::Transfer {
+            source: Some(source),
+            destination: Some(destination),
+            lamports,
+        } if authorized(source, signer) => Some(SolanaTransfer {
+            asset_id: AssetId::from_chain(Chain::Solana),
+            recipient: destination.to_base58(),
+            value: lamports.into(),
+        }),
+        StandardInstruction::TransferChecked {
+            mint: Some(mint),
+            destination: Some(destination),
+            authority: Some(authority),
+            amount,
+        } if authorized(authority, signer) => Some(SolanaTransfer {
+            asset_id: AssetId::from_token(Chain::Solana, &mint.to_base58()),
+            recipient: instructions.iter().find_map(|instruction| instruction.created_account_owner(destination)).unwrap_or(destination).to_base58(),
+            value: amount.into(),
+        }),
+        StandardInstruction::ComputeBudget { .. }
+        | StandardInstruction::Memo
+        | StandardInstruction::Transfer { .. }
+        | StandardInstruction::CreateTokenAccount { .. }
+        | StandardInstruction::SyncNative
+        | StandardInstruction::CloseAccount { .. }
+        | StandardInstruction::TransferChecked { .. }
+        | StandardInstruction::Program(_)
+        | StandardInstruction::Unsupported => None,
     }
+}
 
-    transfer
+fn is_transfer_setup(instruction: &StandardInstruction) -> bool {
+    match instruction {
+        StandardInstruction::ComputeBudget { .. } | StandardInstruction::Memo | StandardInstruction::CreateTokenAccount { .. } => true,
+        StandardInstruction::Transfer { .. }
+        | StandardInstruction::SyncNative
+        | StandardInstruction::CloseAccount { .. }
+        | StandardInstruction::TransferChecked { .. }
+        | StandardInstruction::Program(_)
+        | StandardInstruction::Unsupported => false,
+    }
 }
 
 fn authorized(account: &Pubkey, signer: Option<&Pubkey>) -> bool {
@@ -105,47 +132,6 @@ fn authorized(account: &Pubkey, signer: Option<&Pubkey>) -> bool {
         Some(signer) => account == signer,
         None => true,
     }
-}
-
-fn system_transfer(instruction: &CompiledInstruction, account_keys: &[Pubkey], signer: Option<&Pubkey>) -> Option<SolanaTransfer> {
-    let data: &[u8; 12] = instruction.data.as_slice().try_into().ok()?;
-    (data[..4] == 2u32.to_le_bytes()).then_some(())?;
-    authorized(instruction_account(instruction, account_keys, 0)?, signer).then_some(())?;
-    let recipient = instruction_account(instruction, account_keys, 1)?;
-    Some(SolanaTransfer {
-        asset_id: AssetId::from_chain(Chain::Solana),
-        recipient: recipient.to_base58(),
-        value: u64::from_le_bytes(data[4..].try_into().ok()?).into(),
-    })
-}
-
-fn token_transfer(transaction: &VersionedTransaction, instruction: &CompiledInstruction, account_keys: &[Pubkey], signer: Option<&Pubkey>) -> Option<SolanaTransfer> {
-    let data: &[u8; 10] = instruction.data.as_slice().try_into().ok()?;
-    (data[0] == 12).then_some(())?;
-    authorized(instruction_account(instruction, account_keys, 3)?, signer).then_some(())?;
-    let mint = instruction_account(instruction, account_keys, 1)?;
-    let token_account = instruction_account(instruction, account_keys, 2)?;
-    let recipient = associated_token_owner(transaction, token_account).unwrap_or(token_account);
-    Some(SolanaTransfer {
-        asset_id: AssetId::from_token(Chain::Solana, &mint.to_base58()),
-        recipient: recipient.to_base58(),
-        value: u64::from_le_bytes(data[1..9].try_into().ok()?).into(),
-    })
-}
-
-fn associated_token_owner<'a>(transaction: &'a VersionedTransaction, token_account: &Pubkey) -> Option<&'a Pubkey> {
-    let account_keys = transaction.account_keys();
-    transaction.instructions().iter().find_map(|instruction| {
-        let program = account_keys.get(instruction.program_id_index as usize)?;
-        if program.to_base58() != SOLANA_ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID || !is_create_account_data(&instruction.data) || instruction_account(instruction, account_keys, 1)? != token_account {
-            return None;
-        }
-        instruction_account(instruction, account_keys, 2)
-    })
-}
-
-fn instruction_account<'a>(instruction: &CompiledInstruction, account_keys: &'a [Pubkey], position: usize) -> Option<&'a Pubkey> {
-    account_keys.get(*instruction.accounts.get(position)? as usize)
 }
 
 pub fn try_decode_transaction(transaction_base64: &str) -> Option<VersionedTransaction> {
@@ -247,7 +233,13 @@ pub fn instructions_from_primitives<D: InstructionDataDecoder>(instructions: Vec
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::testkit::{mock_transaction, mock_transaction_with_accounts};
+    use crate::{
+        CompiledInstruction, compute_budget,
+        instructions::program_ids::{SOLANA_ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID, SOLANA_TOKEN_PROGRAM_ID},
+        system,
+        testkit::{mock_transaction, mock_transaction_with_accounts},
+        token,
+    };
     #[cfg(feature = "signer")]
     use crate::{signer::testkit::SINGLE_SIG_TX, testkit::mock_legacy_transaction};
 
@@ -284,6 +276,26 @@ mod tests {
         assert_eq!(legacy_transfer.transaction_type(), TransactionType::SmartContractCall);
         assert_eq!(ambiguous.transaction_type(), TransactionType::SmartContractCall);
         assert_eq!(contract_call.transaction_type(), TransactionType::SmartContractCall);
+    }
+
+    #[test]
+    fn test_simple_coin_transfer() {
+        let payer = Pubkey::new([1; 32]);
+        let recipient = Pubkey::new([2; 32]);
+        let instructions = [compute_budget::set_compute_unit_price(1_000), system::transfer(&payer, &recipient, 5_000)];
+        let transfer = TransactionBuilder::build_v0_transaction(payer, BLOCKHASH_SET_AT_SIGNING, &instructions, &[]).unwrap();
+        let closing = TransactionBuilder::build_v0_transaction(payer, BLOCKHASH_SET_AT_SIGNING, &[instructions.as_slice(), &[token::close_account(&recipient, &payer, &payer)]].concat(), &[]).unwrap();
+
+        assert_eq!(
+            transfer.simple_transfer(&payer),
+            Some(SolanaTransfer {
+                asset_id: AssetId::from_chain(Chain::Solana),
+                recipient: recipient.to_base58(),
+                value: BigUint::from(5_000u64),
+            })
+        );
+        assert_eq!(transfer.simple_transfer(&recipient), None, "a transfer signed by another account");
+        assert_eq!(closing.simple_transfer(&payer), None, "a transfer that also closes an account");
     }
 
     #[test]
