@@ -1,9 +1,10 @@
 use borsh::BorshDeserialize;
 use gem_solana::{Instruction, JUPITER_PROGRAM_ID, Pubkey, anchor::instruction_arguments};
 
+use crate::fees::subtract_bps;
+
 const ROUTE: &str = "route_v2";
 const SHARED_ACCOUNTS_ROUTE: &str = "shared_accounts_route_v2";
-const BPS: u128 = 10_000;
 
 #[derive(Debug, PartialEq, Eq, BorshDeserialize)]
 pub(super) struct RouteArguments {
@@ -15,7 +16,7 @@ pub(super) struct RouteArguments {
 
 impl RouteArguments {
     pub(super) fn minimum_out(&self) -> u64 {
-        minimum_out(self.quoted_out_amount, self.slippage_bps)
+        subtract_bps(&self.quoted_out_amount, u32::from(self.slippage_bps))
     }
 }
 
@@ -52,11 +53,6 @@ impl JupiterRoute {
             arguments,
         })
     }
-}
-
-pub(super) fn minimum_out(quoted_out_amount: u64, slippage_bps: u16) -> u64 {
-    let kept = BPS.saturating_sub(u128::from(slippage_bps));
-    u64::try_from(u128::from(quoted_out_amount) * kept / BPS).unwrap_or_default()
 }
 
 #[cfg(test)]
@@ -126,13 +122,5 @@ mod tests {
         assert_eq!(JupiterRoute::decode(&other_instruction), None, "a route whose amount sits behind its route plan is refused");
         assert_eq!(JupiterRoute::decode(&short_accounts), None);
         assert_eq!(JupiterRoute::decode(&short_data), None);
-    }
-
-    #[test]
-    fn test_minimum_out() {
-        assert_eq!(minimum_out(6_829_563, 100), 6_761_267);
-        assert_eq!(minimum_out(6_829_563, 0), 6_829_563);
-        assert_eq!(minimum_out(6_829_563, 10_000), 0);
-        assert_eq!(minimum_out(u64::MAX, u16::MAX), 0);
     }
 }

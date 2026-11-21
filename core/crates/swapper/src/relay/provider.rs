@@ -6,7 +6,7 @@ use alloy_primitives::U256;
 use async_trait::async_trait;
 use gem_client::Client;
 use primitives::{
-    AssetId, Chain, EvmNativeCurrency,
+    AssetId, Chain,
     swap::{ApprovalData, SlippageMode},
 };
 
@@ -186,9 +186,9 @@ where
         let token = match (chain, from_asset_id.token_id.clone()) {
             (RelayChain::Bitcoin | RelayChain::Solana | RelayChain::Ton | RelayChain::Xrp, _) | (RelayChain::Tron, None) => return Ok(None),
             (_, Some(token)) => token,
-            (RelayChain::Evm(chain), None) => match chain.native_currency() {
-                EvmNativeCurrency::Token(token) => token.to_string(),
-                EvmNativeCurrency::Wrapped(_) | EvmNativeCurrency::Mirrored { .. } | EvmNativeCurrency::None => return Ok(None),
+            (RelayChain::Evm(chain), None) => match chain.native_token_contract() {
+                Some(token) => token.to_string(),
+                None => return Ok(None),
             },
         };
 
@@ -234,7 +234,7 @@ mod tests {
         };
         let relay = &relay as &dyn Swapper;
 
-        assert!(relay.verify_binding(&quote, &approving(ROUTER_ADDRESS)).is_ok());
+        assert_eq!(relay.verify_binding(&quote, &approving(ROUTER_ADDRESS)), Ok(()));
         assert_eq!(
             relay.verify_binding(&quote, &approving(ERC20_ROUTER_ADDRESS)),
             Err(SwapperError::InvalidRoute),

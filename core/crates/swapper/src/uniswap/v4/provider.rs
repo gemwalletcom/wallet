@@ -119,10 +119,7 @@ impl Swapper for UniswapV4 {
     fn binding(&self, from_asset: &AssetId) -> Binding {
         Binding::Contracts(
             get_uniswap_deployment_by_chain(&from_asset.chain)
-                .map(|deployment| Contracts {
-                    targets: vec![deployment.universal_router],
-                    spenders: vec![deployment.permit2, deployment.universal_router],
-                })
+                .map(|deployment| Contracts::universal_router(deployment.universal_router, deployment.permit2))
                 .unwrap_or_default(),
         )
     }

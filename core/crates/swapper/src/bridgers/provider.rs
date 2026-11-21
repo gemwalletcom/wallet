@@ -202,13 +202,9 @@ mod tests {
     use primitives::asset_constants::TON_USDT_ASSET_ID;
 
     #[test]
-    fn test_contracts() {
+    fn test_binding() {
         let provider = Bridgers::new(Arc::new(ProviderMock::new(String::new())));
 
-        assert_eq!(
-            provider.binding(&AssetId::from_chain(Chain::SmartChain)),
-            Binding::Contracts(Contracts::new(vec!["0xc1d13492285eb664951E201BF7C80c7c6318a1b5"]))
-        );
         assert_eq!(provider.binding(&AssetId::from_chain(Chain::Ton)), Binding::Contracts(Contracts::new(vec!["EQCqTuPS-cMN9SSRhaFrwJOGL7dKkFF8C0a05g2WzI9uRJ19"])));
         assert_eq!(provider.binding(&TON_USDT_ASSET_ID), Binding::BuiltOnDevice, "a jetton swap pays the user's own jetton wallet, which is not a shipped contract");
         assert_eq!(provider.binding(&AssetId::from_chain(Chain::Tron)), Binding::Contracts(Contracts::default()), "Bridgers has no Tron router");

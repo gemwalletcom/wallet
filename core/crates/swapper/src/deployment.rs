@@ -10,6 +10,13 @@ impl Contracts {
     pub fn new(targets: Vec<&'static str>) -> Self {
         Self { spenders: targets.clone(), targets }
     }
+
+    pub fn universal_router(router: &'static str, permit2: &'static str) -> Self {
+        Self {
+            targets: vec![router],
+            spenders: vec![permit2, router],
+        }
+    }
 }
 
 impl FromIterator<Contracts> for Contracts {

@@ -175,7 +175,7 @@ mod tests {
         assert_eq!(requests.load(Ordering::SeqCst), 4);
 
         let quote_data = orca.get_quote_data(&quote, FetchQuoteData::None).await.unwrap();
-        (&orca as &dyn crate::Swapper).verify_binding(&quote, &quote_data).unwrap();
+        (&orca as &dyn Swapper).verify_binding(&quote, &quote_data).unwrap();
         assert_eq!(requests.load(Ordering::SeqCst), 5);
         assert_eq!(quote_data.to, orca_whirlpool_program().to_base58());
 
@@ -316,7 +316,7 @@ mod tests {
         assert_eq!(requests.load(Ordering::SeqCst), 3);
 
         let quote_data = orca.get_quote_data(&quote, FetchQuoteData::None).await.unwrap();
-        (&orca as &dyn crate::Swapper).verify_binding(&quote, &quote_data).unwrap();
+        (&orca as &dyn Swapper).verify_binding(&quote, &quote_data).unwrap();
         assert_eq!(requests.load(Ordering::SeqCst), 4);
         assert_eq!(quote_data.to, orca_whirlpool_program().to_base58());
     }

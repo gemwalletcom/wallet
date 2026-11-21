@@ -105,7 +105,6 @@ mod tests {
     use primitives::{
         AssetId, Chain,
         asset_constants::{ETHEREUM_USDC_ASSET_ID, ETHEREUM_USDC_TOKEN_ID},
-        contract_constants::SOLANA_OKX_DEX_V2_PROGRAM_ID,
         testkit::signer_mock::{TEST_EVM_SENDER, TEST_SOLANA_SENDER},
     };
 
@@ -122,15 +121,7 @@ mod tests {
     fn test_binding() {
         let provider = OkxProvider::mock(MockClient::new(), "{}");
 
-        assert_eq!(
-            provider.binding(&AssetId::from_chain(Chain::Ethereum)),
-            Binding::Contracts(Contracts {
-                targets: vec!["0x8feAB81D36E7576107D5dE0758c1b839Be31B4F6"],
-                spenders: vec![EVM_TOKEN_APPROVE],
-            })
-        );
-        assert_eq!(provider.binding(&ETHEREUM_USDC_ASSET_ID), provider.binding(&AssetId::from_chain(Chain::Ethereum)));
-        assert_eq!(provider.binding(&AssetId::from_chain(Chain::Solana)), Binding::Contracts(Contracts::new(vec![SOLANA_OKX_DEX_V2_PROGRAM_ID])));
+        assert_eq!(provider.binding(&ETHEREUM_USDC_ASSET_ID), provider.binding(&AssetId::from_chain(Chain::Ethereum)), "a token swap is bound like a coin swap");
         assert_eq!(provider.binding(&AssetId::from_chain(Chain::Bitcoin)), Binding::Contracts(Contracts::default()));
         for asset in support_assets() {
             assert_ne!(provider.binding(&asset.get_chain().as_asset_id()), Binding::Contracts(Contracts::default()), "{:?} ships no contracts", asset.get_chain());

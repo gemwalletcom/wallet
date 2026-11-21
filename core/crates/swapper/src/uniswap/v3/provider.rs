@@ -256,10 +256,7 @@ impl Swapper for UniswapV3 {
         Binding::Contracts(
             self.provider
                 .get_deployment_by_chain(&from_asset.chain)
-                .map(|deployment| Contracts {
-                    targets: vec![deployment.universal_router],
-                    spenders: vec![deployment.permit2, deployment.universal_router],
-                })
+                .map(|deployment| Contracts::universal_router(deployment.universal_router, deployment.permit2))
                 .unwrap_or_default(),
         )
     }

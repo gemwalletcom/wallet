@@ -61,8 +61,14 @@ pub(super) fn build_solana_transaction(fee_payer: &str, instruction: Instruction
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::chainflip::broker::{SolanaVaultSwapResponse, TronVaultSwapResponse};
-    use crate::chainflip::testkit::TRON_NOTE;
+    use crate::{
+        chainflip::{
+            broker::{SolanaVaultSwapResponse, TronVaultSwapResponse},
+            provider::SOLANA_VAULT,
+            testkit::TRON_NOTE,
+        },
+        contract_check::solana::verify_solana,
+    };
     use gem_jsonrpc::types::JsonRpcResponse;
     use gem_solana::decode_transaction;
     use num_bigint::BigUint;
@@ -113,7 +119,7 @@ mod tests {
         let response: JsonRpcResponse<SolanaVaultSwapResponse> = serde_json::from_str(include_str!("./test/chainflip_sol_arb_usdc_quote_data.json"))?;
 
         let tx_b64 = build_solana_transaction(wallet_address, solana_instruction(&response.result)?)?;
-        crate::contract_check::verify_solana(&tx_b64, wallet_address, &["J88B7gmadHzTNGiy54c9Ms8BsEXNdB2fntFyhKpk3qoT"])?;
+        verify_solana(&tx_b64, wallet_address, &[SOLANA_VAULT])?;
 
         assert_eq!(
             tx_b64,

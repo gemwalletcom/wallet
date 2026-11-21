@@ -112,7 +112,7 @@ mod tests {
         assert_eq!(requests.load(Ordering::SeqCst), 6);
 
         let quote_data = amm.get_quote_data(&quote, FetchQuoteData::None).await.unwrap();
-        (&amm as &dyn crate::Swapper).verify_binding(&quote, &quote_data).unwrap();
+        (&amm as &dyn Swapper).verify_binding(&quote, &quote_data).unwrap();
         assert_eq!(requests.load(Ordering::SeqCst), 7);
         assert_eq!(quote_data.to, raydium_amm_program().to_base58());
     }

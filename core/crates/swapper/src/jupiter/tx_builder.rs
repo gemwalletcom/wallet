@@ -7,9 +7,8 @@ use gem_solana::{
 };
 
 use super::model::{BuildRequest, BuildResponse};
-use super::route::minimum_out;
 use super::swap_instructions::{QuotedRoute, RouteDestination, SwapInstructions};
-use crate::SwapperError;
+use crate::{SwapperError, fees::subtract_bps};
 
 impl BuildResponse {
     pub(super) fn lookup_table_addresses(&self) -> Vec<String> {
@@ -29,10 +28,7 @@ impl BuildResponse {
             wallet: payer,
             input_mint: Pubkey::from_base58(&request.input_mint).map_err(SwapperError::transaction_error)?,
             amount: request.amount.parse::<u64>().map_err(SwapperError::transaction_error)?,
-            minimum_out: minimum_out(
-                self.out_amount.parse::<u64>().map_err(SwapperError::compute_quote_error)?,
-                u16::try_from(self.slippage_bps).map_err(SwapperError::compute_quote_error)?,
-            ),
+            minimum_out: subtract_bps(&self.out_amount.parse::<u64>().map_err(SwapperError::compute_quote_error)?, request.slippage_bps),
             platform_fee_bps: u16::try_from(request.platform_fee_bps).map_err(SwapperError::compute_quote_error)?,
             destination: RouteDestination::WalletAccount(Pubkey::from_base58(&request.output_mint).map_err(SwapperError::transaction_error)?),
         };
@@ -86,6 +82,11 @@ mod tests {
             .into_transaction(&BuildRequest::mock(), &[]),
             Err(SwapperError::InvalidRoute),
             "a reply that shows more than its route delivers"
+        );
+        assert_eq!(
+            BuildResponse::mock().into_transaction(&BuildRequest { slippage_bps: 50, ..BuildRequest::mock() }, &[]),
+            Err(SwapperError::InvalidRoute),
+            "a route that allows more slippage than the wallet asked for"
         );
         assert_eq!(
             BuildResponse::mock().into_transaction(

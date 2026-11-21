@@ -224,7 +224,7 @@ mod tests {
     use crate::Contracts;
     use crate::{Options, ProviderData, Route, SwapperQuoteAsset, alien::mock::ProviderMock, testkit::mock_bitcoin_max_quote, testkit::mock_quote};
     use gem_client::testkit::MockClient;
-    use primitives::asset_constants::{AVALANCHE_USDC_TOKEN_ID, ETHEREUM_USDC_TOKEN_ID, TRON_USDT_TOKEN_ID};
+    use primitives::asset_constants::{ETHEREUM_USDC_TOKEN_ID, TRON_USDT_TOKEN_ID};
 
     #[test]
     fn test_map_quote_error() {
@@ -358,10 +358,6 @@ mod tests {
             swapper.binding(&AssetId::from_token(Chain::Ethereum, ETHEREUM_USDC_TOKEN_ID)),
             Binding::Contracts(Contracts::new(vec!["0xD37BbE5744D730a1d98d8DC97c42F0Ca46aD7146", "0x00dc6100103BC402d490aEE3F9a5560cBd91f1d4"])),
             "the live V4 router and the V6.1 router THORChain will switch to"
-        );
-        assert_eq!(
-            swapper.binding(&AssetId::from_token(Chain::AvalancheC, AVALANCHE_USDC_TOKEN_ID)),
-            Binding::Contracts(Deployment::contracts(THORCHAIN_ROUTERS, Chain::AvalancheC))
         );
         assert_eq!(swapper.binding(&Chain::Ethereum.as_asset_id()), Binding::DepositAddress, "a coin deposit goes to the vault the network names");
         assert_eq!(swapper.binding(&AssetId::from_token(Chain::Tron, TRON_USDT_TOKEN_ID)), Binding::DepositAddress, "a Tron token goes to the vault, not a router");

@@ -1,12 +1,10 @@
-use std::iter::once;
-
-use gem_solana::{Base64InstructionData, Instruction, JUPITER_PROGRAM_ID, Pubkey, associated_token::is_associated_token_address, instruction_from_primitive, instructions_from_primitives, wrapped_sol};
+use gem_solana::{Base64InstructionData, Instruction, Pubkey, associated_token::is_associated_token_address, instruction_from_primitive, instructions_from_primitives, wrapped_sol};
 use primitives::SolanaInstruction;
 
 use super::route::JupiterRoute;
 use crate::{
     SwapperError,
-    contract_check::{SolanaStep, verify_steps},
+    contract_check::solana::{SolanaStep, verify_steps},
 };
 
 #[derive(Debug, Clone, Copy)]
@@ -58,20 +56,20 @@ impl SwapInstructions {
         if !is_quoted {
             return Err(SwapperError::InvalidRoute);
         }
-        let steps: Vec<SolanaStep> = self.compute_budget.iter().chain(&self.setup).chain(once(&self.swap)).chain(&self.cleanup).map(SolanaStep::new).collect();
-        verify_steps(&steps, &quoted.wallet, &[JUPITER_PROGRAM_ID])
+        let steps: Vec<SolanaStep> = self.compute_budget.iter().chain(&self.setup).chain(&self.cleanup).map(SolanaStep::new).collect();
+        verify_steps(&steps, &quoted.wallet, &[])
     }
 
     pub(crate) fn wraps_native_sol(&self, wallet: &Pubkey) -> Result<bool, SwapperError> {
         let wrapped_sol = wrapped_sol::wrapped_sol_account(wallet).map_err(SwapperError::transaction_error)?;
-        Ok(self.setup.iter().any(|instruction| SolanaStep::new(instruction).transfers_to(&wrapped_sol)))
+        Ok(self.setup.iter().any(|instruction| SolanaStep::new(instruction).decode().transfers_to(&wrapped_sol)))
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use gem_solana::{AccountMeta, USDC_TOKEN_MINT, associated_token::get_associated_token_address_with_program_id, instructions::program_ids::token_program, system};
+    use gem_solana::{USDC_TOKEN_MINT, associated_token::get_associated_token_address_with_program_id, instructions::program_ids::token_program, system};
     use primitives::testkit::signer_mock::TEST_PRIVATE_KEY_SOLANA_ADDRESS;
 
     #[test]
@@ -115,6 +113,8 @@ mod tests {
             assert_eq!(instructions.verify(&refused), Err(SwapperError::InvalidRoute), "{reason}");
         }
 
+        let mut route_to_stranger = instructions.swap.clone();
+        route_to_stranger.accounts[2].pubkey = stranger_usdc;
         for (index, account, reason) in [
             (0, stranger, "a route another key authorizes"),
             (1, wrapped_sol::wrapped_sol_account(&stranger).unwrap(), "a route that spends from someone else's account"),
@@ -126,29 +126,16 @@ mod tests {
             assert_eq!(route.verify(&quoted), Err(SwapperError::InvalidRoute), "{reason}");
         }
 
-        let unknown_program = Instruction {
-            program_id: stranger,
-            accounts: vec![AccountMeta::new_signer(wallet)],
-            data: vec![],
+        let sends_coins_away = SwapInstructions {
+            setup: vec![system::transfer(&wallet, &stranger, 1_000_000_000)],
+            ..instructions
         };
-        for (steps, reason) in [
-            (
-                SwapInstructions {
-                    setup: vec![system::transfer(&wallet, &stranger, 1_000_000_000)],
-                    ..instructions.clone()
-                },
-                "a setup that sends coins away",
-            ),
-            (
-                SwapInstructions {
-                    setup: vec![unknown_program],
-                    ..instructions
-                },
-                "a setup that runs another program",
-            ),
-        ] {
-            assert_eq!(steps.verify(&quoted), Err(SwapperError::InvalidRoute), "{reason}");
-        }
+        assert_eq!(sends_coins_away.verify(&quoted), Err(SwapperError::InvalidRoute), "the steps around the route follow the Solana step rules");
+        let second_route = SwapInstructions {
+            setup: vec![route_to_stranger],
+            ..SwapInstructions::mock()
+        };
+        assert_eq!(second_route.verify(&quoted), Err(SwapperError::InvalidRoute), "a second Jupiter route among the steps around the swap");
     }
 
     #[test]
