@@ -98,11 +98,13 @@ impl RewardsClient {
     pub async fn create_username(&self, address: &str, code: &str, device_id: i32, ip_address: &str, locale: &str) -> Result<Rewards, RewardsServiceError> {
         let wallet = self.multicoin_wallet(address).await?;
 
-        self.consume_username_creation_limits(ip_address, device_id).await.map_err(|error| self.map_username_error(error, locale))?;
+        self.consume_username_creation_limits(username_creation_limits(&device_id.to_string(), ip_address))
+            .await
+            .map_err(|error| self.map_username_error(error, locale))?;
 
         let ip_result = self.ip_security_client.check_ip(ip_address).await?;
 
-        self.consume_username_creation_limit(RateLimitKey::UsernameCreationPerCountryLimit, &ip_result.country_code)
+        self.consume_username_creation_limits([(RateLimitKey::UsernameCreationPerCountryLimit, ip_result.country_code.as_str())])
             .await
             .map_err(|error| self.map_username_error(error, locale))?;
 
@@ -122,22 +124,10 @@ impl RewardsClient {
         self.repository.get_or_add_multicoin_wallet(address.to_string()).await
     }
 
-    async fn consume_username_creation_limits(&self, ip_address: &str, device_id: i32) -> Result<(), UsernameError> {
-        let device_id = device_id.to_string();
-        for (key, scope) in [
-            (RateLimitKey::UsernameCreationGlobalLimit, GLOBAL_RATE_LIMIT_SCOPE),
-            (RateLimitKey::UsernameCreationPerIpLimit, ip_address),
-            (RateLimitKey::UsernameCreationPerDeviceLimit, device_id.as_str()),
-        ] {
-            self.consume_username_creation_limit(key, scope).await?;
-        }
-        Ok(())
-    }
-
-    async fn consume_username_creation_limit(&self, key: RateLimitKey, scope: &str) -> Result<(), UsernameError> {
-        match self.consume_rate_limit(key, scope).await {
-            Ok(true) => Ok(()),
-            Ok(false) => Err(UsernameError::LimitReached(key)),
+    async fn consume_username_creation_limits<'a>(&self, limits: impl IntoIterator<Item = (RateLimitKey, &'a str)>) -> Result<(), UsernameError> {
+        match first_limit_reached(&self.config, self.rate_limiter.as_ref(), limits).await {
+            Ok(None) => Ok(()),
+            Ok(Some(key)) => Err(UsernameError::LimitReached(key)),
             Err(error) => Err(UsernameError::internal(error)),
         }
     }
@@ -198,13 +188,7 @@ impl RewardsClient {
     }
 
     async fn validate_and_score_referral_inner(&self, device: &DeviceRecord, wallet_id: i32, referrer_username: &str, ip_address: &str, user_agent: &str) -> Result<ReferralProcessResult, ReferralError> {
-        let device_id = device.id.to_string();
-        self.consume_referral_limits([
-            (RateLimitKey::ReferralGlobalLimit, GLOBAL_RATE_LIMIT_SCOPE),
-            (RateLimitKey::ReferralPerDeviceLimit, device_id.as_str()),
-            (RateLimitKey::ReferralPerIpLimit, ip_address),
-        ])
-        .await?;
+        self.consume_referral_limits(referral_limits(&device.id.to_string(), ip_address)).await?;
 
         let referrer_info = self.repository.get_referrer_info(referrer_username.to_string()).await.map_err(ReferralError::internal)?;
         if !referrer_info.status.is_verified() {
@@ -274,22 +258,72 @@ impl RewardsClient {
     }
 
     async fn consume_referral_limits<'a>(&self, limits: impl IntoIterator<Item = (RateLimitKey, &'a str)>) -> Result<(), ReferralError> {
-        let mut allowed = true;
-        for (key, scope) in limits {
-            allowed &= self.consume_rate_limit(key, scope).await?;
+        match first_limit_reached(&self.config, self.rate_limiter.as_ref(), limits).await? {
+            Some(_) => Err(ReferralError::LimitReached),
+            None => Ok(()),
         }
-        if !allowed {
-            return Err(ReferralError::LimitReached);
-        }
-        Ok(())
-    }
-
-    async fn consume_rate_limit(&self, key: RateLimitKey, scope: &str) -> Result<bool, Box<dyn Error + Send + Sync>> {
-        self.rate_limiter.consume(key, scope, self.config.get_rate_limit(key).await?).await
     }
 
     async fn publish_events(&self, event_ids: Vec<i32>) -> Result<(), Box<dyn Error + Send + Sync>> {
         self.stream_producer.publish_rewards_events(event_ids.into_iter().map(RewardsNotificationPayload::new).collect()).await?;
         Ok(())
+    }
+}
+
+fn username_creation_limits<'a>(device_id: &'a str, ip_address: &'a str) -> [(RateLimitKey, &'a str); 3] {
+    [
+        (RateLimitKey::UsernameCreationPerDeviceLimit, device_id),
+        (RateLimitKey::UsernameCreationPerIpLimit, ip_address),
+        (RateLimitKey::UsernameCreationGlobalLimit, GLOBAL_RATE_LIMIT_SCOPE),
+    ]
+}
+
+fn referral_limits<'a>(device_id: &'a str, ip_address: &'a str) -> [(RateLimitKey, &'a str); 3] {
+    [
+        (RateLimitKey::ReferralPerDeviceLimit, device_id),
+        (RateLimitKey::ReferralPerIpLimit, ip_address),
+        (RateLimitKey::ReferralGlobalLimit, GLOBAL_RATE_LIMIT_SCOPE),
+    ]
+}
+
+async fn first_limit_reached<'a>(config: &ConfigCacher, rate_limiter: &dyn RateLimitCacher, limits: impl IntoIterator<Item = (RateLimitKey, &'a str)>) -> Result<Option<RateLimitKey>, Box<dyn Error + Send + Sync>> {
+    for (key, scope) in limits {
+        if !rate_limiter.consume(key, scope, config.get_rate_limit(key).await?).await? {
+            return Ok(Some(key));
+        }
+    }
+    Ok(None)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::testkit::{MemoryConfigRepository, MemoryRateLimiter};
+
+    type Limits = for<'a> fn(&'a str, &'a str) -> [(RateLimitKey, &'a str); 3];
+
+    const IP: &str = "203.0.113.7";
+
+    #[tokio::test]
+    async fn test_a_refused_device_or_address_spends_no_shared_limit() {
+        let config = ConfigCacher::new(Arc::new(MemoryConfigRepository::new()));
+        for (limits, device_key, ip_key) in [
+            (username_creation_limits as Limits, RateLimitKey::UsernameCreationPerDeviceLimit, RateLimitKey::UsernameCreationPerIpLimit),
+            (referral_limits as Limits, RateLimitKey::ReferralPerDeviceLimit, RateLimitKey::ReferralPerIpLimit),
+        ] {
+            let rate_limiter = MemoryRateLimiter::default();
+            let device_limit = config.get_rate_limit(device_key).await.unwrap().get(RateLimitWindow::Minute);
+            let ip_limit = config.get_rate_limit(ip_key).await.unwrap().get(RateLimitWindow::Minute);
+
+            for _ in 0..device_limit * 3 {
+                first_limit_reached(&config, &rate_limiter, limits("device", IP)).await.unwrap();
+            }
+            assert_eq!(rate_limiter.consumed(GLOBAL_RATE_LIMIT_SCOPE), device_limit, "a device over {} spends no shared limit", device_key.as_ref());
+
+            for device in 0..ip_limit * 3 {
+                first_limit_reached(&config, &rate_limiter, limits(&device.to_string(), IP)).await.unwrap();
+            }
+            assert_eq!(rate_limiter.consumed(GLOBAL_RATE_LIMIT_SCOPE), ip_limit, "an address over {} spends no shared limit", ip_key.as_ref());
+        }
     }
 }
