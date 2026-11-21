@@ -112,11 +112,6 @@ impl ApprovalRequest {
         })
     }
 
-    pub(crate) fn simulate(self) -> SimulationResult {
-        let warnings = self.warnings();
-        self.build_simulation_result(warnings)
-    }
-
     pub(crate) fn build_simulation_result(self, warnings: Vec<SimulationWarning>) -> SimulationResult {
         let mut result = SimulationResult::new(warnings, self.payload());
 
@@ -151,14 +146,6 @@ impl ApprovalRequest {
             warning,
             None,
         )
-    }
-
-    pub(crate) fn warnings(&self) -> Vec<SimulationWarning> {
-        let mut warnings = vec![self.primary_warning()];
-        if let Some(warning) = self.expiration_warning() {
-            warnings.push(warning);
-        }
-        warnings
     }
 
     fn warning_approval_value(&self) -> Option<BigInt> {

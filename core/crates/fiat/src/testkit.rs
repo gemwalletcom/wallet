@@ -2,7 +2,8 @@ use std::collections::HashMap;
 
 use crate::FiatWebhookRequest;
 use crate::model::FiatDeviceContext;
-use primitives::WalletType;
+use crate::providers::mercuryo::widget::MercuryoWidget;
+use primitives::{FiatQuoteType, WalletType};
 
 impl FiatWebhookRequest {
     pub fn mock(raw_body: &str) -> Self {
@@ -21,6 +22,22 @@ impl FiatDeviceContext {
 
     pub fn mock_with_wallet_type(wallet_type: WalletType) -> Self {
         Self::new(1, 2, wallet_type, "192.0.2.1".to_string(), None)
+    }
+}
+
+impl MercuryoWidget {
+    pub fn mock() -> Self {
+        Self::new(
+            "widget123".to_string(),
+            "secret".to_string(),
+            "tx123".to_string(),
+            "0x123".to_string(),
+            "127.0.0.1".to_string(),
+            "BTC".to_string(),
+            1000.0,
+            FiatQuoteType::Buy,
+            "BITCOIN".to_string(),
+        )
     }
 }
 

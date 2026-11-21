@@ -5968,7 +5968,6 @@ dependencies = [
  "num-traits",
  "primitives",
  "serde_json",
- "simulation",
  "strum",
  "tokio",
 ]

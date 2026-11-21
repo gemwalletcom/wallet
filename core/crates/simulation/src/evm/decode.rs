@@ -1,6 +1,6 @@
 use alloy_sol_types::SolCall;
 use num_bigint::BigUint;
-use primitives::{Chain, SimulationPayloadField, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationPayloadFieldType, SimulationResult};
+use primitives::Chain;
 
 use super::{
     approval_method::ApprovalMethod,
@@ -10,36 +10,11 @@ use super::{
 use gem_evm::{
     contracts::IERC20,
     eip712::{EIP712Field, EIP712Message, EIP712TypedValue, find_field_biguint, find_field_bool, find_field_string, find_field_struct},
-    ethereum_address_checksum, ethereum_address_checksum_or_original,
+    ethereum_address_checksum,
     permit2::IAllowanceTransfer,
     transaction::decode_nft_collection_approval_operator,
     uniswap::deployment::is_permit2_contract_by_chain,
 };
-
-pub fn simulate_eip712_message(chain: Chain, message: &EIP712Message) -> SimulationResult {
-    match decode_eip712_approval(chain, message) {
-        Some(approval) => approval.simulate(),
-        None => SimulationResult::default(),
-    }
-}
-
-pub fn simulate_evm_calldata(chain: Chain, calldata: &[u8], contract_address: &str) -> SimulationResult {
-    match decode_evm_approval(chain, calldata, contract_address) {
-        Some(approval) => approval.simulate(),
-        None => {
-            let address = ethereum_address_checksum_or_original(contract_address);
-            SimulationResult::new(
-                vec![],
-                vec![SimulationPayloadField::standard(
-                    SimulationPayloadFieldKind::Contract,
-                    address,
-                    SimulationPayloadFieldType::Address,
-                    SimulationPayloadFieldDisplay::Primary,
-                )],
-            )
-        }
-    }
-}
 
 pub(crate) fn decode_eip712_approval(chain: Chain, message: &EIP712Message) -> Option<ApprovalRequest> {
     let contract_address = message.domain.verifying_contract.clone()?;
@@ -250,6 +225,7 @@ mod tests {
     use gem_evm::{
         eip712::{EIP712Message, parse_eip712_json},
         permit2::IAllowanceTransfer,
+        rpc::EthereumClient,
     };
     use primitives::{
         Chain, SimulationPayloadFieldDisplay, SimulationPayloadFieldKind, SimulationResult, SimulationWarningType,
@@ -258,7 +234,20 @@ mod tests {
     };
     use serde_json::{Value, json};
 
-    use super::{decode_eip712_approval, simulate_eip712_message, simulate_evm_calldata};
+    use super::decode_eip712_approval;
+    use crate::evm::SimulationClient;
+
+    const CONTRACT_SPENDER_CODE: &str = "0x1234";
+
+    async fn simulate_eip712_message(chain: Chain, message: &EIP712Message) -> SimulationResult {
+        let client = EthereumClient::mock_with_code(CONTRACT_SPENDER_CODE);
+        SimulationClient::new(&client).simulate_eip712_message(chain, message).await.unwrap()
+    }
+
+    async fn simulate_evm_calldata(chain: Chain, calldata: &[u8], contract_address: &str) -> SimulationResult {
+        let client = EthereumClient::mock_with_code(CONTRACT_SPENDER_CODE);
+        SimulationClient::new(&client).simulate_evm_calldata(chain, calldata, contract_address).await.unwrap()
+    }
 
     fn warning(result: &SimulationResult) -> &SimulationWarningType {
         assert_eq!(result.warnings.len(), 1);
@@ -303,11 +292,11 @@ mod tests {
         parse_eip712_json(&json).unwrap()
     }
 
-    #[test]
-    fn eip712_permit_simulation_result_contains_payload_and_warnings() {
+    #[tokio::test]
+    async fn eip712_permit_simulation_result_contains_payload_and_warnings() {
         let json: Value = serde_json::from_str(include_str!("../../../gem_evm/testdata/1inch_permit.json")).unwrap();
         let message = parse_eip712_json(&json).unwrap();
-        let result = simulate_eip712_message(Chain::Ethereum, &message);
+        let result = simulate_eip712_message(Chain::Ethereum, &message).await;
 
         assert!(is_permit_warning(warning(&result)));
         assert_eq!(
@@ -336,31 +325,31 @@ mod tests {
         assert_eq!(result.header.as_ref().map(|header| header.is_unlimited), Some(true));
     }
 
-    #[test]
-    fn eip712_permit_with_excessive_expiration_adds_warning_message() {
+    #[tokio::test]
+    async fn eip712_permit_with_excessive_expiration_adds_warning_message() {
         let json: Value = serde_json::from_str(include_str!("../../testdata/permit_excessive_expiration.json")).unwrap();
         let message = parse_eip712_json(&json).unwrap();
-        let result = simulate_eip712_message(Chain::Ethereum, &message);
+        let result = simulate_eip712_message(Chain::Ethereum, &message).await;
 
         assert_eq!(result.warnings.len(), 2);
         assert!(is_permit_warning(&result.warnings[0].warning));
         assert_eq!(warning_messages(&result), vec![None, Some("Excessive expiration")]);
     }
 
-    #[test]
-    fn eip712_permit_with_a_deadline_beyond_u64_warns_and_hides_the_expiration() {
+    #[tokio::test]
+    async fn eip712_permit_with_a_deadline_beyond_u64_warns_and_hides_the_expiration() {
         let deadline = "115792089237316195423570985008687907853269984665640564039457584007913129639935";
-        let result = simulate_eip712_message(Chain::Ethereum, &permit_message("deadline", json!(deadline)));
+        let result = simulate_eip712_message(Chain::Ethereum, &permit_message("deadline", json!(deadline))).await;
 
         assert!(is_permit_warning(&result.warnings[0].warning));
         assert_eq!(warning_messages(&result), vec![None, Some("Excessive expiration")]);
         assert!(!kinds(&result).contains(&SimulationPayloadFieldKind::Expiration));
     }
 
-    #[test]
-    fn eip712_permit_reads_hex_values_and_deadlines() {
+    #[tokio::test]
+    async fn eip712_permit_reads_hex_values_and_deadlines() {
         for deadline in ["0x2540be3ff", "0X2540BE3FF", "0o112402761777", "0b1001010100000010111110001111111111", "9_999_999_999"] {
-            let result = simulate_eip712_message(Chain::Ethereum, &permit_message("deadline", json!(deadline)));
+            let result = simulate_eip712_message(Chain::Ethereum, &permit_message("deadline", json!(deadline))).await;
             assert_eq!(warning_messages(&result), vec![None, Some("Excessive expiration")], "{deadline}");
             assert_eq!(
                 result.payload.iter().find(|field| field.kind == SimulationPayloadFieldKind::Expiration).map(|field| field.value.as_str()),
@@ -369,22 +358,22 @@ mod tests {
             );
         }
 
-        let result = simulate_eip712_message(Chain::Ethereum, &permit_message("value", json!("0x3e8")));
+        let result = simulate_eip712_message(Chain::Ethereum, &permit_message("value", json!("0x3e8"))).await;
         assert_eq!(result.payload.iter().find(|field| field.kind == SimulationPayloadFieldKind::Value).map(|field| field.value.as_str()), Some("1000"));
     }
 
-    #[test]
-    fn eip712_permit_with_an_unreadable_value_or_deadline_still_warns() {
+    #[tokio::test]
+    async fn eip712_permit_with_an_unreadable_value_or_deadline_still_warns() {
         for field in ["value", "deadline"] {
-            let result = simulate_eip712_message(Chain::Ethereum, &permit_message(field, json!("not a number")));
+            let result = simulate_eip712_message(Chain::Ethereum, &permit_message(field, json!("not a number"))).await;
             assert!(is_permit_warning(&result.warnings[0].warning), "{field}");
         }
     }
 
-    #[test]
-    fn eip712_dai_permit_is_an_unlimited_approval() {
+    #[tokio::test]
+    async fn eip712_dai_permit_is_an_unlimited_approval() {
         let json: Value = serde_json::from_str(include_str!("../../testdata/permit_dai.json")).unwrap();
-        let result = simulate_eip712_message(Chain::Ethereum, &parse_eip712_json(&json).unwrap());
+        let result = simulate_eip712_message(Chain::Ethereum, &parse_eip712_json(&json).unwrap()).await;
 
         assert!(is_unlimited_warning(warning(&result)));
         assert_eq!(
@@ -393,57 +382,57 @@ mod tests {
         );
     }
 
-    #[test]
-    fn eip712_dai_permit_that_revokes_is_not_an_approval() {
+    #[tokio::test]
+    async fn eip712_dai_permit_that_revokes_is_not_an_approval() {
         let mut json: Value = serde_json::from_str(include_str!("../../testdata/permit_dai.json")).unwrap();
         json["message"]["allowed"] = json!(false);
 
-        assert_eq!(simulate_eip712_message(Chain::Ethereum, &parse_eip712_json(&json).unwrap()), SimulationResult::default());
+        assert_eq!(simulate_eip712_message(Chain::Ethereum, &parse_eip712_json(&json).unwrap()).await, SimulationResult::default());
     }
 
-    #[test]
-    fn eip712_permit2_batch_transfer_warns_with_its_total() {
+    #[tokio::test]
+    async fn eip712_permit2_batch_transfer_warns_with_its_total() {
         let json: Value = serde_json::from_str(include_str!("../../testdata/permit2_batch_transfer.json")).unwrap();
-        let result = simulate_eip712_message(Chain::Ethereum, &parse_eip712_json(&json).unwrap());
+        let result = simulate_eip712_message(Chain::Ethereum, &parse_eip712_json(&json).unwrap()).await;
 
         assert_eq!(warning(&result), &SimulationWarningType::PermitBatchApproval(Some(3000_u32.into())));
         assert_eq!(result.payload[0].value, "Permit Batch");
     }
 
-    #[test]
-    fn eip712_permit2_batch_with_an_unreadable_amount_warns_as_unlimited() {
+    #[tokio::test]
+    async fn eip712_permit2_batch_with_an_unreadable_amount_warns_as_unlimited() {
         let mut json: Value = serde_json::from_str(include_str!("../../testdata/permit2_batch_transfer.json")).unwrap();
         json["message"]["permitted"][1]["amount"] = json!("not a number");
-        let result = simulate_eip712_message(Chain::Ethereum, &parse_eip712_json(&json).unwrap());
+        let result = simulate_eip712_message(Chain::Ethereum, &parse_eip712_json(&json).unwrap()).await;
 
         assert!(is_unlimited_warning(warning(&result)));
     }
 
-    #[test]
-    fn eip712_permit2_batch_with_a_total_from_the_unlimited_threshold_warns_as_unlimited() {
+    #[tokio::test]
+    async fn eip712_permit2_batch_with_a_total_from_the_unlimited_threshold_warns_as_unlimited() {
         let half_threshold = (U256::from(1) << 127usize).to_string();
         let mut json: Value = serde_json::from_str(include_str!("../../testdata/permit2_batch_transfer.json")).unwrap();
         json["message"]["permitted"][0]["amount"] = json!(half_threshold);
         json["message"]["permitted"][1]["amount"] = json!(half_threshold);
-        let result = simulate_eip712_message(Chain::Ethereum, &parse_eip712_json(&json).unwrap());
+        let result = simulate_eip712_message(Chain::Ethereum, &parse_eip712_json(&json).unwrap()).await;
 
         assert!(is_unlimited_warning(warning(&result)));
     }
 
-    #[test]
-    fn eip712_permit2_batch_with_a_deadline_beyond_u64_warns() {
+    #[tokio::test]
+    async fn eip712_permit2_batch_with_a_deadline_beyond_u64_warns() {
         let mut json: Value = serde_json::from_str(include_str!("../../testdata/permit2_batch_transfer.json")).unwrap();
         json["message"]["deadline"] = json!("115792089237316195423570985008687907853269984665640564039457584007913129639935");
-        let result = simulate_eip712_message(Chain::Ethereum, &parse_eip712_json(&json).unwrap());
+        let result = simulate_eip712_message(Chain::Ethereum, &parse_eip712_json(&json).unwrap()).await;
 
         assert_eq!(warning_messages(&result), vec![None, Some("Excessive expiration")]);
     }
 
-    #[test]
-    fn eip712_permit2_simulation_result_contains_payload_and_warnings() {
+    #[tokio::test]
+    async fn eip712_permit2_simulation_result_contains_payload_and_warnings() {
         let json: Value = serde_json::from_str(include_str!("../../../gem_evm/testdata/uniswap_permit2.json")).unwrap();
         let message = parse_eip712_json(&json).unwrap();
-        let result = simulate_eip712_message(Chain::Ethereum, &message);
+        let result = simulate_eip712_message(Chain::Ethereum, &message).await;
 
         assert!(is_unlimited_warning(warning(&result)));
         assert_eq!(
@@ -461,11 +450,11 @@ mod tests {
         assert_eq!(result.payload[4].value, "Unlimited");
     }
 
-    #[test]
-    fn eip712_permit2_batch_sums_finite_values() {
+    #[tokio::test]
+    async fn eip712_permit2_batch_sums_finite_values() {
         let json: Value = serde_json::from_str(include_str!("../../testdata/permit_batch_multiple_tokens.json")).unwrap();
         let message = parse_eip712_json(&json).unwrap();
-        let result = simulate_eip712_message(Chain::Ethereum, &message);
+        let result = simulate_eip712_message(Chain::Ethereum, &message).await;
 
         assert!(is_permit_warning(warning(&result)));
         assert_eq!(kinds(&result), vec![SimulationPayloadFieldKind::Method, SimulationPayloadFieldKind::Contract, SimulationPayloadFieldKind::Spender]);
@@ -473,11 +462,11 @@ mod tests {
         assert_eq!(result.header, None);
     }
 
-    #[test]
-    fn eip712_permit2_batch_without_single_token_does_not_claim_warning_asset() {
+    #[tokio::test]
+    async fn eip712_permit2_batch_without_single_token_does_not_claim_warning_asset() {
         let json: Value = serde_json::from_str(include_str!("../../testdata/permit_batch_multiple_tokens.json")).unwrap();
         let message = parse_eip712_json(&json).unwrap();
-        let result = simulate_eip712_message(Chain::Ethereum, &message);
+        let result = simulate_eip712_message(Chain::Ethereum, &message).await;
 
         assert_eq!(warning(&result), &SimulationWarningType::PermitBatchApproval(Some(3000000000000000000_u128.into())));
     }
@@ -492,11 +481,11 @@ mod tests {
         assert_ne!(approval.spender_address, UNISWAP_PERMIT2_CONTRACT);
     }
 
-    #[test]
-    fn eip712_permit2_batch_shows_token_when_all_items_share_token() {
+    #[tokio::test]
+    async fn eip712_permit2_batch_shows_token_when_all_items_share_token() {
         let json: Value = serde_json::from_str(include_str!("../../testdata/permit_batch_shared_token.json")).unwrap();
         let message = parse_eip712_json(&json).unwrap();
-        let result = simulate_eip712_message(Chain::Ethereum, &message);
+        let result = simulate_eip712_message(Chain::Ethereum, &message).await;
 
         assert_eq!(
             kinds(&result),
@@ -505,22 +494,22 @@ mod tests {
         assert_eq!(result.payload[3].value, "0x1111111111111111111111111111111111111111");
     }
 
-    #[test]
-    fn eip712_permit2_batch_with_excessive_expiration_adds_warning_message() {
+    #[tokio::test]
+    async fn eip712_permit2_batch_with_excessive_expiration_adds_warning_message() {
         let json: Value = serde_json::from_str(include_str!("../../testdata/permit_batch_excessive_expiration.json")).unwrap();
         let message = parse_eip712_json(&json).unwrap();
-        let result = simulate_eip712_message(Chain::Ethereum, &message);
+        let result = simulate_eip712_message(Chain::Ethereum, &message).await;
 
         assert_eq!(warning_messages(&result), vec![None, Some("Excessive expiration")]);
     }
 
-    #[test]
-    fn erc20_approve_simulation_result_contains_payload_and_warnings() {
+    #[tokio::test]
+    async fn erc20_approve_simulation_result_contains_payload_and_warnings() {
         let spender = address!("1111111111111111111111111111111111111111");
         let value = U256::MAX;
         let calldata = gem_evm::contracts::IERC20::approveCall { spender, value }.abi_encode();
 
-        let result = simulate_evm_calldata(Chain::Ethereum, &calldata, ETHEREUM_USDC_TOKEN_ID);
+        let result = simulate_evm_calldata(Chain::Ethereum, &calldata, ETHEREUM_USDC_TOKEN_ID).await;
 
         assert!(is_token_warning(warning(&result)));
         assert_eq!(
@@ -535,8 +524,8 @@ mod tests {
         assert_eq!(result.payload[3].value, "Unlimited");
     }
 
-    #[test]
-    fn erc20_approve_from_the_unlimited_threshold_simulates_as_unlimited() {
+    #[tokio::test]
+    async fn erc20_approve_from_the_unlimited_threshold_simulates_as_unlimited() {
         let spender = address!("1111111111111111111111111111111111111111");
         let threshold = U256::from(1) << 128;
         let cases = [
@@ -549,7 +538,7 @@ mod tests {
 
         for (value, expected) in cases {
             let calldata = gem_evm::contracts::IERC20::approveCall { spender, value }.abi_encode();
-            let result = simulate_evm_calldata(Chain::Ethereum, &calldata, ETHEREUM_USDC_TOKEN_ID);
+            let result = simulate_evm_calldata(Chain::Ethereum, &calldata, ETHEREUM_USDC_TOKEN_ID).await;
             let is_unlimited = expected == "Unlimited";
 
             assert_eq!(result.payload[3].value, expected);
@@ -559,10 +548,10 @@ mod tests {
         }
     }
 
-    #[test]
-    fn permits_near_the_uint160_max_simulate_as_unlimited() {
+    #[tokio::test]
+    async fn permits_near_the_uint160_max_simulate_as_unlimited() {
         let near_max = (U160::MAX - U160::from(1)).to_string();
-        let permit = simulate_eip712_message(Chain::Ethereum, &permit_message("value", json!(near_max)));
+        let permit = simulate_eip712_message(Chain::Ethereum, &permit_message("value", json!(near_max))).await;
         assert!(is_unlimited_warning(warning(&permit)));
 
         let call = IAllowanceTransfer::approveCall {
@@ -571,13 +560,13 @@ mod tests {
             amount: U160::MAX - U160::from(1),
             expiration: U48::from(1_800_000_000u64),
         };
-        let permit2 = simulate_evm_calldata(Chain::Ethereum, &call.abi_encode(), UNISWAP_PERMIT2_CONTRACT);
+        let permit2 = simulate_evm_calldata(Chain::Ethereum, &call.abi_encode(), UNISWAP_PERMIT2_CONTRACT).await;
         assert_eq!(permit2.payload[4].value, "Unlimited");
         assert_eq!(permit2.header.as_ref().map(|header| header.is_unlimited), Some(true));
     }
 
-    #[test]
-    fn erc20_allowance_increases_simulate_as_approve() {
+    #[tokio::test]
+    async fn erc20_allowance_increases_simulate_as_approve() {
         let spender = address!("1111111111111111111111111111111111111111");
         let increases = [
             gem_evm::contracts::IERC20::increaseAllowanceCall { spender, addedValue: U256::from(100) }.abi_encode(),
@@ -585,7 +574,7 @@ mod tests {
         ];
 
         for calldata in increases {
-            let result = simulate_evm_calldata(Chain::Ethereum, &calldata, ETHEREUM_USDC_TOKEN_ID);
+            let result = simulate_evm_calldata(Chain::Ethereum, &calldata, ETHEREUM_USDC_TOKEN_ID).await;
 
             assert!(is_token_warning(warning(&result)));
             assert_eq!(result.payload[0].value, "Approve");
@@ -595,8 +584,8 @@ mod tests {
         }
     }
 
-    #[test]
-    fn permit2_approve_simulates_token_spender_and_expiration() {
+    #[tokio::test]
+    async fn permit2_approve_simulates_token_spender_and_expiration() {
         let call = IAllowanceTransfer::approveCall {
             token: address!("A0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"),
             spender: address!("1111111111111111111111111111111111111111"),
@@ -605,7 +594,7 @@ mod tests {
         };
         let calldata = call.abi_encode();
 
-        let result = simulate_evm_calldata(Chain::Ethereum, &calldata, UNISWAP_PERMIT2_CONTRACT);
+        let result = simulate_evm_calldata(Chain::Ethereum, &calldata, UNISWAP_PERMIT2_CONTRACT).await;
 
         assert!(is_token_warning(&result.warnings[0].warning));
         assert_eq!(
@@ -627,61 +616,61 @@ mod tests {
         assert_eq!(result.payload[5].value, "1800000000");
         assert_eq!(result.header.as_ref().map(|header| header.asset_id.clone()), Some(ETHEREUM_USDC_ASSET_ID.clone()));
 
-        let zksync = simulate_evm_calldata(Chain::ZkSync, &calldata, ZKSYNC_UNISWAP_PERMIT2_CONTRACT);
+        let zksync = simulate_evm_calldata(Chain::ZkSync, &calldata, ZKSYNC_UNISWAP_PERMIT2_CONTRACT).await;
         assert!(is_token_warning(&zksync.warnings[0].warning));
         assert_eq!(kinds(&zksync), kinds(&result));
         assert_eq!(zksync.payload[2].value, result.payload[2].value);
 
-        let other_contract = simulate_evm_calldata(Chain::Ethereum, &calldata, "0x2222222222222222222222222222222222222222");
+        let other_contract = simulate_evm_calldata(Chain::Ethereum, &calldata, "0x2222222222222222222222222222222222222222").await;
         assert_eq!(kinds(&other_contract), vec![SimulationPayloadFieldKind::Contract]);
-        let other_chain = simulate_evm_calldata(Chain::Ethereum, &calldata, ZKSYNC_UNISWAP_PERMIT2_CONTRACT);
+        let other_chain = simulate_evm_calldata(Chain::Ethereum, &calldata, ZKSYNC_UNISWAP_PERMIT2_CONTRACT).await;
         assert_eq!(kinds(&other_chain), vec![SimulationPayloadFieldKind::Contract]);
     }
 
-    #[test]
-    fn erc20_approve_requires_matching_selector() {
+    #[tokio::test]
+    async fn erc20_approve_requires_matching_selector() {
         let spender = address!("1111111111111111111111111111111111111111");
         let value = U256::MAX;
         let mut calldata = gem_evm::contracts::IERC20::approveCall { spender, value }.abi_encode();
         calldata[..4].copy_from_slice(&[0_u8; 4]);
 
-        let result = simulate_evm_calldata(Chain::Ethereum, &calldata, ETHEREUM_USDC_TOKEN_ID);
+        let result = simulate_evm_calldata(Chain::Ethereum, &calldata, ETHEREUM_USDC_TOKEN_ID).await;
 
         assert_eq!(result.warnings.len(), 0);
         assert_eq!(result.payload.len(), 1);
         assert_eq!(result.payload[0].kind, SimulationPayloadFieldKind::Contract);
     }
 
-    #[test]
-    fn erc721_set_approval_for_all_simulation_result_contains_payload_and_warnings() {
+    #[tokio::test]
+    async fn erc721_set_approval_for_all_simulation_result_contains_payload_and_warnings() {
         let operator = address!("1111111111111111111111111111111111111111");
         let calldata = gem_evm::contracts::IERC721::setApprovalForAllCall { operator, approved: true }.abi_encode();
 
-        let result = simulate_evm_calldata(Chain::Ethereum, &calldata, "0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85");
+        let result = simulate_evm_calldata(Chain::Ethereum, &calldata, "0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85").await;
 
         assert!(is_nft_warning(warning(&result)));
         assert_eq!(kinds(&result), vec![SimulationPayloadFieldKind::Method, SimulationPayloadFieldKind::Contract, SimulationPayloadFieldKind::Spender]);
         assert_eq!(result.payload[0].value, "Set Approval For All");
     }
 
-    #[test]
-    fn erc721_set_approval_for_all_false_returns_empty_result() {
+    #[tokio::test]
+    async fn erc721_set_approval_for_all_false_returns_empty_result() {
         let operator = address!("1111111111111111111111111111111111111111");
         let calldata = gem_evm::contracts::IERC721::setApprovalForAllCall { operator, approved: false }.abi_encode();
 
-        let result = simulate_evm_calldata(Chain::Ethereum, &calldata, "0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85");
+        let result = simulate_evm_calldata(Chain::Ethereum, &calldata, "0x57f1887a8BF19b14fC0dF6Fd9B2acc9Af147eA85").await;
 
         assert_eq!(result.warnings.len(), 0);
         assert_eq!(result.payload.len(), 1);
         assert_eq!(result.payload[0].kind, SimulationPayloadFieldKind::Contract);
     }
 
-    #[test]
-    fn erc1155_set_approval_for_all_simulation_result_contains_payload_and_warnings() {
+    #[tokio::test]
+    async fn erc1155_set_approval_for_all_simulation_result_contains_payload_and_warnings() {
         let operator = address!("1111111111111111111111111111111111111111");
         let calldata = gem_evm::contracts::IERC1155::setApprovalForAllCall { operator, approved: true }.abi_encode();
 
-        let result = simulate_evm_calldata(Chain::Ethereum, &calldata, "0x495f947276749Ce646f68AC8c248420045cb7b5e");
+        let result = simulate_evm_calldata(Chain::Ethereum, &calldata, "0x495f947276749Ce646f68AC8c248420045cb7b5e").await;
 
         assert!(is_nft_warning(warning(&result)));
         assert_eq!(primary_kinds(&result), vec![SimulationPayloadFieldKind::Method, SimulationPayloadFieldKind::Contract, SimulationPayloadFieldKind::Spender]);
