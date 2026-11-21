@@ -41,8 +41,39 @@ impl<C: Client + Clone> ChainNodeStatus for EthereumProvider<C> {
             None => recorder,
         };
         let recorder = recorder.record_timed(method::ETH_ESTIMATE_GAS, self.estimate_gas(Some(address), address, None, Some("0x"))).await;
+        if !self.chain.is_trace_call_supported() {
+            return recorder;
+        }
 
         let transaction = TransactionObject::new_call_with_from(address, address, Vec::new());
         recorder.record_optional_available_timed(method::TRACE_CALL, self.trace_call(&transaction)).await
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::rpc::EthereumClient;
+    use gem_jsonrpc::testkit::mock_jsonrpc_client;
+    use primitives::EVMChain;
+    use primitives::testkit::signer_mock::TEST_EVM_RECIPIENT;
+    use serde_json::Value;
+
+    #[tokio::test]
+    async fn test_node_wallet_status_skips_unsupported_trace_call() {
+        let client = mock_jsonrpc_client(|request_method, _| match request_method {
+            method::TRACE_CALL => panic!("unexpected {request_method} request"),
+            _ => Ok(Value::Null),
+        });
+        let provider = EthereumProvider::new_rpc_only(EthereumClient::new(client, EVMChain::Monad));
+
+        let request = NodeCheckRequest::Wallet {
+            address: TEST_EVM_RECIPIENT.to_string(),
+            transaction_id: None,
+        };
+
+        let report = provider.check_node(&request, &NodeSyncStatus::synced(1), Duration::ZERO).await;
+
+        assert!(report.get(method::TRACE_CALL).is_none());
     }
 }

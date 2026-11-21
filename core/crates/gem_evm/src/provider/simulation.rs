@@ -6,7 +6,7 @@ use async_trait::async_trait;
 use chain_traits::{ChainSimulation, ChainToken};
 use futures::future::join_all;
 use gem_client::Client;
-use primitives::{Asset, EVMChain, OptionStringExt, SimulationBalanceChange, SimulationInput, SimulationResult};
+use primitives::{Asset, OptionStringExt, SimulationBalanceChange, SimulationInput, SimulationResult};
 
 use crate::jsonrpc::TransactionObject;
 use crate::provider::simulation_mapper::map_simulation_result;
@@ -15,9 +15,8 @@ use crate::rpc::EthereumProvider;
 #[async_trait]
 impl<C: Client + Clone> ChainSimulation for EthereumProvider<C> {
     async fn simulate_transaction(&self, input: SimulationInput) -> Result<SimulationResult, Box<dyn Error + Send + Sync>> {
-        let chain = self.get_chain();
-        if !EVMChain::from_chain(chain).is_some_and(|chain| chain.is_trace_call_supported()) {
-            return Err(format!("{chain} does not support trace_call").into());
+        if !self.chain.is_trace_call_supported() {
+            return Err(format!("{} does not support trace_call", self.get_chain()).into());
         }
         let transaction: TransactionObject = serde_json::from_str(&input.encoded_transaction)?;
         let signer = transaction.from.as_deref().non_empty().ok_or("missing sender address")?;
