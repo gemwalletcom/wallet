@@ -3,11 +3,12 @@ use std::sync::Arc;
 use async_trait::async_trait;
 
 use primitives::{
+    AssetId,
     known_assets::{HYPERCORE_HYPE, HYPEREVM_HYPE},
     swap::{SwapResult, SwapResultRequest},
 };
 
-use crate::{FetchQuoteData, ProviderType, Quote, QuoteRequest, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData, alien::RpcProvider};
+use crate::{Binding, FetchQuoteData, ProviderType, Quote, QuoteRequest, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData, alien::RpcProvider};
 use gem_hypercore::is_spot_swap;
 
 use super::{bridge::HyperCoreBridge, spot::HyperCoreSpot};
@@ -51,6 +52,10 @@ impl Swapper for Hyperliquid {
         let mut assets = self.spot.supported_assets();
         assets.extend(self.bridge.supported_assets());
         assets
+    }
+
+    fn binding(&self, _from_asset: &AssetId) -> Binding {
+        Binding::BuiltOnDevice
     }
 
     fn amount_mode(&self, _request: &QuoteRequest) -> SwapAmountMode {

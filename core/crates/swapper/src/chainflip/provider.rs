@@ -21,7 +21,7 @@ use super::{
     vault_swap::VaultSwap,
 };
 use crate::{
-    Contracts, Deployment, FetchQuoteData, ProviderType, Quote, QuoteRequest, SwapAmountMode, SwapResult, SwapResultRequest, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData, SwapperSlippage,
+    Binding, Contracts, Deployment, FetchQuoteData, ProviderType, Quote, QuoteRequest, SwapAmountMode, SwapResult, SwapResultRequest, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData, SwapperSlippage,
     alien::RpcProvider,
     approval::{check_approval_erc20, get_swap_gas_limit_with_approval},
     cross_chain::VaultAddresses,
@@ -37,10 +37,10 @@ use primitives::{
 const DEFAULT_SWAP_ERC20_GAS_LIMIT: u64 = 100_000;
 const REFUND_RETRY_BLOCKS: u32 = 150;
 const ASSETS_CACHE_TTL: Duration = MINUTE.saturating_mul(5);
-pub(super) const ETHEREUM_VAULT: &str = "0xF5e10380213880111522dd0efD3dbb45b9f62Bcc";
+const ETHEREUM_VAULT: &str = "0xF5e10380213880111522dd0efD3dbb45b9f62Bcc";
 const ARBITRUM_VAULT: &str = "0x79001a5e762f3bEFC8e5871b42F6734e00498920";
 const BSC_VAULT: &str = "0x79001a5e762f3bEFC8e5871b42F6734e00498920";
-pub(super) const SOLANA_VAULT: &str = "J88B7gmadHzTNGiy54c9Ms8BsEXNdB2fntFyhKpk3qoT";
+const SOLANA_VAULT: &str = "J88B7gmadHzTNGiy54c9Ms8BsEXNdB2fntFyhKpk3qoT";
 pub(super) const TRON_VAULT: &str = "TEcDijvKSXcfWT7S6rd44H5vNgufm7Y4XC";
 
 pub const VAULT_ADDRESSES: &[Deployment] = &[
@@ -227,8 +227,12 @@ where
         }
     }
 
-    fn contracts(&self, from_asset: &AssetId) -> Contracts {
-        Deployment::contracts(VAULT_ADDRESSES, from_asset.chain)
+    fn binding(&self, from_asset: &AssetId) -> Binding {
+        match is_vault_swap(from_asset.chain) {
+            Ok(true) => Binding::Contracts(Deployment::contracts(VAULT_ADDRESSES, from_asset.chain)),
+            Ok(false) => Binding::DepositAddress,
+            Err(_) => Binding::Contracts(Contracts::default()),
+        }
     }
 
     async fn preload_routes(&self, _from_asset: &AssetId, _to_asset: &AssetId) {
@@ -278,7 +282,6 @@ where
         }
         let source_chain_type = from_asset.chain.chain_type();
         let vault_swap = VaultSwap {
-            vault: vault_address(from_asset.chain)?,
             wallet: quote.request.wallet_address.clone(),
             token_id: from_asset.token_id.clone(),
             amount: input_amount.clone(),
@@ -321,7 +324,7 @@ where
                 let value = vault_swap.validate_evm(&response)?;
                 let gas_limit = get_swap_gas_limit_with_approval(&approval, None, DEFAULT_SWAP_ERC20_GAS_LIMIT);
 
-                Ok(SwapperQuoteData::new_contract(vault_swap.vault.to_string(), value, response.calldata, approval, gas_limit))
+                Ok(SwapperQuoteData::new_contract(vault_address(from_asset.chain)?.to_string(), value, response.calldata, approval, gas_limit))
             }
             (ChainType::Tron, VaultSwapResponse::Tron(response)) => {
                 let (to, value) = vault_swap.validate_tron(&response)?;
@@ -372,13 +375,14 @@ mod tests {
     use std::sync::atomic::{AtomicUsize, Ordering};
 
     #[test]
-    fn test_contracts() {
+    fn test_binding() {
         let provider = ChainflipProvider::with_clients(ChainflipClient::new(MockClient::new()), BrokerClient::new(MockClient::new(), MockClient::new()), Arc::new(ProviderMock::new(String::new())));
 
-        assert_eq!(provider.contracts(&AssetId::from_chain(Chain::Ethereum)), Contracts::new(vec![ETHEREUM_VAULT]));
-        assert_eq!(provider.contracts(&AssetId::from_chain(Chain::SmartChain)), Contracts::new(vec![BSC_VAULT]));
-        assert_eq!(provider.contracts(&AssetId::from_token(Chain::Tron, TRON_USDT_TOKEN_ID)), Contracts::new(vec![TRON_VAULT]));
-        assert_eq!(provider.contracts(&AssetId::from_chain(Chain::Bitcoin)), Contracts::default(), "a deposit channel address is made per swap");
+        assert_eq!(provider.binding(&AssetId::from_chain(Chain::Ethereum)), Binding::Contracts(Contracts::new(vec![ETHEREUM_VAULT])));
+        assert_eq!(provider.binding(&AssetId::from_chain(Chain::SmartChain)), Binding::Contracts(Contracts::new(vec![BSC_VAULT])));
+        assert_eq!(provider.binding(&AssetId::from_token(Chain::Tron, TRON_USDT_TOKEN_ID)), Binding::Contracts(Contracts::new(vec![TRON_VAULT])));
+        assert_eq!(provider.binding(&AssetId::from_chain(Chain::Polkadot)), Binding::DepositAddress, "a deposit channel address is made per swap");
+        assert_eq!(provider.binding(&AssetId::from_chain(Chain::Bitcoin)), Binding::Contracts(Contracts::default()), "Bitcoin is not a source");
     }
 
     #[test]

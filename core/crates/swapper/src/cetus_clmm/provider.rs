@@ -1,6 +1,6 @@
 use super::{client::CetusClmm, constants::CETUS_CLMM_PUBLISHED_AT, model::PoolRoute, tx_builder};
 use crate::{
-    FetchQuoteData, ProviderType, Quote, QuoteRequest, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperQuoteData,
+    Binding, FetchQuoteData, ProviderType, Quote, QuoteRequest, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperQuoteData,
     sui_swap::{coin_type, fee_side},
 };
 use async_trait::async_trait;
@@ -16,6 +16,10 @@ impl Swapper for CetusClmm {
 
     fn supported_assets(&self) -> Vec<SwapperChainAsset> {
         vec![SwapperChainAsset::All(Chain::Sui)]
+    }
+
+    fn binding(&self, _from_asset: &AssetId) -> Binding {
+        Binding::BuiltOnDevice
     }
 
     fn amount_mode(&self, _request: &QuoteRequest) -> SwapAmountMode {
@@ -112,7 +116,7 @@ mod swap_integration_tests {
 
         let quote = provider.get_quote(&request).await?;
         let quote_data = provider.get_quote_data(&quote, FetchQuoteData::None).await?;
-        (&provider as &dyn Swapper).verify_contracts(&quote, &quote_data)?;
+        (&provider as &dyn Swapper).verify_binding(&quote, &quote_data)?;
         print_quote("SUI->USDC", &quote)?;
         print_quote_data("SUI->USDC", &quote_data);
 
@@ -138,7 +142,7 @@ mod swap_integration_tests {
 
         let quote = provider.get_quote(&request).await?;
         let quote_data = provider.get_quote_data(&quote, FetchQuoteData::None).await?;
-        (&provider as &dyn Swapper).verify_contracts(&quote, &quote_data)?;
+        (&provider as &dyn Swapper).verify_binding(&quote, &quote_data)?;
         print_quote("USDC->SUI", &quote)?;
         print_quote_data("USDC->SUI", &quote_data);
 

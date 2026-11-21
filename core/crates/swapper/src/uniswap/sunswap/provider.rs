@@ -4,7 +4,7 @@ use super::{
     constants::{FEE_TIERS, REFERRAL_FEE_BPS, SWAP_ENERGY_LIMIT},
 };
 use crate::{
-    FetchQuoteData, ProviderType, Quote, QuoteRequest, RpcClient, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData,
+    Binding, Contracts, FetchQuoteData, ProviderType, Quote, QuoteRequest, RpcClient, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData,
     alien::RpcProvider,
     approval::check_permit2_approvals_trc20,
     client_factory::create_tron_client,
@@ -120,6 +120,13 @@ impl Swapper for SunSwap {
 
     fn supported_assets(&self) -> Vec<SwapperChainAsset> {
         vec![SwapperChainAsset::All(Chain::Tron)]
+    }
+
+    fn binding(&self, _from_asset: &AssetId) -> Binding {
+        Binding::Contracts(Contracts {
+            targets: vec![TRON_SUNSWAP_UNIVERSAL_ROUTER_CONTRACT],
+            spenders: vec![TRON_SUNSWAP_PERMIT2_CONTRACT, TRON_SUNSWAP_UNIVERSAL_ROUTER_CONTRACT],
+        })
     }
 
     fn amount_mode(&self, _request: &QuoteRequest) -> SwapAmountMode {
@@ -262,7 +269,7 @@ mod swap_integration_tests {
         let provider = SunSwap::new(rpc_provider.clone());
         let quote = provider.get_quote(&request(AssetId::from_chain(Chain::Tron), TRON_USDT_ASSET_ID.clone(), 100_000_000)).await?;
         let data = provider.get_quote_data(&quote, FetchQuoteData::None).await?;
-        (&provider as &dyn Swapper).verify_contracts(&quote, &data)?;
+        (&provider as &dyn Swapper).verify_binding(&quote, &data)?;
         let energy = simulate(rpc_provider, TRX_HOLDER, &data).await?;
         println!("100 TRX -> {} USDT, routes {:?}, energy {energy}", quote.to_value, quote.data.routes);
 
@@ -277,7 +284,7 @@ mod swap_integration_tests {
         let provider = SunSwap::new(dynode_provider([Chain::Tron]));
         let quote = provider.get_quote(&request(TRON_USDT_ASSET_ID.clone(), AssetId::from_chain(Chain::Tron), 10_000_000)).await?;
         let data = provider.get_quote_data(&quote, FetchQuoteData::None).await?;
-        (&provider as &dyn Swapper).verify_contracts(&quote, &data)?;
+        (&provider as &dyn Swapper).verify_binding(&quote, &data)?;
         println!("10 USDT -> {} sun, approval {:?}, permit2 {:?}", quote.to_value, data.approval, data.permit2);
 
         assert!(quote.to_value > BigUint::from(10_000_000u64));
@@ -296,7 +303,7 @@ mod swap_integration_tests {
         };
         let quote = provider.get_quote(&request_from(holder, TRON_USDT_ASSET_ID.clone(), AssetId::from_chain(Chain::Tron), 1_000_000)).await?;
         let data = provider.get_quote_data(&quote, FetchQuoteData::None).await?;
-        (&provider as &dyn Swapper).verify_contracts(&quote, &data)?;
+        (&provider as &dyn Swapper).verify_binding(&quote, &data)?;
         let energy = simulate(rpc_provider, holder, &data).await?;
         println!("1 USDT -> {} sun from {holder} with an existing Permit2 allowance, energy {energy}", quote.to_value);
 

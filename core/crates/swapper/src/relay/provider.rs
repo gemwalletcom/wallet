@@ -6,7 +6,7 @@ use alloy_primitives::U256;
 use async_trait::async_trait;
 use gem_client::Client;
 use primitives::{
-    AssetId, EvmNativeCurrency,
+    AssetId, Chain, EvmNativeCurrency,
     swap::{ApprovalData, SlippageMode},
 };
 
@@ -19,7 +19,7 @@ use super::{
     solana, ton,
 };
 use crate::{
-    Contracts, FetchQuoteData, ProviderType, Quote, QuoteRequest, RpcClient, RpcProvider, SwapAmountMode, SwapResult, SwapResultRequest, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData,
+    Binding, FetchQuoteData, ProviderType, Quote, QuoteRequest, RpcClient, RpcProvider, SwapAmountMode, SwapResult, SwapResultRequest, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData,
     approval::check_token_approval,
     client_factory::create_ton_client,
     config::get_swap_proxy_url,
@@ -74,8 +74,11 @@ where
         RelayChain::from_chain(&request.from_asset.chain()).map_or(SwapAmountMode::Fixed, |chain| chain.amount_mode())
     }
 
-    fn contracts(&self, from_asset: &AssetId) -> Contracts {
-        contracts::contracts(from_asset.chain)
+    fn binding(&self, from_asset: &AssetId) -> Binding {
+        match from_asset.chain {
+            Chain::Bitcoin => Binding::DepositAddress,
+            chain => Binding::Contracts(contracts::contracts(chain)),
+        }
     }
 
     async fn get_quote(&self, request: &QuoteRequest) -> Result<Quote, SwapperError> {
@@ -231,9 +234,9 @@ mod tests {
         };
         let relay = &relay as &dyn Swapper;
 
-        assert!(relay.verify_contracts(&quote, &approving(ROUTER_ADDRESS)).is_ok());
+        assert!(relay.verify_binding(&quote, &approving(ROUTER_ADDRESS)).is_ok());
         assert_eq!(
-            relay.verify_contracts(&quote, &approving(ERC20_ROUTER_ADDRESS)),
+            relay.verify_binding(&quote, &approving(ERC20_ROUTER_ADDRESS)),
             Err(SwapperError::InvalidRoute),
             "only the contracts that take the deposit receive an approval"
         );

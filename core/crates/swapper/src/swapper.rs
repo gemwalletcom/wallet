@@ -202,7 +202,7 @@ impl GemSwapper {
     pub async fn get_quote_data(&self, quote: &Quote, data: FetchQuoteData) -> Result<SwapperQuoteData, SwapperError> {
         let swapper = self.get_swapper_by_provider(&quote.data.provider.id)?;
         let quote_data = swapper.get_quote_data(quote, data).await?;
-        swapper.verify_contracts(quote, &quote_data)?;
+        swapper.verify_binding(quote, &quote_data)?;
         Ok(SwapperQuoteData {
             gas_limit: quote_data.gas_limit.map(|gas_limit| Self::gas_limit_with_multiplier(&quote.request.from_asset.chain(), gas_limit)),
             ..quote_data
@@ -466,7 +466,7 @@ mod swap_integration_tests {
         }
     }
 
-    fn bound_routes(swappers: &[Box<dyn Swapper>]) -> Vec<(&dyn Swapper, AssetId, AssetId)> {
+    fn routes(swappers: &[Box<dyn Swapper>]) -> Vec<(&dyn Swapper, AssetId, AssetId)> {
         let mut tokens: BTreeMap<Chain, Vec<AssetId>> = BTreeMap::new();
         for (chain, assets) in swappers.iter().flat_map(|swapper| swapper.supported_assets()).filter_map(|supported| match supported {
             SwapperChainAsset::Assets(chain, assets) => Some((chain, assets)),
@@ -491,7 +491,6 @@ mod swap_integration_tests {
                 };
                 std::iter::once(chain.as_asset_id())
                     .chain(assets)
-                    .filter(|from| !swapper.contracts(from).targets.is_empty())
                     .filter_map(|from| destination(swapper.as_ref(), &from).map(|to| (swapper.as_ref(), from, to)))
                     .collect::<Vec<_>>()
             })
@@ -518,21 +517,21 @@ mod swap_integration_tests {
         };
         let quote = swapper.get_quote(&request).await.ok()?;
         let data = swapper.get_quote_data(&quote, FetchQuoteData::None).await.ok()?;
-        Some(swapper.verify_contracts(&quote, &data).map_err(|_| {
+        Some(swapper.verify_binding(&quote, &data).map_err(|_| {
             let spender = data.approval.map(|approval| approval.spender).or(data.permit2.map(|permit2| permit2.spender));
             format!("{} {from} -> {to}: calls {}, spender {spender:?}, data {:.200}", swapper.provider().id.as_ref(), data.to, data.data)
         }))
     }
 
     #[tokio::test]
-    async fn test_every_bound_route_passes_the_contract_check() {
+    async fn test_every_route_passes_the_binding_check() {
         let swapper = GemSwapper::new(Arc::new(NativeProvider::default().set_debug(false)));
-        let routes = bound_routes(&swapper.swappers);
+        let routes = routes(&swapper.swappers);
         let results: Vec<_> = stream::iter(&routes).map(|(swapper, from, to)| checked_route(*swapper, from, to)).buffer_unordered(CONTRACT_CHECK_CONCURRENCY).collect().await;
         let refused: Vec<String> = results.iter().flatten().filter_map(|result| result.clone().err()).collect();
 
-        println!("{} of {} bound routes quoted", results.iter().flatten().count(), routes.len());
-        assert!(refused.is_empty(), "Confirm refuses these routes, each calling a contract its provider does not ship:\n{}", refused.join("\n"));
+        println!("{} of {} routes quoted", results.iter().flatten().count(), routes.len());
+        assert!(refused.is_empty(), "Confirm refuses these routes, each doing something its provider's binding does not allow:\n{}", refused.join("\n"));
     }
 
     async fn report(swapper: &GemSwapper, request: &QuoteRequest, round: &str) {

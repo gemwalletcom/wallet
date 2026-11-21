@@ -8,14 +8,14 @@ use gem_xrp::{
 };
 use num_bigint::BigUint;
 use primitives::{
-    Chain,
+    AssetId, Chain,
     asset_constants::{XRP_RLUSD_ASSET_ID, XRP_USDC_ASSET_ID},
     swap::XRP_REFERRAL_FEE_ASSET_IDS,
 };
 
 use super::model::{ledger_value, map_swap, path_destination, send_max};
 use crate::{
-    FetchQuoteData, ProviderType, Quote, QuoteRequest, RpcClient, RpcProvider, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData, client_factory::create_xrp_client, fees::fee_side,
+    Binding, FetchQuoteData, ProviderType, Quote, QuoteRequest, RpcClient, RpcProvider, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData, client_factory::create_xrp_client, fees::fee_side,
     models::nonzero_swap_value,
 };
 
@@ -51,6 +51,10 @@ where
 
     fn supported_assets(&self) -> Vec<SwapperChainAsset> {
         vec![SwapperChainAsset::assets(Chain::Xrp, [XRP_RLUSD_ASSET_ID.clone(), XRP_USDC_ASSET_ID.clone()])]
+    }
+
+    fn binding(&self, _from_asset: &AssetId) -> Binding {
+        Binding::BuiltOnDevice
     }
 
     fn amount_mode(&self, _request: &QuoteRequest) -> SwapAmountMode {

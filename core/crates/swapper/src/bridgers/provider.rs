@@ -22,7 +22,7 @@ use super::{
     xrp::get_transaction_memo,
 };
 use crate::{
-    Contracts, FetchQuoteData, ProviderType, Quote, QuoteRequest, RpcClient, RpcProvider, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData,
+    Binding, Contracts, FetchQuoteData, ProviderType, Quote, QuoteRequest, RpcClient, RpcProvider, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData,
     approval::{check_approval_erc20, get_swap_gas_limit_with_approval},
     client_factory::{create_ton_client, create_xrp_client},
     config::get_swap_proxy_url,
@@ -137,11 +137,11 @@ impl Swapper for Bridgers {
         SwapAmountMode::Fixed
     }
 
-    fn contracts(&self, from_asset: &AssetId) -> Contracts {
+    fn binding(&self, from_asset: &AssetId) -> Binding {
         if from_asset.chain == Chain::Ton && from_asset.token_id.is_some() {
-            return Contracts::default();
+            return Binding::BuiltOnDevice;
         }
-        Contracts::new(Network::from_chain(from_asset.chain).and_then(|network| network.router()).into_iter().collect())
+        Binding::Contracts(Contracts::new(Network::from_chain(from_asset.chain).and_then(|network| network.router()).into_iter().collect()))
     }
 
     async fn get_quote(&self, request: &QuoteRequest) -> Result<Quote, SwapperError> {
@@ -205,10 +205,13 @@ mod tests {
     fn test_contracts() {
         let provider = Bridgers::new(Arc::new(ProviderMock::new(String::new())));
 
-        assert_eq!(provider.contracts(&AssetId::from_chain(Chain::SmartChain)), Contracts::new(vec!["0xc1d13492285eb664951E201BF7C80c7c6318a1b5"]));
-        assert_eq!(provider.contracts(&AssetId::from_chain(Chain::Ton)), Contracts::new(vec!["EQCqTuPS-cMN9SSRhaFrwJOGL7dKkFF8C0a05g2WzI9uRJ19"]));
-        assert_eq!(provider.contracts(&TON_USDT_ASSET_ID), Contracts::default(), "a jetton swap pays the user's own jetton wallet, which is not a shipped contract");
-        assert_eq!(provider.contracts(&AssetId::from_chain(Chain::Tron)), Contracts::default(), "Bridgers has no Tron router");
+        assert_eq!(
+            provider.binding(&AssetId::from_chain(Chain::SmartChain)),
+            Binding::Contracts(Contracts::new(vec!["0xc1d13492285eb664951E201BF7C80c7c6318a1b5"]))
+        );
+        assert_eq!(provider.binding(&AssetId::from_chain(Chain::Ton)), Binding::Contracts(Contracts::new(vec!["EQCqTuPS-cMN9SSRhaFrwJOGL7dKkFF8C0a05g2WzI9uRJ19"])));
+        assert_eq!(provider.binding(&TON_USDT_ASSET_ID), Binding::BuiltOnDevice, "a jetton swap pays the user's own jetton wallet, which is not a shipped contract");
+        assert_eq!(provider.binding(&AssetId::from_chain(Chain::Tron)), Binding::Contracts(Contracts::default()), "Bridgers has no Tron router");
     }
 }
 
@@ -232,7 +235,7 @@ mod swap_integration_tests {
         for request in [mock_base_usdc_to_ton_usdt_request(), mock_ton_to_bsc_usdt_request(), mock_xrp_to_bsc_usdt_request()] {
             let quote = provider.get_quote(&request).await?;
             let data = provider.get_quote_data(&quote, FetchQuoteData::None).await?;
-            (&provider as &dyn Swapper).verify_contracts(&quote, &data)?;
+            (&provider as &dyn Swapper).verify_binding(&quote, &data)?;
             let network = Network::from_chain(request.from_asset.chain())?;
 
             assert!(quote.to_value > BigUint::ZERO);
@@ -255,7 +258,7 @@ mod swap_integration_tests {
 
         let quote = provider.get_quote(&mock_ton_usdt_to_bsc_usdt_request()).await?;
         let data = provider.get_quote_data(&quote, FetchQuoteData::None).await?;
-        (&provider as &dyn Swapper).verify_contracts(&quote, &data)?;
+        (&provider as &dyn Swapper).verify_binding(&quote, &data)?;
 
         assert_eq!((data.to.as_str(), data.value), ("EQCcPR6bD3c161LJe1hVCFni-z9y7fCkFtpSYwrKncccG4nG", BigUint::from(60_000_000u64)));
         assert_eq!(serde_json::from_str::<Vec<TonConnectMessage>>(&data.data)?.len(), 1);
