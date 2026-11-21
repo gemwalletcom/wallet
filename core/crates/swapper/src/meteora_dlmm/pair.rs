@@ -1,4 +1,4 @@
-use borsh::BorshDeserialize;
+use gem_encoding::borsh::{DecodeError, Reader};
 use gem_solana::{
     Pubkey, SolanaDataSlice,
     anchor::AnchorAccount,
@@ -32,7 +32,7 @@ const FEE_PRECISION: u32 = 1_000_000_000;
 const MAX_FEE_RATE: u128 = 100_000_000;
 const VARIABLE_FEE_PRECISION: u128 = 100_000_000_000;
 
-#[derive(Debug, Clone, PartialEq, BorshDeserialize)]
+#[derive(Debug, Clone, PartialEq)]
 struct StaticParameters {
     base_factor: u16,
     filter_period: u16,
@@ -49,7 +49,7 @@ struct StaticParameters {
     _padding: [u8; 3],
 }
 
-#[derive(Debug, Clone, PartialEq, BorshDeserialize)]
+#[derive(Debug, Clone, PartialEq)]
 struct VariableParameters {
     volatility_accumulator: u32,
     volatility_reference: u32,
@@ -59,7 +59,7 @@ struct VariableParameters {
     _padding_1: [u8; 8],
 }
 
-#[derive(Debug, Clone, PartialEq, BorshDeserialize)]
+#[derive(Debug, Clone, PartialEq)]
 struct RewardInfo {
     mint: Pubkey,
     _vault: Pubkey,
@@ -71,7 +71,7 @@ struct RewardInfo {
     _cumulative_seconds_with_empty_liquidity_reward: u64,
 }
 
-#[derive(Debug, Clone, PartialEq, BorshDeserialize)]
+#[derive(Debug, Clone, PartialEq)]
 pub(crate) struct Pair {
     parameters: StaticParameters,
     v_parameters: VariableParameters,
@@ -114,8 +114,94 @@ struct Volatility {
     index_reference: i32,
 }
 
+impl StaticParameters {
+    fn read(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        Ok(Self {
+            base_factor: reader.u16()?,
+            filter_period: reader.u16()?,
+            decay_period: reader.u16()?,
+            reduction_factor: reader.u16()?,
+            variable_fee_control: reader.u32()?,
+            max_volatility_accumulator: reader.u32()?,
+            _min_bin_id: reader.i32()?,
+            _max_bin_id: reader.i32()?,
+            _protocol_share: reader.u16()?,
+            base_fee_power_factor: reader.u8()?,
+            function_type: reader.u8()?,
+            collect_fee_mode: reader.u8()?,
+            _padding: reader.bytes()?,
+        })
+    }
+}
+
+impl VariableParameters {
+    fn read(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        Ok(Self {
+            volatility_accumulator: reader.u32()?,
+            volatility_reference: reader.u32()?,
+            index_reference: reader.i32()?,
+            _padding: reader.bytes()?,
+            last_update_timestamp: reader.i64()?,
+            _padding_1: reader.bytes()?,
+        })
+    }
+}
+
+impl RewardInfo {
+    fn read(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        Ok(Self {
+            mint: Pubkey::read(reader)?,
+            _vault: Pubkey::read(reader)?,
+            _funder: Pubkey::read(reader)?,
+            _reward_duration: reader.u64()?,
+            _reward_duration_end: reader.u64()?,
+            _reward_rate: reader.u128()?,
+            _last_update_time: reader.u64()?,
+            _cumulative_seconds_with_empty_liquidity_reward: reader.u64()?,
+        })
+    }
+}
+
 impl AnchorAccount for Pair {
     const NAME: &'static str = "LbPair";
+
+    fn read(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        Ok(Self {
+            parameters: StaticParameters::read(reader)?,
+            v_parameters: VariableParameters::read(reader)?,
+            _bump_seed: reader.bytes()?,
+            _bin_step_seed: reader.bytes()?,
+            pair_type: reader.u8()?,
+            active_id: reader.i32()?,
+            bin_step: reader.u16()?,
+            status: reader.u8()?,
+            _require_base_factor_seed: reader.u8()?,
+            _base_factor_seed: reader.bytes()?,
+            activation_type: ActivationType::read(reader)?,
+            _creator_pool_on_off_control: reader.u8()?,
+            token_x_mint: Pubkey::read(reader)?,
+            token_y_mint: Pubkey::read(reader)?,
+            reserve_x: Pubkey::read(reader)?,
+            reserve_y: Pubkey::read(reader)?,
+            _protocol_fee_amount_x: reader.u64()?,
+            _protocol_fee_amount_y: reader.u64()?,
+            _padding_1: reader.bytes()?,
+            reward_infos: [RewardInfo::read(reader)?, RewardInfo::read(reader)?],
+            oracle: Pubkey::read(reader)?,
+            bin_array_bitmap: reader.array(Reader::u64)?,
+            _last_updated_at: reader.i64()?,
+            _padding_2: reader.bytes()?,
+            _pre_activation_swap_address: Pubkey::read(reader)?,
+            _base_key: Pubkey::read(reader)?,
+            activation_point: reader.u64()?,
+            _pre_activation_duration: reader.u64()?,
+            _padding_3: reader.bytes()?,
+            _padding_4: reader.u64()?,
+            _creator: Pubkey::read(reader)?,
+            token_mint_x_program_flag: reader.u8()?,
+            token_mint_y_program_flag: reader.u8()?,
+        })
+    }
 }
 
 impl DexPool for Pair {

@@ -1,8 +1,11 @@
-use crate::Pubkey;
-use borsh::{BorshDeserialize, BorshSerialize};
-use gem_encoding::decode_base64;
+use gem_encoding::{
+    borsh::{DecodeError, Reader},
+    decode_base64,
+};
 
-#[derive(BorshSerialize, BorshDeserialize, PartialEq, Eq, Debug, Clone, Copy)]
+use crate::Pubkey;
+
+#[derive(PartialEq, Eq, Debug, Clone, Copy)]
 pub enum Key {
     Uninitialized,
     AssetV1,
@@ -12,14 +15,14 @@ pub enum Key {
     CollectionV1,
 }
 
-#[derive(BorshSerialize, BorshDeserialize, PartialEq, Eq, Debug, Clone)]
+#[derive(PartialEq, Eq, Debug, Clone)]
 pub enum UpdateAuthority {
     None,
     Address(Pubkey),
     Collection(Pubkey),
 }
 
-#[derive(BorshSerialize, BorshDeserialize, PartialEq, Eq, Debug, Clone)]
+#[derive(PartialEq, Eq, Debug, Clone)]
 pub struct AssetV1 {
     pub key: Key,
     pub owner: Pubkey,
@@ -29,7 +32,43 @@ pub struct AssetV1 {
     pub seq: Option<u64>,
 }
 
+impl Key {
+    fn read(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        match reader.u8()? {
+            0 => Ok(Self::Uninitialized),
+            1 => Ok(Self::AssetV1),
+            2 => Ok(Self::HashedAssetV1),
+            3 => Ok(Self::PluginHeaderV1),
+            4 => Ok(Self::PluginRegistryV1),
+            5 => Ok(Self::CollectionV1),
+            tag => Err(DecodeError::UnexpectedTag(tag)),
+        }
+    }
+}
+
+impl UpdateAuthority {
+    fn read(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        match reader.u8()? {
+            0 => Ok(Self::None),
+            1 => Ok(Self::Address(Pubkey::read(reader)?)),
+            2 => Ok(Self::Collection(Pubkey::read(reader)?)),
+            tag => Err(DecodeError::UnexpectedTag(tag)),
+        }
+    }
+}
+
 impl AssetV1 {
+    fn read(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        Ok(Self {
+            key: Key::read(reader)?,
+            owner: Pubkey::read(reader)?,
+            update_authority: UpdateAuthority::read(reader)?,
+            name: reader.string()?,
+            uri: reader.string()?,
+            seq: reader.option(Reader::u64)?,
+        })
+    }
+
     pub fn collection(&self) -> Option<Pubkey> {
         match self.update_authority {
             UpdateAuthority::Collection(pubkey) => Some(pubkey),
@@ -40,7 +79,7 @@ impl AssetV1 {
 
 pub fn decode_asset(base64_data: &str) -> Result<AssetV1, Box<dyn std::error::Error + Send + Sync>> {
     let data = decode_base64(base64_data).map_err(|error| format!("decode core asset base64: {error}"))?;
-    let asset = AssetV1::deserialize(&mut data.as_slice()).map_err(|error| format!("decode core asset: {error}"))?;
+    let asset = Reader::decode_prefix(&data, AssetV1::read).map_err(|error| format!("decode core asset: {error}"))?;
     if asset.key != Key::AssetV1 {
         return Err(format!("unexpected Metaplex Core asset key: {:?}", asset.key).into());
     }

@@ -1,4 +1,4 @@
-use borsh::BorshDeserialize;
+use gem_encoding::borsh::{DecodeError, Reader};
 use gem_solana::{Pubkey, SolanaDataSlice};
 
 use crate::{
@@ -16,7 +16,7 @@ const SWAP_STATUSES: [u64; 3] = [1, 6, 7];
 const WAITING_TRADE: u64 = 7;
 pub(super) const AUTHORITY_NONCE: u64 = 254;
 
-#[derive(Debug, Clone, PartialEq, BorshDeserialize)]
+#[derive(Debug, Clone, PartialEq)]
 struct Fees {
     _min_separate_numerator: u64,
     _min_separate_denominator: u64,
@@ -28,7 +28,7 @@ struct Fees {
     swap_fee_denominator: u64,
 }
 
-#[derive(Debug, Clone, PartialEq, BorshDeserialize)]
+#[derive(Debug, Clone, PartialEq)]
 struct StateData {
     need_take_pnl_coin: u64,
     need_take_pnl_pc: u64,
@@ -45,7 +45,7 @@ struct StateData {
     _swap_acc_coin_fee: u64,
 }
 
-#[derive(Debug, Clone, PartialEq, BorshDeserialize)]
+#[derive(Debug, Clone, PartialEq)]
 pub(crate) struct Pool {
     status: u64,
     nonce: u64,
@@ -79,6 +79,41 @@ pub(crate) struct Pool {
     pub lp_amount: u64,
 }
 
+impl Fees {
+    fn read(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        Ok(Self {
+            _min_separate_numerator: reader.u64()?,
+            _min_separate_denominator: reader.u64()?,
+            _trade_fee_numerator: reader.u64()?,
+            _trade_fee_denominator: reader.u64()?,
+            _pnl_numerator: reader.u64()?,
+            _pnl_denominator: reader.u64()?,
+            swap_fee_numerator: reader.u64()?,
+            swap_fee_denominator: reader.u64()?,
+        })
+    }
+}
+
+impl StateData {
+    fn read(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        Ok(Self {
+            need_take_pnl_coin: reader.u64()?,
+            need_take_pnl_pc: reader.u64()?,
+            _total_pnl_pc: reader.u64()?,
+            _total_pnl_coin: reader.u64()?,
+            pool_open_time: reader.u64()?,
+            _padding: reader.array(Reader::u64)?,
+            _orderbook_to_init_time: reader.u64()?,
+            _swap_coin_in_amount: reader.u128()?,
+            _swap_pc_out_amount: reader.u128()?,
+            _swap_acc_pc_fee: reader.u64()?,
+            _swap_pc_in_amount: reader.u128()?,
+            _swap_coin_out_amount: reader.u128()?,
+            _swap_acc_coin_fee: reader.u64()?,
+        })
+    }
+}
+
 impl DexPool for Pool {
     fn mints(&self) -> (Pubkey, Pubkey) {
         (self.coin_mint, self.pc_mint)
@@ -91,7 +126,42 @@ impl DexPool for Pool {
 
 impl Pool {
     pub fn decode(data: &[u8]) -> Result<Self, SwapperError> {
-        Self::deserialize(&mut &data[..]).map_err(SwapperError::compute_quote_error)
+        Reader::decode_prefix(data, Self::read).map_err(SwapperError::compute_quote_error)
+    }
+
+    fn read(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        Ok(Self {
+            status: reader.u64()?,
+            nonce: reader.u64()?,
+            _order_num: reader.u64()?,
+            _depth: reader.u64()?,
+            _coin_decimals: reader.u64()?,
+            _pc_decimals: reader.u64()?,
+            _state: reader.u64()?,
+            _reset_flag: reader.u64()?,
+            _min_size: reader.u64()?,
+            _vol_max_cut_ratio: reader.u64()?,
+            _amount_wave: reader.u64()?,
+            _coin_lot_size: reader.u64()?,
+            _pc_lot_size: reader.u64()?,
+            _min_price_multiplier: reader.u64()?,
+            _max_price_multiplier: reader.u64()?,
+            _sys_decimal_value: reader.u64()?,
+            fees: Fees::read(reader)?,
+            state_data: StateData::read(reader)?,
+            coin_vault: Pubkey::read(reader)?,
+            pc_vault: Pubkey::read(reader)?,
+            coin_mint: Pubkey::read(reader)?,
+            pc_mint: Pubkey::read(reader)?,
+            _lp_mint: Pubkey::read(reader)?,
+            _open_orders: Pubkey::read(reader)?,
+            _market: Pubkey::read(reader)?,
+            _market_program: Pubkey::read(reader)?,
+            _target_orders: Pubkey::read(reader)?,
+            _padding1: reader.array(Reader::u64)?,
+            _amm_owner: Pubkey::read(reader)?,
+            lp_amount: reader.u64()?,
+        })
     }
 
     pub fn is_tradable(&self, timestamp: u64) -> bool {

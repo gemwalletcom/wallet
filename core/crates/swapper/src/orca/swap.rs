@@ -1,4 +1,3 @@
-use borsh::BorshSerialize;
 use gem_solana::{
     AccountMeta, Instruction, Pubkey, anchor,
     instructions::program_ids::{memo_program, orca_whirlpool_program},
@@ -16,13 +15,11 @@ const TWO_HOP_SWAP_V2: &str = "two_hop_swap_v2";
 const SUPPLEMENTAL_TICK_ARRAYS: u8 = 6;
 const SWAP_TICK_ARRAYS: usize = 3;
 
-#[derive(BorshSerialize)]
 struct RemainingAccountsSlice {
     accounts_type: u8,
     length: u8,
 }
 
-#[derive(BorshSerialize)]
 struct SwapV2Args {
     amount: u64,
     other_amount_threshold: u64,
@@ -32,7 +29,6 @@ struct SwapV2Args {
     remaining_accounts_info: Option<Vec<RemainingAccountsSlice>>,
 }
 
-#[derive(BorshSerialize)]
 struct TwoHopSwapV2Args {
     amount: u64,
     other_amount_threshold: u64,
@@ -42,6 +38,40 @@ struct TwoHopSwapV2Args {
     sqrt_price_limit_one: u128,
     sqrt_price_limit_two: u128,
     remaining_accounts_info: Option<Vec<RemainingAccountsSlice>>,
+}
+
+impl SwapV2Args {
+    fn encode(&self) -> Vec<u8> {
+        [
+            self.amount.to_le_bytes().as_slice(),
+            &self.other_amount_threshold.to_le_bytes(),
+            &self.sqrt_price_limit.to_le_bytes(),
+            &[u8::from(self.amount_specified_is_input), u8::from(self.a_to_b)],
+            &encode_remaining_accounts_info(&self.remaining_accounts_info),
+        ]
+        .concat()
+    }
+}
+
+impl TwoHopSwapV2Args {
+    fn encode(&self) -> Vec<u8> {
+        [
+            self.amount.to_le_bytes().as_slice(),
+            &self.other_amount_threshold.to_le_bytes(),
+            &[u8::from(self.amount_specified_is_input), u8::from(self.a_to_b_one), u8::from(self.a_to_b_two)],
+            &self.sqrt_price_limit_one.to_le_bytes(),
+            &self.sqrt_price_limit_two.to_le_bytes(),
+            &encode_remaining_accounts_info(&self.remaining_accounts_info),
+        ]
+        .concat()
+    }
+}
+
+fn encode_remaining_accounts_info(info: &Option<Vec<RemainingAccountsSlice>>) -> Vec<u8> {
+    match info {
+        None => vec![0],
+        Some(slices) => [vec![1], (slices.len() as u32).to_le_bytes().to_vec(), slices.iter().flat_map(|slice| [slice.accounts_type, slice.length]).collect()].concat(),
+    }
 }
 
 pub(super) fn swap_v2_instruction(address: &Pubkey, whirlpool: &Whirlpool, swap: &PoolSwap) -> Result<Instruction, SwapperError> {
@@ -79,7 +109,7 @@ pub(super) fn swap_v2_instruction(address: &Pubkey, whirlpool: &Whirlpool, swap:
     .chain([AccountMeta::new_writable(Whirlpool::oracle_address(address)?)])
     .chain(supplemental.into_iter().map(AccountMeta::new_writable))
     .collect();
-    Ok(anchor::instruction(orca_whirlpool_program(), SWAP_V2, &args, accounts))
+    Ok(anchor::instruction(orca_whirlpool_program(), SWAP_V2, &args.encode(), accounts))
 }
 
 pub(super) fn two_hop_swap_v2_instruction(first: &(Pubkey, Whirlpool), second: &(Pubkey, Whirlpool), swap: &PoolSwap, intermediate: &SwapToken) -> Result<Instruction, SwapperError> {
@@ -124,7 +154,7 @@ pub(super) fn two_hop_swap_v2_instruction(first: &(Pubkey, Whirlpool), second: &
         AccountMeta::new_readonly(memo_program()),
     ])
     .collect();
-    Ok(anchor::instruction(orca_whirlpool_program(), TWO_HOP_SWAP_V2, &args, accounts))
+    Ok(anchor::instruction(orca_whirlpool_program(), TWO_HOP_SWAP_V2, &args.encode(), accounts))
 }
 
 fn swap_tick_arrays(address: &Pubkey, whirlpool: &Whirlpool, a_to_b: bool) -> Result<Vec<AccountMeta>, SwapperError> {
@@ -155,7 +185,7 @@ mod tests {
         };
 
         assert_eq!(
-            anchor::instruction_data(SWAP_V2, &args),
+            anchor::instruction_data(SWAP_V2, &args.encode()),
             hex::decode("2b04ed0b1ac91e621038120000000000abcf96000000000000000000000000000000000000000000010001010000000602").unwrap()
         );
     }
@@ -224,7 +254,7 @@ mod tests {
         };
 
         assert_eq!(
-            anchor::instruction_data(TWO_HOP_SWAP_V2, &args),
+            anchor::instruction_data(TWO_HOP_SWAP_V2, &args.encode()),
             hex::decode("ba8fd11dfe02c27540420f0000000000a0bb0d0000000000010000000000000000000000000000000000000000000000000000000000000000000000").unwrap()
         );
     }

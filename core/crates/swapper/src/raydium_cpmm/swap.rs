@@ -27,7 +27,7 @@ pub(super) fn swap_base_input_instruction(address: &Pubkey, pool: &Pool, swap: &
         AccountMeta::new_readonly(swap.output.mint),
         AccountMeta::new_writable(pool.observation_key),
     ];
-    Ok(anchor::instruction(raydium_cpmm_program(), SWAP_BASE_INPUT, &swap.amounts(), accounts))
+    Ok(anchor::instruction(raydium_cpmm_program(), SWAP_BASE_INPUT, &swap.amounts().encode(), accounts))
 }
 
 #[cfg(test)]

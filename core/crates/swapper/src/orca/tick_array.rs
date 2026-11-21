@@ -1,4 +1,4 @@
-use borsh::BorshDeserialize;
+use gem_encoding::borsh::{DecodeError, Reader};
 use gem_solana::{Pubkey, anchor::AnchorAccount, find_program_address, instructions::program_ids::orca_whirlpool_program};
 
 use super::whirlpool::{TICK_ARRAY_SIZE, Whirlpool};
@@ -9,46 +9,81 @@ use crate::{
 
 const TICK_GROWTHS_LEN: usize = 96;
 
-#[derive(BorshDeserialize)]
 struct FixedTick {
     initialized: bool,
     liquidity_net: i128,
     _liquidity_gross_and_growths: [u8; TICK_GROWTHS_LEN],
 }
 
-#[derive(BorshDeserialize)]
 struct FixedTickArray {
     start_tick_index: i32,
-    ticks: [FixedTick; TICK_ARRAY_SIZE as usize],
+    ticks: Vec<FixedTick>,
     whirlpool: Pubkey,
 }
 
-#[derive(BorshDeserialize)]
 struct DynamicTickData {
     liquidity_net: i128,
     _liquidity_gross_and_growths: [u8; TICK_GROWTHS_LEN],
 }
 
-#[derive(BorshDeserialize)]
 enum DynamicTick {
     Uninitialized,
     Initialized(DynamicTickData),
 }
 
-#[derive(BorshDeserialize)]
 struct DynamicTickArray {
     start_tick_index: i32,
     whirlpool: Pubkey,
     _tick_bitmap: u128,
-    ticks: [DynamicTick; TICK_ARRAY_SIZE as usize],
+    ticks: Vec<DynamicTick>,
+}
+
+impl FixedTick {
+    fn read(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        Ok(Self {
+            initialized: reader.bool()?,
+            liquidity_net: reader.i128()?,
+            _liquidity_gross_and_growths: reader.bytes()?,
+        })
+    }
+}
+
+impl DynamicTick {
+    fn read(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        match reader.u8()? {
+            0 => Ok(Self::Uninitialized),
+            1 => Ok(Self::Initialized(DynamicTickData {
+                liquidity_net: reader.i128()?,
+                _liquidity_gross_and_growths: reader.bytes()?,
+            })),
+            tag => Err(DecodeError::UnexpectedTag(tag)),
+        }
+    }
 }
 
 impl AnchorAccount for FixedTickArray {
     const NAME: &'static str = "TickArray";
+
+    fn read(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        Ok(Self {
+            start_tick_index: reader.i32()?,
+            ticks: reader.list(TICK_ARRAY_SIZE as usize, FixedTick::read)?,
+            whirlpool: Pubkey::read(reader)?,
+        })
+    }
 }
 
 impl AnchorAccount for DynamicTickArray {
     const NAME: &'static str = "DynamicTickArray";
+
+    fn read(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        Ok(Self {
+            start_tick_index: reader.i32()?,
+            whirlpool: Pubkey::read(reader)?,
+            _tick_bitmap: reader.u128()?,
+            ticks: reader.list(TICK_ARRAY_SIZE as usize, DynamicTick::read)?,
+        })
+    }
 }
 
 impl From<FixedTickArray> for TickArray {

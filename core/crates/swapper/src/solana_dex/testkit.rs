@@ -1,4 +1,3 @@
-use borsh::BorshDeserialize;
 use gem_client::testkit::MockClient;
 use gem_encoding::{decode_base64, encode_base64};
 use gem_jsonrpc::{client::JsonRpcClient, testkit::mock_jsonrpc_client};
@@ -136,7 +135,7 @@ pub(crate) fn mock_account_snapshot(snapshot: &str) -> (Vec<Pubkey>, HashMap<Pub
         .iter()
         .map(|(address, account)| (Pubkey::from_base58(address).unwrap(), account["data"][0].as_str().map(|data| decode_base64(data).unwrap())))
         .collect::<HashMap<_, _>>();
-    let clock = Clock::try_from_slice(accounts[&sysvar_clock()].as_ref().unwrap()).unwrap();
+    let clock = Clock::decode(accounts[&sysvar_clock()].as_ref().unwrap()).unwrap();
     (addresses, accounts, clock)
 }
 

@@ -1,5 +1,4 @@
 use async_trait::async_trait;
-use borsh::BorshDeserialize;
 use futures::future::{join_all, try_join_all};
 use gem_client::Client;
 use gem_jsonrpc::client::JsonRpcClient;
@@ -466,7 +465,7 @@ fn quote_data(accounts: &Accounts, account: &QuoteAccount) -> Result<Option<Vec<
 
 fn chain_clock(accounts: &Accounts) -> Result<Clock, SwapperError> {
     let data = owned_data(accounts, &sysvar_clock(), &sysvar_program())?.ok_or_else(|| SwapperError::compute_quote_error("Missing Solana clock"))?;
-    Clock::try_from_slice(&data).map_err(SwapperError::compute_quote_error)
+    Clock::decode(&data).map_err(SwapperError::compute_quote_error)
 }
 
 fn accounts_request(addresses: &[Pubkey]) -> SolanaRpc {

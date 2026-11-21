@@ -1,4 +1,3 @@
-use borsh::BorshSerialize;
 use gem_solana::{
     AccountMeta, Instruction, Pubkey, anchor,
     instructions::program_ids::{memo_program, raydium_clmm_program, token_2022_program, token_program},
@@ -16,7 +15,6 @@ use crate::{
 const SWAP_V2: &str = "swap_v2";
 const SWAP_ROUTER_BASE_IN: &str = "swap_router_base_in";
 
-#[derive(BorshSerialize)]
 struct SwapV2Args {
     amount: u64,
     other_amount_threshold: u64,
@@ -24,10 +22,27 @@ struct SwapV2Args {
     is_base_input: bool,
 }
 
-#[derive(BorshSerialize)]
 struct SwapRouterBaseInArgs {
     amount_in: u64,
     amount_out_minimum: u64,
+}
+
+impl SwapV2Args {
+    fn encode(&self) -> Vec<u8> {
+        [
+            self.amount.to_le_bytes().as_slice(),
+            &self.other_amount_threshold.to_le_bytes(),
+            &self.sqrt_price_limit_x64.to_le_bytes(),
+            &[u8::from(self.is_base_input)],
+        ]
+        .concat()
+    }
+}
+
+impl SwapRouterBaseInArgs {
+    fn encode(&self) -> Vec<u8> {
+        [self.amount_in.to_le_bytes(), self.amount_out_minimum.to_le_bytes()].concat()
+    }
 }
 
 pub(super) fn swap_v2_instruction(address: &Pubkey, pool: &PoolState, swap: &PoolSwap) -> Result<Instruction, SwapperError> {
@@ -57,7 +72,7 @@ pub(super) fn swap_v2_instruction(address: &Pubkey, pool: &PoolState, swap: &Poo
     .into_iter()
     .chain(swap_tick_arrays(address, pool, zero_for_one)?)
     .collect();
-    Ok(anchor::instruction(raydium_clmm_program(), SWAP_V2, &args, accounts))
+    Ok(anchor::instruction(raydium_clmm_program(), SWAP_V2, &args.encode(), accounts))
 }
 
 pub(super) fn swap_router_base_in_instruction(first: &(Pubkey, PoolState), second: &(Pubkey, PoolState), swap: &PoolSwap, intermediate: &SwapToken) -> Result<Instruction, SwapperError> {
@@ -80,7 +95,7 @@ pub(super) fn swap_router_base_in_instruction(first: &(Pubkey, PoolState), secon
     .into_iter()
     .chain(hops.into_iter().flatten())
     .collect();
-    Ok(anchor::instruction(raydium_clmm_program(), SWAP_ROUTER_BASE_IN, &args, accounts))
+    Ok(anchor::instruction(raydium_clmm_program(), SWAP_ROUTER_BASE_IN, &args.encode(), accounts))
 }
 
 fn router_hop_accounts(address: &Pubkey, pool: &PoolState, authority: Pubkey, input: &SwapToken, output: &SwapToken) -> Result<Vec<AccountMeta>, SwapperError> {
@@ -129,10 +144,10 @@ mod tests {
         };
 
         assert_eq!(
-            anchor::instruction_data(SWAP_V2, &swap_v2),
+            anchor::instruction_data(SWAP_V2, &swap_v2.encode()),
             hex::decode("2b04ed0b1ac91e62e03fee0500000000009ce4a6000000000000000000000000000000000000000001").unwrap()
         );
-        assert_eq!(anchor::instruction_data(SWAP_ROUTER_BASE_IN, &router), hex::decode("457d73daf5baf2c4e03fee0500000000009ce4a600000000").unwrap());
+        assert_eq!(anchor::instruction_data(SWAP_ROUTER_BASE_IN, &router.encode()), hex::decode("457d73daf5baf2c4e03fee0500000000009ce4a600000000").unwrap());
     }
 
     #[test]

@@ -1,7 +1,7 @@
-use borsh::{BorshDeserialize, BorshSerialize};
+use gem_encoding::borsh::{DecodeError, Reader};
 use sha2::{Digest, Sha256};
 
-use crate::{AccountMeta, Instruction, Pubkey, Result, SolanaError};
+use crate::{AccountMeta, Instruction, Pubkey, Result as SolanaResult, SolanaError};
 
 const DISCRIMINATOR_LEN: usize = 8;
 
@@ -20,11 +20,11 @@ pub fn global_discriminator(name: &str) -> [u8; 8] {
     namespaced_discriminator("global", name)
 }
 
-pub fn instruction_data(name: &str, args: &impl BorshSerialize) -> Vec<u8> {
-    [global_discriminator(name).to_vec(), borsh::to_vec(args).unwrap_or_default()].concat()
+pub fn instruction_data(name: &str, args: &[u8]) -> Vec<u8> {
+    [global_discriminator(name).as_slice(), args].concat()
 }
 
-pub fn instruction(program_id: Pubkey, name: &str, args: &impl BorshSerialize, accounts: Vec<AccountMeta>) -> Instruction {
+pub fn instruction(program_id: Pubkey, name: &str, args: &[u8], accounts: Vec<AccountMeta>) -> Instruction {
     Instruction {
         program_id,
         accounts,
@@ -32,15 +32,17 @@ pub fn instruction(program_id: Pubkey, name: &str, args: &impl BorshSerialize, a
     }
 }
 
-pub trait AnchorAccount: BorshDeserialize {
+pub trait AnchorAccount: Sized {
     const NAME: &'static str;
 
-    fn decode(data: &[u8]) -> Result<Self> {
-        Self::deserialize(&mut account_body(data, Self::NAME)?).map_err(|error| SolanaError::invalid_input(format!("Invalid {} account: {error}", Self::NAME)))
+    fn read(reader: &mut Reader<'_>) -> Result<Self, DecodeError>;
+
+    fn decode(data: &[u8]) -> SolanaResult<Self> {
+        Reader::decode_prefix(account_body(data, Self::NAME)?, Self::read).map_err(|error| SolanaError::invalid_input(format!("Invalid {} account: {error}", Self::NAME)))
     }
 }
 
-fn account_body<'a>(data: &'a [u8], name: &str) -> Result<&'a [u8]> {
+fn account_body<'a>(data: &'a [u8], name: &str) -> SolanaResult<&'a [u8]> {
     data.split_at_checked(DISCRIMINATOR_LEN)
         .filter(|(discriminator, _)| *discriminator == namespaced_discriminator("account", name))
         .map(|(_, body)| body)
@@ -59,13 +61,17 @@ mod tests {
         assert_eq!(global_discriminator("init_order"), decode_hex_literal("204c290c27a284db"));
     }
 
-    #[derive(Debug, PartialEq, BorshDeserialize)]
+    #[derive(Debug, PartialEq)]
     struct Whirlpool {
         value: u16,
     }
 
     impl AnchorAccount for Whirlpool {
         const NAME: &'static str = "Whirlpool";
+
+        fn read(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+            Ok(Self { value: reader.u16()? })
+        }
     }
 
     #[test]

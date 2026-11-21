@@ -1,5 +1,5 @@
 use alloy_primitives::U256;
-use borsh::BorshDeserialize;
+use gem_encoding::borsh::{DecodeError, Reader};
 use gem_solana::{Pubkey, SolanaDataSlice, anchor::AnchorAccount, models::Clock};
 
 use super::fee::{BaseFee, DynamicFee, FeePoint};
@@ -20,7 +20,7 @@ const ONLY_B: u8 = 1;
 const COMPOUNDING: u8 = 2;
 const Q128_RESOLUTION: usize = 128;
 
-#[derive(Debug, Clone, PartialEq, BorshDeserialize)]
+#[derive(Debug, Clone, PartialEq)]
 struct PoolFees {
     base_fee: BaseFee,
     _base_fee_padding_1: u64,
@@ -33,7 +33,7 @@ struct PoolFees {
     init_sqrt_price: u128,
 }
 
-#[derive(Debug, Clone, PartialEq, BorshDeserialize)]
+#[derive(Debug, Clone, PartialEq)]
 struct PoolMetrics {
     _total_lp_a_fee: u128,
     _total_lp_b_fee: u128,
@@ -44,7 +44,7 @@ struct PoolMetrics {
     _padding: u64,
 }
 
-#[derive(Debug, Clone, PartialEq, BorshDeserialize)]
+#[derive(Debug, Clone, PartialEq)]
 pub(crate) struct Pool {
     pool_fees: PoolFees,
     pub token_a_mint: Pubkey,
@@ -80,8 +80,75 @@ pub(crate) struct Pool {
     token_b_amount: u64,
 }
 
+impl PoolFees {
+    fn read(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        Ok(Self {
+            base_fee: BaseFee::read(reader)?,
+            _base_fee_padding_1: reader.u64()?,
+            _protocol_fee_percent: reader.u8()?,
+            _padding_0: reader.u8()?,
+            _referral_fee_percent: reader.u8()?,
+            _padding_1: reader.bytes()?,
+            _compounding_fee_bps: reader.u16()?,
+            dynamic_fee: DynamicFee::read(reader)?,
+            init_sqrt_price: reader.u128()?,
+        })
+    }
+}
+
+impl PoolMetrics {
+    fn read(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        Ok(Self {
+            _total_lp_a_fee: reader.u128()?,
+            _total_lp_b_fee: reader.u128()?,
+            _total_protocol_a_fee: reader.u64()?,
+            _total_protocol_b_fee: reader.u64()?,
+            _padding_0: reader.array(Reader::u64)?,
+            _total_position: reader.u64()?,
+            _padding: reader.u64()?,
+        })
+    }
+}
+
 impl AnchorAccount for Pool {
     const NAME: &'static str = "Pool";
+
+    fn read(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        Ok(Self {
+            pool_fees: PoolFees::read(reader)?,
+            token_a_mint: Pubkey::read(reader)?,
+            token_b_mint: Pubkey::read(reader)?,
+            token_a_vault: Pubkey::read(reader)?,
+            token_b_vault: Pubkey::read(reader)?,
+            _whitelisted_vault: Pubkey::read(reader)?,
+            _padding_0: reader.bytes()?,
+            liquidity: reader.u128()?,
+            _padding_1: reader.u128()?,
+            _protocol_a_fee: reader.u64()?,
+            _protocol_b_fee: reader.u64()?,
+            _dead_liquidity_fee_checkpoint: reader.u64()?,
+            _padding_2: reader.bytes()?,
+            sqrt_min_price: reader.u128()?,
+            sqrt_max_price: reader.u128()?,
+            sqrt_price: reader.u128()?,
+            activation_point: reader.u64()?,
+            activation_type: ActivationType::read(reader)?,
+            pool_status: reader.u8()?,
+            _token_a_flag: reader.u8()?,
+            _token_b_flag: reader.u8()?,
+            collect_fee_mode: reader.u8()?,
+            _pool_type: reader.u8()?,
+            fee_version: reader.u8()?,
+            _padding_3: reader.u8()?,
+            _fee_a_per_liquidity: reader.bytes()?,
+            _fee_b_per_liquidity: reader.bytes()?,
+            _permanent_lock_liquidity: reader.u128()?,
+            _metrics: PoolMetrics::read(reader)?,
+            _creator: Pubkey::read(reader)?,
+            token_a_amount: reader.u64()?,
+            token_b_amount: reader.u64()?,
+        })
+    }
 }
 
 impl DexPool for Pool {

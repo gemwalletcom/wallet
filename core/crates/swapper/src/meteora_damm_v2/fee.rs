@@ -1,6 +1,5 @@
 use alloy_primitives::U256;
-use borsh::BorshDeserialize;
-use std::io::{Error, ErrorKind, Read};
+use gem_encoding::borsh::{DecodeError, Reader};
 
 use crate::clmm::Q64_RESOLUTION;
 
@@ -14,7 +13,7 @@ const MARKET_CAP_SCHEDULER_LINEAR: u8 = 3;
 const MARKET_CAP_SCHEDULER_EXPONENTIAL: u8 = 4;
 const BASE_FEE_LEN: usize = 32;
 
-#[derive(Debug, Clone, Copy, PartialEq, BorshDeserialize)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub(super) struct TimeScheduler {
     cliff_fee_numerator: u64,
     mode: u8,
@@ -24,7 +23,7 @@ pub(super) struct TimeScheduler {
     reduction_factor: u64,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, BorshDeserialize)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub(super) struct MarketCapScheduler {
     cliff_fee_numerator: u64,
     mode: u8,
@@ -35,7 +34,7 @@ pub(super) struct MarketCapScheduler {
     reduction_factor: u64,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, BorshDeserialize)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub(super) struct RateLimiter {
     cliff_fee_numerator: u64,
     _mode: u8,
@@ -53,7 +52,7 @@ pub(super) enum BaseFee {
     RateLimiter(RateLimiter),
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, BorshDeserialize)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub(super) struct DynamicFee {
     initialized: u8,
     _padding: [u8; 7],
@@ -79,19 +78,17 @@ pub(super) struct FeePoint {
     pub sqrt_price: u128,
 }
 
-impl BorshDeserialize for BaseFee {
-    fn deserialize_reader<R: Read>(reader: &mut R) -> std::io::Result<Self> {
-        let data = <[u8; BASE_FEE_LEN]>::deserialize_reader(reader)?;
+impl BaseFee {
+    pub fn read(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        let data = reader.bytes::<BASE_FEE_LEN>()?;
         match data[8] {
-            TIME_SCHEDULER_LINEAR | TIME_SCHEDULER_EXPONENTIAL => Ok(Self::TimeScheduler(TimeScheduler::try_from_slice(&data)?)),
-            RATE_LIMITER => Ok(Self::RateLimiter(RateLimiter::try_from_slice(&data)?)),
-            MARKET_CAP_SCHEDULER_LINEAR | MARKET_CAP_SCHEDULER_EXPONENTIAL => Ok(Self::MarketCapScheduler(MarketCapScheduler::try_from_slice(&data)?)),
-            mode => Err(Error::new(ErrorKind::InvalidData, format!("unknown base fee mode {mode}"))),
+            TIME_SCHEDULER_LINEAR | TIME_SCHEDULER_EXPONENTIAL => Reader::decode(&data, TimeScheduler::read).map(Self::TimeScheduler),
+            RATE_LIMITER => Reader::decode(&data, RateLimiter::read).map(Self::RateLimiter),
+            MARKET_CAP_SCHEDULER_LINEAR | MARKET_CAP_SCHEDULER_EXPONENTIAL => Reader::decode(&data, MarketCapScheduler::read).map(Self::MarketCapScheduler),
+            mode => Err(DecodeError::UnexpectedTag(mode)),
         }
     }
-}
 
-impl BaseFee {
     pub fn numerator(&self, point: &FeePoint) -> Option<u64> {
         match self {
             Self::TimeScheduler(scheduler) => scheduler.numerator(point),
@@ -102,6 +99,17 @@ impl BaseFee {
 }
 
 impl TimeScheduler {
+    fn read(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        Ok(Self {
+            cliff_fee_numerator: reader.u64()?,
+            mode: reader.u8()?,
+            _padding: reader.bytes()?,
+            number_of_period: reader.u16()?,
+            period_frequency: reader.u64()?,
+            reduction_factor: reader.u64()?,
+        })
+    }
+
     fn numerator(&self, point: &FeePoint) -> Option<u64> {
         if self.period_frequency == 0 {
             return Some(self.cliff_fee_numerator);
@@ -112,6 +120,18 @@ impl TimeScheduler {
 }
 
 impl MarketCapScheduler {
+    fn read(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        Ok(Self {
+            cliff_fee_numerator: reader.u64()?,
+            mode: reader.u8()?,
+            _padding: reader.bytes()?,
+            number_of_period: reader.u16()?,
+            sqrt_price_step_bps: reader.u32()?,
+            scheduler_expiration_duration: reader.u32()?,
+            reduction_factor: reader.u64()?,
+        })
+    }
+
     fn numerator(&self, point: &FeePoint) -> Option<u64> {
         let expiration = point.activation.checked_add(u64::from(self.scheduler_expiration_duration))?;
         let period = if point.current > expiration || point.current < point.activation {
@@ -127,6 +147,18 @@ impl MarketCapScheduler {
 }
 
 impl RateLimiter {
+    fn read(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        Ok(Self {
+            cliff_fee_numerator: reader.u64()?,
+            _mode: reader.u8()?,
+            _padding: reader.bytes()?,
+            fee_increment_bps: reader.u16()?,
+            max_limiter_duration: reader.u32()?,
+            max_fee_bps: reader.u32()?,
+            reference_amount: reader.u64()?,
+        })
+    }
+
     fn numerator(&self, point: &FeePoint) -> Option<u64> {
         let inactive = self.reference_amount == 0 && self.max_limiter_duration == 0 && self.max_fee_bps == 0 && self.fee_increment_bps == 0;
         let last_point = u128::from(point.activation) + u128::from(self.max_limiter_duration);
@@ -136,6 +168,24 @@ impl RateLimiter {
 }
 
 impl DynamicFee {
+    pub fn read(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        Ok(Self {
+            initialized: reader.u8()?,
+            _padding: reader.bytes()?,
+            _max_volatility_accumulator: reader.u32()?,
+            variable_fee_control: reader.u32()?,
+            bin_step: reader.u16()?,
+            _filter_period: reader.u16()?,
+            _decay_period: reader.u16()?,
+            _reduction_factor: reader.u16()?,
+            _last_update_timestamp: reader.u64()?,
+            _bin_step_u128: reader.u128()?,
+            _sqrt_price_reference: reader.u128()?,
+            volatility_accumulator: reader.u128()?,
+            _volatility_reference: reader.u128()?,
+        })
+    }
+
     pub fn variable_fee(&self) -> Option<u128> {
         if self.initialized == 0 {
             return Some(0);

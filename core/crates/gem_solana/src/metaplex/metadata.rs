@@ -1,3 +1,4 @@
+use gem_encoding::borsh::{DecodeError, Reader};
 use std::str::FromStr;
 
 use crate::metaplex::{
@@ -7,9 +8,8 @@ use crate::metaplex::{
     uses::Uses,
 };
 use crate::{METAPLEX_PROGRAM, Pubkey, find_program_address};
-use borsh::{BorshDeserialize, BorshSerialize};
 
-#[derive(Clone, BorshDeserialize, BorshSerialize, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Metadata {
     pub key: Key,
     pub update_authority: Pubkey,
@@ -25,12 +25,38 @@ pub struct Metadata {
     pub programmable_config: Option<ProgrammableConfig>,
 }
 
-#[derive(BorshSerialize, BorshDeserialize, PartialEq, Eq, Debug, Clone)]
+#[derive(PartialEq, Eq, Debug, Clone)]
 pub enum ProgrammableConfig {
     V1 { rule_set: Option<Pubkey> },
 }
 
+impl ProgrammableConfig {
+    fn read(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        match reader.u8()? {
+            0 => Ok(Self::V1 { rule_set: reader.option(Pubkey::read)? }),
+            tag => Err(DecodeError::UnexpectedTag(tag)),
+        }
+    }
+}
+
 impl Metadata {
+    pub(super) fn read(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        Ok(Self {
+            key: Key::read(reader)?,
+            update_authority: Pubkey::read(reader)?,
+            mint: Pubkey::read(reader)?,
+            data: Data::read(reader)?,
+            primary_sale_happened: reader.bool()?,
+            is_mutable: reader.bool()?,
+            edition_nonce: reader.option(Reader::u8)?,
+            token_standard: reader.option(TokenStandard::read)?,
+            collection: reader.option(Collection::read)?,
+            uses: reader.option(Uses::read)?,
+            collection_details: reader.option(CollectionDetails::read)?,
+            programmable_config: reader.option(ProgrammableConfig::read)?,
+        })
+    }
+
     pub fn find_pda(mint: Pubkey) -> Option<(Pubkey, u8)> {
         let mpl_id = Pubkey::from_str(METAPLEX_PROGRAM).ok()?;
         find_program_address(&mpl_id, &["metadata".as_bytes(), mpl_id.as_bytes().as_ref(), mint.as_bytes().as_ref()]).ok()

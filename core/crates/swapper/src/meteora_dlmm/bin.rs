@@ -1,5 +1,5 @@
 use alloy_primitives::U256;
-use borsh::BorshDeserialize;
+use gem_encoding::borsh::{DecodeError, Reader};
 use gem_solana::{Pubkey, anchor::AnchorAccount, find_program_address, instructions::program_ids::meteora_dlmm_program};
 
 use crate::{SwapperError, clmm::divide};
@@ -11,16 +11,16 @@ const BASIS_POINT_MAX: u128 = 10_000;
 const MAX_EXPONENT: u32 = 0x80000;
 const LIMIT_ORDER_VERSION: u8 = 2;
 
-#[derive(Debug, Clone, PartialEq, BorshDeserialize)]
+#[derive(Debug, Clone, PartialEq)]
 pub(crate) struct BinArray {
     pub index: i64,
     version: u8,
     _padding: [u8; 7],
     pub lb_pair: Pubkey,
-    bins: [Bin; BINS_PER_ARRAY as usize],
+    bins: Vec<Bin>,
 }
 
-#[derive(Debug, Clone, PartialEq, BorshDeserialize)]
+#[derive(Debug, Clone, PartialEq)]
 pub(crate) struct Bin {
     amount_x: u64,
     amount_y: u64,
@@ -42,6 +42,16 @@ pub(crate) struct Bin {
 
 impl AnchorAccount for BinArray {
     const NAME: &'static str = "BinArray";
+
+    fn read(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        Ok(Self {
+            index: reader.i64()?,
+            version: reader.u8()?,
+            _padding: reader.bytes()?,
+            lb_pair: Pubkey::read(reader)?,
+            bins: reader.list(BINS_PER_ARRAY as usize, Bin::read)?,
+        })
+    }
 }
 
 pub(super) fn array_index(bin_id: i32) -> i64 {
@@ -127,6 +137,27 @@ impl BinArray {
 }
 
 impl Bin {
+    fn read(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        Ok(Self {
+            amount_x: reader.u64()?,
+            amount_y: reader.u64()?,
+            price: reader.u128()?,
+            _liquidity_supply: reader.u128()?,
+            _fulfilled_order_amount_x: reader.u64()?,
+            _fulfilled_order_amount_y: reader.u64()?,
+            _limit_order_fee_ask_side: reader.u64()?,
+            _limit_order_fee_bid_side: reader.u64()?,
+            _fee_amount_x_per_token_stored: reader.u128()?,
+            _fee_amount_y_per_token_stored: reader.u128()?,
+            open_order_amount: reader.u64()?,
+            _total_processing_order_amount: reader.u64()?,
+            processed_order_remaining_amount: reader.u64()?,
+            _order_age: reader.u32()?,
+            limit_order_ask_side: reader.u8()?,
+            _padding: reader.bytes()?,
+        })
+    }
+
     pub fn price(&self, bin_id: i32, bin_step: u16) -> Option<u128> {
         match self.price {
             0 => price_from_id(bin_id, bin_step),

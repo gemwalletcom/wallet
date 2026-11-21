@@ -1,4 +1,4 @@
-use borsh::BorshDeserialize;
+use gem_encoding::borsh::Reader;
 use gem_solana::{Instruction, MAX_COMPUTE_UNIT_LIMIT, Pubkey, anchor::AnchorAccount, instructions::program_ids::meteora_dlmm_program, models::Clock};
 
 use super::{
@@ -39,8 +39,8 @@ impl DexProtocol for MeteoraDlmm {
     }
 
     fn pool_depth(&self, slice: &[u8]) -> PoolDepth {
-        match <[Pubkey; 2]>::try_from_slice(slice) {
-            Ok([reserve_x, reserve_y]) => PoolDepth::Reserves(reserve_x, reserve_y),
+        match Reader::decode(slice, |reader| Ok((Pubkey::read(reader)?, Pubkey::read(reader)?))) {
+            Ok((reserve_x, reserve_y)) => PoolDepth::Reserves(reserve_x, reserve_y),
             Err(_) => PoolDepth::Value(0),
         }
     }

@@ -43,7 +43,7 @@ pub(super) fn swap_v2_instruction(address: &Pubkey, pool: &Pool, swap: &PoolSwap
         AccountMeta::new_readonly(EVENT_AUTHORITY),
         AccountMeta::new_readonly(pump_amm_program()),
     ];
-    Ok(anchor::instruction(pump_amm_program(), name, &SwapAmounts { minimum_out, ..swap.amounts() }, accounts))
+    Ok(anchor::instruction(pump_amm_program(), name, &SwapAmounts { minimum_out, ..swap.amounts() }.encode(), accounts))
 }
 
 fn user_volume_accumulator(user: &Pubkey) -> Result<Pubkey, SwapperError> {

@@ -1,4 +1,4 @@
-use borsh::BorshDeserialize;
+use gem_encoding::borsh::{DecodeError, Reader};
 use gem_solana::{Pubkey, anchor::AnchorAccount, find_program_address, instructions::program_ids::orca_whirlpool_program};
 use primitives::decode_hex_literal;
 
@@ -12,7 +12,7 @@ const WHIRLPOOLS_CONFIG: Pubkey = Pubkey::new(decode_hex_literal("13e441f83913ca
 pub(super) const FEE_TIER_INDEXES: [u16; 9] = [1, 4, 8, 16, 64, 1025, 1026, 1028, 1030];
 pub(super) const TICK_ARRAY_SIZE: i32 = 88;
 
-#[derive(Debug, Clone, PartialEq, BorshDeserialize)]
+#[derive(Debug, Clone, PartialEq)]
 pub(crate) struct Whirlpool {
     _whirlpools_config_and_bump: [u8; 33],
     pub tick_spacing: u16,
@@ -32,6 +32,25 @@ pub(crate) struct Whirlpool {
 
 impl AnchorAccount for Whirlpool {
     const NAME: &'static str = "Whirlpool";
+
+    fn read(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        Ok(Self {
+            _whirlpools_config_and_bump: reader.bytes()?,
+            tick_spacing: reader.u16()?,
+            fee_tier_index: reader.u16()?,
+            fee_rate: reader.u16()?,
+            _protocol_fee_rate: reader.u16()?,
+            liquidity: reader.u128()?,
+            sqrt_price: reader.u128()?,
+            tick_current_index: reader.i32()?,
+            _protocol_fees_owed: reader.bytes()?,
+            token_mint_a: Pubkey::read(reader)?,
+            token_vault_a: Pubkey::read(reader)?,
+            _fee_growth_global_a: reader.u128()?,
+            token_mint_b: Pubkey::read(reader)?,
+            token_vault_b: Pubkey::read(reader)?,
+        })
+    }
 }
 
 impl DexPool for Whirlpool {
