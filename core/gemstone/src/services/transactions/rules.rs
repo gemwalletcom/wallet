@@ -440,9 +440,9 @@ fn row_value(item: &TransactionListItem, value: GemTransactionValue) -> GemTrans
     }
 }
 
-pub fn header_amount(amount: GemTransactionAmount, currency: &Currency, shows_fiat: bool) -> GemHeaderAmount {
+pub fn header_amount(amount: GemTransactionAmount, style: ValueStyle, currency: &Currency, shows_fiat: bool) -> GemHeaderAmount {
     GemHeaderAmount {
-        amount: amount.sign.amount(&amount.value, &amount.asset, ValueStyle::Auto),
+        amount: amount.sign.amount(&amount.value, &amount.asset, style),
         fiat: fiat_amount_of(&amount.asset, &amount.value, amount.price.map(|price| price.price), currency.clone(), GemCurrencyStyle::Currency).filter(|_| shows_fiat),
         icon: asset_icon(&amount.asset.id),
         asset: amount.asset,
@@ -451,13 +451,13 @@ pub fn header_amount(amount: GemTransactionAmount, currency: &Currency, shows_fi
 
 fn header(extended: &TransactionExtended, currency: &Currency) -> GemTransactionHeader {
     let transaction = &extended.transaction;
-    let amount = |shows_fiat: bool| GemTransactionHeader::amount(header_amount(transaction_amount(extended, value_sign(transaction)), currency, shows_fiat));
+    let amount = |shows_fiat: bool| GemTransactionHeader::amount(header_amount(transaction_amount(extended, value_sign(transaction)), ValueStyle::Auto, currency, shows_fiat));
     match header_kind(transaction) {
         GemTransactionHeaderKind::Amount { shows_fiat } => amount(shows_fiat),
         GemTransactionHeaderKind::Swap => match (swap_leg(extended, SwapLeg::From, GemAmountSign::None), swap_leg(extended, SwapLeg::To, GemAmountSign::None)) {
             (Some(from), Some(to)) => GemTransactionHeader::Swap {
-                from: header_amount(from, currency, true),
-                to: header_amount(to, currency, true),
+                from: header_amount(from, ValueStyle::Auto, currency, true),
+                to: header_amount(to, ValueStyle::Auto, currency, true),
             },
             _ => amount(true),
         },

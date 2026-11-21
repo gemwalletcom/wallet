@@ -37,6 +37,7 @@ flowchart LR
 | Any other load error | it stays in the error row | |
 | The simulation cannot answer | sending is not blocked | |
 | The simulation finds a risk | the risk shows before the user confirms | |
+| Confirm shows the amount sent | up to eight decimals, cut rather than rounded up, so `12.345678 USDC` reads in full and an ETH amount stops at the eighth; a smaller amount keeps its first four digits | two decimals hid part of a six-decimal stablecoin payment; eighteen ETH decimals would not fit, and what they hide is worth a fraction of a cent |
 | The simulation predicts balance changes | every digit of each amount, never rounded | what the user approves is exactly what moves |
 | Confirm is sending | the Network Fee and payment asset rows keep their arrow but do not open until the send ends; the payment asset row also waits while Confirm loads | a new fee or asset would reload Confirm and offer it again while the first transaction is still being sent; the rows keep their look so nothing flickers |
 | Sending fails after Confirm | an error alert; the fee and amounts stay and the button stays Confirm, so a tap sends again | Try Again is only for a failed load |
