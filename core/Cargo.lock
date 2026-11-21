@@ -2737,7 +2737,6 @@ dependencies = [
 name = "gem_encoding"
 version = "2.114.102"
 dependencies = [
- "bs58",
  "gem_encoding",
  "gem_hash",
  "zeroize",
