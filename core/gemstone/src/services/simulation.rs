@@ -442,7 +442,10 @@ mod tests {
     use crate::services::node::GemNodeService;
     use crate::testkit::{TestAlienProvider, mock_wc_ethereum_transaction};
     use num_bigint::BigInt;
+    use primitives::testkit::signer_mock::TEST_EVM_SENDER;
     use primitives::{AddressType, Asset, AssetId, AssetProperties, AssetScore, AssetType, SimulationPayloadFieldDisplay, SimulationWarningApproval};
+
+    const CONTRACT_CODE_RESPONSE: &str = r#"{"jsonrpc":"2.0","id":1,"result":"0x1234"}"#;
 
     #[test]
     fn test_warning_rows_hide_bounded_approvals_and_keep_every_other_warning() {
@@ -816,6 +819,45 @@ mod tests {
             futures::executor::block_on(service.simulate_send_transaction(Chain::Sui, transaction_type, data.to_string(), session_account)).unwrap();
 
             assert!(!provider.requested_paths().is_empty(), "{data}");
+        }
+    }
+
+    #[test]
+    fn test_wallet_connect_permit2_sign_message_warns_about_an_unlimited_permit() {
+        futures::executor::block_on(async {
+            let provider = Arc::new(TestAlienProvider::with_json(200, CONTRACT_CODE_RESPONSE));
+            let service = GemSimulationService::new(provider, Arc::new(GemNodeService::mock()));
+            let data = include_str!("../../../crates/gem_evm/testdata/uniswap_permit2.json").to_string();
+
+            let result = service.simulate_sign_message(Chain::Ethereum, SignDigestType::Eip712, data, "https://app.uniswap.org".to_string()).await.unwrap();
+
+            assert_eq!(
+                result.warnings.into_iter().map(|warning| warning.warning).collect::<Vec<_>>(),
+                vec![SimulationWarningType::PermitApproval(SimulationWarningApproval {
+                    asset_id: AssetId::from_token(Chain::Ethereum, "0xdAC17F958D2ee523a2206206994597C13D831ec7"),
+                    value: None,
+                })]
+            );
+        });
+    }
+
+    #[test]
+    fn test_wallet_connect_set_approval_for_all_warns_with_either_prefix_case() {
+        let collection = "0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D";
+        let calldata = "a22cb46500000000000000000000000011111111111111111111111111111111111111110000000000000000000000000000000000000000000000000000000000000001";
+
+        for prefix in ["0x", "0X"] {
+            let provider = Arc::new(TestAlienProvider::with_json(200, CONTRACT_CODE_RESPONSE));
+            let service = GemSimulationService::new(provider, Arc::new(GemNodeService::mock()));
+            let data = format!(r#"{{"from":"{TEST_EVM_SENDER}","to":"{collection}","data":"{prefix}{calldata}"}}"#);
+
+            let result = futures::executor::block_on(service.simulate_send_transaction(Chain::Ethereum, WalletConnectTransactionType::Ethereum, data, TEST_EVM_SENDER)).unwrap();
+
+            assert_eq!(
+                result.warnings.into_iter().map(|warning| warning.warning).collect::<Vec<_>>(),
+                vec![SimulationWarningType::NftCollectionApproval(AssetId::from_token(Chain::Ethereum, collection))],
+                "{prefix}"
+            );
         }
     }
 }

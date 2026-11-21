@@ -35,7 +35,7 @@ everstake = { path = "../crates/everstake", features = ["rpc"] }
 gem_monad = { path = "../crates/gem_monad", features = ["rpc"] }
 gem_bsc = { path = "../crates/gem_bsc", features = ["rpc"] }
 gem_tempo = { path = "../crates/gem_tempo", features = ["rpc", "signer"] }
-simulation = { path = "../crates/simulation", features = ["rpc"] }
+simulation = { path = "../crates/simulation" }
 gem_sui = { path = "../crates/gem_sui", features = ["rpc", "signer"] }
 gem_aptos = { path = "../crates/gem_aptos", features = ["rpc"] }
 gem_api = { path = "../crates/gem_api" }

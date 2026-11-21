@@ -99,7 +99,7 @@ impl FiatProvider for MercuryoClient {
             FiatQuoteType::Sell => data.quote.crypto_amount,
         };
 
-        let widget = MercuryoWidget::new_from_data(
+        let widget = MercuryoWidget::new(
             self.widget_id.clone(),
             self.secret_key.clone(),
             data.quote.id.clone(),
