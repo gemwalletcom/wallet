@@ -48,12 +48,6 @@ impl NodeRegion {
     pub fn url(self, chain: Chain) -> String {
         format!("{}/{}", self.base_url(), chain.as_ref())
     }
-
-    pub fn from_url(value: &str) -> Option<Self> {
-        let url = url::Url::parse(value).ok()?;
-        let host = url.host_str()?;
-        Self::all().into_iter().find(|region| region.host() == host)
-    }
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -166,19 +160,5 @@ pub fn get_nodes_for_chain(chain: Chain) -> Vec<Node> {
         Chain::Stable => vec![Node::new("https://rpc.stable.xyz", NodePriority::High)],
         Chain::Tempo => vec![Node::new("https://rpc.tempo.xyz", NodePriority::High)],
         Chain::Arc => vec![Node::new("https://rpc.mainnet.arc.io", NodePriority::High), Node::new("https://rpc.blockdaemon.mainnet.arc.io", NodePriority::Low)],
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::NodeRegion;
-
-    #[test]
-    fn test_node_region_from_url() {
-        assert_eq!(NodeRegion::from_url("https://gemnodes.com/bitcoin"), Some(NodeRegion::Us));
-        assert_eq!(NodeRegion::from_url("https://eu.gemnodes.com/ethereum"), Some(NodeRegion::Eu));
-        assert_eq!(NodeRegion::from_url("https://asia.gemnodes.com/solana"), Some(NodeRegion::Asia));
-        assert_eq!(NodeRegion::from_url("https://gemnodes.com.evil.example/bitcoin"), None);
-        assert_eq!(NodeRegion::from_url("invalid"), None);
     }
 }

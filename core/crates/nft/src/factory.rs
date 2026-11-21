@@ -4,8 +4,9 @@ use alchemy::{AlchemyApi, alchemy_url};
 use blockscout::Client as BlockscoutClient;
 use gem_client::{RemoteProviderConfig, ReqwestClient};
 use gem_ton::rpc::client::TonClient;
-use primitives::{EVMChain, NFTChain};
+use primitives::EVMChain;
 
+use crate::NFTChain;
 use crate::config::NFTProviderConfig;
 use crate::provider::NFTProvider;
 use crate::providers::ton::provider::TonNftProvider;

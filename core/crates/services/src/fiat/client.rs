@@ -4,6 +4,7 @@ use std::sync::Arc;
 
 use cacher::{CachedFiatQuote, FiatQuoteCacher, RateLimitCacher};
 use config_keys::{ConfigKey, RateLimitKey};
+use fiat::FiatQuoteRequest;
 use fiat::error::FiatQuoteError;
 use fiat::model::{FiatMapping, FiatMappingMap};
 use fiat::quotes::{compare_quotes, get_provider_quote, is_country_allowed, is_provider_eligible};
@@ -11,8 +12,7 @@ use fiat::{FiatDeviceContext, FiatProvider, FiatWebhookRequest, IpAddressProvide
 use futures::future::join_all;
 use gem_tracing::{error_with_fields, info_with_fields};
 use primitives::{
-    Asset, AssetId, Chain, FiatAsset, FiatAssetSymbol, FiatAssets, FiatQuote, FiatQuoteError as ProviderQuoteError, FiatQuoteRequest, FiatQuoteType, FiatQuoteUrl, FiatQuoteUrlData, FiatQuotes, FiatTransaction, FiatTransactionData,
-    FiatWebhook, RequestError,
+    Asset, AssetId, Chain, FiatAsset, FiatAssetSymbol, FiatAssets, FiatQuote, FiatQuoteError as ProviderQuoteError, FiatQuoteType, FiatQuoteUrl, FiatQuoteUrlData, FiatQuotes, FiatTransaction, FiatTransactionData, FiatWebhook, RequestError,
 };
 use storage::{DatabaseError, WalletAddress};
 use streamer::{FiatWebhookPayload, StreamProducerQueue};

@@ -1,4 +1,4 @@
-use crate::{AssetFiatValue, PriceChangeCalculator, TotalFiatValue};
+use primitives::{AssetFiatValue, PriceChangeCalculator, TotalFiatValue};
 
 pub struct BalanceCalculator {}
 

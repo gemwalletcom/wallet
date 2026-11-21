@@ -1,6 +1,7 @@
 pub mod accounts;
 pub mod actions;
 pub mod decode;
+mod request;
 pub mod request_handler;
 pub mod response_handler;
 pub mod session;
@@ -14,6 +15,7 @@ pub mod testkit;
 
 pub use actions::*;
 pub use decode::decode_sign_message;
+pub use request::{WCEthereumTransaction, WalletConnectRequest};
 pub use request_handler::{EthereumRequestHandler, WalletConnectRequestHandler};
 pub use response_handler::WalletConnectResponseHandler;
 pub use session::{config_session_properties, requires_public_key};

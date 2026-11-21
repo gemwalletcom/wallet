@@ -11,10 +11,11 @@ use gem_solana::rpc::{SolanaClient, SolanaProvider};
 use gem_sui::rpc::{SuiClient, SuiProvider};
 use gem_ton::rpc::client::TonClient;
 use gem_tron::rpc::{TronProvider, client::TronClient};
+use gem_wallet_connect::WCEthereumTransaction;
 use gem_wallet_connect::{EvmTransactionKind, SignDigestType, WalletConnectTransactionType};
 use primitives::{
     AddressName, AssetBasic, BlockExplorerLink, Chain, ChainAddress, DateTime, EVMChain, Resource, SimulationBalanceChange, SimulationInput, SimulationPayloadField, SimulationPayloadFieldKind, SimulationPayloadFieldType, SimulationResult,
-    SimulationSeverity, SimulationWarning, SimulationWarningType, TransactionType, ValueAccess, VerificationStatus, WCEthereumTransaction,
+    SimulationSeverity, SimulationWarning, SimulationWarningType, TransactionType, ValueAccess, VerificationStatus,
 };
 
 use crate::duration_formatter::countdown_parts;

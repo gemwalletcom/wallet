@@ -4,7 +4,8 @@ pub(crate) mod testkit;
 
 use std::sync::Arc;
 
-use primitives::{Account, Asset, AssetId, AssetType, Chain, Deeplink, FiatQuoteType, Payment, TransactionId, UrlAction, Wallet, WalletConnectLink, WalletId};
+use links::{Deeplink, UrlAction, WalletConnectLink};
+use primitives::{Account, Asset, AssetId, AssetType, Chain, FiatQuoteType, Payment, TransactionId, Wallet, WalletId};
 
 use crate::services::assets::{GemAssetAction, GemAssetsService};
 use crate::services::balance::GemBalanceService;

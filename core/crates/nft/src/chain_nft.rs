@@ -1,4 +1,4 @@
-use crate::Chain;
+use primitives::Chain;
 use serde::{Deserialize, Serialize};
 use strum::{AsRefStr, EnumIter, EnumString, IntoEnumIterator};
 

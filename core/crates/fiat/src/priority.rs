@@ -1,10 +1,26 @@
 use std::cmp::Ordering;
 use std::ops::{Mul, Sub};
 
+use primitives::FiatProvider;
+
 pub trait PrioritizedProvider {
     fn provider_id(&self) -> &str;
     fn priority(&self) -> i32;
     fn threshold_bps(&self) -> i32;
+}
+
+impl PrioritizedProvider for FiatProvider {
+    fn provider_id(&self) -> &str {
+        self.id.as_ref()
+    }
+
+    fn priority(&self) -> i32 {
+        self.priority.unwrap_or(0)
+    }
+
+    fn threshold_bps(&self) -> i32 {
+        self.threshold_bps.unwrap_or(0)
+    }
 }
 
 pub fn sort_by_priority_then_amount<P, A>(a_id: &str, b_id: &str, a_amount: &A, b_amount: &A, providers: &[P], ascending: bool) -> Ordering
@@ -52,7 +68,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{FiatProvider, FiatProviderName};
+    use primitives::FiatProviderName;
 
     #[test]
     fn test_no_priority_sorts_by_amount_desc() {

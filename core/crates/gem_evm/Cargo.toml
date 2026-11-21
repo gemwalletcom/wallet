@@ -13,6 +13,7 @@ chain_integration_tests = ["indexer", "reqwest"]
 
 [dependencies]
 primitives = { path = "../primitives" }
+sign_in = { path = "../sign_in" }
 serde_serializers = { path = "../serde_serializers", features = ["bigint"] }
 gem_jsonrpc = { path = "../gem_jsonrpc" }
 alchemy = { path = "../alchemy", features = ["rpc"], optional = true }

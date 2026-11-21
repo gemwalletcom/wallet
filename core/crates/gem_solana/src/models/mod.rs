@@ -2,6 +2,7 @@ pub mod balances;
 pub mod block;
 pub mod blockhash;
 pub mod clock;
+pub mod instruction;
 pub mod jito;
 pub mod mint;
 pub mod prioritization_fee;
@@ -13,6 +14,7 @@ pub mod transaction;
 
 pub use block::*;
 pub use clock::Clock;
+pub use instruction::{SolanaAccountMeta, SolanaInstruction};
 pub use mint::{Mint, MintExtension};
 pub use rpc::*;
 pub use simulation::*;

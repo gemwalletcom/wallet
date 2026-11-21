@@ -59,8 +59,8 @@ impl BuildResponse {
 mod tests {
     use super::super::testkit::{TEST_FEE_ACCOUNT, TEST_PAYER};
     use super::*;
+    use gem_solana::models::SolanaAccountMeta;
     use gem_solana::{USDC_TOKEN_MINT, decode_transaction};
-    use primitives::SolanaAccountMeta;
 
     #[test]
     fn test_into_transaction() {

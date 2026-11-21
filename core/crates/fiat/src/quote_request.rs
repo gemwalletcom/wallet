@@ -1,4 +1,4 @@
-use crate::{AssetId, FiatQuoteType};
+use primitives::{AssetId, FiatQuoteType};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

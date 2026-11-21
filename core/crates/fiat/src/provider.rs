@@ -1,7 +1,8 @@
+use crate::FiatQuoteRequest;
 use crate::model::{FiatMapping, FiatProviderAsset};
 use crate::webhook::FiatWebhookRequest;
 use async_trait::async_trait;
-use primitives::{FiatProviderCountry, FiatProviderName, FiatQuoteRequest, FiatQuoteResponse, FiatQuoteUrl, FiatQuoteUrlData, FiatTransactionUpdate, FiatWebhook, PaymentType};
+use primitives::{FiatProviderCountry, FiatProviderName, FiatQuoteResponse, FiatQuoteUrl, FiatQuoteUrlData, FiatTransactionUpdate, FiatWebhook, PaymentType};
 
 pub const DEFAULT_PAYMENT_METHODS: [PaymentType; 3] = [PaymentType::Card, PaymentType::ApplePay, PaymentType::GooglePay];
 

@@ -1,6 +1,6 @@
-use crate::{PerpetualDirection, TpslType};
+use primitives::{PerpetualDirection, PriceChangeCalculator, TpslType};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
 pub enum AutocloseValidation {
     Valid,
     InvalidAmount,
@@ -120,7 +120,7 @@ impl AutocloseEstimator {
     }
 
     pub fn price_change_percent(&self, price: f64) -> f64 {
-        let raw = crate::price_change::PriceChangeCalculator::percentage(self.entry_price, price);
+        let raw = PriceChangeCalculator::percentage(self.entry_price, price);
         match self.direction {
             PerpetualDirection::Short => -raw,
             PerpetualDirection::Long => raw,

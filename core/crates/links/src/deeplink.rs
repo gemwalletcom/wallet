@@ -1,8 +1,8 @@
-use crate::OptionStringExt;
+use primitives::{AssetId, Chain, OptionStringExt};
 use url::Url;
 
 use crate::url_query::query_value;
-use crate::{AssetId, Chain, GEM_HOST, GEM_URL_SCHEME, HTTPS_URL_SCHEME};
+use crate::{GEM_HOST, GEM_URL_SCHEME, HTTPS_URL_SCHEME};
 
 const PATH_TOKENS: &str = "tokens";
 const PATH_ADDRESS: &str = "address";
@@ -160,7 +160,6 @@ fn url_segments(url: &Url) -> Option<Vec<String>> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::Chain;
 
     #[test]
     fn test_to_url() {

@@ -105,8 +105,8 @@ mod tests {
 
     #[test]
     fn test_parse_send_transaction_with_testdata() {
+        use crate::WalletConnectRequest;
         use crate::WalletConnectRequestHandler;
-        use primitives::WalletConnectRequest;
 
         let params = include_str!("../../testdata/tron_send_transaction.json");
         let expected_data: serde_json::Value = serde_json::from_str(params.trim()).unwrap();

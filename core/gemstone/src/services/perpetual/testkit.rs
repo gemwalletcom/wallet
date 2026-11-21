@@ -5,15 +5,14 @@ use async_trait::async_trait;
 use num_bigint::BigInt;
 use primitives::known_assets::{HYPERCORE_PERPETUAL_USDC, HYPERCORE_SPOT_USDC};
 use primitives::perpetual::{Perpetual, PerpetualData};
-use primitives::{
-    Asset, AssetBasic, AssetId, AssetProperties, AssetScore, AutocloseValidation, PerpetualDirection, PerpetualId, PerpetualMarginType, PerpetualMarketData, PerpetualPosition, PerpetualPrice, PerpetualProvider, TpslType, Wallet, WalletId,
-};
+use primitives::{Asset, AssetBasic, AssetId, AssetProperties, AssetScore, PerpetualDirection, PerpetualId, PerpetualMarginType, PerpetualMarketData, PerpetualPosition, PerpetualPrice, PerpetualProvider, TpslType, Wallet, WalletId};
 
 use super::details::GemPerpetualDetailsService;
 use super::model::{GemPerpetualOrderAction, GemPerpetualOrderInput, GemPerpetualTransferData};
 use super::{GemAutocloseEstimate, GemAutocloseField, GemAutocloseModify, GemPerpetualService, GemPerpetualStore};
 use crate::api::GemDeviceApiClient;
 use crate::gateway::GemGateway;
+use crate::perpetual::autoclose_validator::AutocloseValidation;
 use crate::services::assets::testkit::MemoryAssetStore;
 use crate::services::assets::{GemAssetStore, GemAssetsService};
 use crate::services::balance::GemBalanceService;

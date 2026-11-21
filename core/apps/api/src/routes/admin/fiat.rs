@@ -1,7 +1,8 @@
 use std::sync::Arc;
 
 use axum::extract::State;
-use primitives::{FiatQuoteRequest, FiatQuotes};
+use fiat::FiatQuoteRequest;
+use primitives::FiatQuotes;
 use serde::Deserialize;
 use services::fiat::FiatClient;
 

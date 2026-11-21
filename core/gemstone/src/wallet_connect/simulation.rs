@@ -1,7 +1,8 @@
 use gem_evm::transaction::decode_calldata;
 use gem_tron::decode_wallet_connect_contract;
+use gem_wallet_connect::WCEthereumTransaction;
 use gem_wallet_connect::{EvmTransactionKind, SignDigestType, SignMessageValidation, WalletConnectRequestHandler, WalletConnectTransaction, WalletConnectTransactionType, validate_send_transaction, validate_sign_message};
-use primitives::{Chain, SimulationSeverity, SimulationWarning, SimulationWarningType, WCEthereumTransaction};
+use primitives::{Chain, SimulationSeverity, SimulationWarning, SimulationWarningType};
 
 pub(crate) fn parse_eip712_message(data: &str) -> Option<gem_evm::eip712::EIP712Message> {
     serde_json::from_str(data).ok().and_then(|value| gem_evm::eip712::parse_eip712_json(&value).ok())

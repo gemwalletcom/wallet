@@ -1,8 +1,9 @@
 #![no_main]
 
+use gem_wallet_connect::WalletConnectRequest;
 use gem_wallet_connect::WalletConnectRequestHandler;
 use libfuzzer_sys::fuzz_target;
-use primitives::{WalletConnectCAIP2, WalletConnectRequest, WalletConnectionMethods};
+use primitives::{WalletConnectCAIP2, WalletConnectionMethods};
 
 fuzz_target!(|input: (u8, u8, &str)| {
     let (method, chain, params) = input;

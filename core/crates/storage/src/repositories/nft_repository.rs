@@ -1,8 +1,9 @@
 use diesel::prelude::*;
 use std::collections::{HashMap, HashSet};
 
-use primitives::{AssetLink, Chain, DateTime, Diff, NFTAsset, NFTAssetId, NFTCollection, NFTCollectionId};
+use primitives::{AssetLink, Chain, DateTime, NFTAsset, NFTAssetId, NFTCollection, NFTCollectionId};
 
+use crate::diff::Diff;
 use crate::models::{NewNftAssetAssociationRow, NewNftAssetRow, NewNftCollectionRow, NftAssetRow, NftCollectionRow, nft_link::NftLinkRow, nft_report::NewNftReportRow};
 use crate::repositories::devices_repository::device_row;
 use crate::sql_types::{ChainRow, DateTimeRow, NftAssetIdRow, NftCollectionIdRow};

@@ -2,6 +2,7 @@ use std::fmt::Display;
 
 use gem_encoding::decode_base64;
 use gem_evm::EVM_ZERO_ADDRESS;
+use gem_solana::models::SolanaInstruction;
 use gem_solana::{
     ASSOCIATED_TOKEN_ACCOUNT_PROGRAM, AccountMeta, Base64InstructionData, COMPUTE_BUDGET_PROGRAM_ID, Instruction, JUPITER_PROGRAM_ID, Pubkey, SYSTEM_PROGRAM_ID, SolanaAddress, TOKEN_PROGRAM, TOKEN_PROGRAM_2022, anchor,
     associated_token::{create_associated_token_account_idempotent_with_address, get_associated_token_address_with_program_id, is_create_account_data},
@@ -9,7 +10,6 @@ use gem_solana::{
     instructions::program_ids,
     instructions_from_primitives, system, token, wrapped_sol,
 };
-use primitives::SolanaInstruction;
 
 use crate::{
     SwapperError,

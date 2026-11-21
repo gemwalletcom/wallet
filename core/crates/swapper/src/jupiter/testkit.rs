@@ -1,6 +1,6 @@
 use super::model::{BlockhashWithMetadata, BuildResponse};
 use gem_solana::JUPITER_PROGRAM_ID;
-use primitives::{SolanaAccountMeta, SolanaInstruction};
+use gem_solana::models::{SolanaAccountMeta, SolanaInstruction};
 use std::collections::BTreeMap;
 
 pub const TEST_PAYER: &str = "7g2rVN8fAAQdPh1mkajpvELqYa3gWvFXJsBLnKfEQfqy";

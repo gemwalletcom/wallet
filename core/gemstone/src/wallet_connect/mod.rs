@@ -1,7 +1,9 @@
+use gem_wallet_connect::WalletConnectRequest;
 use gem_wallet_connect::{
     SignDigestType, WalletConnectAction, WalletConnectRequestHandler, WalletConnectResponseHandler, WalletConnectResponseType, WalletConnectTransaction, WalletConnectTransactionType, config_session_properties, decode_sign_message,
 };
-use primitives::{Account, Chain, ChainAddress, WalletConnectCAIP2, WalletConnectLink, WalletConnectRequest};
+use links::WalletConnectLink;
+use primitives::{Account, Chain, ChainAddress, WalletConnectCAIP2};
 use std::collections::HashMap;
 
 use crate::{GemstoneError, message::sign_type::SignMessage};

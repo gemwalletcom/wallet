@@ -4,6 +4,7 @@ use crate::models::list::{GemListRow, GemListRowTitle};
 use crate::percentage::GemPercentageStyle;
 use crate::perpetual::GemAutocloseEstimator;
 use crate::perpetual::GemPerpetual;
+use crate::perpetual::autoclose_validator::{AutocloseValidation, AutocloseValidator};
 use crate::precision::GemCurrencyStyle;
 use crate::services::amount::model::GemNumberFormat;
 use crate::services::amount::rules::plain_number;
@@ -13,7 +14,7 @@ use crate::services::perpetual::model::GemPerpetualPositionRow;
 use crate::services::transfer::GemTransferData;
 use primitives::known_assets::HYPERCORE_PERPETUAL_USDC;
 use primitives::perpetual::{CancelOrderData, PerpetualModifyConfirmData, PerpetualModifyPositionType, TPSLOrderData};
-use primitives::{Asset, AutocloseValidation, AutocloseValidator, Currency, Perpetual, PerpetualDirection, PerpetualPosition, PerpetualProvider, PerpetualType, TpslType};
+use primitives::{Asset, Currency, Perpetual, PerpetualDirection, PerpetualPosition, PerpetualProvider, PerpetualType, TpslType};
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemAutocloseField {

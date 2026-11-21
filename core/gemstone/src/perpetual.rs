@@ -1,14 +1,17 @@
+pub mod autoclose_validator;
+
 use gem_hypercore::{
     models::{perp_dex::PerpDex, websocket::HyperliquidSubscription},
     perpetual_formatter::PerpetualFormatter,
 };
 use primitives::contract_constants::HYPERLIQUID_ARBITRUM_DEPOSIT_ADDRESS;
 use primitives::known_assets::{ARBITRUM_USDC, HYPERCORE_SPOT_USDC};
-use primitives::{Asset, AutocloseEstimator as Estimator, AutocloseValidation, PerpetualAccountMode, PerpetualDirection, PerpetualProvider, PerpetualType, TpslType};
+use primitives::{Asset, PerpetualAccountMode, PerpetualDirection, PerpetualProvider, PerpetualType, TpslType};
 
 use crate::formatted_number::GemFormattedNumber;
 use crate::models::custom_types::GemBigInt;
 use crate::models::perpetual::GemPerpetualSubscription;
+use crate::perpetual::autoclose_validator::AutocloseEstimator as Estimator;
 use crate::services::error::GemServiceError;
 use crate::services::transfer::model::{GemRecipient, GemTransferData};
 use primitives::TransactionInputType;
@@ -104,14 +107,6 @@ impl GemPerpetual {
             PerpetualProvider::Hypercore => HYPERLIQUID_NAME,
         }
     }
-}
-
-#[uniffi::remote(Enum)]
-pub enum AutocloseValidation {
-    Valid,
-    InvalidAmount,
-    TriggerMustBeHigher,
-    TriggerMustBeLower,
 }
 
 #[derive(Debug)]

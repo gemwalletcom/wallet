@@ -7,7 +7,7 @@ use crate::siws;
 use gem_evm::domain::host_only;
 use gem_evm::siwe::SiweMessage;
 use primitives::Chain;
-use primitives::domain::parse_domain;
+use sign_in::parse_domain;
 
 pub struct SignMessageValidation<'a> {
     pub chain: Chain,

@@ -1,9 +1,10 @@
 use std::error::Error;
 
 use async_trait::async_trait;
-use primitives::{FiatProviderCountry, FiatProviderName, FiatQuoteRequest, FiatQuoteResponse, FiatQuoteUrl, FiatQuoteUrlData, FiatWebhook};
+use primitives::{FiatProviderCountry, FiatProviderName, FiatQuoteResponse, FiatQuoteUrl, FiatQuoteUrlData, FiatWebhook};
 use url::Url;
 
+use crate::FiatQuoteRequest;
 use crate::error::FiatQuoteError;
 use crate::model::{FiatMapping, FiatProviderAsset};
 use crate::provider::generate_quote_id;
@@ -61,9 +62,10 @@ impl TopperClient {
 
 #[cfg(all(test, feature = "fiat_integration_tests"))]
 mod fiat_integration_tests {
+    use crate::FiatQuoteRequest;
     use crate::testkit::*;
     use crate::{FiatProvider, model::FiatMapping};
-    use primitives::{FiatAssetSymbol, FiatQuoteRequest};
+    use primitives::FiatAssetSymbol;
 
     #[tokio::test]
     async fn test_topper_get_buy_quote() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {

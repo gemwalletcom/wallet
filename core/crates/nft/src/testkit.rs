@@ -6,10 +6,11 @@ use std::collections::HashMap;
 #[cfg(feature = "nft_integration_tests")]
 use gem_client::{RemoteProviderConfig, ReqwestClient};
 #[cfg(feature = "nft_integration_tests")]
-use primitives::{EVMChain, NFTChain};
+use primitives::EVMChain;
 #[cfg(feature = "nft_integration_tests")]
 use settings::testkit::get_test_settings;
 
+use crate::NFTChain;
 #[cfg(feature = "nft_integration_tests")]
 use crate::factory::NFTProviderFactory;
 #[cfg(feature = "nft_integration_tests")]

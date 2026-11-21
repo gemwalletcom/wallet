@@ -5,10 +5,12 @@ use std::time::Instant;
 
 use num_bigint::BigUint;
 use number_formatter::BigNumberFormatter;
-use primitives::{Asset, FiatProvider as PrimitiveFiatProvider, FiatProviderCountry, FiatQuote, FiatQuoteRequest, FiatQuoteType, PaymentType, sort_by_priority_then_amount};
+use primitives::{Asset, FiatProvider as PrimitiveFiatProvider, FiatProviderCountry, FiatQuote, FiatQuoteType, PaymentType};
 
 use crate::FiatProvider;
+use crate::FiatQuoteRequest;
 use crate::model::FiatMapping;
+use crate::priority::sort_by_priority_then_amount;
 
 pub fn is_country_allowed(countries: &[FiatProviderCountry], country_code: &str, provider_id: Option<&str>) -> bool {
     countries.iter().any(|country| country.alpha2 == country_code && country.is_allowed && provider_id.is_none_or(|id| country.provider.id() == id))

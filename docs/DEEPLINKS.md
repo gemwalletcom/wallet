@@ -55,8 +55,8 @@ Bitcoin: <https://gemwallet.com/tokens/bitcoin>
 
 ## Implementation
 
-- [Deep link parsing and building](../core/crates/primitives/src/deeplink.rs)
-- [URL action routing](../core/crates/primitives/src/url_action.rs) — WalletConnect and deep links are routed before payments
+- [Deep link parsing and building](../core/crates/links/src/deeplink.rs)
+- [URL action routing](../core/crates/links/src/url_action.rs) — WalletConnect and deep links are routed before payments
 - [UniFFI bridge](../core/gemstone/src/deeplink.rs)
 - [Target preparation](../core/gemstone/src/services/navigation/mod.rs) — one `GemNavigationTarget` for a deep link or a push, with the asset opened and the perpetual decided, and one `GemCodeOutcome` for a scanned code or link (open, pair, prepare a payment, or the reason it cannot open)
 - [Support message links](../core/crates/support/src/text.rs)

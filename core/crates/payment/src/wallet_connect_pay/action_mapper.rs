@@ -1,7 +1,8 @@
 use gem_evm::transaction::{EvmTransactionKind, decode_transaction_kind};
 use gem_wallet_connect::EthereumRequestHandler;
+use gem_wallet_connect::WCEthereumTransaction;
 use primitives::swap::ApprovalData;
-use primitives::{Chain, ValueAccess, WCEthereumTransaction, WalletConnectCAIP2, WalletConnectionMethods};
+use primitives::{Chain, ValueAccess, WalletConnectCAIP2, WalletConnectionMethods};
 use serde_json::Value;
 
 use crate::error::PaymentError;

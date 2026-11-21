@@ -1,5 +1,6 @@
 use alloy_primitives::Address;
-use primitives::{Chain, ChainType, DateTime, domain::parse_domain};
+use primitives::{Chain, ChainType, DateTime};
+use sign_in::parse_domain;
 use url::Url;
 
 use crate::domain::host_with_port;

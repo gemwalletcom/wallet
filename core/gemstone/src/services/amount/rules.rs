@@ -1,7 +1,8 @@
 use std::str::FromStr;
 
+use crate::perpetual::autoclose_validator::AutocloseEstimator;
 use num_bigint::{BigInt, BigUint};
-use primitives::{Asset, AutocloseEstimator, Currency, EarnType, TpslType};
+use primitives::{Asset, Currency, EarnType, TpslType};
 
 use super::model::{
     GemAmountEarnType, GemAmountEntry, GemAmountError, GemAmountInput, GemAmountInputType, GemAmountMaxEntry, GemAmountPerpetualPosition, GemAmountStakeType, GemAmountTitle, GemAmountTransfer, GemAmountType, GemLeverageSelection,

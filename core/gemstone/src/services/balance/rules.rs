@@ -1,6 +1,7 @@
 use std::collections::HashMap;
 
-use primitives::{Account, Asset, AssetBalance, AssetFiatValue, AssetId, BalanceCalculator, BalanceMetadata, Chain, TotalFiatValue};
+use super::balance_calculator::BalanceCalculator;
+use primitives::{Account, Asset, AssetBalance, AssetFiatValue, AssetId, BalanceMetadata, Chain, TotalFiatValue};
 
 use super::model::{GemAssetBalance, GemAssetConfiguration, GemBalanceRecord, GemBalanceUpdate, GemBalanceUpdateType};
 use crate::formatted_number::{GemFormattedNumber, GemValueTone};

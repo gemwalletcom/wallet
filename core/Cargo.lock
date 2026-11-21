@@ -1683,6 +1683,7 @@ dependencies = [
  "http_server",
  "job_runner",
  "metrics",
+ "nft",
  "num-bigint 0.5.1",
  "prices",
  "primitives",
@@ -2734,6 +2735,7 @@ dependencies = [
  "serde_json",
  "serde_serializers",
  "settings",
+ "sign_in",
  "signer",
  "tokio",
  "url",
@@ -2920,6 +2922,7 @@ dependencies = [
  "serde_serializers",
  "settings",
  "sha2 0.11.0",
+ "sign_in",
  "signer",
  "tokio",
  "url",
@@ -3071,7 +3074,10 @@ dependencies = [
  "gem_ton",
  "num-bigint 0.5.1",
  "primitives",
+ "serde",
  "serde_json",
+ "serde_serializers",
+ "sign_in",
  "url",
 ]
 
@@ -3159,6 +3165,7 @@ dependencies = [
  "gem_wallet_connect",
  "gem_xrp",
  "gem_zcash",
+ "links",
  "node_probes",
  "num-bigint 0.5.1",
  "number_formatter",
@@ -3815,6 +3822,7 @@ dependencies = [
 name = "in_app_notifications"
 version = "2.114.102"
 dependencies = [
+ "links",
  "localizer",
  "number_formatter",
  "primitives",
@@ -4102,6 +4110,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b6d2cec3eae94f9f509c767b45932f1ada8350c4bdb85af2fcab4a3c14807981"
 
 [[package]]
+name = "links"
+version = "2.114.102"
+dependencies = [
+ "primitives",
+ "url",
+]
+
+[[package]]
 name = "linux-raw-sys"
 version = "0.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4312,6 +4328,7 @@ dependencies = [
  "serde",
  "serde_json",
  "settings",
+ "strum",
  "tokio",
 ]
 
@@ -4517,6 +4534,7 @@ dependencies = [
  "gem_jsonrpc",
  "gem_solana",
  "gem_wallet_connect",
+ "links",
  "num-bigint 0.5.1",
  "number_formatter",
  "primitives",
@@ -4722,7 +4740,6 @@ dependencies = [
  "serde_json",
  "serde_serializers",
  "strum",
- "url",
 ]
 
 [[package]]
@@ -5835,6 +5852,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f8fadd59c855ef2080decdef8ff161eb6661b86933c9d82e5ba29dc602a55aba"
 
 [[package]]
+name = "sign_in"
+version = "2.114.102"
+dependencies = [
+ "url",
+]
+
+[[package]]
 name = "signal-hook-registry"
 version = "1.4.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6054,6 +6078,7 @@ name = "support"
 version = "2.114.102"
 dependencies = [
  "hmac 0.13.0",
+ "links",
  "primitives",
  "sha2 0.11.0",
  "url",

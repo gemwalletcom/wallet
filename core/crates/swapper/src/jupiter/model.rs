@@ -1,7 +1,7 @@
 use std::collections::BTreeMap;
 
 use gem_solana::Pubkey;
-use primitives::SolanaInstruction;
+use gem_solana::models::SolanaInstruction;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize)]

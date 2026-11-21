@@ -1,9 +1,9 @@
 use std::error::Error;
 use std::fmt;
 
+use crate::Localize;
 use config_keys::RateLimitKey;
 use localizer::LanguageLocalizer;
-use primitives::Localize;
 
 #[derive(Debug)]
 pub enum RewardsError {
@@ -255,7 +255,7 @@ impl UsernameError {
 
 #[cfg(test)]
 mod tests {
-    use primitives::Localize;
+    use crate::Localize;
 
     use super::*;
 
