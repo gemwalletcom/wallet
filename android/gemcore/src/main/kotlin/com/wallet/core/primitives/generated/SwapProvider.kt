@@ -43,6 +43,8 @@ enum class SwapProvider(val string: String) {
 	Relay("relay"),
 	@SerialName("hyperliquid")
 	Hyperliquid("hyperliquid"),
+	@SerialName("hyperliquid_bridge")
+	HyperliquidBridge("hyperliquid_bridge"),
 	@SerialName("orca")
 	Orca("orca"),
 	@SerialName("squid")

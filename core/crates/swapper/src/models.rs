@@ -68,6 +68,7 @@ impl ProviderType {
             | SwapperProvider::NearIntents
             | SwapperProvider::Across
             | SwapperProvider::Hyperliquid
+            | SwapperProvider::HyperliquidBridge
             | SwapperProvider::SwapsXyz
             | SwapperProvider::Bridgers => SlippageMode::Exact,
         }

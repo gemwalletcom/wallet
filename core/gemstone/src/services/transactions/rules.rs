@@ -1661,6 +1661,17 @@ mod tests {
         });
         assert!(on_chain.swap_progress.is_none());
         assert_eq!(on_chain.estimated_confirmation_seconds, Some(90));
+        assert!(
+            signing_details(&TransactionExtended::mock_transaction(Transaction::mock_swap_with_provider(TransactionState::Pending, Some("hyperliquid"))))
+                .swap_progress
+                .is_none(),
+            "a Hyperliquid spot order completes in its own action"
+        );
+        assert!(
+            signing_details(&TransactionExtended::mock_transaction(Transaction::mock_swap_with_provider(TransactionState::Pending, Some("hyperliquid_bridge"))))
+                .swap_progress
+                .is_some()
+        );
         assert_eq!(
             signing_details(&TransactionExtended::mock_transaction(Transaction::mock_swap_with_provider(TransactionState::Pending, Some("unknown"))))
                 .provider_name

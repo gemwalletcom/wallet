@@ -730,7 +730,7 @@ public extension SwapProvider {
         case .relay: Images.SwapProviders.relay
         case .aerodrome: Images.SwapProviders.aerodrome
         case .aero: Images.SwapProviders.aero
-        case .hyperliquid: Images.SwapProviders.hyperliquid
+        case .hyperliquid, .hyperliquidBridge: Images.SwapProviders.hyperliquid
         case .nearIntents: Images.SwapProviders.nearIntents
         case .orca: Images.SwapProviders.orca
         case .panora: Images.SwapProviders.panora
