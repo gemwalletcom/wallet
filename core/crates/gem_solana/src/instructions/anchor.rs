@@ -92,7 +92,7 @@ mod tests {
 
         assert_eq!(instruction_arguments::<u64>(&data, "swap"), Ok(7));
         assert_eq!(instruction_arguments::<u64>(&data, "route"), Err(SolanaError::invalid_input("Invalid route instruction")));
-        assert!(instruction_arguments::<u64>(&data[..12], "swap").is_err());
+        assert_eq!(instruction_arguments::<u64>(&data[..12], "swap"), Err(SolanaError::invalid_input("Invalid swap instruction: Unexpected length of input")));
     }
 
     #[test]

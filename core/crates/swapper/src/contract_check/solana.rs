@@ -21,7 +21,7 @@ pub(crate) struct SolanaStep<'a> {
     data: &'a [u8],
 }
 
-enum StandardStep<'a> {
+pub(crate) enum StandardStep<'a> {
     ComputeBudget { unit_price: Option<u64> },
     Memo,
     Transfer { destination: Option<&'a Pubkey>, lamports: u64 },
@@ -59,10 +59,11 @@ pub(crate) fn verify_steps(steps: &[SolanaStep], wallet: &Pubkey, contracts: &[&
         referral: Pubkey::from_base58(SOLANA_REFERRAL_ADDRESS).map_err(SwapperError::transaction_error)?,
         contracts,
     };
-    let unbound_lamports = steps
+    let decoded: Vec<StandardStep> = steps.iter().map(SolanaStep::decode).collect();
+    let unbound_lamports = decoded
         .iter()
         .enumerate()
-        .try_fold(0u64, |total, (position, step)| policy.unbound_lamports(step.decode(), &steps[position + 1..]).map(|lamports| total.saturating_add(lamports)))?;
+        .try_fold(0u64, |total, (position, step)| policy.unbound_lamports(step, &decoded[position + 1..]).map(|lamports| total.saturating_add(lamports)))?;
     if unbound_lamports > MAX_UNBOUND_LAMPORTS {
         return Err(SwapperError::InvalidRoute);
     }
@@ -86,39 +87,11 @@ impl<'a> SolanaStep<'a> {
         })
     }
 
-    pub(crate) fn transfers_to(&self, account: &Pubkey) -> bool {
-        match self.decode() {
-            StandardStep::Transfer { destination, .. } => destination == Some(account),
-            StandardStep::ComputeBudget { .. }
-            | StandardStep::Memo
-            | StandardStep::CreateTokenAccount { .. }
-            | StandardStep::SyncNative
-            | StandardStep::CloseAccount { .. }
-            | StandardStep::TransferChecked { .. }
-            | StandardStep::Program(_)
-            | StandardStep::Unsupported => false,
-        }
-    }
-
-    fn closes_to(&self, account: &Pubkey, destination: &Pubkey) -> bool {
-        match self.decode() {
-            StandardStep::CloseAccount { account: closed, destination: paid } => closed == Some(account) && paid == Some(destination),
-            StandardStep::ComputeBudget { .. }
-            | StandardStep::Memo
-            | StandardStep::Transfer { .. }
-            | StandardStep::CreateTokenAccount { .. }
-            | StandardStep::SyncNative
-            | StandardStep::TransferChecked { .. }
-            | StandardStep::Program(_)
-            | StandardStep::Unsupported => false,
-        }
-    }
-
     fn account(&self, index: usize) -> Option<&'a Pubkey> {
         self.accounts.get(index).copied().flatten()
     }
 
-    fn decode(&self) -> StandardStep<'a> {
+    pub(crate) fn decode(&self) -> StandardStep<'a> {
         match self.program.to_base58().as_str() {
             SOLANA_COMPUTE_BUDGET_PROGRAM_ID => StandardStep::ComputeBudget {
                 unit_price: compute_budget::parse_compute_unit_price_data(self.data),
@@ -128,9 +101,9 @@ impl<'a> SolanaStep<'a> {
                 Some(lamports) => StandardStep::Transfer { destination: self.account(1), lamports },
                 None => StandardStep::Unsupported,
             },
-            SOLANA_ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID => match is_create_account_data(self.data) {
-                true => StandardStep::CreateTokenAccount { owner: self.account(2) },
-                false => StandardStep::Unsupported,
+            SOLANA_ASSOCIATED_TOKEN_ACCOUNT_PROGRAM_ID => match (is_create_account_data(self.data), self.account(5).map(Pubkey::to_base58).as_deref()) {
+                (true, Some(SOLANA_TOKEN_PROGRAM_ID | SOLANA_TOKEN_2022_PROGRAM_ID) | None) => StandardStep::CreateTokenAccount { owner: self.account(2) },
+                _ => StandardStep::Unsupported,
             },
             SOLANA_TOKEN_PROGRAM_ID | SOLANA_TOKEN_2022_PROGRAM_ID => match self.data {
                 [token::SYNC_NATIVE_DISCRIMINANT] => StandardStep::SyncNative,
@@ -149,16 +122,32 @@ impl<'a> SolanaStep<'a> {
     }
 }
 
+impl StandardStep<'_> {
+    pub(crate) fn transfers_to(&self, account: &Pubkey) -> bool {
+        match self {
+            Self::Transfer { destination, .. } => *destination == Some(account),
+            Self::ComputeBudget { .. } | Self::Memo | Self::CreateTokenAccount { .. } | Self::SyncNative | Self::CloseAccount { .. } | Self::TransferChecked { .. } | Self::Program(_) | Self::Unsupported => false,
+        }
+    }
+
+    fn closes_to(&self, account: &Pubkey, destination: &Pubkey) -> bool {
+        match self {
+            Self::CloseAccount { account: closed, destination: paid } => *closed == Some(account) && *paid == Some(destination),
+            Self::ComputeBudget { .. } | Self::Memo | Self::Transfer { .. } | Self::CreateTokenAccount { .. } | Self::SyncNative | Self::TransferChecked { .. } | Self::Program(_) | Self::Unsupported => false,
+        }
+    }
+}
+
 impl StepPolicy<'_> {
-    fn unbound_lamports(&self, step: StandardStep, later: &[SolanaStep]) -> Result<u64, SwapperError> {
+    fn unbound_lamports(&self, step: &StandardStep, later: &[StandardStep]) -> Result<u64, SwapperError> {
         match step {
-            StandardStep::ComputeBudget { unit_price: Some(price) } if price > MAX_COMPUTE_UNIT_PRICE => Err(SwapperError::InvalidRoute),
+            StandardStep::ComputeBudget { unit_price: Some(price) } if *price > MAX_COMPUTE_UNIT_PRICE => Err(SwapperError::InvalidRoute),
             StandardStep::ComputeBudget { .. } | StandardStep::Memo | StandardStep::SyncNative => Ok(0),
             StandardStep::Transfer { destination: Some(destination), .. } if self.returns_to_wallet_or_gem(destination, later) => Ok(0),
-            StandardStep::Transfer { lamports, .. } => Ok(lamports),
-            StandardStep::CreateTokenAccount { owner } if owner == Some(self.wallet) => Ok(0),
+            StandardStep::Transfer { lamports, .. } => Ok(*lamports),
+            StandardStep::CreateTokenAccount { owner } if *owner == Some(self.wallet) => Ok(0),
             StandardStep::CreateTokenAccount { .. } => Ok(TOKEN_ACCOUNT_RENT_LAMPORTS),
-            StandardStep::CloseAccount { destination, .. } if destination == Some(self.wallet) => Ok(0),
+            StandardStep::CloseAccount { destination, .. } if *destination == Some(self.wallet) => Ok(0),
             StandardStep::TransferChecked {
                 mint: Some(mint),
                 destination: Some(destination),
@@ -168,7 +157,7 @@ impl StepPolicy<'_> {
         }
     }
 
-    fn returns_to_wallet_or_gem(&self, destination: &Pubkey, later: &[SolanaStep]) -> bool {
+    fn returns_to_wallet_or_gem(&self, destination: &Pubkey, later: &[StandardStep]) -> bool {
         *destination == self.wrapped_sol || *destination == self.referral || later.iter().any(|step| step.closes_to(destination, self.wallet))
     }
 }
@@ -270,6 +259,10 @@ mod tests {
                 "a token fee paid to someone other than Gem",
             ),
             (vec![set_authority], "a token account handed to another key"),
+            (
+                vec![create_associated_token_account_idempotent(&wallet, &wallet, &usdc, &stranger).unwrap()],
+                "an account created under another token program, which sets its size and owns its rent",
+            ),
             (vec![assign], "the wallet reassigned to another program"),
             (vec![compute_budget::set_compute_unit_price(MAX_COMPUTE_UNIT_PRICE + 1)], "a priority fee above the limit"),
         ] {

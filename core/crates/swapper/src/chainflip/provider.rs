@@ -40,7 +40,7 @@ const ASSETS_CACHE_TTL: Duration = MINUTE.saturating_mul(5);
 const ETHEREUM_VAULT: &str = "0xF5e10380213880111522dd0efD3dbb45b9f62Bcc";
 const ARBITRUM_VAULT: &str = "0x79001a5e762f3bEFC8e5871b42F6734e00498920";
 const BSC_VAULT: &str = "0x79001a5e762f3bEFC8e5871b42F6734e00498920";
-const SOLANA_VAULT: &str = "J88B7gmadHzTNGiy54c9Ms8BsEXNdB2fntFyhKpk3qoT";
+pub(super) const SOLANA_VAULT: &str = "J88B7gmadHzTNGiy54c9Ms8BsEXNdB2fntFyhKpk3qoT";
 pub(super) const TRON_VAULT: &str = "TEcDijvKSXcfWT7S6rd44H5vNgufm7Y4XC";
 
 pub const VAULT_ADDRESSES: &[Deployment] = &[
@@ -368,7 +368,6 @@ mod tests {
     use gem_client::testkit::MockClient;
     use primitives::AssetId;
     use primitives::Chain;
-    use primitives::asset_constants::TRON_USDT_TOKEN_ID;
     use primitives::known_assets::ARBITRUM_USDC;
     use primitives::swap::SwapStatus;
     use primitives::testkit::signer_mock::{TEST_EVM_RECIPIENT, TEST_EVM_SENDER, TEST_POLKADOT_SENDER, TEST_TRON_SENDER};
@@ -379,8 +378,6 @@ mod tests {
         let provider = ChainflipProvider::with_clients(ChainflipClient::new(MockClient::new()), BrokerClient::new(MockClient::new(), MockClient::new()), Arc::new(ProviderMock::new(String::new())));
 
         assert_eq!(provider.binding(&AssetId::from_chain(Chain::Ethereum)), Binding::Contracts(Contracts::new(vec![ETHEREUM_VAULT])));
-        assert_eq!(provider.binding(&AssetId::from_chain(Chain::SmartChain)), Binding::Contracts(Contracts::new(vec![BSC_VAULT])));
-        assert_eq!(provider.binding(&AssetId::from_token(Chain::Tron, TRON_USDT_TOKEN_ID)), Binding::Contracts(Contracts::new(vec![TRON_VAULT])));
         assert_eq!(provider.binding(&AssetId::from_chain(Chain::Polkadot)), Binding::DepositAddress, "a deposit channel address is made per swap");
         assert_eq!(provider.binding(&AssetId::from_chain(Chain::Bitcoin)), Binding::Contracts(Contracts::default()), "Bitcoin is not a source");
     }

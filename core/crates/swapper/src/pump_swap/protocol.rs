@@ -237,7 +237,7 @@ mod tests {
         assert_eq!(requests.load(Ordering::SeqCst), 6);
 
         let quote_data = pump_swap.get_quote_data(&quote, QuoteDataInput::None).await.unwrap();
-        (&pump_swap as &dyn crate::Swapper).verify_binding(&quote, &quote_data).unwrap();
+        (&pump_swap as &dyn Swapper).verify_binding(&quote, &quote_data).unwrap();
         assert_eq!(requests.load(Ordering::SeqCst), 7);
         assert_eq!(quote_data.to, pump_amm_program().to_base58());
     }

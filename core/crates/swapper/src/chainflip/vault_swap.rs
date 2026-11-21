@@ -59,8 +59,7 @@ impl VaultSwap {
         match self.token_id.as_deref() {
             None => {
                 let call = IVault::xSwapNativeCall::abi_decode(&calldata).map_err(|_| SwapperError::InvalidRoute)?;
-                self.destination.validate_call(call.dstChain, &call.dstAddress, call.dstToken)?;
-                self.refund.validate(&call.cfParameters)?;
+                self.validate_payout(call.dstChain, &call.dstAddress, call.dstToken, &call.cfParameters)?;
             }
             Some(token_id) => {
                 let call = IVault::xSwapTokenCall::abi_decode(&calldata).map_err(|_| SwapperError::InvalidRoute)?;
@@ -68,8 +67,7 @@ impl VaultSwap {
                     return Err(SwapperError::InvalidRoute);
                 }
                 self.validate_amount(&u256_to_biguint(&call.amount))?;
-                self.destination.validate_call(call.dstChain, &call.dstAddress, call.dstToken)?;
-                self.refund.validate(&call.cfParameters)?;
+                self.validate_payout(call.dstChain, &call.dstAddress, call.dstToken, &call.cfParameters)?;
             }
         }
         Ok(value)
@@ -109,8 +107,12 @@ impl VaultSwap {
             return Err(SwapperError::InvalidRoute);
         }
         self.validate_amount(&BigUint::from(parameters.amount))?;
-        self.destination.validate_call(parameters.destination_chain, &parameters.destination_address, parameters.destination_asset)?;
-        self.refund.validate(&parameters.cf_parameters)
+        self.validate_payout(parameters.destination_chain, &parameters.destination_address, parameters.destination_asset, &parameters.cf_parameters)
+    }
+
+    fn validate_payout(&self, chain: u32, address: &[u8], asset: u32, cf_parameters: &[u8]) -> Result<(), SwapperError> {
+        self.destination.validate_call(chain, address, asset)?;
+        self.refund.validate(cf_parameters)
     }
 
     fn value(&self, broker_value: &BigUint) -> Result<BigUint, SwapperError> {
@@ -135,7 +137,7 @@ mod tests {
     use crate::chainflip::{
         broker::SolanaVaultSwapResponse,
         provider::TRON_VAULT,
-        testkit::{ETHEREUM_NATIVE_MIN_PRICE, SOLANA_MIN_PRICE, arbitrum_usdc_destination, ethereum_usdc_refund, ethereum_vault_swap, mock_refund, solana_vault_swap, tron_vault_swap},
+        testkit::{ETHEREUM_NATIVE_MIN_PRICE, SOLANA_MIN_PRICE, arbitrum_usdc_destination, ethereum_usdc_refund, mock_refund},
         tx_builder::solana_instruction,
     };
     use gem_solana::anchor::global_discriminator;
@@ -150,12 +152,12 @@ mod tests {
     fn test_validate_evm() {
         let native: EvmVaultSwapResponse = serde_json::from_str(include_str!("broker/test/vault_swap_eth_native.json")).unwrap();
         let usdc: EvmVaultSwapResponse = serde_json::from_str(include_str!("broker/test/vault_swap_eth_usdc.json")).unwrap();
-        let swap = ethereum_vault_swap();
+        let swap = VaultSwap::mock_ethereum();
         let token_swap = VaultSwap {
             token_id: Some(ETHEREUM_USDC_TOKEN_ID.to_string()),
             amount: BigUint::from(500_000_000u64),
             refund: ethereum_usdc_refund(),
-            ..ethereum_vault_swap()
+            ..VaultSwap::mock_ethereum()
         };
 
         assert_eq!(swap.validate_evm(&native), Ok(swap.amount.clone()));
@@ -227,11 +229,11 @@ mod tests {
             source_token_address: Some("0xa614f803b6fd780986a42c78ec9c7f77e6ded13c".to_string()),
             ..TronVaultSwapResponse::mock()
         };
-        let swap = tron_vault_swap();
+        let swap = VaultSwap::mock_tron();
         let token_swap = VaultSwap {
             token_id: Some(TRON_USDT_TOKEN_ID.to_string()),
             amount: BigUint::from(10_000_000u32),
-            ..tron_vault_swap()
+            ..VaultSwap::mock_tron()
         };
         let native_call = IVault::xSwapNativeCall {
             dstChain: 4,
@@ -275,8 +277,8 @@ mod tests {
             (token_swap, TronVaultSwapResponse { value: BigUint::from(1u32), ..token }, "a token swap that also sends coins"),
             (
                 VaultSwap {
-                    destination: ethereum_vault_swap().destination,
-                    refund: solana_vault_swap().refund,
+                    destination: VaultSwap::mock_ethereum().destination,
+                    refund: VaultSwap::mock_solana().refund,
                     ..swap.clone()
                 },
                 native.clone(),
@@ -299,11 +301,11 @@ mod tests {
     fn test_validate_solana() {
         let native = solana_instruction(&serde_json::from_str::<SolanaVaultSwapResponse>(include_str!("broker/test/vault_swap_sol_native.json")).unwrap()).unwrap();
         let usdc = solana_instruction(&serde_json::from_str::<SolanaVaultSwapResponse>(include_str!("broker/test/vault_swap_sol_usdc.json")).unwrap()).unwrap();
-        let swap = solana_vault_swap();
+        let swap = VaultSwap::mock_solana();
         let token_swap = VaultSwap {
             token_id: Some(SOLANA_USDC_TOKEN_ID.to_string()),
             amount: BigUint::from(100_000_000u64),
-            ..solana_vault_swap()
+            ..VaultSwap::mock_solana()
         };
 
         assert_eq!(swap.validate_solana(&native), Ok(()));

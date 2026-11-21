@@ -123,10 +123,7 @@ impl Swapper for SunSwap {
     }
 
     fn binding(&self, _from_asset: &AssetId) -> Binding {
-        Binding::Contracts(Contracts {
-            targets: vec![TRON_SUNSWAP_UNIVERSAL_ROUTER_CONTRACT],
-            spenders: vec![TRON_SUNSWAP_PERMIT2_CONTRACT, TRON_SUNSWAP_UNIVERSAL_ROUTER_CONTRACT],
-        })
+        Binding::Contracts(Contracts::universal_router(TRON_SUNSWAP_UNIVERSAL_ROUTER_CONTRACT, TRON_SUNSWAP_PERMIT2_CONTRACT))
     }
 
     fn amount_mode(&self, _request: &QuoteRequest) -> SwapAmountMode {

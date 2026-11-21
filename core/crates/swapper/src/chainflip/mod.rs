@@ -12,7 +12,7 @@ pub mod seed;
 #[cfg(any(test, debug_assertions))]
 pub mod testkit;
 pub mod tx_builder;
-mod vault_swap;
+pub mod vault_swap;
 
 pub use model::*;
 pub use provider::{ChainflipProvider, VAULT_ADDRESSES};

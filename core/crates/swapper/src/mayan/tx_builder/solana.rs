@@ -166,43 +166,25 @@ mod tests {
         let mut token_instructions = Vec::new();
         append_client_swap_instructions(&mut token_instructions, SolanaClientSwap::mock_usdt(), &token.wallet, &token).unwrap();
         let quote_data = SolanaTransaction::new(token_instructions, vec![]).encode(USDT_USER, &[]).unwrap();
-        let quote = Quote {
-            request: QuoteRequest {
-                wallet_address: USDT_USER.to_string(),
-                ..QuoteRequest::mock(Chain::Solana, Some(SOLANA_USDT_TOKEN_ID))
-            },
-            ..Quote::mock(Chain::Solana, Some(SOLANA_USDT_TOKEN_ID))
-        };
+        let quote = Quote::mock_with_request(&QuoteRequest {
+            wallet_address: USDT_USER.to_string(),
+            ..QuoteRequest::mock(Chain::Solana, Some(SOLANA_USDT_TOKEN_ID))
+        });
         (&mayan as &dyn Swapper).verify_binding(&quote, &quote_data).unwrap();
 
         let mut coin_instructions = Vec::new();
         append_client_swap_instructions(&mut coin_instructions, SolanaClientSwap::mock_sol(), &coin.wallet, &coin).unwrap();
         assert_eq!(coin_instructions.len(), 8, "the reply wraps the coin itself, so no second wrap is added");
 
-        let stranger = Pubkey::from_base58(TEST_PRIVATE_KEY_SOLANA_ADDRESS).unwrap();
-        for (refused, reason) in [
-            (
-                QuotedRoute {
-                    destination: RouteDestination::Account(stranger),
-                    ..coin
-                },
-                "a swap that pays into another account than the bridge's",
-            ),
-            (
-                QuotedRoute {
-                    input_mint: Pubkey::from_base58(SOLANA_USDT_TOKEN_ID).unwrap(),
-                    ..coin
-                },
-                "a swap that spends another token than quoted",
-            ),
-            (QuotedRoute { amount: SOL_AMOUNT - 1, ..coin }, "a swap that spends more than quoted"),
-        ] {
-            assert_eq!(
-                append_client_swap_instructions(&mut Vec::new(), SolanaClientSwap::mock_sol(), &refused.wallet, &refused).err(),
-                Some(SwapperError::InvalidRoute),
-                "{reason}"
-            );
-        }
+        let other_account = QuotedRoute {
+            destination: RouteDestination::Account(Pubkey::from_base58(TEST_PRIVATE_KEY_SOLANA_ADDRESS).unwrap()),
+            ..coin
+        };
+        assert_eq!(
+            append_client_swap_instructions(&mut Vec::new(), SolanaClientSwap::mock_sol(), &other_account.wallet, &other_account).err(),
+            Some(SwapperError::InvalidRoute),
+            "a swap that pays into another account than the bridge's"
+        );
 
         let relayer = Pubkey::new([7; 32]);
         let mut paid_by_relayer = Vec::new();

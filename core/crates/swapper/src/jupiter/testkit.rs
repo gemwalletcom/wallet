@@ -1,5 +1,4 @@
 use super::model::{BuildRequest, BuildResponse};
-use super::route::minimum_out;
 use super::swap_instructions::{QuotedRoute, RouteDestination, SwapInstructions};
 use gem_solana::{AddressLookupTableAccount, Pubkey, TOKEN_PROGRAM, USDC_TOKEN_MINT, WSOL_TOKEN_ADDRESS, token_account::get_token_account, wrapped_sol::wrapped_sol_mint};
 use primitives::swap::SOLANA_REFERRAL_ADDRESS;
@@ -68,7 +67,7 @@ impl QuotedRoute {
             wallet: Pubkey::from_base58(TEST_PAYER).unwrap(),
             input_mint: wrapped_sol_mint(),
             amount: 100_000_000,
-            minimum_out: minimum_out(6_829_563, 100),
+            minimum_out: 6_761_267,
             platform_fee_bps: 50,
             destination: RouteDestination::WalletAccount(Pubkey::from_base58(USDC_TOKEN_MINT).unwrap()),
         }
@@ -78,7 +77,7 @@ impl QuotedRoute {
         Self {
             input_mint: Pubkey::from_base58(USDC_TOKEN_MINT).unwrap(),
             amount: 20_000_000,
-            minimum_out: minimum_out(289_924_882, 100),
+            minimum_out: 287_025_633,
             destination: RouteDestination::WalletAccount(wrapped_sol_mint()),
             ..Self::mock()
         }
