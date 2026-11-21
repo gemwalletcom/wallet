@@ -76,6 +76,10 @@ impl EVMChain {
         self.config().chain_stack
     }
 
+    pub fn base_fee_increase_percent(&self) -> u32 {
+        self.config().base_fee_increase_percent
+    }
+
     pub fn is_ethereum_layer2(&self) -> bool {
         self.config().is_ethereum_layer2
     }

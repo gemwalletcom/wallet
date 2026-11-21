@@ -29,7 +29,7 @@ pub use self::chain_nft::NFTChain;
 pub mod chain_type;
 pub use self::chain_type::ChainType;
 pub mod chain_transaction_timeout;
-pub use self::chain_transaction_timeout::{chain_transaction_timeout, swap_transaction_timeout};
+pub use self::chain_transaction_timeout::{chain_nonce_hold, chain_transaction_timeout, swap_transaction_timeout};
 pub mod chain_evm;
 pub use self::chain_evm::{EVMChain, EvmNativeCurrency};
 pub mod chain_aptos;

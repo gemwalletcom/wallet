@@ -1,4 +1,4 @@
-use primitives::{AssetId, Chain, DateTime, JobConfiguration, PaymentLink, Transaction, TransactionChange, TransactionMetadata, TransactionState, TransactionType, chain_transaction_timeout, swap_transaction_timeout};
+use primitives::{AssetId, Chain, DateTime, JobConfiguration, PaymentLink, Transaction, TransactionChange, TransactionMetadata, TransactionState, TransactionType, chain_nonce_hold, chain_transaction_timeout, swap_transaction_timeout};
 
 use super::model::{GemPendingTransaction, GemTransactionStateUpdate, TransactionPostProcessing};
 use crate::payment::payment_record_hash;
@@ -98,7 +98,7 @@ pub fn pending_nonces(pending: &[GemPendingTransaction], chain: Chain, sender: &
     pending
         .iter()
         .map(|pending| &pending.transaction)
-        .filter(|transaction| transaction.id.chain == chain && transaction.from == sender && payment_link(transaction).is_none() && !has_timed_out(transaction, transaction.state, now))
+        .filter(|transaction| transaction.id.chain == chain && transaction.from == sender && payment_link(transaction).is_none() && now - transaction.created_at <= chain_nonce_hold(chain))
         .filter_map(|transaction| transaction.sequence.as_deref()?.parse().ok())
         .collect()
 }
@@ -110,7 +110,8 @@ pub fn assets_to_enable(transactions: &[Transaction]) -> Vec<AssetId> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use primitives::{HOUR, PaymentMerchant, SwapProvider, TransactionId, TransactionPaymentMetadata, TransactionSwapMetadata};
+    use primitives::{PaymentMerchant, SwapProvider, TransactionId, TransactionPaymentMetadata, TransactionSwapMetadata};
+    use std::time::Duration;
 
     #[test]
     fn test_poll_configuration() {
@@ -145,9 +146,14 @@ mod tests {
         assert_eq!(pending_nonces(&pending, Chain::Ethereum, "0xother", now), Vec::<u64>::new(), "every address has its own nonces");
         assert_eq!(pending_nonces(&pending, Chain::SmartChain, "0xfrom", now), Vec::<u64>::new(), "every network has its own nonces");
         assert_eq!(
-            pending_nonces(&pending, Chain::Ethereum, "0xfrom", now + HOUR),
+            pending_nonces(&pending, Chain::Ethereum, "0xfrom", now + Duration::from_secs(59)),
+            vec![5],
+            "a send holds its nonce for five blocks"
+        );
+        assert_eq!(
+            pending_nonces(&pending, Chain::Ethereum, "0xfrom", now + Duration::from_secs(61)),
             Vec::<u64>::new(),
-            "a send pending past its timeout was likely dropped, and a nonce after it would never be mined"
+            "a send still pending after five blocks is stuck or dropped, so the next send takes its nonce to replace it"
         );
         assert_eq!(
             pending_nonces(

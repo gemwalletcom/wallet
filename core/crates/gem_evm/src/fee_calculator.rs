@@ -14,7 +14,7 @@ pub fn get_fee_history_blocks(chain: EVMChain) -> u64 {
 
 pub fn get_reward_percentiles(chain: EVMChain) -> [u64; 2] {
     match chain {
-        EVMChain::Ethereum => [16, 35],
+        EVMChain::Ethereum => [20, 70],
         _ => [40, 60],
     }
 }
@@ -111,7 +111,7 @@ mod tests {
 
     #[test]
     fn test_get_reward_percentiles() {
-        assert_eq!(get_reward_percentiles(EVMChain::Ethereum), [16, 35]);
+        assert_eq!(get_reward_percentiles(EVMChain::Ethereum), [20, 70]);
         assert_eq!(get_reward_percentiles(EVMChain::Arbitrum), [40, 60]);
     }
 

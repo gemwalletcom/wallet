@@ -87,6 +87,7 @@ pub struct GemConfirmData {
     pub selected_priority: FeePriority,
     pub fee_selection: GemConfirmFeeSelection,
     pub fee_rates: Vec<FeeRate>,
+    pub base_fee: Option<GemBigInt>,
     pub metadata: TransactionLoadMetadata,
     pub simulation: Option<SimulationResult>,
 }
