@@ -3,6 +3,7 @@ use super::broker::{AssetsResponse, ChainflipAsset, DepositChannelRequest, Quote
 use super::destination::VaultSwapDestination;
 use super::provider::{TRON_VAULT, refund_parameters};
 use super::refund::VaultSwapRefund;
+use super::vault_swap::VaultSwap;
 use crate::fees::DEFAULT_CHAINFLIP_FEE_BPS;
 use crate::{Quote, Route};
 use num_bigint::BigUint;
@@ -83,20 +84,40 @@ pub fn mock_refund(chain: Chain, address: &str, min_price: &str) -> VaultSwapRef
     VaultSwapRefund::new(chain, refund_parameters(address, min_price))
 }
 
-pub fn ethereum_native_refund() -> VaultSwapRefund {
-    mock_refund(Chain::Ethereum, TEST_EVM_SENDER, ETHEREUM_NATIVE_MIN_PRICE)
-}
-
 pub fn ethereum_usdc_refund() -> VaultSwapRefund {
     mock_refund(Chain::Ethereum, TEST_EVM_SENDER, "0x4faa1adcd75c490000000000000000")
 }
 
-pub fn solana_refund() -> VaultSwapRefund {
-    mock_refund(Chain::Solana, TEST_SOLANA_SENDER, SOLANA_MIN_PRICE)
-}
+impl VaultSwap {
+    pub fn mock_ethereum() -> Self {
+        Self {
+            wallet: TEST_EVM_SENDER.to_string(),
+            token_id: None,
+            amount: BigUint::from(100_000_000_000_000_000u64),
+            destination: bitcoin_destination(),
+            refund: mock_refund(Chain::Ethereum, TEST_EVM_SENDER, ETHEREUM_NATIVE_MIN_PRICE),
+        }
+    }
 
-pub fn tron_refund() -> VaultSwapRefund {
-    mock_refund(Chain::Tron, TEST_TRON_SENDER, "0x0")
+    pub fn mock_tron() -> Self {
+        Self {
+            wallet: TEST_TRON_SENDER.to_string(),
+            token_id: None,
+            amount: BigUint::from(50_000_000u32),
+            destination: arbitrum_usdc_destination(),
+            refund: mock_refund(Chain::Tron, TEST_TRON_SENDER, "0x0"),
+        }
+    }
+
+    pub fn mock_solana() -> Self {
+        Self {
+            wallet: TEST_SOLANA_SENDER.to_string(),
+            token_id: None,
+            amount: BigUint::from(500_000_000u64),
+            destination: bitcoin_destination(),
+            refund: mock_refund(Chain::Solana, TEST_SOLANA_SENDER, SOLANA_MIN_PRICE),
+        }
+    }
 }
 
 pub fn mock_routes(quote: &Quote, estimated_price: f64) -> Vec<Route> {

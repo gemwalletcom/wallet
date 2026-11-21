@@ -6,7 +6,7 @@ use super::{
     tx_builder::{self, NextSwapParams, ReferralParams, SwapTransactionParams, build_swap_transaction},
 };
 use crate::{
-    FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, RpcClient, RpcProvider, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteAsset, SwapperQuoteData,
+    Binding, FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, RpcClient, RpcProvider, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteAsset, SwapperQuoteData,
     client_factory::create_ton_client,
     fees::subtract_bps,
     models::nonzero_swap_value,
@@ -361,6 +361,10 @@ where
 
     fn supported_assets(&self) -> Vec<SwapperChainAsset> {
         vec![SwapperChainAsset::All(Chain::Ton)]
+    }
+
+    fn binding(&self, _from_asset: &AssetId) -> Binding {
+        Binding::BuiltOnDevice
     }
 
     fn amount_mode(&self, _request: &QuoteRequest) -> SwapAmountMode {
@@ -793,7 +797,7 @@ mod swap_integration_tests {
 
         let quote_data = provider.get_quote_data(&quote, FetchQuoteData::None).await?;
 
-        (&provider as &dyn Swapper).verify_contracts(&quote, &quote_data)?;
+        (&provider as &dyn Swapper).verify_binding(&quote, &quote_data)?;
         assert!(!quote_data.to.is_empty());
         assert!(quote_data.value > BigUint::ZERO);
         assert_eq!(serde_json::from_str::<Vec<TonConnectMessage>>(&quote_data.data)?.len(), 1);
@@ -823,7 +827,7 @@ mod swap_integration_tests {
             assert_eq!(quote.data.routes[0].input, request.from_asset.asset_id());
             assert_eq!(quote.data.routes[0].output, request.to_asset.asset_id());
             let quote_data = provider.get_quote_data(&quote, FetchQuoteData::None).await?;
-            (&provider as &dyn Swapper).verify_contracts(&quote, &quote_data)?;
+            (&provider as &dyn Swapper).verify_binding(&quote, &quote_data)?;
             assert!(!quote_data.to.is_empty());
             assert!(quote_data.value > BigUint::ZERO);
             assert_eq!(serde_json::from_str::<Vec<TonConnectMessage>>(&quote_data.data)?.len(), 1);
@@ -856,7 +860,7 @@ mod swap_integration_tests {
 
         let quote_data = provider.get_quote_data(&quote, FetchQuoteData::None).await?;
 
-        (&provider as &dyn Swapper).verify_contracts(&quote, &quote_data)?;
+        (&provider as &dyn Swapper).verify_binding(&quote, &quote_data)?;
         assert!(!quote_data.to.is_empty());
         assert!(quote_data.value > BigUint::ZERO);
         assert_eq!(serde_json::from_str::<Vec<TonConnectMessage>>(&quote_data.data)?.len(), 1);

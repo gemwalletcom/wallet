@@ -3,7 +3,6 @@ use primitives::AssetId;
 use super::{chain::ChainflipChain, client::chainflip_asset_index};
 use crate::SwapperError;
 
-const SOLANA_DESTINATION_OFFSET: usize = 16;
 pub(super) const NO_CCM: u8 = 0;
 const SCALE_TWO_BYTE_LENGTH: u16 = 1;
 
@@ -26,12 +25,6 @@ impl VaultSwapDestination {
         self.validate(chain == self.chain.id() && address == self.address && asset == u32::from(self.asset))
     }
 
-    pub(super) fn validate_solana<'a>(&self, data: &'a [u8]) -> Result<&'a [u8], SwapperError> {
-        let (chain, address, asset, cf_parameters) = solana_destination(data).ok_or(SwapperError::TransactionError("invalid Chainflip Solana vault swap data".to_string()))?;
-        self.validate_call(chain, address, asset)?;
-        Ok(cf_parameters)
-    }
-
     pub(super) fn validate_tron<'a>(&self, note: &'a [u8]) -> Result<&'a [u8], SwapperError> {
         let mut prefix = vec![self.asset, self.chain.scale_address_variant()];
         if self.chain == ChainflipChain::Bitcoin {
@@ -39,27 +32,15 @@ impl VaultSwapDestination {
         }
         prefix.extend(&self.address);
         self.validate(note.starts_with(&prefix))?;
-        tron_cf_parameters(&note[prefix.len()..]).ok_or(SwapperError::TransactionError("invalid Chainflip Tron vault swap note".to_string()))
+        tron_cf_parameters(&note[prefix.len()..]).ok_or(SwapperError::InvalidRoute)
     }
 
     fn validate(&self, matches: bool) -> Result<(), SwapperError> {
         if !matches {
-            return Err(SwapperError::TransactionError(format!("Chainflip {} destination mismatch", self.chain.as_ref())));
+            return Err(SwapperError::InvalidRoute);
         }
         Ok(())
     }
-}
-
-fn solana_destination(data: &[u8]) -> Option<(u32, &[u8], u32, &[u8])> {
-    let read_u32 = |offset: usize| data.get(offset..offset + 4).and_then(|bytes| bytes.try_into().ok()).map(u32::from_le_bytes);
-    let address_offset = SOLANA_DESTINATION_OFFSET + 8;
-    let address_end = address_offset.checked_add(read_u32(SOLANA_DESTINATION_OFFSET + 4)? as usize)?;
-    let address = data.get(address_offset..address_end)?;
-    let ccm_offset = address_end + 4;
-    data.get(ccm_offset).filter(|ccm| **ccm == NO_CCM)?;
-    let cf_parameters_offset = ccm_offset + 5;
-    let cf_parameters_end = cf_parameters_offset.checked_add(read_u32(ccm_offset + 1)? as usize)?;
-    Some((read_u32(SOLANA_DESTINATION_OFFSET)?, address, read_u32(address_end)?, data.get(cf_parameters_offset..cf_parameters_end)?))
 }
 
 fn tron_cf_parameters(data: &[u8]) -> Option<&[u8]> {

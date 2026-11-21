@@ -4,7 +4,7 @@ use async_trait::async_trait;
 use std::{fmt, str::FromStr, sync::Arc, vec};
 
 use crate::{
-    FetchQuoteData, ProviderType, Quote, QuoteRequest, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData,
+    Binding, Contracts, FetchQuoteData, ProviderType, Quote, QuoteRequest, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData,
     alien::RpcProvider,
     approval::check_permit2_approvals,
     client_factory::create_client_with_chain,
@@ -114,6 +114,14 @@ impl Swapper for UniswapV4 {
 
     fn supported_assets(&self) -> Vec<SwapperChainAsset> {
         Chain::all().iter().filter(|x| self.support_chain(x)).map(|x| SwapperChainAsset::All(*x)).collect()
+    }
+
+    fn binding(&self, from_asset: &AssetId) -> Binding {
+        Binding::Contracts(
+            get_uniswap_deployment_by_chain(&from_asset.chain)
+                .map(|deployment| Contracts::universal_router(deployment.universal_router, deployment.permit2))
+                .unwrap_or_default(),
+        )
     }
 
     fn amount_mode(&self, _request: &QuoteRequest) -> SwapAmountMode {

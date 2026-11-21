@@ -6,14 +6,14 @@ use gem_hypercore::core::{actions::user::send_asset::SendAsset, hypercore::send_
 use number_formatter::BigNumberFormatter;
 
 use primitives::{
-    Chain,
+    AssetId, Chain,
     asset_constants::HYPERCORE_CORE_HYPE_TOKEN_ID,
     contract_constants::HYPERCORE_SYSTEM_ADDRESS,
     known_assets::{HYPERCORE_HYPE, HYPEREVM_HYPE},
     swap::{SwapResult, SwapResultRequest, SwapStatus},
 };
 
-use crate::{FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData};
+use crate::{Binding, FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData};
 
 #[derive(Debug)]
 pub struct HyperCoreBridge {
@@ -51,6 +51,10 @@ impl Swapper for HyperCoreBridge {
             SwapperChainAsset::Assets(Chain::HyperCore, vec![HYPERCORE_HYPE.id.clone()]),
             SwapperChainAsset::Assets(Chain::Hyperliquid, vec![HYPEREVM_HYPE.id.clone()]),
         ]
+    }
+
+    fn binding(&self, _from_asset: &AssetId) -> Binding {
+        Binding::BuiltOnDevice
     }
 
     fn amount_mode(&self, _request: &QuoteRequest) -> SwapAmountMode {

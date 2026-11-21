@@ -28,7 +28,7 @@ use crate::{
             amount::value_to_query,
             hypercore::hypercore_custom_payload,
             route::{quote_destination_address, swift_destination_address},
-            solana::{append_client_swap_instructions, solana_error, wrap_instruction_in_cpi_proxy},
+            solana::{append_client_swap_instructions, client_swap_route, solana_error, wrap_instruction_in_cpi_proxy},
             swift::{SwiftOrderFields, swift_input_contract as route_swift_input_contract, swift_random_key},
         },
     },
@@ -172,7 +172,8 @@ where
         ))
         .await?;
 
-    append_client_swap_instructions(instructions, swap, &context.trader, &context.relayer, &context.state_account, &route.from_token.contract, &route.effective_amount_in64)
+    let quoted = client_swap_route(&context.trader, &context.state_account, route)?;
+    append_client_swap_instructions(instructions, swap, &context.relayer, &quoted)
 }
 
 fn create_custom_payload_account(instructions: &mut Vec<Instruction>, relayer: &Pubkey, custom_payload: Option<&[u8]>) -> Result<Option<(Pubkey, u16)>, SwapperError> {

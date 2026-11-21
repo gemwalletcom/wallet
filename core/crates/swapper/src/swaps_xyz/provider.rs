@@ -15,7 +15,7 @@ use super::{
     model::{ActionRequest, ActionResponse, AmountLimits, AppFee, StatusResponse},
 };
 use crate::{
-    FetchQuoteData, ProviderType, Quote, QuoteRequest, RpcClient, RpcProvider, SwapAmountMode, SwapResult, SwapResultRequest, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData,
+    Binding, FetchQuoteData, ProviderType, Quote, QuoteRequest, RpcClient, RpcProvider, SwapAmountMode, SwapResult, SwapResultRequest, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData,
     client_factory::create_ton_client,
     config::get_swap_provider_url,
     fees::{bps_of, default_referral_fees},
@@ -154,6 +154,10 @@ where
 
     fn supported_assets(&self) -> Vec<SwapperChainAsset> {
         SwapsXyzChain::ALL.iter().map(|chain| SwapperChainAsset::assets(chain.chain, [])).collect()
+    }
+
+    fn binding(&self, _from_asset: &AssetId) -> Binding {
+        Binding::DepositAddress
     }
 
     fn amount_mode(&self, _request: &QuoteRequest) -> SwapAmountMode {

@@ -6,8 +6,10 @@ use gem_client::Client;
 
 use super::client::SquidClient;
 use crate::{
-    FetchQuoteData, ProviderType, Quote, QuoteRequest, RpcClient, RpcProvider, SwapAmountMode, SwapResult, SwapResultRequest, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData, config::get_swap_proxy_url,
+    Binding, Contracts, FetchQuoteData, ProviderType, Quote, QuoteRequest, RpcClient, RpcProvider, SwapAmountMode, SwapResult, SwapResultRequest, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData,
+    config::get_swap_proxy_url,
 };
+use primitives::AssetId;
 
 #[derive(Debug)]
 pub struct Squid<C>
@@ -38,6 +40,10 @@ where
 
     fn supported_assets(&self) -> Vec<SwapperChainAsset> {
         vec![]
+    }
+
+    fn binding(&self, _from_asset: &AssetId) -> Binding {
+        Binding::Contracts(Contracts::default())
     }
 
     fn amount_mode(&self, _request: &QuoteRequest) -> SwapAmountMode {

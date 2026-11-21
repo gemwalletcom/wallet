@@ -6,7 +6,7 @@ use alloy_primitives::U256;
 use async_trait::async_trait;
 use gem_client::Client;
 use primitives::{
-    AssetId, EvmNativeCurrency,
+    AssetId, Chain,
     swap::{ApprovalData, SlippageMode},
 };
 
@@ -19,7 +19,7 @@ use super::{
     solana, ton,
 };
 use crate::{
-    Contracts, FetchQuoteData, ProviderType, Quote, QuoteRequest, RpcClient, RpcProvider, SwapAmountMode, SwapResult, SwapResultRequest, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData,
+    Binding, FetchQuoteData, ProviderType, Quote, QuoteRequest, RpcClient, RpcProvider, SwapAmountMode, SwapResult, SwapResultRequest, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData,
     approval::check_token_approval,
     client_factory::create_ton_client,
     config::get_swap_proxy_url,
@@ -74,8 +74,11 @@ where
         RelayChain::from_chain(&request.from_asset.chain()).map_or(SwapAmountMode::Fixed, |chain| chain.amount_mode())
     }
 
-    fn contracts(&self, from_asset: &AssetId) -> Contracts {
-        contracts::contracts(from_asset.chain)
+    fn binding(&self, from_asset: &AssetId) -> Binding {
+        match from_asset.chain {
+            Chain::Bitcoin => Binding::DepositAddress,
+            chain => Binding::Contracts(contracts::contracts(chain)),
+        }
     }
 
     async fn get_quote(&self, request: &QuoteRequest) -> Result<Quote, SwapperError> {
@@ -135,7 +138,7 @@ where
             RelayChain::Tron => mapper::map_tron_quote_data(&response, approval),
             RelayChain::Solana => {
                 let step = response.get_solana_step().ok_or(SwapperError::InvalidRoute)?;
-                solana::build_quote_data(&quote.request.wallet_address, step, self.rpc_provider.clone()).await
+                solana::build_quote_data(quote, step, self.rpc_provider.clone()).await
             }
             RelayChain::Ton => mapper::map_ton_quote_data(&response),
             RelayChain::Xrp => mapper::map_xrp_quote_data(&response, &quote.from_value),
@@ -183,9 +186,9 @@ where
         let token = match (chain, from_asset_id.token_id.clone()) {
             (RelayChain::Bitcoin | RelayChain::Solana | RelayChain::Ton | RelayChain::Xrp, _) | (RelayChain::Tron, None) => return Ok(None),
             (_, Some(token)) => token,
-            (RelayChain::Evm(chain), None) => match chain.native_currency() {
-                EvmNativeCurrency::Token(token) => token.to_string(),
-                EvmNativeCurrency::Wrapped(_) | EvmNativeCurrency::Mirrored { .. } | EvmNativeCurrency::None => return Ok(None),
+            (RelayChain::Evm(chain), None) => match chain.native_token_contract() {
+                Some(token) => token.to_string(),
+                None => return Ok(None),
             },
         };
 
@@ -231,9 +234,9 @@ mod tests {
         };
         let relay = &relay as &dyn Swapper;
 
-        assert!(relay.verify_contracts(&quote, &approving(ROUTER_ADDRESS)).is_ok());
+        assert_eq!(relay.verify_binding(&quote, &approving(ROUTER_ADDRESS)), Ok(()));
         assert_eq!(
-            relay.verify_contracts(&quote, &approving(ERC20_ROUTER_ADDRESS)),
+            relay.verify_binding(&quote, &approving(ERC20_ROUTER_ADDRESS)),
             Err(SwapperError::InvalidRoute),
             "only the contracts that take the deposit receive an approval"
         );

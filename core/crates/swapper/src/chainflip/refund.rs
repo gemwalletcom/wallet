@@ -21,7 +21,7 @@ impl VaultSwapRefund {
 
     pub(super) fn validate(&self, cf_parameters: &[u8]) -> Result<(), SwapperError> {
         if !cf_parameters.starts_with(&self.encode()?) {
-            return Err(SwapperError::TransactionError("Chainflip refund mismatch".to_string()));
+            return Err(SwapperError::InvalidRoute);
         }
         Ok(())
     }

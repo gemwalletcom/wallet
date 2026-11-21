@@ -1,5 +1,5 @@
 use crate::{
-    AssetList, Contracts, FetchQuoteData, Permit2ApprovalData, ProviderData, ProviderType, Route, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteAsset, SwapperQuoteData, SwapperSlippage,
+    AssetList, Binding, Contracts, FetchQuoteData, Permit2ApprovalData, ProviderData, ProviderType, Route, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteAsset, SwapperQuoteData, SwapperSlippage,
     SwapperSlippageMode,
 };
 use async_trait::async_trait;
@@ -251,8 +251,11 @@ impl Swapper for MockSwapper {
         self.amount_mode
     }
 
-    fn contracts(&self, _from_asset: &AssetId) -> Contracts {
-        Contracts::new(self.contracts.clone())
+    fn binding(&self, _from_asset: &AssetId) -> Binding {
+        match self.contracts.is_empty() {
+            true => Binding::BuiltOnDevice,
+            false => Binding::Contracts(Contracts::new(self.contracts.clone())),
+        }
     }
 
     async fn get_quote(&self, request: &QuoteRequest) -> Result<Quote, SwapperError> {

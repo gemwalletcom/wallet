@@ -1,6 +1,6 @@
 use super::{DEFAULT_DEPOSIT_GAS_LIMIT, DEFAULT_FILL_TIMEOUT, GAS_TOKEN_DECIMALS, config_store::TokenConfig, hubpool::HubPoolClient};
 use crate::{
-    SwapAmountMode, SwapResult, Swapper, SwapperError, SwapperProvider, SwapperQuoteData,
+    Binding, Contracts, SwapAmountMode, SwapResult, Swapper, SwapperError, SwapperProvider, SwapperQuoteData,
     alien::RpcProvider,
     approval::{check_token_approval, get_swap_gas_limit_with_approval},
     chainlink::{self, ONE_DOLLAR},
@@ -239,6 +239,10 @@ impl Swapper for Across {
             .into_iter()
             .filter_map(|chain| supported_assets.get(&chain).map(|assets| SwapperChainAsset::Assets(chain, assets.clone())))
             .collect()
+    }
+
+    fn binding(&self, from_asset: &AssetId) -> Binding {
+        Binding::Contracts(AcrossDeployment::deployment_by_chain(&from_asset.chain).map(|deployment| Contracts::new(vec![deployment.spoke_pool])).unwrap_or_default())
     }
 
     fn amount_mode(&self, _request: &QuoteRequest) -> SwapAmountMode {

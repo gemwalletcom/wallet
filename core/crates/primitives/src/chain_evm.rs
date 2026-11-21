@@ -96,6 +96,13 @@ impl EVMChain {
         self.config().native_currency
     }
 
+    pub fn native_token_contract(&self) -> Option<&'static str> {
+        match self.native_currency() {
+            EvmNativeCurrency::Token(contract) => Some(contract),
+            EvmNativeCurrency::Wrapped(_) | EvmNativeCurrency::Mirrored { .. } | EvmNativeCurrency::None => None,
+        }
+    }
+
     pub fn weth_contract(&self) -> Option<&'static str> {
         match self.native_currency() {
             EvmNativeCurrency::Wrapped(contract) | EvmNativeCurrency::Token(contract) => Some(contract),

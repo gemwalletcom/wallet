@@ -1,19 +1,19 @@
 use super::{
-    asset::{supported_assets as mayan_supported_assets, token_id_for_asset},
+    asset::{asset_id_for_token, supported_assets as mayan_supported_assets, token_id_for_asset},
     client::MayanClient,
     constants::{
         MAYAN_CPI_PROXY_PROGRAM_ID, MAYAN_DEPOSIT_CONTRACTS, MAYAN_FAST_MCTP_PROGRAM_ID, MAYAN_FEE_MANAGER_PROGRAM_ID, MAYAN_FORWARDER, MAYAN_MAX_SLIPPAGE_BPS, MAYAN_MCTP_PROGRAM_ID, MAYAN_PAYLOAD_WRITER_PROGRAM_ID, MAYAN_PROGRAM_ID,
         MAYAN_SEND_CONTRACTS,
     },
     mapper::map_swap_result,
-    model::{MayanChain, MayanQuote, MayanTransactionResult, QuoteParams, SwiftVersion},
+    model::{MayanChain, MayanQuote, MayanQuoteCommon, MayanTransactionResult, QuoteParams, SwiftVersion},
     tx_builder::{fast_mctp, mctp, mono_chain, swift},
     wormhole_chain,
 };
 use crate::amount_to_value;
 use crate::client_factory::create_eth_client;
 use crate::{
-    Contracts, FetchQuoteData, ProviderType, Quote, QuoteRequest, RpcClient, RpcProvider, SwapAmountMode, SwapResult, SwapResultRequest, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData,
+    Binding, Contracts, FetchQuoteData, ProviderType, Quote, QuoteRequest, RpcClient, RpcProvider, SwapAmountMode, SwapResult, SwapResultRequest, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData,
     config::get_swap_proxy_url,
     cross_chain::VaultAddresses,
     fees::{default_referral_address, default_referral_fees},
@@ -22,6 +22,7 @@ use crate::{
 use async_trait::async_trait;
 use gem_client::Client;
 use gem_evm::rpc::client::FUNCTION_ERC20_DECIMALS;
+use num_bigint::BigUint;
 use primitives::{
     AssetId, Chain, ChainType, HOUR,
     contract_constants::{EVM_ZERO_ADDRESS, SOLANA_JUPITER_PROGRAM_ID},
@@ -101,6 +102,15 @@ where
     }
 }
 
+fn validate_route_input(quote: &Quote, route: &MayanQuoteCommon) -> Result<(), SwapperError> {
+    let from_asset = quote.request.from_asset.asset_id();
+    let amount = route.effective_amount_in64.parse::<BigUint>().map_err(|_| SwapperError::InvalidRoute)?;
+    if asset_id_for_token(from_asset.chain, &route.from_token.contract).as_ref() != Some(&from_asset) || amount > quote.from_value {
+        return Err(SwapperError::InvalidRoute);
+    }
+    Ok(())
+}
+
 #[async_trait]
 impl<C> Swapper for Mayan<C>
 where
@@ -118,10 +128,10 @@ where
         SwapAmountMode::Fixed
     }
 
-    fn contracts(&self, from_asset: &AssetId) -> Contracts {
-        Contracts::new(match from_asset.chain.chain_type() {
-            ChainType::Ethereum => vec![MAYAN_FORWARDER],
-            ChainType::Solana => vec![
+    fn binding(&self, from_asset: &AssetId) -> Binding {
+        match from_asset.chain.chain_type() {
+            ChainType::Ethereum => Binding::Contracts(Contracts::new(vec![MAYAN_FORWARDER])),
+            ChainType::Solana => Binding::Contracts(Contracts::new(vec![
                 MAYAN_CPI_PROXY_PROGRAM_ID,
                 MAYAN_PROGRAM_ID,
                 MAYAN_MCTP_PROGRAM_ID,
@@ -129,9 +139,21 @@ where
                 MAYAN_FEE_MANAGER_PROGRAM_ID,
                 MAYAN_PAYLOAD_WRITER_PROGRAM_ID,
                 SOLANA_JUPITER_PROGRAM_ID,
-            ],
-            _ => Vec::new(),
-        })
+            ])),
+            ChainType::Sui => Binding::BuiltOnDevice,
+            ChainType::Bitcoin
+            | ChainType::Cosmos
+            | ChainType::Ton
+            | ChainType::Tron
+            | ChainType::Aptos
+            | ChainType::Xrp
+            | ChainType::Near
+            | ChainType::Stellar
+            | ChainType::Algorand
+            | ChainType::Polkadot
+            | ChainType::Cardano
+            | ChainType::HyperCore => Binding::Contracts(Contracts::default()),
+        }
     }
 
     async fn get_quote(&self, request: &QuoteRequest) -> Result<Quote, SwapperError> {
@@ -169,6 +191,7 @@ where
 
     async fn get_quote_data(&self, quote: &Quote, _data: FetchQuoteData) -> Result<SwapperQuoteData, SwapperError> {
         let route: MayanQuote = quote.route_data()?;
+        validate_route_input(quote, route.common())?;
         match (quote.request.from_asset.chain().chain_type(), &route) {
             (ChainType::Ethereum, MayanQuote::Swift(route)) => swift::evm::build_quote_data(&self.price_client, quote, route, self.rpc_provider.clone()).await,
             (ChainType::Ethereum, MayanQuote::Mctp(route)) => mctp::evm::build_quote_data(&self.price_client, quote, route, self.rpc_provider.clone()).await,
@@ -257,21 +280,52 @@ fn map_quote_error(error: SwapperError, decimals: u32) -> SwapperError {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::testkit::mock_quote;
-    use num_bigint::BigUint;
+    use crate::{mayan::model::MayanToken, testkit::mock_quote};
+    use primitives::asset_constants::SOLANA_USDC_TOKEN_ID;
 
     #[test]
-    fn test_contracts() {
+    fn test_validate_route_input() {
+        let route = MayanMctpQuote::mock_solana_to_sui().common;
+        let quote = Quote::mock(Chain::Solana, Some(SOLANA_USDC_TOKEN_ID));
+        let coin = MayanQuoteCommon {
+            from_token: MayanToken {
+                contract: EVM_ZERO_ADDRESS.to_string(),
+                ..route.from_token.clone()
+            },
+            ..route.clone()
+        };
+
+        assert_eq!(validate_route_input(&quote, &route), Ok(()));
+        assert_eq!(validate_route_input(&Quote::mock(Chain::Solana, None), &coin), Ok(()));
+        assert_eq!(
+            validate_route_input(
+                &Quote {
+                    from_value: BigUint::from(999_999u64),
+                    ..quote
+                },
+                &route
+            ),
+            Err(SwapperError::InvalidRoute),
+            "a route that spends more than quoted"
+        );
+        assert_eq!(
+            validate_route_input(&Quote::mock(Chain::Solana, None), &route),
+            Err(SwapperError::InvalidRoute),
+            "a route that spends another asset than quoted"
+        );
+    }
+
+    #[test]
+    fn test_binding() {
         let provider = Mayan::with_clients(MayanClient::new(MockClient::new()), MayanClient::new(MockClient::new()), Arc::new(ProviderMock::new("{}".to_string())));
 
-        assert_eq!(provider.contracts(&AssetId::from_chain(Chain::Ethereum)), Contracts::new(vec![MAYAN_FORWARDER]));
-        assert_eq!(provider.contracts(&AssetId::from_chain(Chain::Base)), Contracts::new(vec![MAYAN_FORWARDER]));
-        assert!(provider.contracts(&AssetId::from_chain(Chain::Solana)).targets.contains(&MAYAN_CPI_PROXY_PROGRAM_ID));
-        assert!(
-            provider.contracts(&AssetId::from_chain(Chain::Solana)).targets.contains(&SOLANA_JUPITER_PROGRAM_ID),
-            "a route that swaps on Solana first calls Jupiter outside Mayan's proxy"
+        assert_eq!(
+            provider.binding(&AssetId::from_chain(Chain::Base)),
+            Binding::Contracts(Contracts::new(vec![MAYAN_FORWARDER])),
+            "every EVM network calls the forwarder"
         );
-        assert_eq!(provider.contracts(&AssetId::from_chain(Chain::Sui)), Contracts::default(), "a Sui transaction carries its packages inside");
+        assert_eq!(provider.binding(&AssetId::from_chain(Chain::Sui)), Binding::BuiltOnDevice, "a Sui transaction carries its packages inside");
+        assert_eq!(provider.binding(&AssetId::from_chain(Chain::Tron)), Binding::Contracts(Contracts::default()), "a network Mayan does not swap from is refused");
     }
 
     #[test]
@@ -430,7 +484,7 @@ mod swap_integration_tests {
 
         let quote = timed("mayan swift evm quote", provider.get_quote(&request)).await?;
         let quote_data = timed("mayan swift evm quote data", provider.get_quote_data(&quote, FetchQuoteData::None)).await?;
-        (&provider as &dyn Swapper).verify_contracts(&quote, &quote_data)?;
+        (&provider as &dyn Swapper).verify_binding(&quote, &quote_data)?;
 
         assert_eq!(quote.from_value, request.value);
         assert!(quote.to_value > BigUint::ZERO);
@@ -461,7 +515,7 @@ mod swap_integration_tests {
 
         let quote = timed("mayan swift solana quote", provider.get_quote(&request)).await?;
         let quote_data = timed("mayan swift solana quote data", provider.get_quote_data(&quote, FetchQuoteData::None)).await?;
-        (&provider as &dyn Swapper).verify_contracts(&quote, &quote_data)?;
+        (&provider as &dyn Swapper).verify_binding(&quote, &quote_data)?;
 
         assert_eq!(quote.from_value, request.value);
         assert!(quote.to_value > BigUint::ZERO);
@@ -493,7 +547,7 @@ mod swap_integration_tests {
 
         let quote = timed("mayan swift solana swap-first quote", provider.get_quote(&request)).await?;
         let quote_data = timed("mayan swift solana swap-first quote data", provider.get_quote_data(&quote, FetchQuoteData::None)).await?;
-        (&provider as &dyn Swapper).verify_contracts(&quote, &quote_data)?;
+        (&provider as &dyn Swapper).verify_binding(&quote, &quote_data)?;
 
         let MayanQuote::Swift(route) = quote.route_data()? else {
             return Err(SwapperError::InvalidRoute);
@@ -518,7 +572,7 @@ mod swap_integration_tests {
 
         let quote = timed("mayan fast mctp sui quote", provider.get_quote(&request)).await?;
         let quote_data = timed("mayan fast mctp sui quote data", provider.get_quote_data(&quote, FetchQuoteData::None)).await?;
-        (&provider as &dyn Swapper).verify_contracts(&quote, &quote_data)?;
+        (&provider as &dyn Swapper).verify_binding(&quote, &quote_data)?;
 
         assert_eq!(quote.from_value, request.value);
         assert!(quote.to_value > BigUint::ZERO);
@@ -550,7 +604,7 @@ mod swap_integration_tests {
 
         let quote = timed("mayan fast mctp solana to sui quote", provider.get_quote(&request)).await?;
         let quote_data = timed("mayan fast mctp solana to sui quote data", provider.get_quote_data(&quote, FetchQuoteData::None)).await?;
-        (&provider as &dyn Swapper).verify_contracts(&quote, &quote_data)?;
+        (&provider as &dyn Swapper).verify_binding(&quote, &quote_data)?;
 
         assert_eq!(quote.from_value, request.value);
         assert!(quote.to_value > BigUint::ZERO);
@@ -580,7 +634,7 @@ mod swap_integration_tests {
 
         let quote = timed("mayan fast mctp evm to sui quote", provider.get_quote(&request)).await?;
         let quote_data = timed("mayan fast mctp evm to sui quote data", provider.get_quote_data(&quote, FetchQuoteData::None)).await?;
-        (&provider as &dyn Swapper).verify_contracts(&quote, &quote_data)?;
+        (&provider as &dyn Swapper).verify_binding(&quote, &quote_data)?;
 
         assert_eq!(quote.from_value, request.value);
         assert!(quote.to_value > BigUint::ZERO);
@@ -609,7 +663,7 @@ mod swap_integration_tests {
 
         let quote = timed("mayan fast mctp sui usdc order quote", provider.get_quote(&request)).await?;
         let quote_data = timed("mayan fast mctp sui usdc order quote data", provider.get_quote_data(&quote, FetchQuoteData::None)).await?;
-        (&provider as &dyn Swapper).verify_contracts(&quote, &quote_data)?;
+        (&provider as &dyn Swapper).verify_binding(&quote, &quote_data)?;
 
         let MayanQuote::FastMctp(route) = quote.route_data()? else {
             return Err(SwapperError::InvalidRoute);
@@ -633,7 +687,7 @@ mod swap_integration_tests {
 
         let quote = timed("mayan mono-chain hyperevm to hypercore quote", provider.get_quote(&request)).await?;
         let quote_data = timed("mayan mono-chain hyperevm to hypercore quote data", provider.get_quote_data(&quote, FetchQuoteData::None)).await?;
-        (&provider as &dyn Swapper).verify_contracts(&quote, &quote_data)?;
+        (&provider as &dyn Swapper).verify_binding(&quote, &quote_data)?;
 
         assert_eq!(quote.from_value, request.value);
         assert!(quote.to_value > BigUint::ZERO);
