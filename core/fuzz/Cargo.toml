@@ -12,8 +12,10 @@ cargo-fuzz = true
 [dependencies]
 bcs = "0.2.1"
 libfuzzer-sys = "0.4"
+percent-encoding = "2.3.2"
 serde_json = "1.0.151"
 tokio = { version = "1.53.1", features = ["rt-multi-thread"] }
+url = "2.5.8"
 zeroize = "1.9.0"
 
 gemstone = { path = "../gemstone" }
@@ -24,6 +26,7 @@ gem_auth = { path = "../crates/gem_auth" }
 gem_client = { path = "../crates/gem_client" }
 gem_encoding = { path = "../crates/gem_encoding", features = ["base58", "protobuf"] }
 gem_evm = { path = "../crates/gem_evm" }
+gem_url = { path = "../crates/gem_url" }
 gem_keystore = { path = "../crates/gem_keystore", features = ["v3"] }
 gem_solana = { path = "../crates/gem_solana" }
 gem_sui = { path = "../crates/gem_sui", features = ["rpc"] }
@@ -81,6 +84,10 @@ path = "fuzz_targets/sui_transaction.rs"
 [[bin]]
 name = "ton_boc"
 path = "fuzz_targets/ton_boc.rs"
+
+[[bin]]
+name = "url"
+path = "fuzz_targets/url.rs"
 
 [[bin]]
 name = "wallet_connect_request"

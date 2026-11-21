@@ -1,4 +1,4 @@
-use url::Url;
+use gem_url::Url;
 
 use super::error::{PaymentDecoderError, Result};
 use super::query;

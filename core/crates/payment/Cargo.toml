@@ -18,7 +18,7 @@ num-bigint = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 serde_serializers = { path = "../serde_serializers", features = ["bigint"] }
-url = { workspace = true }
+gem_url = { path = "../gem_url" }
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["macros", "rt"] }

@@ -1,13 +1,14 @@
 use crate::actions::{WalletConnectAction, WalletConnectTransaction, WalletConnectTransactionType};
 use crate::sign_type::SignDigestType;
 use gem_ton::signer::TonSignMessageData;
+use gem_url::Url;
 use primitives::{Chain, TransferDataOutputType, ValueAccess, WalletConnectionMethods};
 use serde_json::Value;
 
 pub struct TonRequestHandler;
 
 fn extract_host(url: &str) -> String {
-    url::Url::parse(url).map(|u| u.host_str().unwrap_or(url).to_string()).unwrap_or_else(|_| url.to_string())
+    Url::parse(url).map(|u| u.host_str().unwrap_or(url).to_string()).unwrap_or_else(|_| url.to_string())
 }
 
 impl TonRequestHandler {

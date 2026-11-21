@@ -1,6 +1,6 @@
 use gem_encoding::is_valid_percent_encoding;
+use gem_url::Url;
 use primitives::{Address, Chain, DateTime, domain::parse_domain};
-use url::Url;
 
 use super::SiwsMessage;
 use crate::SolanaAddress;

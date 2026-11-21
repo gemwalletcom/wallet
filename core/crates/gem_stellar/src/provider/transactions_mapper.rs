@@ -1,13 +1,13 @@
 use crate::constants::{TRANSACTION_TYPE_CREATE_ACCOUNT, TRANSACTION_TYPE_PATH_PAYMENT_STRICT_SEND, TRANSACTION_TYPE_PAYMENT};
 use crate::models::transaction::{Payment, StellarTransactionBroadcast};
 use crate::provider::balances_mapper::map_asset_id;
+use gem_url::form_urlencoded;
 use num_bigint::BigUint;
 use primitives::{AssetId, SwapProvider, Transaction, TransactionSwapMetadata, TransactionSwapReferralFee, TransactionType, chain::Chain, swap::STELLAR_REFERRAL_ADDRESS};
 use std::error::Error;
-use url::form_urlencoded;
 
 pub fn encode_transaction_data(data: &str) -> String {
-    form_urlencoded::Serializer::new(String::new()).append_pair("tx", data).finish()
+    form_urlencoded::serialize([("tx", data)])
 }
 
 pub fn map_transaction_broadcast(response: &StellarTransactionBroadcast) -> Result<String, Box<dyn Error + Sync + Send>> {

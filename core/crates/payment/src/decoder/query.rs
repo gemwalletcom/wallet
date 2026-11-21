@@ -1,4 +1,4 @@
-use url::form_urlencoded;
+use gem_url::form_urlencoded;
 
 pub fn parameters(query: &str) -> Vec<(String, String)> {
     form_urlencoded::parse(query.as_bytes()).map(|(key, value)| (key.to_lowercase(), value.into_owned())).collect()

@@ -1,5 +1,6 @@
 use std::str::FromStr;
 
+use gem_url::Url;
 use primitives::{AssetLink, LinkType};
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
@@ -43,7 +44,7 @@ fn link_type(name: &str) -> Option<LinkType> {
 }
 
 fn host(url: &str) -> Option<String> {
-    url::Url::parse(url).ok()?.host_str().map(|host| host.trim_start_matches("www.").to_string())
+    Url::parse(url).ok()?.host_str().map(|host| host.trim_start_matches("www.").to_string())
 }
 
 fn link_type_order(link_type: LinkType) -> i32 {

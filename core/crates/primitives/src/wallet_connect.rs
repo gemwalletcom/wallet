@@ -1,8 +1,8 @@
 use crate::OptionStringExt;
+use gem_url::Url;
 use num_bigint::BigUint;
 use serde::{Deserialize, Serialize};
 use serde_serializers::{deserialize_biguint_from_option_hex_str, deserialize_option_u64_from_str_or_int};
-use url::Url;
 
 use crate::url_query::query_value;
 use crate::{GEM_HOST, GEM_URL_SCHEME, HTTPS_URL_SCHEME, WALLET_CONNECT_URL_SCHEME};

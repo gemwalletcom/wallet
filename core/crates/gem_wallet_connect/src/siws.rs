@@ -1,6 +1,6 @@
 use gem_solana::siws::SiwsMessage;
+use gem_url::Url;
 use primitives::DateTime;
-use url::Url;
 
 use crate::{SignDigestType, SignMessageValidation};
 

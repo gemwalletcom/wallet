@@ -27,7 +27,7 @@ gem_encoding = { path = "../gem_encoding", features = ["base58"] }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 num-bigint = { workspace = true }
-url = { workspace = true }
+gem_url = { path = "../gem_url" }
 serde_serializers = { path = "../serde_serializers", features = ["bigint"] }
 primitives = { path = "../primitives" }
 date_time = { path = "../date_time", features = ["serde"] }

@@ -1,6 +1,6 @@
 use alloy_primitives::Address;
+use gem_url::Url;
 use primitives::{Chain, ChainType, DateTime, domain::parse_domain};
-use url::Url;
 
 use crate::domain::host_with_port;
 

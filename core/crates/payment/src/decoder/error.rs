@@ -1,5 +1,7 @@
 use std::fmt;
 
+use gem_url::ParseError;
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum PaymentDecoderError {
     InvalidScheme,
@@ -21,8 +23,8 @@ impl fmt::Display for PaymentDecoderError {
 
 impl std::error::Error for PaymentDecoderError {}
 
-impl From<url::ParseError> for PaymentDecoderError {
-    fn from(err: url::ParseError) -> Self {
+impl From<ParseError> for PaymentDecoderError {
+    fn from(err: ParseError) -> Self {
         PaymentDecoderError::UrlParse(err.to_string())
     }
 }

@@ -3,12 +3,12 @@ use std::collections::{HashMap, HashSet};
 use super::model::{GemNodeSelection, GemNodeStatusState};
 use crate::services::collections::unique_by;
 use crate::services::service_status::GemLatencyStatus;
+use gem_url::Url;
 use primitives::Chain;
 use primitives::Latency;
 use primitives::node::{Node, NodeState};
 use primitives::node_config::{self, NodePriority, NodeRegion};
 use primitives::node_status::NodeStatus;
-use url::Url;
 
 const NODE_URL_SCHEME: &str = "https";
 

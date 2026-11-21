@@ -1054,8 +1054,8 @@ dependencies = [
 name = "block_explorers"
 version = "2.114.102"
 dependencies = [
+ "gem_url",
  "primitives",
- "url",
 ]
 
 [[package]]
@@ -2759,6 +2759,7 @@ dependencies = [
  "gem_evm",
  "gem_hash",
  "gem_jsonrpc",
+ "gem_url",
  "num-bigint 0.5.1",
  "num-traits",
  "primitives",
@@ -2768,7 +2769,6 @@ dependencies = [
  "settings",
  "signer",
  "tokio",
- "url",
 ]
 
 [[package]]
@@ -2945,6 +2945,7 @@ dependencies = [
  "gem_encoding",
  "gem_jsonrpc",
  "gem_solana",
+ "gem_url",
  "num-bigint 0.5.1",
  "num-traits",
  "primitives",
@@ -2955,7 +2956,6 @@ dependencies = [
  "sha2 0.11.0",
  "signer",
  "tokio",
- "url",
 ]
 
 [[package]]
@@ -2969,6 +2969,7 @@ dependencies = [
  "gem_encoding",
  "gem_hash",
  "gem_stellar",
+ "gem_url",
  "num-bigint 0.5.1",
  "num-traits",
  "number_formatter",
@@ -2979,7 +2980,6 @@ dependencies = [
  "settings",
  "signer",
  "tokio",
- "url",
 ]
 
 [[package]]
@@ -3087,6 +3087,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "gem_url"
+version = "2.114.102"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "gem_uuid"
 version = "2.114.102"
 dependencies = [
@@ -3102,10 +3110,10 @@ dependencies = [
  "gem_evm",
  "gem_solana",
  "gem_ton",
+ "gem_url",
  "num-bigint 0.5.1",
  "primitives",
  "serde_json",
- "url",
 ]
 
 [[package]]
@@ -3188,6 +3196,7 @@ dependencies = [
  "gem_tempo",
  "gem_ton",
  "gem_tron",
+ "gem_url",
  "gem_uuid",
  "gem_wallet_connect",
  "gem_xrp",
@@ -3206,7 +3215,6 @@ dependencies = [
  "support",
  "swapper",
  "uniffi",
- "url",
  "wallet_connect_protocol",
  "yielder",
  "zeroize",
@@ -4552,6 +4560,7 @@ dependencies = [
  "gem_evm",
  "gem_jsonrpc",
  "gem_solana",
+ "gem_url",
  "gem_wallet_connect",
  "num-bigint 0.5.1",
  "number_formatter",
@@ -4560,7 +4569,6 @@ dependencies = [
  "serde_json",
  "serde_serializers",
  "tokio",
- "url",
 ]
 
 [[package]]
@@ -4751,6 +4759,7 @@ version = "2.114.102"
 dependencies = [
  "date_time",
  "gem_encoding",
+ "gem_url",
  "model_derive",
  "num-bigint 0.5.1",
  "num-traits",
@@ -4758,7 +4767,6 @@ dependencies = [
  "serde_json",
  "serde_serializers",
  "strum",
- "url",
 ]
 
 [[package]]
@@ -6113,10 +6121,10 @@ checksum = "13c2bddecc57b384dee18652358fb23172facb8a2c51ccc10d74c157bdea3292"
 name = "support"
 version = "2.114.102"
 dependencies = [
+ "gem_url",
  "hmac 0.13.0",
  "primitives",
  "sha2 0.11.0",
- "url",
 ]
 
 [[package]]
