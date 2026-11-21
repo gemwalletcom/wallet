@@ -62,7 +62,7 @@ Checks show the code works; proof shows the result. Capture it once after the cl
 
 | Change kind | Proof |
 |---|---|
-| UI | A running-app screenshot per affected platform; a recording or [Maestro](testing-maestro.md) run for flows and transitions |
+| UI | A running-app screenshot of the base and of the change per affected platform; a recording or [Maestro](testing-maestro.md) run for flows and transitions |
 | Bug fix | A test or repro that fails on the base and passes on the change |
 | Logic | The tests that pin it; a live call or transaction hash for chain or provider changes |
 | Architecture or data flow | A before and after Mermaid diagram |
