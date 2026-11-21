@@ -8,11 +8,11 @@ axum = { workspace = true }
 http = { workspace = true }
 hyper = { workspace = true }
 hyper-util = { workspace = true }
-prometheus-client = { workspace = true }
 tokio = { workspace = true, features = ["net", "signal", "time", "sync"] }
 tower = { workspace = true }
 tower-http = { workspace = true }
 gem_tracing = { path = "../gem_tracing" }
+metrics = { path = "../metrics" }
 primitives = { path = "../primitives" }
 
 [dev-dependencies]

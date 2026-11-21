@@ -2,17 +2,21 @@ use primitives::unix_timestamp;
 use std::collections::HashMap;
 use std::sync::Mutex;
 
-use prometheus_client::encoding::EncodeLabelSet;
-use prometheus_client::metrics::family::Family;
-use prometheus_client::metrics::gauge::Gauge;
-use prometheus_client::registry::Registry;
+use metrics::{Family, Gauge, LabelEncoder, LabelSet, MetricsRegistry};
 
 use super::MetricsProvider;
 
-#[derive(Clone, Debug, Hash, PartialEq, Eq, EncodeLabelSet)]
+#[derive(Clone, Debug, Hash, PartialEq, Eq)]
 struct JobLabels {
     service: String,
     job_name: String,
+}
+
+impl LabelSet for JobLabels {
+    fn encode(&self, encoder: &mut LabelEncoder<'_>) {
+        encoder.add("service", &self.service);
+        encoder.add("job_name", &self.job_name);
+    }
 }
 
 #[derive(Default)]
@@ -50,7 +54,7 @@ impl JobMetrics {
 }
 
 impl MetricsProvider for JobMetrics {
-    fn register(&self, registry: &mut Registry) {
+    fn register(&self, registry: &mut MetricsRegistry) {
         let last_success_at = Family::<JobLabels, Gauge>::default();
         let interval = Family::<JobLabels, Gauge>::default();
         let duration = Family::<JobLabels, Gauge>::default();

@@ -1710,7 +1710,6 @@ dependencies = [
  "num-bigint 0.5.1",
  "prices",
  "primitives",
- "prometheus-client",
  "services",
  "settings",
  "streamer",
@@ -1962,12 +1961,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "dtoa"
-version = "1.0.11"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4c3cf4824e2d5f025c7b531afcb2325364084a16806f6d47fbc1f5fbd9960590"
-
-[[package]]
 name = "dunce"
 version = "1.0.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2003,7 +1996,6 @@ dependencies = [
  "metrics",
  "node_probes",
  "primitives",
- "prometheus-client",
  "reqwest",
  "serde",
  "serde_json",
@@ -3534,8 +3526,8 @@ dependencies = [
  "http-body-util",
  "hyper",
  "hyper-util",
+ "metrics",
  "primitives",
- "prometheus-client",
  "tokio",
  "tower",
  "tower-http",
@@ -4211,9 +4203,6 @@ checksum = "cf8baf1c55e62ffcace7a9f06f4bd9cd3f0c4beb022d3b367256b91b87513d98"
 [[package]]
 name = "metrics"
 version = "2.114.102"
-dependencies = [
- "prometheus-client",
-]
 
 [[package]]
 name = "migrations_internals"
@@ -4799,29 +4788,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "985e7ec9bb745e6ce6535b544d84d6cd6f7ad8bd711c398938ae983b91a766d9"
 dependencies = [
  "unicode-ident",
-]
-
-[[package]]
-name = "prometheus-client"
-version = "0.26.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f021d42d29841d029b61b45a25a7ef94feaf1d744913e59665103333a56045b8"
-dependencies = [
- "dtoa",
- "itoa",
- "parking_lot",
- "prometheus-client-derive-encode",
-]
-
-[[package]]
-name = "prometheus-client-derive-encode"
-version = "0.5.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "01e34894696ff94f64a20c2c373a6440903e9c2789a303d68ec6e6f953f890e4"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 3.0.6",
 ]
 
 [[package]]
