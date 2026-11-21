@@ -16,7 +16,7 @@ use wallet_connect_protocol::testkit::{TEST_PEER_PUBLIC_KEY, TEST_PEER_SECRET, T
 use wallet_connect_protocol::verify;
 
 use super::state::{AnsweredRequest, Outgoing, Pairing, PendingRequest, Session};
-use super::{GemWalletConnectClient, GemWalletConnectEvent, GemWalletConnectListener, GemWalletConnectProposal};
+use super::{GemSignatureVerifier, GemWalletConnectClient, GemWalletConnectEvent, GemWalletConnectListener, GemWalletConnectProposal};
 use crate::alien::AlienProvider;
 use crate::services::error::GemServiceError;
 use crate::services::preferences::GemSecureStore;
@@ -80,6 +80,14 @@ pub struct MemoryListener {
 impl GemWalletConnectListener for MemoryListener {
     fn on_event(&self, event: GemWalletConnectEvent) {
         self.events.lock().unwrap().push(event);
+    }
+}
+
+pub struct TestSignatureVerifier;
+
+impl GemSignatureVerifier for TestSignatureVerifier {
+    fn is_valid_es256(&self, _public_key: Vec<u8>, _message: Vec<u8>, _signature: Vec<u8>) -> bool {
+        true
     }
 }
 
@@ -168,7 +176,7 @@ impl GemWalletConnectClient {
             &[("verify.walletconnect.org", include_str!("../../../../../crates/wallet_connect_protocol/testdata/verify_attestation.json"))],
         ));
         let store: Arc<dyn GemSecureStore> = dapp.store.clone();
-        Self::new(Arc::new(service), store, provider, dapp.transport.clone(), dapp.listener.clone(), platform)
+        Self::new(Arc::new(service), store, provider, dapp.transport.clone(), dapp.listener.clone(), Arc::new(TestSignatureVerifier), platform)
     }
 }
 

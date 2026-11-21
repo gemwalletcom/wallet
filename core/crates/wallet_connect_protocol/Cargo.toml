@@ -14,7 +14,6 @@ gem_hash = { path = "../gem_hash" }
 chacha20poly1305 = { workspace = true }
 curve25519-dalek = { workspace = true }
 ed25519-dalek = { workspace = true, default-features = true }
-p256 = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true, features = ["raw_value"] }
 zeroize = { workspace = true }

@@ -260,6 +260,7 @@ struct ServicesFactory {
             provider: nativeProvider,
             transport: GemstoneSocketTransport(webSocket: walletConnectSocket),
             listener: walletConnectListener,
+            verifier: SignatureVerifier(),
             platform: .ios,
         )
         let walletConnector = WalletConnectorService(

@@ -5,7 +5,7 @@ use serde_json::value::RawValue;
 use crate::authenticate::AuthPayload;
 use crate::crypto::{Key, parse_key};
 use crate::sign::{Metadata, ProposalNamespace, SessionNamespace, SessionProposal};
-use crate::verify::{Jwk, VerifyPublicKey};
+use crate::verify::{SignedMessage, VerifyPublicKey};
 
 pub const TEST_SELF_SECRET: &str = "a8c0f6a0d6e2f7d4f0e1d2c3b4a5968778695a4b3c2d1e0f1f2e3d4c5b6a7988";
 pub const TEST_PEER_SECRET: &str = "1f2e3d4c5b6a79881a2b3c4d5e6f708192a3b4c5d6e7f8091a2b3c4d5e6f7081";
@@ -99,24 +99,21 @@ impl VerifyPublicKey {
     }
 }
 
-const TEST_VERIFY_SECRET: [u8; 32] = [7; 32];
-
-pub fn test_verify_key(expires_at: u64) -> VerifyPublicKey {
-    let point = p256::ecdsa::SigningKey::from_slice(&TEST_VERIFY_SECRET).unwrap().verifying_key().to_sec1_point(false);
-    VerifyPublicKey {
-        public_key: Jwk {
-            x: gem_encoding::encode_base64_url(point.x().unwrap()),
-            y: gem_encoding::encode_base64_url(point.y().unwrap()),
-        },
-        expires_at,
+impl SignedMessage {
+    pub fn mock() -> Self {
+        Self {
+            public_key: gem_encoding::decode_hex(TEST_VERIFY_PUBLIC_KEY).unwrap(),
+            message: TEST_ATTESTATION.rsplit_once('.').unwrap().0.as_bytes().to_vec(),
+            signature: gem_encoding::decode_hex(TEST_ATTESTATION_SIGNATURE).unwrap(),
+        }
     }
 }
 
+const TEST_VERIFY_PUBLIC_KEY: &str = "0409b2f80ce60e6f59ed77ef0e984c4efa84b40d608c0b4d039edaf2989a01f2d92931708c7b50c464c347dd55b0eca971d05fbdba3ab00323e69e166fef61440d";
+const TEST_ATTESTATION_SIGNATURE: &str = "f1143088411f4c69fca7720d45d1e98bcf1da737ad282a779ec71f2ed586d9c544d9d534756815da772a9e1fd15a6ca0a849d608f5251f544cc12d6759b673ad";
+
 pub fn test_attestation(attestation_id: &str, origin: &str, is_scam: bool, expires_at: u64) -> String {
-    use p256::ecdsa::signature::Signer;
-    let signing_key = p256::ecdsa::SigningKey::from_slice(&TEST_VERIFY_SECRET).unwrap();
     let claims = serde_json::json!({"exp": expires_at, "id": attestation_id, "origin": origin, "isScam": is_scam, "isVerified": true});
     let signing_input = format!("{}.{}", gem_encoding::encode_base64_url(br#"{"alg":"ES256","typ":"JWT"}"#), gem_encoding::encode_base64_url(claims.to_string().as_bytes()));
-    let signature: p256::ecdsa::Signature = signing_key.sign(signing_input.as_bytes());
-    format!("{signing_input}.{}", gem_encoding::encode_base64_url(&signature.to_bytes()))
+    format!("{signing_input}.{}", gem_encoding::encode_base64_url(&[7; 64]))
 }

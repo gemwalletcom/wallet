@@ -42,7 +42,7 @@ use gem_wallet_connect::{WalletConnectResponseType, validate_domain};
 use state::{ClientState, Outgoing, Pairing, PendingRequest, Session, Topic};
 
 pub use model::{GemWalletConnectAuthMessage, GemWalletConnectAuthentication, GemWalletConnectEvent, GemWalletConnectProposal, GemWalletConnectRelay};
-pub use port::GemWalletConnectListener;
+pub use port::{GemSignatureVerifier, GemWalletConnectListener};
 pub use relay::wallet_connect_relay;
 
 const STATE_KEY: &str = "wallet_connect_client";
@@ -61,6 +61,7 @@ pub struct GemWalletConnectClient {
     provider: Arc<dyn AlienProvider>,
     transport: Arc<dyn GemSocketTransport>,
     listener: Arc<dyn GemWalletConnectListener>,
+    verifier: Arc<dyn GemSignatureVerifier>,
     platform: Platform,
     state: Mutex<Option<ClientState>>,
     pairing_requests: Mutex<HashMap<String, PairingRequest>>,
@@ -108,13 +109,22 @@ impl PairingRequest {
 #[uniffi::export]
 impl GemWalletConnectClient {
     #[uniffi::constructor]
-    pub fn new(service: Arc<GemWalletConnectService>, store: Arc<dyn GemSecureStore>, provider: Arc<dyn AlienProvider>, transport: Arc<dyn GemSocketTransport>, listener: Arc<dyn GemWalletConnectListener>, platform: Platform) -> Self {
+    pub fn new(
+        service: Arc<GemWalletConnectService>,
+        store: Arc<dyn GemSecureStore>,
+        provider: Arc<dyn AlienProvider>,
+        transport: Arc<dyn GemSocketTransport>,
+        listener: Arc<dyn GemWalletConnectListener>,
+        verifier: Arc<dyn GemSignatureVerifier>,
+        platform: Platform,
+    ) -> Self {
         Self {
             service,
             store,
             provider,
             transport,
             listener,
+            verifier,
             platform,
             state: Mutex::new(None),
             pairing_requests: Mutex::new(HashMap::new()),
@@ -753,7 +763,11 @@ impl GemWalletConnectClient {
 
     fn stored_attestation(&self, jwt: &str, attestation_id: &str, now: u64) -> Option<Attestation> {
         let key = self.read(|state| state.verify_key.clone()).ok().flatten().filter(|key| key.expires_at > now)?;
-        verify::attested(jwt, &key, attestation_id, now)
+        self.attested_by(jwt, &key, attestation_id, now)
+    }
+
+    fn attested_by(&self, jwt: &str, key: &VerifyPublicKey, attestation_id: &str, now: u64) -> Option<Attestation> {
+        verify::attested(jwt, key, attestation_id, now, |signed| self.verifier.is_valid_es256(signed.public_key, signed.message, signed.signature))
     }
 
     async fn attested(&self, jwt: &str, attestation_id: &str) -> Option<Attestation> {
@@ -762,7 +776,7 @@ impl GemWalletConnectClient {
             return Some(attestation);
         }
         let key: VerifyPublicKey = self.query_verify_server(verify::PUBLIC_KEY_URL.to_string()).await?;
-        let attestation = verify::attested(jwt, &key, attestation_id, now);
+        let attestation = self.attested_by(jwt, &key, attestation_id, now);
         self.update_if_changed(|state| {
             let changed = state.verify_key.as_ref() != Some(&key);
             state.verify_key = Some(key);
@@ -982,14 +996,14 @@ fn lock<T>(mutex: &Mutex<T>) -> MutexGuard<'_, T> {
 
 #[cfg(test)]
 mod tests {
-    use super::testkit::{TEST_AUTHENTICATION, TEST_PROPOSAL, TestDapp};
+    use super::testkit::{TEST_AUTHENTICATION, TEST_PROPOSAL, TestDapp, TestSignatureVerifier};
     use super::*;
     use crate::testkit::TestAlienProvider;
     use futures::FutureExt;
     use futures::executor::block_on;
     use primitives::{Chain, WalletConnectionVerificationStatus};
     use serde_json::Value;
-    use wallet_connect_protocol::testkit::{TEST_PEER_PUBLIC_KEY, TEST_SYM_KEY, TEST_TOPIC, test_key, test_verify_key};
+    use wallet_connect_protocol::testkit::{TEST_PEER_PUBLIC_KEY, TEST_SYM_KEY, TEST_TOPIC, test_key};
 
     fn json(value: &str) -> Value {
         serde_json::from_str(value).unwrap()
@@ -1418,7 +1432,14 @@ mod tests {
             let dapp = TestDapp::new();
             let (client, session_key) = GemWalletConnectClient::mock_connected(&dapp, Wallet::mock_with_chains(&[Chain::Ethereum])).await;
             let topic = TestDapp::topic(&session_key);
-            client.update(|state| state.verify_key = Some(test_verify_key(4_102_444_800))).unwrap();
+            client
+                .update(|state| {
+                    state.verify_key = Some(VerifyPublicKey {
+                        expires_at: 4_102_444_800,
+                        ..VerifyPublicKey::mock()
+                    })
+                })
+                .unwrap();
             let request = TestDapp::request(200, METHOD_SESSION_REQUEST, r#"{"request":{"method":"personal_sign","params":["0x48656c6c6f","0xaddress"]},"chainId":"eip155:1"}"#);
 
             client.receive(TestDapp::attested_frame(&topic, &session_key, &request, true)).await.unwrap();
@@ -1493,7 +1514,7 @@ mod tests {
             let dapp = TestDapp::new();
             let provider: Arc<dyn AlienProvider> = Arc::new(TestAlienProvider::with_json_by_path(200, &[("verify.walletconnect.org", r#"{"origin":"https://evil.example","isScam":false}"#)]));
             let service = GemWalletConnectService::mock(Ok(String::new()), wallet.clone()).await;
-            let client = GemWalletConnectClient::new(Arc::new(service), dapp.store.clone(), provider, dapp.transport.clone(), dapp.listener.clone(), Platform::IOS);
+            let client = GemWalletConnectClient::new(Arc::new(service), dapp.store.clone(), provider, dapp.transport.clone(), dapp.listener.clone(), Arc::new(TestSignatureVerifier), Platform::IOS);
             client.pair(TestDapp::pairing_uri("wc_sessionPropose")).await.unwrap();
             client.receive(TestDapp::frame(TEST_TOPIC, &pairing_key, &TestDapp::request(100, METHOD_SESSION_PROPOSE, TEST_PROPOSAL))).await.unwrap();
 
