@@ -1,22 +1,13 @@
 mod broadcast;
 mod traffic;
 
-use std::{
-    sync::{Arc, atomic::AtomicU64},
-    time::Duration,
-};
+use std::{sync::Arc, time::Duration};
 
 use gem_tracing::path;
 use http_server::HttpMetrics;
-use metrics::MetricsRegistry;
+use metrics::{Counter, Family, Gauge, Histogram, LabelEncoder, LabelSet, MetricsRegistry, exponential_buckets};
 use primitives::NodeStatusState;
 use primitives::unix_seconds;
-use prometheus_client::encoding::EncodeLabelSet;
-use prometheus_client::metrics::counter::Counter;
-use prometheus_client::metrics::family::Family;
-use prometheus_client::metrics::gauge::Gauge;
-use prometheus_client::metrics::histogram::{Histogram, exponential_buckets};
-use prometheus_client::registry::Registry;
 
 use crate::config::MetricsConfig;
 use broadcast::BroadcastLabels;
@@ -49,38 +40,65 @@ pub struct Metrics {
     transaction_broadcast_latency: Family<BroadcastLabels, Histogram>,
 }
 
-#[derive(Clone, Debug, Hash, PartialEq, Eq, EncodeLabelSet)]
+#[derive(Clone, Debug, Hash, PartialEq, Eq)]
 struct ProxyRequestLabels {
-    #[prometheus(flatten)]
     traffic: TrafficLabels,
     chain: String,
 }
 
-#[derive(Clone, Debug, Hash, PartialEq, Eq, EncodeLabelSet)]
+impl LabelSet for ProxyRequestLabels {
+    fn encode(&self, encoder: &mut LabelEncoder<'_>) {
+        self.traffic.encode(encoder);
+        encoder.add("chain", &self.chain);
+    }
+}
+
+#[derive(Clone, Debug, Hash, PartialEq, Eq)]
 struct ProxyRequestByMethodLabels {
-    #[prometheus(flatten)]
     traffic: TrafficLabels,
     chain: String,
     method: String,
 }
 
-#[derive(Clone, Debug, Hash, PartialEq, Eq, EncodeLabelSet)]
+impl LabelSet for ProxyRequestByMethodLabels {
+    fn encode(&self, encoder: &mut LabelEncoder<'_>) {
+        self.traffic.encode(encoder);
+        encoder.add("chain", &self.chain);
+        encoder.add("method", &self.method);
+    }
+}
+
+#[derive(Clone, Debug, Hash, PartialEq, Eq)]
 struct NodeLabels {
-    #[prometheus(flatten)]
     traffic: TrafficLabels,
     chain: String,
     host: String,
 }
 
-#[derive(Clone, Debug, Hash, PartialEq, Eq, EncodeLabelSet)]
+impl LabelSet for NodeLabels {
+    fn encode(&self, encoder: &mut LabelEncoder<'_>) {
+        self.traffic.encode(encoder);
+        encoder.add("chain", &self.chain);
+        encoder.add("host", &self.host);
+    }
+}
+
+#[derive(Clone, Debug, Hash, PartialEq, Eq)]
 struct NodeMonitorCycleLabels {
-    #[prometheus(flatten)]
     traffic: TrafficLabels,
     chain: String,
     trigger: String,
 }
 
-type NodeMonitorGauge = Gauge<u64, AtomicU64>;
+impl LabelSet for NodeMonitorCycleLabels {
+    fn encode(&self, encoder: &mut LabelEncoder<'_>) {
+        self.traffic.encode(encoder);
+        encoder.add("chain", &self.chain);
+        encoder.add("trigger", &self.trigger);
+    }
+}
+
+type NodeMonitorGauge = Gauge<u64>;
 
 #[derive(Debug, Clone, Default)]
 struct NodeMonitorMetrics {
@@ -94,9 +112,8 @@ struct NodeMonitorMetrics {
     cycles: Family<NodeMonitorCycleLabels, Counter>,
 }
 
-#[derive(Clone, Hash, PartialEq, Eq, Debug, EncodeLabelSet)]
+#[derive(Clone, Hash, PartialEq, Eq, Debug)]
 struct ResponseLabels {
-    #[prometheus(flatten)]
     traffic: TrafficLabels,
     chain: String,
     method: String,
@@ -104,9 +121,18 @@ struct ResponseLabels {
     status: u16,
 }
 
-#[derive(Clone, Hash, PartialEq, Eq, Debug, EncodeLabelSet)]
+impl LabelSet for ResponseLabels {
+    fn encode(&self, encoder: &mut LabelEncoder<'_>) {
+        self.traffic.encode(encoder);
+        encoder.add("chain", &self.chain);
+        encoder.add("method", &self.method);
+        encoder.add("path", &self.path);
+        encoder.add("status", &self.status);
+    }
+}
+
+#[derive(Clone, Hash, PartialEq, Eq, Debug)]
 struct UpstreamResponseLabels {
-    #[prometheus(flatten)]
     traffic: TrafficLabels,
     chain: String,
     host: String,
@@ -114,31 +140,65 @@ struct UpstreamResponseLabels {
     status: u16,
 }
 
-#[derive(Clone, Hash, PartialEq, Eq, Debug, EncodeLabelSet)]
+impl LabelSet for UpstreamResponseLabels {
+    fn encode(&self, encoder: &mut LabelEncoder<'_>) {
+        self.traffic.encode(encoder);
+        encoder.add("chain", &self.chain);
+        encoder.add("host", &self.host);
+        encoder.add("method", &self.method);
+        encoder.add("status", &self.status);
+    }
+}
+
+#[derive(Clone, Hash, PartialEq, Eq, Debug)]
 struct RetryLabels {
-    #[prometheus(flatten)]
     traffic: TrafficLabels,
     chain: String,
     host: String,
     reason: String,
 }
 
-#[derive(Clone, Hash, PartialEq, Eq, Debug, EncodeLabelSet)]
+impl LabelSet for RetryLabels {
+    fn encode(&self, encoder: &mut LabelEncoder<'_>) {
+        self.traffic.encode(encoder);
+        encoder.add("chain", &self.chain);
+        encoder.add("host", &self.host);
+        encoder.add("reason", &self.reason);
+    }
+}
+
+#[derive(Clone, Hash, PartialEq, Eq, Debug)]
 struct CacheLabels {
-    #[prometheus(flatten)]
     traffic: TrafficLabels,
     chain: String,
     path: String,
 }
 
-#[derive(Clone, Hash, PartialEq, Eq, Debug, EncodeLabelSet)]
+impl LabelSet for CacheLabels {
+    fn encode(&self, encoder: &mut LabelEncoder<'_>) {
+        self.traffic.encode(encoder);
+        encoder.add("chain", &self.chain);
+        encoder.add("path", &self.path);
+    }
+}
+
+#[derive(Clone, Hash, PartialEq, Eq, Debug)]
 struct NodeSwitchLabels {
-    #[prometheus(flatten)]
     traffic: TrafficLabels,
     chain: String,
     old_host: String,
     new_host: String,
     reason: String,
+}
+
+impl LabelSet for NodeSwitchLabels {
+    fn encode(&self, encoder: &mut LabelEncoder<'_>) {
+        self.traffic.encode(encoder);
+        encoder.add("chain", &self.chain);
+        encoder.add("old_host", &self.old_host);
+        encoder.add("new_host", &self.new_host);
+        encoder.add("reason", &self.reason);
+    }
 }
 
 impl Metrics {
@@ -164,8 +224,7 @@ impl Metrics {
         let transaction_broadcasts = Family::<BroadcastLabels, Counter>::default();
         let transaction_broadcast_latency = Family::<BroadcastLabels, Histogram>::new_with_constructor(|| Histogram::new(exponential_buckets(50.0, 2.0, 12)));
 
-        let mut metrics_registry = MetricsRegistry::with_prefix(&config.prefix);
-        let registry = metrics_registry.registry_mut();
+        let mut registry = MetricsRegistry::with_prefix(&config.prefix);
         registry.register("requests", "Upstream requests", requests.clone());
         registry.register("responses", "Client responses", responses.clone());
         registry.register("failovers", "Endpoint failovers", failovers.clone());
@@ -180,7 +239,7 @@ impl Metrics {
         registry.register("proxy_upstream_response_latency", "Upstream proxy responses by host, path, method, and status", proxy_upstream_response_latency.clone());
         registry.register("proxy_retries", "Proxy retries by chain, upstream host, and reason", proxy_retries.clone());
         registry.register("node_host_current", "Node current host url", node_host_current.clone());
-        let node_monitor = NodeMonitorMetrics::register(registry, config.source.clone());
+        let node_monitor = NodeMonitorMetrics::register(&mut registry, config.source.clone());
         registry.register("cache_hits", "Cache hits by host and path", cache_hits.clone());
         registry.register("cache_misses", "Cache misses by host and path", cache_misses.clone());
         registry.register("node_switches", "Node switches by chain", node_switches.clone());
@@ -197,12 +256,12 @@ impl Metrics {
         );
 
         let http = HttpMetrics::new();
-        http.register(registry);
+        http.register(&mut registry);
         Self {
             http,
             transaction_broadcasts,
             transaction_broadcast_latency,
-            registry: Arc::new(metrics_registry),
+            registry: Arc::new(registry),
             source: config.source,
             requests,
             responses,
@@ -415,7 +474,7 @@ impl NodeMonitorMetrics {
             .inc();
     }
 
-    fn register(registry: &mut Registry, source: String) -> Self {
+    fn register(registry: &mut MetricsRegistry, source: String) -> Self {
         let metrics = Self { source, ..Self::default() };
 
         registry.register("node_monitor_check_success", "Whether the last node monitor check completed successfully", metrics.check_success.clone());

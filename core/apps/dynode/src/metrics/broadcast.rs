@@ -1,7 +1,7 @@
 use chain_providers::BroadcastProviders;
 use gem_tracing::info_with_fields;
+use metrics::{LabelEncoder, LabelSet};
 use primitives::{Chain, ValueAccess};
-use prometheus_client::encoding::EncodeLabelSet;
 use serde_json::{Error as JsonError, Value};
 
 use super::Metrics;
@@ -11,12 +11,19 @@ use crate::failure_reason::FailureReason;
 use crate::proxy::ProxyResponse;
 use crate::proxy::proxy_request::ProxyRequest;
 
-#[derive(Clone, Debug, Hash, PartialEq, Eq, EncodeLabelSet)]
+#[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub(super) struct BroadcastLabels {
-    #[prometheus(flatten)]
     traffic: TrafficLabels,
     chain: String,
     outcome: &'static str,
+}
+
+impl LabelSet for BroadcastLabels {
+    fn encode(&self, encoder: &mut LabelEncoder<'_>) {
+        self.traffic.encode(encoder);
+        encoder.add("chain", &self.chain);
+        encoder.add("outcome", self.outcome);
+    }
 }
 
 impl Metrics {

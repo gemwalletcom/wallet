@@ -2,17 +2,19 @@ use primitives::unix_timestamp;
 use std::collections::HashMap;
 use std::sync::Mutex;
 
-use prometheus_client::encoding::EncodeLabelSet;
-use prometheus_client::metrics::family::Family;
-use prometheus_client::metrics::gauge::Gauge;
-use prometheus_client::metrics::histogram::Histogram;
-use prometheus_client::registry::Registry;
+use metrics::{Family, Gauge, Histogram, LabelEncoder, LabelSet, MetricsRegistry};
 
 use super::MetricsProvider;
 
-#[derive(Clone, Debug, Hash, PartialEq, Eq, EncodeLabelSet)]
+#[derive(Clone, Debug, Hash, PartialEq, Eq)]
 struct ConsumerLabels {
     consumer: String,
+}
+
+impl LabelSet for ConsumerLabels {
+    fn encode(&self, encoder: &mut LabelEncoder<'_>) {
+        encoder.add("consumer", &self.consumer);
+    }
 }
 
 #[derive(Default)]
@@ -91,7 +93,7 @@ impl ConsumerMetrics {
 }
 
 impl MetricsProvider for ConsumerMetrics {
-    fn register(&self, registry: &mut Registry) {
+    fn register(&self, registry: &mut MetricsRegistry) {
         let processed = Family::<ConsumerLabels, Gauge>::default();
         let skipped = Family::<ConsumerLabels, Gauge>::default();
         let failed = Family::<ConsumerLabels, Gauge>::default();

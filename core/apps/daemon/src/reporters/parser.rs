@@ -49,7 +49,7 @@ mod tests {
         for (current_block, latest_block, is_enabled) in [(100, 200, true), (105, 200, true), (105, 205, false), (110, 205, true)] {
             reporter.update_state(current_block, latest_block, is_enabled);
             let mut registry = MetricsRegistry::new();
-            metrics.register(registry.registry_mut());
+            metrics.register(&mut registry);
             let output = registry.encode();
             let state = output
                 .lines()
@@ -77,7 +77,7 @@ mod tests {
         ]);
 
         let mut registry = MetricsRegistry::new();
-        metrics.register(registry.registry_mut());
+        metrics.register(&mut registry);
         let output = registry.encode();
 
         assert!(output.contains(r#"parser_transactions_total{chain="ethereum",transaction_type="transfer"} 1"#));

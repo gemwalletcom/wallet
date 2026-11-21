@@ -2,17 +2,13 @@ use std::collections::BTreeMap;
 use std::sync::Mutex;
 use std::time::Duration;
 
+use metrics::{Family, Gauge, Histogram, LabelEncoder, LabelSet, MetricsRegistry, exponential_buckets};
 use primitives::Chain;
-use prometheus_client::encoding::EncodeLabelSet;
-use prometheus_client::metrics::family::Family;
-use prometheus_client::metrics::gauge::Gauge;
-use prometheus_client::metrics::histogram::{Histogram, exponential_buckets};
-use prometheus_client::registry::Registry;
 use services::transactions::{TransactionQueue, TransactionQueueGroup, TransactionQueueMetrics};
 
 use super::MetricsProvider;
 
-#[derive(Clone, Debug, Hash, PartialEq, Eq, EncodeLabelSet)]
+#[derive(Clone, Debug, Hash, PartialEq, Eq)]
 struct QueueLabels {
     queue: String,
     chain: String,
@@ -29,16 +25,30 @@ impl QueueLabels {
     }
 }
 
-#[derive(Clone, Debug, Hash, PartialEq, Eq, EncodeLabelSet)]
+impl LabelSet for QueueLabels {
+    fn encode(&self, encoder: &mut LabelEncoder<'_>) {
+        encoder.add("queue", &self.queue);
+        encoder.add("chain", &self.chain);
+        encoder.add("provider", &self.provider);
+    }
+}
+
+#[derive(Clone, Debug, Hash, PartialEq, Eq)]
 struct QueueCompletionLabels {
-    #[prometheus(flatten)]
     queue: QueueLabels,
     to_chain: String,
 }
 
+impl LabelSet for QueueCompletionLabels {
+    fn encode(&self, encoder: &mut LabelEncoder<'_>) {
+        self.queue.encode(encoder);
+        encoder.add("to_chain", &self.to_chain);
+    }
+}
+
 pub struct TransactionMetrics {
     queues: Mutex<BTreeMap<TransactionQueue, BTreeMap<TransactionQueueGroup, usize>>>,
-    completion: Family<QueueCompletionLabels, Histogram, fn() -> Histogram>,
+    completion: Family<QueueCompletionLabels, Histogram>,
 }
 
 impl Default for TransactionMetrics {
@@ -65,7 +75,7 @@ impl TransactionQueueMetrics for TransactionMetrics {
 }
 
 impl MetricsProvider for TransactionMetrics {
-    fn register(&self, registry: &mut Registry) {
+    fn register(&self, registry: &mut MetricsRegistry) {
         let queue_size = Family::<QueueLabels, Gauge>::default();
         for (queue, counts) in super::locked(&self.queues).iter() {
             for (group, count) in counts {
@@ -93,7 +103,7 @@ mod tests {
         metrics.record_completion(TransactionQueue::InTransit, near_intents, Some(Chain::Ethereum), Duration::from_secs(90));
 
         let mut registry = MetricsRegistry::new();
-        metrics.register(registry.registry_mut());
+        metrics.register(&mut registry);
         let output = registry.encode();
 
         assert!(output.contains(r#"transactions_queue_size{queue="pending",chain="solana",provider=""} 1"#));
