@@ -31,7 +31,7 @@ pub use address::SolanaAddress;
 pub use builder::{InstructionBuilder, TransactionBuilder};
 pub use constants::{DEFAULT_SWAP_GAS_LIMIT, MAX_COMPUTE_UNIT_LIMIT};
 pub use error::SolanaError;
-pub use instructions::{anchor, associated_token, compute_budget, memo, system, token, wrapped_sol};
+pub use instructions::{anchor, associated_token, compute_budget, memo, standard::StandardInstruction, system, token, wrapped_sol};
 pub use jsonrpc::{SolanaAccountEncoding, SolanaDataSlice, SolanaProgramAccountsFilter, SolanaRpc, SolanaRpcConfig, SolanaTokenAccountsFilter};
 pub use transaction::{
     BLOCKHASH_SET_AT_SIGNING, Base64InstructionData, HexInstructionData, InstructionDataDecoder, SolanaTransfer, VersionedTransactionExt, decode_instruction, decode_instructions, decode_transaction, encode_v0_transaction,

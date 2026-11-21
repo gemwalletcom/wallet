@@ -1,11 +1,8 @@
 use gem_solana::models::SolanaInstruction;
-use gem_solana::{Base64InstructionData, Instruction, Pubkey, associated_token::is_associated_token_address, decode_instruction, decode_instructions, wrapped_sol};
+use gem_solana::{Base64InstructionData, Instruction, Pubkey, StandardInstruction, associated_token::is_associated_token_address, decode_instruction, decode_instructions, wrapped_sol};
 
 use super::route::JupiterRoute;
-use crate::{
-    SwapperError,
-    contract_check::solana::{SolanaStep, verify_steps},
-};
+use crate::{SwapperError, contract_check::solana::verify_steps};
 
 #[derive(Debug, Clone, Copy)]
 pub(crate) enum RouteDestination {
@@ -56,13 +53,13 @@ impl SwapInstructions {
         if !is_quoted {
             return Err(SwapperError::InvalidRoute);
         }
-        let steps: Vec<SolanaStep> = self.compute_budget.iter().chain(&self.setup).chain(&self.cleanup).map(SolanaStep::new).collect();
+        let steps: Vec<StandardInstruction> = self.compute_budget.iter().chain(&self.setup).chain(&self.cleanup).map(StandardInstruction::new).collect();
         verify_steps(&steps, &quoted.wallet, &[])
     }
 
     pub(crate) fn wraps_native_sol(&self, wallet: &Pubkey) -> Result<bool, SwapperError> {
         let wrapped_sol = wrapped_sol::wrapped_sol_account(wallet).map_err(SwapperError::transaction_error)?;
-        Ok(self.setup.iter().any(|instruction| SolanaStep::new(instruction).decode().transfers_to(&wrapped_sol)))
+        Ok(self.setup.iter().any(|instruction| StandardInstruction::new(instruction).transfers_to(&wrapped_sol)))
     }
 }
 

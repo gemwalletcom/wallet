@@ -4,10 +4,16 @@ use crate::{
 };
 
 const TRANSFER_DISCRIMINANT: u8 = 3;
-pub const TRANSFER_CHECKED_DISCRIMINANT: u8 = 12;
+const TRANSFER_CHECKED_DISCRIMINANT: u8 = 12;
 pub const CLOSE_ACCOUNT_DISCRIMINANT: u8 = 9;
 pub const SYNC_NATIVE_DISCRIMINANT: u8 = 17;
 pub const SET_AUTHORITY_DISCRIMINANT: u8 = 6;
+
+pub fn transfer_checked_amount(data: &[u8]) -> Option<u64> {
+    let (discriminant, arguments) = data.split_first()?;
+    let [amount @ .., _decimals]: [u8; 9] = arguments.try_into().ok()?;
+    (*discriminant == TRANSFER_CHECKED_DISCRIMINANT).then_some(u64::from_le_bytes(amount))
+}
 
 pub fn transfer(source: &Pubkey, destination: &Pubkey, owner: &Pubkey, amount: u64) -> Instruction {
     transfer_with_program_id(source, destination, owner, amount, &token_program())
