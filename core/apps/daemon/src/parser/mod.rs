@@ -3,8 +3,9 @@ mod parser_options;
 pub use parser_options::ParserOptions;
 
 use std::{
+    collections::BTreeMap,
     error::Error,
-    sync::Arc,
+    sync::{Arc, Mutex},
     time::{Duration, Instant},
 };
 
@@ -12,8 +13,9 @@ use crate::health::HealthState;
 use crate::metrics::parser::ParserMetrics;
 use crate::reporters::parser::ParserReporter;
 use chain_traits::ChainTraits;
+use futures::future::join_all;
 use gem_tracing::{DurationMs, error_with_fields, info_with_fields};
-use primitives::Chain;
+use primitives::{Chain, Transaction};
 use services::Services;
 use settings::Settings;
 use streamer::{StreamProducer, StreamProducerQueue, TransactionsPayload};
@@ -29,6 +31,7 @@ pub struct Parser {
     reporter: ParserReporter,
     options: ParserOptions,
     shutdown: ShutdownReceiver,
+    fetched_blocks: Mutex<BTreeMap<u64, Vec<Transaction>>>,
 }
 
 impl Parser {
@@ -43,6 +46,7 @@ impl Parser {
             reporter,
             options,
             shutdown,
+            fetched_blocks: Mutex::default(),
         }
     }
 
@@ -206,11 +210,41 @@ impl Parser {
     }
 
     async fn parse_blocks(&self, blocks: Vec<u64>) -> Result<usize, Box<dyn Error + Send + Sync>> {
-        let transactions = self.provider.get_transactions_in_blocks(blocks.clone()).await?;
+        let missing = missing_blocks(&self.fetched_blocks.lock().unwrap(), &blocks);
+        let results = join_all(missing.into_iter().map(|block| async move { (block, self.provider.get_transactions_by_block(block).await) })).await;
+
+        let transactions = {
+            let mut fetched_blocks = self.fetched_blocks.lock().unwrap();
+            let mut failure = None;
+            for (block, result) in results {
+                match result {
+                    Ok(transactions) => {
+                        fetched_blocks.insert(block, transactions);
+                    }
+                    Err(error) => failure = failure.or(Some(error)),
+                }
+            }
+            if let Some(error) = failure {
+                return Err(error);
+            }
+            take_blocks(&mut fetched_blocks, &blocks)
+        };
         self.reporter.record_transactions(&transactions);
         let payload = TransactionsPayload::new_with_notify(self.chain, blocks, transactions);
         self.stream_producer.publish_transactions(payload).await
     }
+}
+
+fn missing_blocks<T>(fetched: &BTreeMap<u64, T>, blocks: &[u64]) -> Vec<u64> {
+    blocks.iter().copied().filter(|block| !fetched.contains_key(block)).collect()
+}
+
+fn take_blocks<T>(fetched: &mut BTreeMap<u64, Vec<T>>, blocks: &[u64]) -> Vec<T> {
+    let items = blocks.iter().filter_map(|block| fetched.remove(block)).flatten().collect();
+    if let Some(last) = blocks.iter().max() {
+        fetched.retain(|block, _| block > last);
+    }
+    items
 }
 
 pub async fn run(settings: Settings, chain: Option<Chain>, health_state: Arc<HealthState>, parser_metrics: Arc<ParserMetrics>, shutdown_sender: ShutdownSender, shutdown: ShutdownReceiver) -> Result<(), Box<dyn Error + Send + Sync>> {
@@ -293,5 +327,25 @@ async fn run_parser(state_service: ParserStateService, parser_metrics: Arc<Parse
                 break;
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_missing_blocks_skips_fetched() {
+        let fetched = BTreeMap::from([(11, vec!["b"])]);
+
+        assert_eq!(missing_blocks(&fetched, &[10, 11, 12]), vec![10, 12]);
+    }
+
+    #[test]
+    fn test_take_blocks_in_block_order_and_drops_older() {
+        let mut fetched = BTreeMap::from([(8, vec!["stale"]), (12, vec!["c"]), (10, vec!["a"]), (11, vec!["b1", "b2"]), (13, vec!["next"])]);
+
+        assert_eq!(take_blocks(&mut fetched, &[10, 11, 12]), vec!["a", "b1", "b2", "c"]);
+        assert_eq!(fetched, BTreeMap::from([(13, vec!["next"])]));
     }
 }
