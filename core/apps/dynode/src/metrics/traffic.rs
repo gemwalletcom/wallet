@@ -3,9 +3,8 @@ use std::str::FromStr;
 use std::time::Duration;
 
 use gem_tracing::path;
+use metrics::{Gauge, LabelEncoder, LabelSet};
 use primitives::{Chain, ChainType};
-use prometheus_client::encoding::EncodeLabelSet;
-use prometheus_client::metrics::gauge::Gauge;
 
 use super::Metrics;
 
@@ -13,55 +12,99 @@ pub(crate) struct Inflight {
     gauge: Gauge,
 }
 
-#[derive(Clone, Debug, Hash, PartialEq, Eq, EncodeLabelSet)]
+#[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub(super) struct RequestLabels {
-    #[prometheus(flatten)]
     traffic: TrafficLabels,
     endpoint: String,
     path: String,
     status: u16,
 }
 
-#[derive(Clone, Debug, Hash, PartialEq, Eq, EncodeLabelSet)]
+impl LabelSet for RequestLabels {
+    fn encode(&self, encoder: &mut LabelEncoder<'_>) {
+        self.traffic.encode(encoder);
+        encoder.add("endpoint", &self.endpoint);
+        encoder.add("path", &self.path);
+        encoder.add("status", &self.status);
+    }
+}
+
+#[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub(super) struct ClientResponseLabels {
-    #[prometheus(flatten)]
     traffic: TrafficLabels,
     path: String,
     status: u16,
 }
 
-#[derive(Clone, Debug, Hash, PartialEq, Eq, EncodeLabelSet)]
+impl LabelSet for ClientResponseLabels {
+    fn encode(&self, encoder: &mut LabelEncoder<'_>) {
+        self.traffic.encode(encoder);
+        encoder.add("path", &self.path);
+        encoder.add("status", &self.status);
+    }
+}
+
+#[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub(super) struct FailoverLabels {
-    #[prometheus(flatten)]
     traffic: TrafficLabels,
     endpoint: String,
     path: String,
     reason: String,
 }
 
-#[derive(Clone, Debug, Hash, PartialEq, Eq, EncodeLabelSet)]
+impl LabelSet for FailoverLabels {
+    fn encode(&self, encoder: &mut LabelEncoder<'_>) {
+        self.traffic.encode(encoder);
+        encoder.add("endpoint", &self.endpoint);
+        encoder.add("path", &self.path);
+        encoder.add("reason", &self.reason);
+    }
+}
+
+#[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub(super) struct TrafficLabels {
     source: String,
     group: String,
     service: String,
 }
 
-#[derive(Clone, Debug, Hash, PartialEq, Eq, EncodeLabelSet)]
+impl LabelSet for TrafficLabels {
+    fn encode(&self, encoder: &mut LabelEncoder<'_>) {
+        encoder.add("source", &self.source);
+        encoder.add("group", &self.group);
+        encoder.add("service", &self.service);
+    }
+}
+
+#[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub(super) struct UpstreamLabels {
-    #[prometheus(flatten)]
     traffic: TrafficLabels,
     endpoint: String,
     status: u16,
 }
 
-#[derive(Clone, Debug, Hash, PartialEq, Eq, EncodeLabelSet)]
+impl LabelSet for UpstreamLabels {
+    fn encode(&self, encoder: &mut LabelEncoder<'_>) {
+        self.traffic.encode(encoder);
+        encoder.add("endpoint", &self.endpoint);
+        encoder.add("status", &self.status);
+    }
+}
+
+#[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub(super) struct EndpointLabels {
-    #[prometheus(flatten)]
     traffic: TrafficLabels,
     endpoint: String,
 }
 
-#[derive(Clone, Debug, Hash, PartialEq, Eq, EncodeLabelSet)]
+impl LabelSet for EndpointLabels {
+    fn encode(&self, encoder: &mut LabelEncoder<'_>) {
+        self.traffic.encode(encoder);
+        encoder.add("endpoint", &self.endpoint);
+    }
+}
+
+#[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub(super) struct CooldownLabels {
     group: String,
     service: String,
@@ -69,9 +112,24 @@ pub(super) struct CooldownLabels {
     path: String,
 }
 
-#[derive(Clone, Debug, Hash, PartialEq, Eq, EncodeLabelSet)]
+impl LabelSet for CooldownLabels {
+    fn encode(&self, encoder: &mut LabelEncoder<'_>) {
+        encoder.add("group", &self.group);
+        encoder.add("service", &self.service);
+        encoder.add("endpoint", &self.endpoint);
+        encoder.add("path", &self.path);
+    }
+}
+
+#[derive(Clone, Debug, Hash, PartialEq, Eq)]
 pub(super) struct ProxyLabels {
     proxy: String,
+}
+
+impl LabelSet for ProxyLabels {
+    fn encode(&self, encoder: &mut LabelEncoder<'_>) {
+        encoder.add("proxy", &self.proxy);
+    }
 }
 
 impl TrafficLabels {
@@ -165,7 +223,7 @@ impl Metrics {
 
     pub(crate) fn track_inflight(&self, source: &str, group: &str, service: &str) -> Inflight {
         let labels = TrafficLabels::new(source, group, service);
-        let gauge = self.inflight.get_or_create(&labels).clone();
+        let gauge = self.inflight.get_or_create(&labels);
         gauge.inc();
         Inflight { gauge }
     }

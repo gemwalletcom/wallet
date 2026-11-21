@@ -11,7 +11,6 @@ futures = { workspace = true }
 strum = { workspace = true }
 async-trait = { workspace = true }
 
-prometheus-client = { workspace = true }
 metrics = { path = "../../crates/metrics" }
 http_server = { path = "../../crates/http_server" }
 gem_tracing = { path = "../../crates/gem_tracing" }
