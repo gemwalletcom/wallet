@@ -1,44 +1,140 @@
 use std::sync::Arc;
 
-use gem_solana::{HexInstructionData, Pubkey, StandardInstruction, instructions_from_primitives};
-use primitives::Chain;
+use borsh::BorshDeserialize;
+use gem_solana::{
+    HexInstructionData, Instruction, Pubkey, StandardInstruction,
+    anchor::{global_discriminator, instruction_arguments},
+    instructions_from_primitives, wrapped_sol,
+};
+use primitives::{
+    Chain,
+    contract_constants::{SOLANA_JUPITER_PROGRAM_ID, SOLANA_RELAY_DEPOSITORY_PROGRAM_ID, SOLANA_RELAY_FORWARDER_PROGRAM_ID},
+};
 
 use super::{contracts::contracts, model::SolanaStepData};
-use crate::{SwapperError, SwapperQuoteData, alien::RpcProvider, contract_check::solana::verify_steps, solana_dex::SolanaTransaction};
+use crate::{Quote, SwapperError, SwapperQuoteData, alien::RpcProvider, contract_check::solana::verify_steps, jupiter::RouteAccounts, solana_dex::SolanaTransaction};
 
-pub async fn build_quote_data(wallet_address: &str, step: &SolanaStepData, rpc_provider: Arc<dyn RpcProvider>) -> Result<SwapperQuoteData, SwapperError> {
-    transaction(step, wallet_address)?.quote_data(wallet_address, rpc_provider).await
+const DEPOSIT_NATIVE: &str = "deposit_native";
+const DEPOSIT_TOKEN: &str = "deposit_token";
+const FORWARD_TOKEN: &str = "forward_token";
+const DEPOSIT_TOKEN_MINT: usize = 4;
+const FORWARDER_TOKEN_ACCOUNT: usize = 6;
+
+#[derive(BorshDeserialize)]
+struct DepositArguments {
+    amount: u64,
 }
 
-fn transaction(step: &SolanaStepData, wallet_address: &str) -> Result<SolanaTransaction, SwapperError> {
+struct QuotedDeposit {
+    wallet: Pubkey,
+    mint: Option<Pubkey>,
+    amount: u64,
+}
+
+enum RelayStep<'a> {
+    Deposit { mint: Option<&'a Pubkey>, amount: u64 },
+    Forward { token_account: &'a Pubkey },
+    Swap(RouteAccounts),
+    Other,
+    Unsupported,
+}
+
+pub async fn build_quote_data(quote: &Quote, step: &SolanaStepData, rpc_provider: Arc<dyn RpcProvider>) -> Result<SwapperQuoteData, SwapperError> {
+    transaction(step, &QuotedDeposit::new(quote)?)?.quote_data(&quote.request.wallet_address, rpc_provider).await
+}
+
+fn transaction(step: &SolanaStepData, quoted: &QuotedDeposit) -> Result<SolanaTransaction, SwapperError> {
     let instructions = instructions_from_primitives::<HexInstructionData>(step.instructions.clone()).map_err(SwapperError::transaction_error)?;
     let steps: Vec<StandardInstruction> = instructions.iter().map(StandardInstruction::new).collect();
-    verify_steps(&steps, &Pubkey::from_base58(wallet_address).map_err(SwapperError::transaction_error)?, &contracts(Chain::Solana).targets)?;
+    verify_steps(&steps, &quoted.wallet, &contracts(Chain::Solana).targets)?;
+    quoted.verify(&instructions.iter().map(RelayStep::decode).collect::<Vec<_>>())?;
     Ok(SolanaTransaction::new(instructions, step.address_lookup_table_addresses.clone()))
+}
+
+impl QuotedDeposit {
+    fn new(quote: &Quote) -> Result<Self, SwapperError> {
+        Ok(Self {
+            wallet: Pubkey::from_base58(&quote.request.wallet_address).map_err(SwapperError::transaction_error)?,
+            mint: quote.request.from_asset.asset_id().token_id.as_deref().map(Pubkey::from_base58).transpose().map_err(SwapperError::transaction_error)?,
+            amount: u64::try_from(&quote.from_value).map_err(SwapperError::transaction_error)?,
+        })
+    }
+
+    fn verify(&self, steps: &[RelayStep]) -> Result<(), SwapperError> {
+        let input_mint = self.mint.unwrap_or_else(wrapped_sol::wrapped_sol_mint);
+        let deposited = steps.iter().try_fold(0u64, |total, step| match step {
+            RelayStep::Deposit { mint, amount } if *mint == self.mint.as_ref() => Ok(total.saturating_add(*amount)),
+            RelayStep::Swap(route) if route.spends_from(&self.wallet, &input_mint) && steps.iter().any(|forward| forward.forwards(&route.destination)) => Ok(total),
+            RelayStep::Forward { .. } | RelayStep::Other => Ok(total),
+            RelayStep::Deposit { .. } | RelayStep::Swap(_) | RelayStep::Unsupported => Err(SwapperError::InvalidRoute),
+        })?;
+        if deposited > self.amount {
+            return Err(SwapperError::InvalidRoute);
+        }
+        Ok(())
+    }
+}
+
+impl<'a> RelayStep<'a> {
+    fn decode(instruction: &'a Instruction) -> Self {
+        let deposit = |name| instruction_arguments::<DepositArguments>(&instruction.data, name).map(|arguments| arguments.amount);
+        match instruction.program_id.to_base58().as_str() {
+            SOLANA_RELAY_DEPOSITORY_PROGRAM_ID => match (deposit(DEPOSIT_NATIVE), deposit(DEPOSIT_TOKEN), instruction.account(DEPOSIT_TOKEN_MINT)) {
+                (Ok(amount), _, _) => Self::Deposit { mint: None, amount },
+                (_, Ok(amount), Some(mint)) => Self::Deposit { mint: Some(mint), amount },
+                _ => Self::Unsupported,
+            },
+            SOLANA_RELAY_FORWARDER_PROGRAM_ID => match (instruction.data.starts_with(&global_discriminator(FORWARD_TOKEN)), instruction.account(FORWARDER_TOKEN_ACCOUNT)) {
+                (true, Some(token_account)) => Self::Forward { token_account },
+                _ => Self::Unsupported,
+            },
+            SOLANA_JUPITER_PROGRAM_ID => RouteAccounts::decode(instruction).map_or(Self::Unsupported, Self::Swap),
+            _ => Self::Other,
+        }
+    }
+
+    fn forwards(&self, account: &Pubkey) -> bool {
+        match self {
+            Self::Forward { token_account } => *token_account == account,
+            Self::Deposit { .. } | Self::Swap(_) | Self::Other | Self::Unsupported => false,
+        }
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use crate::{
+        QuoteRequest, SwapperQuoteAsset,
         contract_check::solana::verify_solana,
         relay::{model::RelayQuoteResponse, testkit::TEST_SOLANA_PAYER},
+        testkit::mock_quote,
     };
     use gem_solana::{AddressLookupTableAccount, decode_transaction};
     use num_bigint::BigUint;
-    use primitives::{contract_constants::SOLANA_RELAY_DEPOSITORY_PROGRAM_ID, hex, testkit::signer_mock::TEST_PRIVATE_KEY_SOLANA_ADDRESS};
+    use primitives::{
+        AssetId,
+        asset_constants::{BASE_USDC_ASSET_ID, SOLANA_USDC_ASSET_ID, SOLANA_USDT_ASSET_ID},
+        hex,
+        testkit::signer_mock::TEST_PRIVATE_KEY_SOLANA_ADDRESS,
+    };
 
     #[test]
     fn test_build_transaction() {
         let response: RelayQuoteResponse = serde_json::from_str(include_str!("testdata/quote_sol_to_base_usdc.json")).unwrap();
         let step = response.get_solana_step().unwrap();
+        let request = QuoteRequest {
+            wallet_address: "4Nd1mBQtrMJVYVfKf2PJy9NZUZdTAsp7D4xWLs4gDB4T".into(),
+            value: BigUint::from(100_000_000u64),
+            ..mock_quote(SwapperQuoteAsset::from(AssetId::from_chain(Chain::Solana)), SwapperQuoteAsset::from(BASE_USDC_ASSET_ID.clone()))
+        };
 
-        let quote_data = transaction(step, "4Nd1mBQtrMJVYVfKf2PJy9NZUZdTAsp7D4xWLs4gDB4T").unwrap().encode("4Nd1mBQtrMJVYVfKf2PJy9NZUZdTAsp7D4xWLs4gDB4T", &[]).unwrap();
-        verify_solana(&quote_data.data, "4Nd1mBQtrMJVYVfKf2PJy9NZUZdTAsp7D4xWLs4gDB4T", &contracts(Chain::Solana).targets).unwrap();
+        let quote_data = transaction(step, &QuotedDeposit::new(&Quote::mock_with_request(&request)).unwrap()).unwrap().encode(&request.wallet_address, &[]).unwrap();
+        verify_solana(&quote_data.data, &request.wallet_address, &contracts(Chain::Solana).targets).unwrap();
 
-        let transaction = decode_transaction(&quote_data.data).unwrap();
-        assert_eq!(transaction.num_required_signatures(), 1);
-        assert_eq!(transaction.get_compute_unit_price(), Some(0));
+        let transaction_data = decode_transaction(&quote_data.data).unwrap();
+        assert_eq!(transaction_data.num_required_signatures(), 1);
+        assert_eq!(transaction_data.get_compute_unit_price(), Some(0));
         assert!(quote_data.to.is_empty());
         assert_eq!(quote_data.value, BigUint::ZERO);
         assert!(quote_data.approval.is_none());
@@ -46,30 +142,113 @@ mod tests {
         let instructions = instructions_from_primitives::<HexInstructionData>(step.instructions.clone()).unwrap();
         assert_eq!(instructions[0].program_id.to_base58(), SOLANA_RELAY_DEPOSITORY_PROGRAM_ID);
         assert_eq!(instructions[0].data, hex::decode("0d9e0ddf5fd51c0600e1f50500000000d8f6831d9a771a5b031cc86256987f54a9759e6107db24b07ec66eef4e555055").unwrap());
+
+        let mut other_instruction = step.clone();
+        other_instruction.instructions[0].data = hex::encode([global_discriminator("withdraw").as_slice(), &instructions[0].data[8..]].concat());
+        assert_eq!(
+            transaction(&other_instruction, &QuotedDeposit::new(&Quote::mock_with_request(&request)).unwrap()).err(),
+            Some(SwapperError::InvalidRoute),
+            "an instruction of Relay's programs the check does not read"
+        );
+        for (request, reason) in [
+            (
+                QuoteRequest {
+                    value: BigUint::from(99_999_999u64),
+                    ..request.clone()
+                },
+                "a deposit larger than the quote",
+            ),
+            (
+                QuoteRequest {
+                    from_asset: SwapperQuoteAsset::from(SOLANA_USDC_ASSET_ID.clone()),
+                    ..request
+                },
+                "a deposit of another asset",
+            ),
+        ] {
+            assert_eq!(transaction(step, &QuotedDeposit::new(&Quote::mock_with_request(&request)).unwrap()).err(), Some(SwapperError::InvalidRoute), "{reason}");
+        }
+    }
+
+    #[test]
+    fn test_build_token_deposit() {
+        let response: RelayQuoteResponse = serde_json::from_str(include_str!("testdata/quote_usdt_to_base_usdc.json")).unwrap();
+        let step = response.get_solana_step().unwrap();
+        let request = QuoteRequest {
+            wallet_address: TEST_SOLANA_PAYER.into(),
+            value: BigUint::from(20_000_000u64),
+            ..mock_quote(SwapperQuoteAsset::from(SOLANA_USDT_ASSET_ID.clone()), SwapperQuoteAsset::from(BASE_USDC_ASSET_ID.clone()))
+        };
+
+        assert_eq!(transaction(step, &QuotedDeposit::new(&Quote::mock_with_request(&request)).unwrap()).err(), None);
+        for (request, reason) in [
+            (
+                QuoteRequest {
+                    value: BigUint::from(19_999_999u64),
+                    ..request.clone()
+                },
+                "a deposit larger than the quote",
+            ),
+            (
+                QuoteRequest {
+                    from_asset: SwapperQuoteAsset::from(SOLANA_USDC_ASSET_ID.clone()),
+                    ..request
+                },
+                "a deposit of another token",
+            ),
+        ] {
+            assert_eq!(transaction(step, &QuotedDeposit::new(&Quote::mock_with_request(&request)).unwrap()).err(), Some(SwapperError::InvalidRoute), "{reason}");
+        }
     }
 
     #[test]
     fn test_build_transaction_through_jupiter() {
         let response: RelayQuoteResponse = serde_json::from_str(include_str!("testdata/quote_cbbtc_to_base_usdc.json")).unwrap();
         let step = response.get_solana_step().unwrap();
+        let instructions = instructions_from_primitives::<HexInstructionData>(step.instructions.clone()).unwrap();
         let mut accounts = Vec::new();
-        for account in instructions_from_primitives::<HexInstructionData>(step.instructions.clone()).unwrap().into_iter().flat_map(|instruction| instruction.accounts) {
+        for account in instructions.iter().flat_map(|instruction| &instruction.accounts) {
             if !account.is_signer && !accounts.contains(&account.pubkey) {
                 accounts.push(account.pubkey);
             }
         }
         let lookup_table = AddressLookupTableAccount::new(Pubkey::new([7; 32]), accounts);
+        let request = QuoteRequest {
+            wallet_address: TEST_SOLANA_PAYER.into(),
+            value: BigUint::from(20_000_000u64),
+            ..mock_quote(
+                SwapperQuoteAsset::from(AssetId::from_token(Chain::Solana, "cbbtcf3aa214zXHbiAZQwf4122FBYbraNdFqgw4iMij")),
+                SwapperQuoteAsset::from(BASE_USDC_ASSET_ID.clone()),
+            )
+        };
+        let quoted = QuotedDeposit::new(&Quote::mock_with_request(&request)).unwrap();
 
-        let quote_data = transaction(step, TEST_SOLANA_PAYER).unwrap().encode(TEST_SOLANA_PAYER, &[lookup_table]).unwrap();
-
+        let quote_data = transaction(step, &quoted).unwrap().encode(TEST_SOLANA_PAYER, &[lookup_table]).unwrap();
         verify_solana(&quote_data.data, TEST_SOLANA_PAYER, &contracts(Chain::Solana).targets).unwrap();
+
+        let mut to_user_destination = instructions[2].clone();
+        to_user_destination.accounts[4].pubkey = to_user_destination.program_id;
+        assert_eq!(RouteAccounts::decode(&instructions[2]).map(|route| route.destination), instructions[3].account(FORWARDER_TOKEN_ACCOUNT).copied());
+        assert_eq!(RouteAccounts::decode(&to_user_destination).map(|route| route.destination), to_user_destination.account(3).copied());
 
         let mut other_token_program = step.clone();
         other_token_program.instructions[0].accounts[5].pubkey = TEST_PRIVATE_KEY_SOLANA_ADDRESS.to_string();
-        assert_eq!(
-            transaction(&other_token_program, TEST_SOLANA_PAYER).err(),
-            Some(SwapperError::InvalidRoute),
-            "the steps are checked before a lookup table can hide an account"
-        );
+        let mut other_destination = step.clone();
+        other_destination.instructions[2].accounts[4].pubkey = TEST_PRIVATE_KEY_SOLANA_ADDRESS.to_string();
+        let mut other_authority = step.clone();
+        other_authority.instructions[2].accounts[1].pubkey = TEST_PRIVATE_KEY_SOLANA_ADDRESS.to_string();
+        let other_token = QuotedDeposit::new(&Quote::mock_with_request(&QuoteRequest {
+            from_asset: SwapperQuoteAsset::from(SOLANA_USDC_ASSET_ID.clone()),
+            ..request
+        }))
+        .unwrap();
+        for (step, quoted, reason) in [
+            (&other_token_program, &quoted, "the steps are checked before a lookup table can hide an account"),
+            (step, &other_token, "a route that spends another token"),
+            (&other_destination, &quoted, "a route that pays into an account Relay's forwarder does not deposit"),
+            (&other_authority, &quoted, "a route another account signs"),
+        ] {
+            assert_eq!(transaction(step, quoted).err(), Some(SwapperError::InvalidRoute), "{reason}");
+        }
     }
 }

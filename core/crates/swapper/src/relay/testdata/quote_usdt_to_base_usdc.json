@@ -1,0 +1,86 @@
+{
+  "steps": [
+    {
+      "id": "deposit",
+      "kind": "transaction",
+      "items": [
+        {
+          "data": {
+            "instructions": [
+              {
+                "keys": [],
+                "programId": "ComputeBudget111111111111111111111111111111",
+                "data": "02400d0300"
+              },
+              {
+                "keys": [
+                  {
+                    "pubkey": "Dodg2HifwU8rmaVVyMyUZDGTRbqAJTyVYxXPwcbNpBKc",
+                    "isSigner": false,
+                    "isWritable": false
+                  },
+                  {
+                    "pubkey": "7g2rVN8fAAQdPh1mkajpvELqYa3gWvFXJsBLnKfEQfqy",
+                    "isSigner": true,
+                    "isWritable": true
+                  },
+                  {
+                    "pubkey": "7g2rVN8fAAQdPh1mkajpvELqYa3gWvFXJsBLnKfEQfqy",
+                    "isSigner": false,
+                    "isWritable": false
+                  },
+                  {
+                    "pubkey": "7uTT8Xi5RWXzy7h9XL244GRgEycDYDhLjr3ZyNdXi8pZ",
+                    "isSigner": false,
+                    "isWritable": false
+                  },
+                  {
+                    "pubkey": "Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB",
+                    "isSigner": false,
+                    "isWritable": false
+                  },
+                  {
+                    "pubkey": "5typ9ShAhMzRdvu29bTFGMNm78CYMXg6Sx6Ncnzror6d",
+                    "isSigner": false,
+                    "isWritable": true
+                  },
+                  {
+                    "pubkey": "58uq9pWmY52bqZrnJ6JQBv4wRQZWZrBWdBHjwhGmFJxF",
+                    "isSigner": false,
+                    "isWritable": true
+                  },
+                  {
+                    "pubkey": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+                    "isSigner": false,
+                    "isWritable": false
+                  },
+                  {
+                    "pubkey": "ATokenGPvbdGVxr1b2hvZbsiqW5xWH25efTNsLJA8knL",
+                    "isSigner": false,
+                    "isWritable": false
+                  },
+                  {
+                    "pubkey": "11111111111111111111111111111111",
+                    "isSigner": false,
+                    "isWritable": false
+                  }
+                ],
+                "programId": "99vQwtBwYtrqqD9YSXbdum3KBdxPAVxYTaQ3cfnJSrN2",
+                "data": "0b9c60da27a3b413002d3101000000005fb2fda842bd76022d9ad04a266d1b1555f957fa4f3db5e374bca8e2f8a5421b"
+              }
+            ],
+            "addressLookupTableAddresses": [
+              "Hm9fUgcn7qwDaiNTFiGh6pNtVATgnaRcmK6Bbx6EMZfP"
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "details": {
+    "currencyOut": {
+      "amount": "19832590"
+    },
+    "timeEstimate": 1
+  }
+}
