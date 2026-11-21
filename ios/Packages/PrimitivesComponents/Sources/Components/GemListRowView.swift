@@ -50,8 +50,8 @@ public struct GemListRowView: View {
             NavigationCustomLink(with: ListItemView(model: ListItemModel(title: title.text, subtitle: copy.display))) {
                 onSelectAddress(address)
             }
-        } else if case let .field(title, .address(name, copy, _, menu)) = row, let onSelectAddress {
-            NavigationCustomLink(with: ListItemView(model: .address(title: title.text, name: name, copy: copy))) {
+        } else if case let .field(title, .address(text, copy, _, menu)) = row, let onSelectAddress {
+            NavigationCustomLink(with: ListItemView(model: ListItemModel(title: title.text, subtitle: text))) {
                 onSelectAddress(copy.value)
             }
             .contextMenu(contextMenu(menu))
