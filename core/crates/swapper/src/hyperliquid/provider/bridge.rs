@@ -23,8 +23,14 @@ pub struct HyperCoreBridge {
 impl HyperCoreBridge {
     pub fn new() -> Self {
         Self {
-            provider: ProviderType::new(SwapperProvider::Hyperliquid),
+            provider: ProviderType::new(SwapperProvider::HyperliquidBridge),
         }
+    }
+
+    fn is_bridge_request(request: &QuoteRequest) -> bool {
+        let from_id = request.from_asset.asset_id();
+        let to_id = request.to_asset.asset_id();
+        (from_id == HYPERCORE_HYPE.id && to_id == HYPEREVM_HYPE.id) || (from_id == HYPEREVM_HYPE.id && to_id == HYPERCORE_HYPE.id)
     }
 }
 
@@ -56,6 +62,9 @@ impl Swapper for HyperCoreBridge {
     }
 
     async fn get_quote(&self, request: &QuoteRequest) -> Result<Quote, SwapperError> {
+        if !Self::is_bridge_request(request) {
+            return Err(SwapperError::NoQuoteAvailable);
+        }
         let to_value = scale_units(request.value.clone(), request.from_asset.decimals, request.to_asset.decimals)?;
 
         let quote = Quote {
@@ -96,5 +105,33 @@ impl Swapper for HyperCoreBridge {
 
     async fn get_swap_result(&self, _request: &SwapResultRequest) -> Result<SwapResult, SwapperError> {
         Ok(SwapResult::from(SwapStatus::Completed))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::testkit::mock_quote;
+    use num_bigint::BigUint;
+    use primitives::{Asset, known_assets::HYPERCORE_SPOT_USDC};
+
+    #[tokio::test]
+    async fn test_get_quote_moves_only_hype_between_hyperevm_and_hypercore() {
+        let bridge = HyperCoreBridge::new();
+        let request = |from: &Asset, to: &Asset| QuoteRequest {
+            value: BigUint::from(10u64).pow(18),
+            ..mock_quote(from.into(), to.into())
+        };
+
+        let to_core = bridge.get_quote(&request(&HYPEREVM_HYPE, &HYPERCORE_HYPE)).await.unwrap();
+
+        assert_eq!(to_core.data.provider.id, SwapperProvider::HyperliquidBridge);
+        assert_eq!(to_core.to_value, BigUint::from(10u64).pow(8));
+        assert!(bridge.get_quote(&request(&HYPERCORE_HYPE, &HYPEREVM_HYPE)).await.is_ok());
+        assert_eq!(
+            bridge.get_quote(&request(&HYPEREVM_HYPE, &HYPERCORE_SPOT_USDC)).await.unwrap_err(),
+            SwapperError::NoQuoteAvailable,
+            "a pair other than HYPE to HYPE is a spot order, not a move"
+        );
     }
 }

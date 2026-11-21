@@ -696,6 +696,7 @@ pub enum SwapProvider {
     CetusClmm,
     Relay,
     Hyperliquid,
+    HyperliquidBridge,
     Orca,
     Squid,
     Mayachain,

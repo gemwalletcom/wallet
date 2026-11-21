@@ -28,6 +28,7 @@ pub enum SwapProvider {
     CetusClmm,
     Relay,
     Hyperliquid,
+    HyperliquidBridge,
     Orca,
     Squid,
     Mayachain,
@@ -78,14 +79,14 @@ impl SwapProvider {
             | Self::Aero
             | Self::XrpLedger
             | Self::Okx
-            | Self::Mayachain => SwapProviderMode::OnChain,
+            | Self::Mayachain
+            | Self::Hyperliquid => SwapProviderMode::OnChain,
             Self::Mayan | Self::Squid | Self::SwapsXyz | Self::Bridgers => SwapProviderMode::CrossChain,
             Self::Chainflip => SwapProviderMode::OmniChain(vec![Chain::Tron]),
             Self::Thorchain => SwapProviderMode::OmniChain(vec![Chain::Thorchain, Chain::Tron]),
             Self::NearIntents => SwapProviderMode::OmniChain(vec![Chain::Near, Chain::Tron]),
             Self::Relay => SwapProviderMode::OmniChain(vec![Chain::Hyperliquid, Chain::Berachain]),
-            Self::Across => SwapProviderMode::Bridge,
-            Self::Hyperliquid => SwapProviderMode::OmniChain(vec![Chain::HyperCore, Chain::Hyperliquid]),
+            Self::Across | Self::HyperliquidBridge => SwapProviderMode::Bridge,
         }
     }
 
@@ -116,7 +117,7 @@ impl SwapProvider {
             Self::Chainflip => "Chainflip",
             Self::NearIntents => "NEAR Intents",
             Self::Relay => "Relay",
-            Self::Hyperliquid => "Hyperliquid",
+            Self::Hyperliquid | Self::HyperliquidBridge => "Hyperliquid",
             Self::Orca => "Orca",
             Self::Squid => "Squid",
             Self::SwapsXyz => "Swaps.xyz",
@@ -151,6 +152,8 @@ mod tests {
         assert!(SwapProvider::SwapsXyz.is_cross_chain());
         assert!(!SwapProvider::UniswapV3.is_cross_chain());
         assert!(!SwapProvider::Jupiter.is_cross_chain());
+        assert!(!SwapProvider::Hyperliquid.is_cross_chain(), "a spot order completes in its own action");
+        assert!(SwapProvider::HyperliquidBridge.is_cross_chain());
     }
 
     #[test]

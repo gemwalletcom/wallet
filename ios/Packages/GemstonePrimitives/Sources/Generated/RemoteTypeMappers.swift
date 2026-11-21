@@ -1113,6 +1113,7 @@ public extension Gemstone.SwapProvider {
         case .cetusClmm: .cetusClmm
         case .relay: .relay
         case .hyperliquid: .hyperliquid
+        case .hyperliquidBridge: .hyperliquidBridge
         case .orca: .orca
         case .squid: .squid
         case .mayachain: .mayachain
@@ -1153,6 +1154,7 @@ public extension Primitives.SwapProvider {
         case .cetusClmm: .cetusClmm
         case .relay: .relay
         case .hyperliquid: .hyperliquid
+        case .hyperliquidBridge: .hyperliquidBridge
         case .orca: .orca
         case .squid: .squid
         case .mayachain: .mayachain

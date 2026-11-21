@@ -47,6 +47,8 @@ use num_bigint::{BigInt, Sign};
 use primitives::{AssetPrice, BroadcastOptions, SignerError};
 use primitives::{TransactionInputType, TransferAmountInput, custom_fee_value};
 
+const BASE_FEE_INCREASE_PERCENT: u32 = 100;
+
 impl SendInput {
     pub(super) fn signer_input(&self) -> Result<SignerInput, GemConfirmError> {
         let GemConfirmInput { from, transfer } = &self.confirm.input;
@@ -80,7 +82,7 @@ impl GemTransferData {
         let asset_id = &self.input_type.get_asset().id;
         match EVMChain::from_chain(asset_id.chain) {
             Some(chain) if self.use_max_amount && asset_id.is_native() => chain.chain_stack().max_amount_base_fee_increase_percent(),
-            Some(chain) => chain.base_fee_increase_percent(),
+            Some(_) => BASE_FEE_INCREASE_PERCENT,
             None => 0,
         }
     }
@@ -1233,14 +1235,14 @@ mod tests {
             (native(Chain::Ethereum), true, 100),
             (token(Chain::Ethereum), true, 200),
             (token(Chain::Ethereum), false, 200),
-            (native(Chain::Polygon), false, 120),
+            (native(Chain::Polygon), false, 200),
             (native(Chain::Polygon), true, 100),
-            (token(Chain::Polygon), true, 120),
-            (native(Chain::Arbitrum), false, 120),
+            (token(Chain::Polygon), true, 200),
+            (native(Chain::Arbitrum), false, 200),
             (native(Chain::Arbitrum), true, 105),
             (native(Chain::Robinhood), true, 105),
-            (token(Chain::Robinhood), true, 120),
-            (native(Chain::Optimism), false, 120),
+            (token(Chain::Robinhood), true, 200),
+            (native(Chain::Optimism), false, 200),
             (native(Chain::Optimism), true, 100),
             (native(Chain::ZkSync), true, 100),
         ] {
