@@ -84,6 +84,10 @@ impl EVMChain {
         matches!(self, Self::Ethereum)
     }
 
+    pub fn is_trace_call_supported(&self) -> bool {
+        !matches!(self, Self::AvalancheC | Self::Monad)
+    }
+
     pub fn is_opstack(&self) -> bool {
         self.chain_stack() == ChainStack::Optimism
     }
