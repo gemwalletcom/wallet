@@ -299,7 +299,7 @@ These tables compare implemented coverage with provider-advertised support acros
 | [Chainflip](../core/crates/swapper/src/chainflip/provider.rs) | Omnichain | 7/57 | Bitcoin (destination only), Polkadot, Ethereum, Solana, Tron, Arbitrum, BNB Chain | Missing: Polkadot USDC and USDT (Gem has no Polkadot tokens) | <sub>[asset mapping](../core/crates/swapper/src/chainflip/client/model.rs) · [route support](../core/crates/swapper/src/chainflip/provider.rs) · [Broker quotes and assets](https://docs.chainflip.io/brokers/javascript-sdk/functions) · [supported chains](https://docs.chainflip.io/protocol/supported-chains-assets/chains-assets)</sub> |
 | [Swaps.xyz](../core/crates/swapper/src/swaps_xyz/provider.rs) | Cross-chain | 10/57 | Algorand, Stellar, Cardano, TON, Cosmos, Osmosis, Aptos, Sui, XRP, Tron | Native assets only | <sub>[code](../core/crates/swapper/src/swaps_xyz/provider.rs) · [API introduction](https://docs.swaps.xyz/)</sub> |
 | [Bridgers](../core/crates/swapper/src/bridgers/provider.rs) | Cross-chain | 22/57 | BNB Chain, Polygon, Arbitrum, Avalanche C-Chain, Optimism, Base, opBNB, Mantle, Linea, Celo, X Layer, Sonic, Robinhood Chain, Hyperliquid, Stable, TON, XRP Ledger, Ethereum (destination only), Solana (destination only), Bitcoin (destination only), Litecoin (destination only), Dogecoin (destination only) | Missing: Ethereum as source, Unichain (routers unverified), ZKsync (gas limits unverified), Tron, Sui, Aptos, Bitcoin Cash | <sub>[code](../core/crates/swapper/src/bridgers/asset.rs) · [live token API](https://api.bridgers.xyz/api/exchangeRecord/getToken)</sub> |
-| [Hyperliquid](../core/crates/swapper/src/hyperliquid/provider/hyperliquid.rs) | Omnichain | 2/57 | HyperCore, Hyperliquid | ➖ | <sub>[code](../core/crates/swapper/src/hyperliquid/provider/hyperliquid.rs) · [Core ↔ EVM transfers](https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/hyperevm/hypercore-less-than-greater-than-hyperevm-transfers)</sub> |
+| [Hyperliquid](../core/crates/swapper/src/hyperliquid/provider/bridge.rs) | Bridge | 2/57 | HyperCore, Hyperliquid | ➖ | <sub>[code](../core/crates/swapper/src/hyperliquid/provider/bridge.rs) · [Core ↔ EVM transfers](https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/hyperevm/hypercore-less-than-greater-than-hyperevm-transfers)</sub> |
 
 ### Provider behavior
 
@@ -339,7 +339,7 @@ These tables compare implemented coverage with provider-advertised support acros
 | [Chainflip](../core/crates/swapper/src/chainflip/provider.rs) | Omnichain | Fixed | Exact | ✅ | ✅ |
 | [Swaps.xyz](../core/crates/swapper/src/swaps_xyz/provider.rs) | Cross-chain | Fixed | Exact | ✅ | ✅ (quoted address) |
 | [Bridgers](../core/crates/swapper/src/bridgers/provider.rs) | Cross-chain | Fixed | Exact | ✅ (sender records) | ✅ (router allowlist) |
-| [Hyperliquid](../core/crates/swapper/src/hyperliquid/provider/hyperliquid.rs) | Omnichain | Flexible | Exact | ➖ (assumed complete) | ➖ |
+| [Hyperliquid](../core/crates/swapper/src/hyperliquid/provider/bridge.rs) | Bridge | Flexible | Exact | ➖ (assumed complete) | ➖ |
 
 <sub>Sources: [provider modes and slippage](../core/crates/swapper/src/models.rs), [amount-mode implementations](../core/crates/swapper/src), and [active provider registry](../core/crates/swapper/src/swapper.rs).</sub>
 
