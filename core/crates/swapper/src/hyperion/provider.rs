@@ -43,8 +43,9 @@ impl<C: Client + 'static> Swapper for Hyperion<C> {
 #[cfg(all(test, feature = "swap_integration_tests"))]
 mod swap_integration_tests {
     use super::*;
-    use crate::{SwapperQuoteAsset, alien::reqwest_provider::NativeProvider, hyperion::model::PoolRoute, models::Options};
+    use crate::{SwapperQuoteAsset, hyperion::model::PoolRoute, models::Options};
     use gem_aptos::{HYPERION_PARTNER_SWAP_FUNCTION, TransactionPayload};
+    use gem_reqwest::NativeProvider;
     use primitives::asset_constants::{APTOS_USDC_ASSET_ID, APTOS_USDT_ASSET_ID};
     use std::sync::Arc;
 

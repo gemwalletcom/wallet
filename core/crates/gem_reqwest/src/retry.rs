@@ -2,8 +2,6 @@ use std::future::Future;
 use std::time::Duration;
 
 use reqwest::{StatusCode, retry};
-
-#[cfg(feature = "reqwest")]
 use tokio::time::sleep;
 
 pub fn retry_policy<S>(host: S, max_retries: u32) -> retry::Builder
@@ -33,11 +31,7 @@ where
                     attempt += 1;
                     let delay = Duration::from_secs(2_u64.saturating_pow(attempt).min(1800));
 
-                    #[cfg(feature = "reqwest")]
                     sleep(delay).await;
-
-                    #[cfg(not(feature = "reqwest"))]
-                    std::thread::sleep(delay);
 
                     continue;
                 }

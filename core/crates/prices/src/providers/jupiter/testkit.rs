@@ -1,4 +1,4 @@
-use gem_client::ReqwestClient;
+use gem_reqwest::ReqwestClient;
 
 use crate::JupiterProvider;
 

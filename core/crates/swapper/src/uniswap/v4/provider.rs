@@ -227,10 +227,11 @@ mod tests {
     }
 }
 
-#[cfg(all(test, feature = "swap_integration_tests", feature = "reqwest_provider"))]
+#[cfg(all(test, feature = "swap_integration_tests"))]
 mod swap_integration_tests {
     use crate::testkit::mock_quote;
-    use crate::{FetchQuoteData, NativeProvider, Options, QuoteRequest, SwapperError, client_factory::create_eth_client, uniswap};
+    use crate::{FetchQuoteData, Options, QuoteRequest, SwapperError, client_factory::create_eth_client, uniswap};
+    use gem_reqwest::NativeProvider;
     use num_bigint::BigUint;
     use num_traits::ToPrimitive;
     use primitives::{

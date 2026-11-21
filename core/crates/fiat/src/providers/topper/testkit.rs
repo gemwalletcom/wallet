@@ -1,5 +1,5 @@
-use gem_client::ReqwestClient;
 use gem_encoding::{decode_base64, encode_base64_url};
+use gem_reqwest::ReqwestClient;
 use jsonwebtoken::crypto::sign;
 use jsonwebtoken::{Algorithm, EncodingKey};
 
@@ -16,7 +16,7 @@ pub const TEST_SIGNING_PUBLIC_KEY: &str = r#"{"alg":"ES256","kty":"EC","crv":"P-
 impl TopperClient {
     pub fn mock() -> Self {
         Self::new(
-            ReqwestClient::new(String::new(), gem_client::reqwest_client()),
+            ReqwestClient::new(String::new(), gem_reqwest::reqwest_client()),
             "https://app.topperpay.com".to_string(),
             TEST_WIDGET_ID.to_string(),
             TEST_KEY_ID.to_string(),

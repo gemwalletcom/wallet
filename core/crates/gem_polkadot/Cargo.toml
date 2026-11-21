@@ -17,8 +17,7 @@ rpc = [
     "dep:futures",
     "dep:signer",
 ]
-reqwest = ["gem_client/reqwest"]
-chain_integration_tests = ["rpc", "reqwest"]
+chain_integration_tests = ["rpc"]
 
 [dependencies]
 gem_encoding = { path = "../gem_encoding", default-features = false, features = ["base58"] }
@@ -41,6 +40,7 @@ number_formatter = { path = "../number_formatter", optional = true }
 futures = { workspace = true, optional = true }
 
 [dev-dependencies]
+gem_reqwest = { path = "../gem_reqwest" }
 gem_polkadot = { path = ".", features = ["rpc", "signer"] }
 chain_traits = { path = "../chain_traits" }
 gem_client = { path = "../gem_client" }

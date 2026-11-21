@@ -4,7 +4,8 @@ use super::mapper::{map_asset_chain, map_limits};
 use super::models::{Asset, BuyQuoteQuery, Country, FiatCurrencyType, MoonPayBuyQuote, MoonPayIpAddress, MoonPayResponse, MoonPaySellQuote, SellQuoteQuery};
 use super::target::MoonPayTarget;
 use super::widget::MoonPayWidget;
-use gem_client::{ClientError, ClientExt, ReqwestClient};
+use gem_client::{ClientError, ClientExt};
+use gem_reqwest::ReqwestClient;
 use primitives::fiat_assets::FiatAssetLimits;
 use primitives::{FiatProviderName, FiatQuoteType};
 

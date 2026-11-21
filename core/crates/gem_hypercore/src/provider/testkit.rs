@@ -1,7 +1,7 @@
 #[cfg(all(test, feature = "chain_integration_tests"))]
 use crate::rpc::client::HyperCoreClient;
 #[cfg(all(test, feature = "chain_integration_tests"))]
-use gem_client::ReqwestClient;
+use gem_reqwest::ReqwestClient;
 #[cfg(all(test, feature = "chain_integration_tests"))]
 use primitives::InMemoryPreferences;
 #[cfg(all(test, feature = "chain_integration_tests"))]
@@ -25,6 +25,6 @@ pub fn create_hypercore_test_client() -> HyperCoreClient<ReqwestClient> {
     let secure_preferences = Arc::new(InMemoryPreferences::new());
 
     let settings = get_test_settings();
-    let reqwest_client = ReqwestClient::new(settings.chains.hypercore.url, gem_client::reqwest_client());
+    let reqwest_client = ReqwestClient::new(settings.chains.hypercore.url, gem_reqwest::reqwest_client());
     HyperCoreClient::new_with_preferences(reqwest_client, preferences, secure_preferences)
 }

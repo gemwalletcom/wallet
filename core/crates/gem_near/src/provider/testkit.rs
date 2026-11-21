@@ -1,9 +1,9 @@
 #[cfg(all(test, feature = "chain_integration_tests"))]
 use crate::rpc::{NearClient, NearIndexer, NearProvider};
 #[cfg(all(test, feature = "chain_integration_tests"))]
-use gem_client::ReqwestClient;
-#[cfg(all(test, feature = "chain_integration_tests"))]
 use gem_jsonrpc::client::JsonRpcClient;
+#[cfg(all(test, feature = "chain_integration_tests"))]
+use gem_reqwest::ReqwestClient;
 #[cfg(all(test, feature = "chain_integration_tests"))]
 use settings::testkit::get_test_settings;
 
@@ -16,12 +16,12 @@ pub const TEST_HISTORY_ADDRESS: &str = "root.near";
 pub fn create_near_test_client() -> NearProvider<ReqwestClient> {
     let settings = get_test_settings();
     let url = settings.chains.near.url;
-    let client = ReqwestClient::new(String::new(), gem_client::reqwest_client());
+    let client = ReqwestClient::new(String::new(), gem_reqwest::reqwest_client());
     NearProvider::new(
-        NearClient::new(JsonRpcClient::new_reqwest(url)),
+        NearClient::new(JsonRpcClient::new(client.clone().with_base_url(url))),
         Box::new(NearIndexer::new(
-            settings.indexer.fastnear.transfers.remote_provider_config().configure_client(client.clone()),
-            settings.indexer.fastnear.tx.remote_provider_config().configure_client(client),
+            client.clone().with_base_url(settings.indexer.fastnear.transfers.remote_provider_config().url),
+            client.with_base_url(settings.indexer.fastnear.tx.remote_provider_config().url),
         )),
     )
 }

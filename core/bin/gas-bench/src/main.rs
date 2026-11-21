@@ -15,13 +15,15 @@ use crate::{
     jito::{JitoClient, JitoTipFloor},
     solana_client::{SolanaFeeData, SolanaGasClient},
 };
-use etherscan::EtherscanClient;
+use etherscan::{EtherscanApi, client::EtherscanClient};
 use gem_evm::ether_conv::EtherConv;
 use gem_evm::fee_calculator::{get_fee_history_blocks, get_reward_percentiles};
+use gem_reqwest::{NativeProvider, ReqwestClient, reqwest_client};
 use gem_solana::JUPITER_PROGRAM_ID;
-use gemstone::alien::reqwest_provider::NativeProvider;
 use primitives::EVMChain;
 use primitives::fee::FeePriority;
+
+const ETHERSCAN_URL: &str = "https://api.etherscan.io";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, ValueEnum)]
 enum ChainMode {
@@ -87,7 +89,7 @@ async fn run_ethereum(args: Cli) -> Result<(), Box<dyn Error + Send + Sync>> {
     };
     let native_provider = Arc::new(native_provider.set_debug(args.debug));
     let gemstone_client = GemstoneClient::new(native_provider, chain);
-    let etherscan_client = EtherscanClient::new_with_reqwest_client(gem_client::reqwest_client(), args.etherscan_api_key);
+    let etherscan_client = EtherscanClient::new_with_client(ReqwestClient::new(ETHERSCAN_URL.to_string(), reqwest_client()), args.etherscan_api_key, EtherscanApi::Etherscan);
 
     let mut last_printed_block_opt: Option<u64> = None;
     let mut block_data: HashMap<u64, Vec<SourceFeeDetail>> = HashMap::new();

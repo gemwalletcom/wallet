@@ -34,10 +34,10 @@ rpc = [
     "dep:gem_hash",
 ]
 signer = ["dep:signer", "gem_encoding/protobuf", "dep:gem_hash"]
-reqwest = ["gem_client/reqwest"]
-chain_integration_tests = ["rpc", "reqwest"]
+chain_integration_tests = ["rpc"]
 
 [dev-dependencies]
+gem_reqwest = { path = "../gem_reqwest" }
 gem_cosmos = { path = ".", features = ["rpc", "signer"] }
 gem_client = { path = "../gem_client" }
 tokio = { workspace = true, features = ["macros", "rt"] }

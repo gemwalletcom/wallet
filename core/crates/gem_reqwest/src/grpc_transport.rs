@@ -1,7 +1,9 @@
 use async_trait::async_trait;
 use std::error::Error;
 
-use super::{GrpcTransport, HEADER_MESSAGE, HEADER_STATUS, grpc_headers, validate_grpc_status, validate_http_status};
+use gem_jsonrpc::grpc::{GrpcTransport, HEADER_MESSAGE, HEADER_STATUS, grpc_headers, validate_grpc_status, validate_http_status};
+
+use crate::reqwest_client;
 
 #[derive(Clone, Debug)]
 pub struct ReqwestGrpcTransport {
@@ -10,7 +12,7 @@ pub struct ReqwestGrpcTransport {
 
 impl ReqwestGrpcTransport {
     pub fn new() -> Self {
-        Self::new_with_client(gem_client::reqwest_client())
+        Self::new_with_client(reqwest_client())
     }
 
     pub fn new_with_client(client: reqwest::Client) -> Self {

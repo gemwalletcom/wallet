@@ -6,8 +6,7 @@ edition = { workspace = true }
 [features]
 default = []
 rpc = ["gem_evm/rpc", "dep:async-trait", "dep:gem_client", "dep:serde", "dep:serde_serializers", "dep:gem_evm", "dep:primitives", "dep:alloy-primitives", "dep:alloy-sol-types", "dep:num-bigint", "dep:num-traits"]
-reqwest = ["rpc", "gem_evm/reqwest", "gem_client/reqwest"]
-chain_integration_tests = ["rpc", "reqwest"]
+chain_integration_tests = ["rpc"]
 
 [dependencies]
 primitives = { path = "../primitives", optional = true }
@@ -23,6 +22,8 @@ num-traits = { workspace = true, optional = true }
 serde = { workspace = true, optional = true }
 
 [dev-dependencies]
+gem_reqwest = { path = "../gem_reqwest" }
+gem_jsonrpc = { path = "../gem_jsonrpc" }
 everstake = { path = ".", features = ["rpc"] }
 gem_evm = { path = "../gem_evm", features = ["rpc"] }
 gem_client = { path = "../gem_client" }

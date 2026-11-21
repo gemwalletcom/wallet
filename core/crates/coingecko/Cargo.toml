@@ -9,7 +9,8 @@ version = { workspace = true }
 serde = { workspace = true }
 chain_primitives = { path = "../chain_primitives" }
 primitives = { path = "../primitives" }
-gem_client = { path = "../gem_client", features = ["reqwest"] }
+gem_client = { path = "../gem_client" }
+gem_reqwest = { path = "../gem_reqwest" }
 reqwest = { workspace = true }
 
 [dev-dependencies]

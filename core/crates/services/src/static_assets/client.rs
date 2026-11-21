@@ -1,6 +1,7 @@
 use super::models::Validator;
 use super::target::StaticAssetsTarget;
-use gem_client::{Client, ClientError, ClientExt, ReqwestClient};
+use gem_client::{Client, ClientError, ClientExt};
+use gem_reqwest::ReqwestClient;
 use primitives::{AssetId, Chain};
 
 #[derive(Clone)]
@@ -10,7 +11,7 @@ pub struct StaticAssetsClient<C: Client = ReqwestClient> {
 
 impl StaticAssetsClient<ReqwestClient> {
     pub fn new(url: &str) -> Self {
-        Self::new_with_client(ReqwestClient::new(url.to_string(), gem_client::reqwest_client()))
+        Self::new_with_client(ReqwestClient::new(url.to_string(), gem_reqwest::reqwest_client()))
     }
 }
 

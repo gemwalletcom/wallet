@@ -386,7 +386,8 @@ mod tests {
 #[cfg(all(test, feature = "swap_integration_tests"))]
 mod swap_integration_tests {
     use super::*;
-    use crate::{SwapperQuoteAsset, alien::reqwest_provider::NativeProvider, testkit::mock_quote};
+    use crate::{SwapperQuoteAsset, testkit::mock_quote};
+    use gem_reqwest::NativeProvider;
     use num_bigint::BigUint;
     use primitives::Chain;
     use primitives::swap::SwapStatus;

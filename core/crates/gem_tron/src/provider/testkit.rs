@@ -15,10 +15,10 @@ use crate::rpc::trongrid::client::TronGridClient;
 use crate::rpc::trongrid::model::TronGridTransaction;
 #[cfg(test)]
 use crate::rpc::{TronClient, TronProvider};
-#[cfg(all(test, feature = "chain_integration_tests"))]
-use gem_client::ReqwestClient;
 #[cfg(test)]
 use gem_client::{ClientError, testkit::MockClient};
+#[cfg(all(test, feature = "chain_integration_tests"))]
+use gem_reqwest::ReqwestClient;
 #[cfg(all(test, feature = "chain_integration_tests"))]
 use primitives::asset_constants::TRON_USDT_TOKEN_ID;
 #[cfg(all(test, feature = "chain_integration_tests"))]
@@ -258,8 +258,8 @@ impl TronProvider<MockClient> {
 #[cfg(all(test, feature = "chain_integration_tests"))]
 pub fn create_test_client() -> TronProvider<ReqwestClient> {
     let settings = get_test_settings();
-    let reqwest_client = ReqwestClient::new(settings.chains.tron.url, gem_client::reqwest_client());
+    let reqwest_client = ReqwestClient::new(settings.chains.tron.url, gem_reqwest::reqwest_client());
     let trongrid = settings.indexer.trongrid.remote_provider_config();
-    let trongrid_client = TronGridClient::new(trongrid.configure_client(reqwest_client.clone()), trongrid.key);
+    let trongrid_client = TronGridClient::new(reqwest_client.clone().with_base_url(trongrid.url), trongrid.key);
     TronProvider::new(TronClient::new(reqwest_client), Box::new(trongrid_client.clone()), Box::new(trongrid_client))
 }

@@ -48,7 +48,7 @@ use crate::providers::{
     banxa::client::BanxaClient, fonbnk::client::FonbnkClient, mercuryo::client::MercuryoClient, moonpay::client::MoonPayClient, paybis::client::PaybisClient, topper::client::TopperClient, transak::client::TransakClient,
 };
 #[cfg(all(test, feature = "fiat_integration_tests"))]
-use gem_client::ReqwestClient;
+use gem_reqwest::ReqwestClient;
 #[cfg(all(test, feature = "fiat_integration_tests"))]
 use primitives::{AccessTokenCacher, CacheFuture};
 #[cfg(all(test, feature = "fiat_integration_tests"))]

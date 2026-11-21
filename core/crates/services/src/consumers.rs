@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use cacher::AccessTokenCacherClient;
 use config_keys::ConfigKey;
-use gem_client::ReqwestClient;
+use gem_reqwest::ReqwestClient;
 use primitives::{Chain, PriceProvider};
 use rewards::TransferRedemptionService;
 use security::providers::goplus::GoPlusProvider;

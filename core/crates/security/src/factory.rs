@@ -1,7 +1,7 @@
 use std::error::Error;
 use std::sync::Arc;
 
-use gem_client::ReqwestClient;
+use gem_reqwest::ReqwestClient;
 use primitives::AccessTokenCacher;
 
 use crate::config::ScanProviderConfig;
@@ -19,8 +19,8 @@ struct ScanProviders {
 
 impl ScanProviders {
     fn new(config: &ScanProviderConfig, access_token_cacher: Arc<dyn AccessTokenCacher>) -> Result<Self, Box<dyn Error + Send + Sync>> {
-        let client = gem_client::builder().timeout(config.timeout).build()?;
-        let remote = |config: &gem_client::RemoteProviderConfig| config.configure_client(ReqwestClient::new(String::new(), client.clone()));
+        let client = gem_reqwest::builder().timeout(config.timeout).build()?;
+        let remote = |config: &gem_client::RemoteProviderConfig| ReqwestClient::new(config.url.clone(), client.clone());
         Ok(Self {
             goplus: Arc::new(GoPlusProvider::new(
                 ReqwestClient::new(config.goplus.url.clone(), client.clone()),

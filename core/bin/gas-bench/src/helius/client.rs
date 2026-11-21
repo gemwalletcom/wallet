@@ -1,5 +1,6 @@
 use super::{HeliusPriorityFeeOptions, HeliusPriorityFeeParams, HeliusPriorityFeeRequest, HeliusPriorityFeeResponse, HeliusPriorityFees};
-use gem_client::{ClientExt, ReqwestClient, Target};
+use gem_client::{ClientExt, Target};
+use gem_reqwest::ReqwestClient;
 use std::error::Error;
 
 const HELIUS_URL: &str = "https://mainnet.helius-rpc.com";
@@ -25,7 +26,7 @@ pub struct HeliusClient {
 impl HeliusClient {
     pub fn new(api_key: &str) -> Self {
         Self {
-            client: ReqwestClient::new(HELIUS_URL.to_string(), gem_client::reqwest_client()),
+            client: ReqwestClient::new(HELIUS_URL.to_string(), gem_reqwest::reqwest_client()),
             api_key: api_key.to_string(),
         }
     }

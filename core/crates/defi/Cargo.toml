@@ -8,7 +8,8 @@ num-bigint = { workspace = true }
 async-trait = { workspace = true }
 gem_encoding = { path = "../gem_encoding" }
 futures = { workspace = true }
-gem_client = { path = "../gem_client", features = ["reqwest"] }
+gem_client = { path = "../gem_client" }
+gem_reqwest = { path = "../gem_reqwest" }
 jupiter = { path = "../jupiter" }
 number_formatter = { path = "../number_formatter" }
 primitives = { path = "../primitives" }

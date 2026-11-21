@@ -1,4 +1,4 @@
-use gem_client::ReqwestClient;
+use gem_reqwest::ReqwestClient;
 use primitives::hex;
 
 use crate::FiatWebhookRequest;
@@ -11,7 +11,7 @@ const TEST_WEBHOOK_SECRET: &str = "test_webhook_secret";
 impl FonbnkClient {
     pub fn mock() -> Self {
         Self::new(
-            ReqwestClient::new(String::new(), gem_client::reqwest_client()),
+            ReqwestClient::new(String::new(), gem_reqwest::reqwest_client()),
             "test_client_id".to_string(),
             "dGVzdF9hcGlfc2VjcmV0".to_string(),
             "https://pay.fonbnk.com".to_string(),

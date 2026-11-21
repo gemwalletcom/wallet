@@ -1,5 +1,5 @@
 use crate::{FiatWebhookRequest, hmac_signature::generate_hmac_signature_hex};
-use gem_client::ReqwestClient;
+use gem_reqwest::ReqwestClient;
 
 use super::client::MercuryoClient;
 
@@ -7,7 +7,7 @@ pub const TEST_WEBHOOK_SIGNING_KEY: &str = "test_webhook_key";
 
 impl MercuryoClient {
     pub fn mock() -> Self {
-        Self::new(ReqwestClient::new(String::new(), gem_client::reqwest_client()), String::new(), String::new(), TEST_WEBHOOK_SIGNING_KEY.to_string())
+        Self::new(ReqwestClient::new(String::new(), gem_reqwest::reqwest_client()), String::new(), String::new(), TEST_WEBHOOK_SIGNING_KEY.to_string())
     }
 }
 

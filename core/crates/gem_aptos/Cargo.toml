@@ -12,8 +12,7 @@ rpc = [
     "dep:gem_client",
     "dep:futures",
 ]
-reqwest = ["gem_client/reqwest"]
-chain_integration_tests = ["rpc", "reqwest"]
+chain_integration_tests = ["rpc"]
 
 [dependencies]
 primitives = { path = "../primitives" }
@@ -35,6 +34,7 @@ gem_client = { path = "../gem_client", optional = true }
 futures = { workspace = true, optional = true }
 
 [dev-dependencies]
+gem_reqwest = { path = "../gem_reqwest" }
 gem_aptos = { path = ".", features = ["rpc"] }
 gem_client = { path = "../gem_client" }
 tokio = { workspace = true, features = ["macros", "rt"] }

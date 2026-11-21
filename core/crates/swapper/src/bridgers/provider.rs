@@ -215,10 +215,8 @@ mod tests {
 #[cfg(all(test, feature = "swap_integration_tests"))]
 mod swap_integration_tests {
     use super::*;
-    use crate::{
-        alien::reqwest_provider::NativeProvider,
-        bridgers::testkit::{TEST_XRP_WALLET, mock_base_usdc_to_ton_usdt_request, mock_bsc_usdt_to_rlusd_request, mock_ton_to_bsc_usdt_request, mock_ton_usdt_to_bsc_usdt_request, mock_xrp_to_bsc_usdt_request},
-    };
+    use crate::bridgers::testkit::{TEST_XRP_WALLET, mock_base_usdc_to_ton_usdt_request, mock_bsc_usdt_to_rlusd_request, mock_ton_to_bsc_usdt_request, mock_ton_usdt_to_bsc_usdt_request, mock_xrp_to_bsc_usdt_request};
+    use gem_reqwest::NativeProvider;
     use primitives::{
         Chain, TransactionSwapMetadata, TransactionSwapReferralFee,
         asset_constants::{ARBITRUM_USDC_ASSET_ID, TON_USDT_ASSET_ID, XRP_RLUSD_ASSET_ID},

@@ -3,18 +3,11 @@ name = "gem_client"
 version = { workspace = true }
 edition = "2021"
 
-[features]
-default = []
-reqwest = ["dep:reqwest", "dep:tokio"]
-
 [dependencies]
 primitives = { path = "../primitives" }
 async-trait = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
-reqwest = { workspace = true, optional = true }
-tokio = { workspace = true, features = ["time"], optional = true }
 
 [dev-dependencies]
-gem_client = { path = ".", features = ["reqwest"] }
-tokio = { workspace = true, features = ["macros", "rt", "test-util"] }
+tokio = { workspace = true, features = ["macros", "rt"] }

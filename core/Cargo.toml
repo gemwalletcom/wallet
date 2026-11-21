@@ -160,6 +160,7 @@ rust-embed = { version = "8.11.0" }
 quote = { version = "1.0.47" }
 syn = { version = "3.0.6" }
 uniffi = { version = "0.32.1", default-features = false }
+uniffi_bindgen = { version = "0.32.1" }
 
 [profile.dev]
 debug = "line-tables-only"

@@ -399,7 +399,8 @@ mod tests {
 mod swap_integration_tests {
     use super::*;
     use crate::testkit::mock_quote;
-    use crate::{FetchQuoteData, SwapperQuoteAsset, alien::reqwest_provider::NativeProvider, mayan::constants::MAYAN_FORWARDER, models::Options};
+    use crate::{FetchQuoteData, SwapperQuoteAsset, mayan::constants::MAYAN_FORWARDER, models::Options};
+    use gem_reqwest::NativeProvider;
     use num_bigint::BigUint;
     use primitives::{
         AssetId,

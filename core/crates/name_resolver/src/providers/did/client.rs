@@ -1,6 +1,7 @@
 use std::error::Error;
 
-use gem_client::{ClientExt, ReqwestClient};
+use gem_client::ClientExt;
+use gem_reqwest::ReqwestClient;
 
 use super::model::{AccountRequest, Data, Record, Records};
 use super::target::DidTarget;

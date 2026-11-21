@@ -69,7 +69,8 @@ impl Swapper for CetusClmm {
 #[cfg(all(test, feature = "swap_integration_tests"))]
 mod swap_integration_tests {
     use super::*;
-    use crate::{FetchQuoteData, SwapperQuoteAsset, alien::reqwest_provider::NativeProvider, models::Options, testkit::TEST_SUI_WALLET};
+    use crate::{FetchQuoteData, SwapperQuoteAsset, models::Options, testkit::TEST_SUI_WALLET};
+    use gem_reqwest::NativeProvider;
     use primitives::{AssetId, asset_constants::SUI_USDC_TOKEN_ID};
     use std::sync::Arc;
 

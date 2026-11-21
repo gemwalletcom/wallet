@@ -1,7 +1,7 @@
 #[cfg(all(test, feature = "chain_integration_tests"))]
 use crate::rpc::client::AptosClient;
 #[cfg(all(test, feature = "chain_integration_tests"))]
-use gem_client::ReqwestClient;
+use gem_reqwest::ReqwestClient;
 #[cfg(all(test, feature = "chain_integration_tests"))]
 use settings::testkit::get_test_settings;
 
@@ -16,6 +16,6 @@ pub const TEST_ADDRESS_STAKING: &str = "0xc95615aa095c100b18eb6eaa0f0a0f30b9cd96
 #[cfg(all(test, feature = "chain_integration_tests"))]
 pub fn create_aptos_test_client() -> AptosClient<ReqwestClient> {
     let settings = get_test_settings();
-    let reqwest_client = ReqwestClient::new(settings.chains.aptos.url, gem_client::reqwest_client());
+    let reqwest_client = ReqwestClient::new(settings.chains.aptos.url, gem_reqwest::reqwest_client());
     AptosClient::new(reqwest_client)
 }

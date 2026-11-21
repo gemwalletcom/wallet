@@ -6,7 +6,8 @@ version = { workspace = true }
 [dependencies]
 serde = { workspace = true }
 serde_json = { workspace = true }
-gem_client = { path = "../gem_client", features = ["reqwest"] }
+gem_client = { path = "../gem_client" }
+gem_reqwest = { path = "../gem_reqwest" }
 reqwest = { workspace = true }
 
 [dev-dependencies]

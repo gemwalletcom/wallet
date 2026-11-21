@@ -2,7 +2,7 @@ use std::{error::Error, str::FromStr};
 
 use chain_providers::{ProviderConfig, ProviderFactory};
 use chain_traits::ChainTraits;
-use gem_client::builder;
+use gem_reqwest::builder;
 use primitives::Chain;
 use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
 

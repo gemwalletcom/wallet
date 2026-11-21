@@ -16,7 +16,7 @@ pub(crate) struct OffchainClient {
 impl OffchainClient {
     pub(crate) fn new(config: OffchainClientConfig) -> Self {
         let timeout = Duration::from_secs(config.timeout);
-        let client = gem_client::builder()
+        let client = gem_reqwest::builder()
             .timeout(timeout)
             .connect_timeout(timeout)
             .no_proxy()

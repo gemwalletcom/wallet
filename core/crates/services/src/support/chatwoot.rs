@@ -2,7 +2,8 @@ use std::collections::HashMap;
 use std::error::Error;
 use std::io;
 
-use gem_client::{CONTENT_TYPE, ClientError, ClientExt, MultipartForm, ReqwestClient, reqwest_client};
+use gem_client::{CONTENT_TYPE, ClientError, ClientExt, MultipartForm};
+use gem_reqwest::{ReqwestClient, reqwest_client};
 use primitives::{DateTime, Device, SupportMessage, SupportTypingStatus};
 use serde::Serialize;
 use serde_json::Value;

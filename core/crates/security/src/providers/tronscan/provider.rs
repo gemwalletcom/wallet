@@ -177,14 +177,14 @@ mod tests {
 mod security_integration_tests {
     use std::env;
 
-    use gem_client::ReqwestClient;
+    use gem_reqwest::ReqwestClient;
 
     use super::*;
 
     #[tokio::test]
     async fn test_tronscan_security() -> Result<(), Box<dyn Error + Send + Sync>> {
         let key = env::var("TRONSCAN_API_KEY")?;
-        let provider = TronscanProvider::new(ReqwestClient::new("https://apilist.tronscanapi.com".into(), gem_client::builder().build()?), &key);
+        let provider = TronscanProvider::new(ReqwestClient::new("https://apilist.tronscanapi.com".into(), gem_reqwest::builder().build()?), &key);
         let address = AddressTarget {
             address: "TT2T17KZhoDu47i2E4FWxfG79zdkEWkU9N".into(),
             chain: Chain::Tron,

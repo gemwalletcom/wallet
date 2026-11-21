@@ -2,7 +2,7 @@ use std::error::Error;
 use std::str::FromStr;
 
 use async_trait::async_trait;
-use gem_client::ReqwestClient;
+use gem_reqwest::ReqwestClient;
 use gem_solana::Pubkey;
 use primitives::contract_constants::SOLANA_ALLDOMAINS_ROOT_PUBLIC_KEY;
 use primitives::{Chain, NameProvider};

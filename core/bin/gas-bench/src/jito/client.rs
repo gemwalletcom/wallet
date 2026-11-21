@@ -1,5 +1,6 @@
 use super::{JitoTipFloor, JitoTipFloorEntry};
-use gem_client::{ClientExt, ReqwestClient, Target};
+use gem_client::{ClientExt, Target};
+use gem_reqwest::ReqwestClient;
 use std::error::Error;
 
 const JITO_URL: &str = "https://bundles.jito.wtf";
@@ -30,7 +31,7 @@ impl Default for JitoClient {
 impl JitoClient {
     pub fn new() -> Self {
         Self {
-            client: ReqwestClient::new(JITO_URL.to_string(), gem_client::reqwest_client()),
+            client: ReqwestClient::new(JITO_URL.to_string(), gem_reqwest::reqwest_client()),
         }
     }
 

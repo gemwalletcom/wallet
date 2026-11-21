@@ -1,7 +1,7 @@
 #[cfg(all(test, feature = "chain_integration_tests"))]
 use crate::rpc::client::BitcoinClient;
 #[cfg(all(test, feature = "chain_integration_tests"))]
-use gem_client::ReqwestClient;
+use gem_reqwest::ReqwestClient;
 #[cfg(all(test, feature = "chain_integration_tests"))]
 use primitives::BitcoinChain;
 #[cfg(all(test, feature = "chain_integration_tests"))]
@@ -15,6 +15,6 @@ pub const TEST_TRANSACTION_ID: &str = "654c6a28f7ff1915d2b9abc2e18e32a37e0196203
 #[cfg(all(test, feature = "chain_integration_tests"))]
 pub fn create_bitcoin_test_client() -> BitcoinClient<ReqwestClient> {
     let settings = get_test_settings();
-    let reqwest_client = ReqwestClient::new(settings.chains.bitcoin.url, gem_client::reqwest_client());
+    let reqwest_client = ReqwestClient::new(settings.chains.bitcoin.url, gem_reqwest::reqwest_client());
     BitcoinClient::new(reqwest_client, BitcoinChain::Bitcoin)
 }

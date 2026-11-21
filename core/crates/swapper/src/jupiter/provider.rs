@@ -201,8 +201,9 @@ mod tests {
 #[cfg(all(test, feature = "swap_integration_tests"))]
 mod swap_integration_tests {
     use super::*;
-    use crate::{FetchQuoteData, SwapperQuoteAsset, alien::reqwest_provider::NativeProvider, models::Options};
+    use crate::{FetchQuoteData, SwapperQuoteAsset, models::Options};
     use gem_encoding::decode_base64;
+    use gem_reqwest::NativeProvider;
     use gem_solana::{MAX_TRANSACTION_SIZE, USDC_TOKEN_MINT, WSOL_TOKEN_ADDRESS};
     use primitives::AssetId;
     use std::sync::Arc;

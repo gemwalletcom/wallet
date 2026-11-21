@@ -94,7 +94,8 @@ where
 #[cfg(all(test, feature = "swap_integration_tests"))]
 mod swap_integration_tests {
     use super::*;
-    use crate::{NativeProvider, xrp_ledger::testkit::mock_request};
+    use crate::xrp_ledger::testkit::mock_request;
+    use gem_reqwest::NativeProvider;
     use primitives::Asset;
 
     #[tokio::test]

@@ -8,8 +8,9 @@ num-bigint = { workspace = true }
 config_keys = { path = "../config_keys" }
 primitives = { path = "../primitives" }
 localizer = { path = "../localizer" }
-gem_evm = { path = "../gem_evm", features = ["rpc", "reqwest", "signer"] }
-gem_client = { path = "../gem_client", features = ["reqwest"] }
+gem_evm = { path = "../gem_evm", features = ["rpc", "signer"] }
+gem_client = { path = "../gem_client" }
+gem_reqwest = { path = "../gem_reqwest" }
 chain_traits = { path = "../chain_traits" }
 
 serde = { workspace = true }

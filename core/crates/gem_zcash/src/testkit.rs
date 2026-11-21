@@ -1,5 +1,5 @@
 use gem_bitcoin::BitcoinClient;
-use gem_client::ReqwestClient;
+use gem_reqwest::ReqwestClient;
 use primitives::BitcoinChain;
 use settings::testkit::get_test_settings;
 

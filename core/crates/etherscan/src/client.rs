@@ -1,6 +1,6 @@
 use std::error::Error;
 
-use gem_client::{Client, ClientExt, ReqwestClient};
+use gem_client::{Client, ClientExt};
 use primitives::EVMChain;
 use serde::de::DeserializeOwned;
 
@@ -14,12 +14,6 @@ pub struct EtherscanClient<C: Client> {
     client: C,
     api_key: Option<String>,
     api: EtherscanApi,
-}
-
-impl EtherscanClient<ReqwestClient> {
-    pub fn new_with_reqwest_client(client: reqwest::Client, api_key: Option<String>) -> Self {
-        Self::new_with_client(ReqwestClient::new("https://api.etherscan.io".to_string(), client), api_key, EtherscanApi::Etherscan)
-    }
 }
 
 impl<C: Client> EtherscanClient<C> {

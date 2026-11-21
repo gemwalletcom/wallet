@@ -5,10 +5,10 @@ use std::collections::HashMap;
 use crate::models::{Trace, TraceAction, TraceResponse, TransactionMessage};
 #[cfg(test)]
 use crate::rpc::client::TonClient;
-#[cfg(all(test, feature = "chain_integration_tests"))]
-use gem_client::ReqwestClient;
 #[cfg(test)]
 use gem_client::testkit::MockClient;
+#[cfg(all(test, feature = "chain_integration_tests"))]
+use gem_reqwest::ReqwestClient;
 #[cfg(all(test, feature = "chain_integration_tests"))]
 use settings::testkit::get_test_settings;
 
@@ -78,6 +78,6 @@ impl TonClient<MockClient> {
 #[cfg(all(test, feature = "chain_integration_tests"))]
 pub fn create_ton_test_client() -> TonClient<ReqwestClient> {
     let settings = get_test_settings();
-    let reqwest_client = ReqwestClient::new(settings.chains.ton.url, gem_client::reqwest_client());
+    let reqwest_client = ReqwestClient::new(settings.chains.ton.url, gem_reqwest::reqwest_client());
     TonClient::new(reqwest_client)
 }

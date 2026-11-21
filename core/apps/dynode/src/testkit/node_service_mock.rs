@@ -13,7 +13,7 @@ impl NodeService {
         Self::new(
             HashMap::from([(chain_config.chain, chain_config)]),
             Metrics::mock(),
-            gem_client::reqwest_client(),
+            gem_reqwest::reqwest_client(),
             ChainTypesConfig::default(),
             RequestCache::default(),
             RetryConfig::default(),

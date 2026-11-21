@@ -1,6 +1,7 @@
 use crate::model::{PositionsResponse, Token, TokenSearchResult};
 use crate::target::JupiterTarget;
-use gem_client::{Client, ClientExt, ReqwestClient};
+use gem_client::{Client, ClientExt};
+use gem_reqwest::ReqwestClient;
 use std::{collections::HashMap, error::Error};
 
 const JUPITER_API_URL: &str = "https://api.jup.ag";

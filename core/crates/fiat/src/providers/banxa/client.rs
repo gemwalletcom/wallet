@@ -1,6 +1,7 @@
 use std::{collections::HashMap, error::Error};
 
-use gem_client::{ClientExt, ReqwestClient};
+use gem_client::ClientExt;
+use gem_reqwest::ReqwestClient;
 use primitives::FiatProviderName;
 
 use super::models::{Asset, BuyQuoteQuery, CheckoutOrder, Country, CreateOrderRequest, FiatCurrency, Order, PAYMENT_METHOD_CARD, Quote};

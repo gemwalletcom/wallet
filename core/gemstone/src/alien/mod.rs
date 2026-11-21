@@ -2,8 +2,6 @@ pub mod client;
 mod coalescing_provider;
 pub mod error;
 pub mod provider;
-#[cfg(feature = "reqwest_provider")]
-pub mod reqwest_provider;
 pub mod target;
 
 use std::sync::Arc;

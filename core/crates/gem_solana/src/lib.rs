@@ -12,7 +12,7 @@ pub mod siws;
 pub mod token_account;
 mod types;
 
-#[cfg(any(feature = "rpc", feature = "reqwest"))]
+#[cfg(feature = "rpc")]
 pub mod rpc;
 
 #[cfg(feature = "rpc")]
@@ -45,8 +45,6 @@ pub use types::{
 pub(crate) use error::Result;
 pub(crate) use short_vec::{decode_compact_u16_len, encode_length_to_compact_u16_bytes};
 
-#[cfg(all(feature = "reqwest", not(feature = "rpc")))]
-pub use rpc::client::SolanaClient;
 #[cfg(feature = "rpc")]
 pub use rpc::client::SolanaClient;
 

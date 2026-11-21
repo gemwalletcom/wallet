@@ -1,13 +1,12 @@
 use std::error::Error;
 
-use gem_client::{ClientExt, ReqwestClient};
+use gem_client::{Client, ClientExt};
 
 use super::model::{BeaconResponse, PendingDeposit, StateRoot, ValidatorEntry, ValidatorQueue};
 
 const FINALIZED_STATE_ROOT_PATH: &str = "/eth/v1/beacon/states/finalized/root";
 
-pub async fn get_validator_queue(url: &str) -> Result<ValidatorQueue, Box<dyn Error + Send + Sync>> {
-    let client = ReqwestClient::new(url.to_string(), gem_client::reqwest_client());
+pub async fn get_validator_queue<C: Client>(client: &C) -> Result<ValidatorQueue, Box<dyn Error + Send + Sync>> {
     let response: BeaconResponse<StateRoot> = client.get(FINALIZED_STATE_ROOT_PATH).await?;
     let state_path = format!("/eth/v1/beacon/states/{}", response.verified_data()?.root);
     let pending_deposits_path = format!("{state_path}/pending_deposits");
@@ -22,13 +21,16 @@ pub async fn get_validator_queue(url: &str) -> Result<ValidatorQueue, Box<dyn Er
 
 #[cfg(all(test, feature = "chain_integration_tests"))]
 mod chain_integration_tests {
+    use gem_reqwest::{ReqwestClient, reqwest_client};
+
     use super::*;
 
     const PUBLICNODE_BEACON_API_BASE_URL: &str = "https://ethereum-beacon-api.publicnode.com";
 
     #[tokio::test]
     async fn test_publicnode_get_validator_queue() -> Result<(), Box<dyn Error + Send + Sync>> {
-        let queue = get_validator_queue(PUBLICNODE_BEACON_API_BASE_URL).await?;
+        let client = ReqwestClient::new(PUBLICNODE_BEACON_API_BASE_URL.to_string(), reqwest_client());
+        let queue = get_validator_queue(&client).await?;
         let estimate = queue.estimated_wait_times()?;
 
         println!("Entry queue: {} Gwei, wait: {:?}", queue.entry_queue_balance, estimate.entry_wait_time);

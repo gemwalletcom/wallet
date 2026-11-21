@@ -12,14 +12,15 @@ alloy-sol-types = { workspace = true }
 idna = { workspace = true }
 url = { workspace = true }
 
-gem_client = { path = "../gem_client", features = ["reqwest"] }
-gem_jsonrpc = { path = "../gem_jsonrpc", features = ["reqwest"] }
+gem_client = { path = "../gem_client" }
+gem_reqwest = { path = "../gem_reqwest" }
+gem_jsonrpc = { path = "../gem_jsonrpc", features = ["client"] }
 gem_encoding = { path = "../gem_encoding", features = ["protobuf"] }
 gem_hash = { path = "../gem_hash" }
 gem_aptos = { path = "../gem_aptos", features = ["rpc"] }
 gem_cosmos = { path = "../gem_cosmos", features = ["rpc"] }
 gem_evm = { path = "../gem_evm", features = ["rpc"] }
-gem_near = { path = "../gem_near", features = ["rpc", "reqwest"] }
+gem_near = { path = "../gem_near", features = ["rpc"] }
 gem_solana = { path = "../gem_solana" }
 gem_ton = { path = "../gem_ton", features = ["rpc"] }
 primitives = { path = "../primitives" }

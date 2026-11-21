@@ -9,9 +9,10 @@ use coingecko::CoinGeckoClient;
 use config_keys::ConfigKey;
 use defi::{DefiProviderClient, DefiProviderConfig};
 use fiat::{FiatProvider, FiatProviderFactory, IpAddressProvider};
-use gem_client::ReqwestClient;
 use gem_evm::rpc::{EthereumClient, EthereumProvider};
 use gem_jsonrpc::JsonRpcClient;
+use gem_reqwest::NativeProvider;
+use gem_reqwest::ReqwestClient;
 use lists::CoinGeckoListProvider;
 use nft::{NFTProviderClient, NFTProviderConfig};
 use primitives::{AccessTokenCacher, Chain, ChainType, EVMChain, FiatProviderName, PriceProvider};
@@ -23,7 +24,6 @@ use settings::Settings;
 use storage::{Database, DatabaseError};
 use streamer::{Retry, ShutdownReceiver, StreamProducer, StreamProducerConfig};
 use support::ChatwootWebhookVerifier;
-use swapper::NativeProvider;
 use swapper::swapper::GemSwapper;
 use tokio::sync::OnceCell;
 
@@ -215,7 +215,7 @@ impl Services {
             .collect::<Result<HashMap<_, _>, String>>()?;
         let settings = self.settings.clone();
         let client_provider: EvmClientProvider = Arc::new(move |chain: EVMChain| {
-            let client = ReqwestClient::new(ProviderFactory::get_chain_url(chain.to_chain(), &settings), gem_client::builder().build().ok()?);
+            let client = ReqwestClient::new(ProviderFactory::get_chain_url(chain.to_chain(), &settings), gem_reqwest::builder().build().ok()?);
             Some(EthereumProvider::new_rpc_only(EthereumClient::new(JsonRpcClient::new(client), chain)))
         });
         Ok(TransferRedemptionService::new(wallets, client_provider))

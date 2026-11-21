@@ -9,11 +9,13 @@ use super::{
     provider_proxy::{OkxProviderProxy, error_response},
 };
 #[cfg(feature = "swap_integration_tests")]
-use crate::{NativeProvider, RpcClient};
+use crate::RpcClient;
 use crate::{QuoteRequest, SwapperQuoteAsset, alien::mock::ProviderMock, testkit::mock_quote};
 #[cfg(feature = "swap_integration_tests")]
 use gem_client::ClientError;
 use gem_client::testkit::MockClient;
+#[cfg(feature = "swap_integration_tests")]
+use gem_reqwest::NativeProvider;
 use num_bigint::BigUint;
 use primitives::{AssetId, Chain, asset_constants::SOLANA_USDC_ASSET_ID, testkit::signer_mock::TEST_SOLANA_SENDER};
 #[cfg(feature = "swap_integration_tests")]

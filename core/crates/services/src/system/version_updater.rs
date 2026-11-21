@@ -1,4 +1,5 @@
-use gem_client::{ClientExt, ReqwestClient};
+use gem_client::ClientExt;
+use gem_reqwest::ReqwestClient;
 use primitives::{GEM_ANDROID_PACKAGE_ID, GEM_IOS_BUNDLE_ID, PlatformStore};
 use std::error::Error;
 use std::sync::Arc;
@@ -17,7 +18,7 @@ impl VersionUpdater {
     pub(crate) fn new(repository: Arc<dyn Repository>) -> Self {
         Self {
             repository,
-            client: gem_client::reqwest_client(),
+            client: gem_reqwest::reqwest_client(),
         }
     }
 

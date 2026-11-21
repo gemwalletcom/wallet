@@ -13,8 +13,7 @@ rpc = [
 ]
 tvm = ["dep:gem_hash"]
 signer = ["tvm", "dep:signer"]
-reqwest = ["gem_client/reqwest"]
-chain_integration_tests = ["rpc", "reqwest"]
+chain_integration_tests = ["rpc"]
 
 [dependencies]
 serde = { workspace = true }
@@ -37,6 +36,7 @@ signer = { path = "../signer", optional = true }
 gem_hash = { path = "../gem_hash", optional = true }
 
 [dev-dependencies]
+gem_reqwest = { path = "../gem_reqwest" }
 gem_ton = { path = ".", features = ["rpc", "signer"] }
 chain_traits = { path = "../chain_traits" }
 gem_client = { path = "../gem_client" }

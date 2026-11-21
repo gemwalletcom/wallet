@@ -13,7 +13,7 @@ pub use provider::FiatProvider;
 pub use webhook::FiatWebhookRequest;
 
 use crate::providers::{BanxaClient, FlashnetClient, FonbnkClient, MercuryoClient, MoonPayClient, PaybisClient, TopperClient, TransakClient};
-use gem_client::ReqwestClient;
+use gem_reqwest::ReqwestClient;
 use primitives::AccessTokenCacher;
 use settings::Settings;
 use std::sync::Arc;
@@ -22,7 +22,7 @@ use std::time::Duration;
 pub use model::FiatDeviceContext;
 
 fn request_client(timeout: Duration) -> reqwest::Client {
-    gem_client::builder().timeout(timeout).build().expect("fiat HTTP client configuration is valid")
+    gem_reqwest::builder().timeout(timeout).build().expect("fiat HTTP client configuration is valid")
 }
 pub use ip_check_client::{IPCheckClient, IpAddressProvider};
 pub use transaction_info_mapper::fiat_transaction_info;
