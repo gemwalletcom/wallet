@@ -1,7 +1,5 @@
-use std::fmt::Debug;
+use std::fmt::{Debug, Display, Write};
 
-use crate::decimal::{push_f64, push_u64};
-use crate::gauge::GaugeValue;
 use crate::labels::{LabelEncoder, LabelSet};
 
 pub(crate) const TOTAL_SUFFIX: &str = "_total";
@@ -62,28 +60,28 @@ impl<'a> MetricEncoder<'a> {
 
     pub(crate) fn counter(&mut self, labels: &impl LabelSet, value: u64) {
         self.push_sample(TOTAL_SUFFIX, None, labels);
-        push_u64(self.out, value);
+        write!(self.out, "{value}").unwrap_or_default();
         self.out.push('\n');
     }
 
-    pub(crate) fn gauge(&mut self, labels: &impl LabelSet, value: impl GaugeValue) {
+    pub(crate) fn gauge(&mut self, labels: &impl LabelSet, value: impl Display) {
         self.push_sample("", None, labels);
-        value.encode(self.out);
+        write!(self.out, "{value}").unwrap_or_default();
         self.out.push('\n');
     }
 
     pub(crate) fn histogram(&mut self, labels: &impl LabelSet, sum: f64, count: u64, buckets: &[(f64, u64)]) {
         self.push_sample("_sum", None, labels);
-        push_f64(self.out, sum);
+        write!(self.out, "{sum:?}").unwrap_or_default();
         self.out.push('\n');
         self.push_sample("_count", None, labels);
-        push_u64(self.out, count);
+        write!(self.out, "{count}").unwrap_or_default();
         self.out.push('\n');
         let mut cumulative = 0;
         for (bound, bucket) in buckets {
             cumulative += bucket;
             self.push_sample("_bucket", Some(*bound), labels);
-            push_u64(self.out, cumulative);
+            write!(self.out, "{cumulative}").unwrap_or_default();
             self.out.push('\n');
         }
     }

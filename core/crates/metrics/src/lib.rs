@@ -1,5 +1,4 @@
 mod counter;
-mod decimal;
 mod encoder;
 mod family;
 mod gauge;

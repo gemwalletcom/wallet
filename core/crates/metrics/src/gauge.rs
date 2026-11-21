@@ -1,17 +1,15 @@
-use std::fmt::Debug;
+use std::fmt::{Debug, Display};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicI64, AtomicU64, Ordering};
 
-use crate::decimal::{push_i64, push_u64};
 use crate::encoder::{Metric, MetricEncoder, MetricType};
 use crate::labels::LabelSet;
 
-pub trait GaugeValue: Copy + Debug + Default + Send + Sync + 'static {
+pub trait GaugeValue: Copy + Debug + Default + Display + Send + Sync + 'static {
     type Atomic: Debug + Default + Send + Sync;
 
     fn store(atomic: &Self::Atomic, value: Self);
     fn load(atomic: &Self::Atomic) -> Self;
-    fn encode(self, out: &mut String);
 }
 
 #[derive(Debug, Default)]
@@ -59,10 +57,6 @@ impl GaugeValue for i64 {
     fn load(atomic: &AtomicI64) -> i64 {
         atomic.load(Ordering::Relaxed)
     }
-
-    fn encode(self, out: &mut String) {
-        push_i64(out, self);
-    }
 }
 
 impl GaugeValue for u64 {
@@ -74,9 +68,5 @@ impl GaugeValue for u64 {
 
     fn load(atomic: &AtomicU64) -> u64 {
         atomic.load(Ordering::Relaxed)
-    }
-
-    fn encode(self, out: &mut String) {
-        push_u64(out, self);
     }
 }

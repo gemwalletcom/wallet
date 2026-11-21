@@ -40,11 +40,11 @@ impl Metrics {
             .chain(providers.websites.iter().map(|provider| (provider.provider(), ScanType::Website)))
         {
             for outcome in ScanOutcome::all() {
-                drop(scan_latency.get_or_create(&ScanLabels {
+                scan_latency.get_or_create(&ScanLabels {
                     provider: provider.as_ref().to_string(),
                     kind: kind.into(),
                     outcome: outcome.into(),
-                }));
+                });
             }
         }
         let mut registry = MetricsRegistry::with_prefix(METRICS_PREFIX);

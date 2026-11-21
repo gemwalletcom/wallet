@@ -31,8 +31,8 @@ impl Metrics {
         for chain in chains {
             for outcome in ["success", "failure"] {
                 let labels = self.transaction_broadcast_labels(chain, outcome);
-                drop(self.transaction_broadcasts.get_or_create(&labels));
-                drop(self.transaction_broadcast_latency.get_or_create(&labels));
+                self.transaction_broadcasts.get_or_create(&labels);
+                self.transaction_broadcast_latency.get_or_create(&labels);
             }
         }
     }

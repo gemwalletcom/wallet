@@ -1,7 +1,5 @@
-use std::fmt::Debug;
+use std::fmt::{Debug, Write};
 use std::hash::Hash;
-
-use crate::decimal::{push_f64, push_u64};
 
 const BUCKET_LABEL: &str = "le";
 const INFINITE_BOUND: &str = "+Inf";
@@ -35,7 +33,7 @@ impl<'a> LabelEncoder<'a> {
         if bound == f64::INFINITY {
             self.out.push_str(INFINITE_BOUND);
         } else {
-            push_f64(self.out, bound);
+            write!(self.out, "{bound:?}").unwrap_or_default();
         }
         self.out.push('"');
     }
@@ -80,7 +78,7 @@ impl LabelValue for String {
 
 impl LabelValue for u16 {
     fn encode(&self, out: &mut String) {
-        push_u64(out, u64::from(*self));
+        write!(out, "{self}").unwrap_or_default();
     }
 }
 
