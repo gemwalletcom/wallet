@@ -344,7 +344,7 @@ pub enum GemListFieldValue {
         date: DateTime,
     },
     Address {
-        name: Option<String>,
+        text: String,
         copy: GemCopy,
         explorer: BlockExplorerLink,
         menu: Vec<GemRowMenuItem>,

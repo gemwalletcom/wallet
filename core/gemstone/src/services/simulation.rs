@@ -17,6 +17,7 @@ use primitives::{
     SimulationSeverity, SimulationWarning, SimulationWarningType, TransactionType, ValueAccess, VerificationStatus, WCEthereumTransaction,
 };
 
+use crate::address_formatter::name_text;
 use crate::duration_formatter::countdown_parts;
 use crate::formatted_number::GemValueTone;
 use crate::models::copy::{GemCopy, address_copy};
@@ -331,10 +332,10 @@ fn payload_title(field: &SimulationPayloadField) -> GemLocalizedText {
 fn address_value(copy: GemCopy, names: &[AddressName], explorer: BlockExplorerLink) -> GemListFieldValue {
     let name = names
         .iter()
-        .find(|name| name.address.eq_ignore_ascii_case(&copy.value) && !name.name.is_empty() && !name.name.eq_ignore_ascii_case(&copy.value))
+        .find(|name| name.address.eq_ignore_ascii_case(&copy.value) && !name.name.eq_ignore_ascii_case(&copy.value))
         .map(|name| name.name.clone());
     GemListFieldValue::Address {
-        name,
+        text: name_text(name, copy.display.clone(), false).unwrap_or_else(|| copy.display.clone()),
         menu: vec![GemRowMenuItem::Copy { copy: copy.clone() }, GemRowMenuItem::view_on(&explorer)],
         copy,
         explorer,
@@ -625,7 +626,7 @@ mod tests {
                 GemListRow::Field {
                     title: GemLocalizedText::RowTitle { title: GemListRowTitle::Spender },
                     value: GemListFieldValue::Address {
-                        name: None,
+                        text: copy.display.clone(),
                         menu: vec![GemRowMenuItem::Copy { copy: copy.clone() }, GemRowMenuItem::view_on(&explorer)],
                         copy,
                         explorer,
@@ -672,7 +673,7 @@ mod tests {
                 GemListRow::Field {
                     title: GemLocalizedText::RowTitle { title: GemListRowTitle::Recipient },
                     value: GemListFieldValue::Address {
-                        name: None,
+                        text: copy.display.clone(),
                         menu: vec![GemRowMenuItem::Copy { copy: copy.clone() }, GemRowMenuItem::view_on(&explorer)],
                         copy,
                         explorer,
@@ -696,7 +697,7 @@ mod tests {
     }
 
     #[test]
-    fn test_named_payload_rows_attach_the_name_as_its_own_part_skip_names_that_repeat_the_address_and_keep_the_short_address() {
+    fn test_named_payload_rows_show_a_known_name_with_the_short_address_on_one_line_and_skip_names_that_repeat_the_address() {
         let address = "0xBA4D1d35bCe0e8F28E5a3403e7a0b996c5d50AC4";
         let other = "0x0000000000000000000000000000000000000001";
         let rows = payload_rows(
@@ -718,23 +719,19 @@ mod tests {
 
         let named = named_payload_rows(rows, &[name(&address.to_lowercase(), "Hyperliquid"), name(other, other)]);
 
-        let parts = named
+        let texts = named
             .iter()
             .map(|row| match row {
                 GemListRow::Field {
-                    value: GemListFieldValue::Address { name, copy, .. },
+                    value: GemListFieldValue::Address { text, .. },
                     ..
-                } => Some((copy.display.clone(), name.clone())),
+                } => Some(text.clone()),
                 _ => None,
             })
             .collect::<Vec<_>>();
         let copy = address_copy(Chain::Ethereum, address.to_string());
         let other_copy = address_copy(Chain::Ethereum, other.to_string());
-        assert_eq!(
-            parts,
-            vec![Some((copy.display, Some("Hyperliquid".to_string()))), Some((other_copy.display, None))],
-            "the name is its own part and the display stays the short address"
-        );
+        assert_eq!(texts, vec![Some(format!("Hyperliquid ({})", copy.display)), Some(other_copy.display)]);
         assert_eq!(
             address_requests(&named, Chain::Ethereum),
             vec![ChainAddress::new(Chain::Ethereum, address.to_string()), ChainAddress::new(Chain::Ethereum, other.to_string())]
