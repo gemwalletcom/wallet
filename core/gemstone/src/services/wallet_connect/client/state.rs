@@ -148,7 +148,7 @@ impl ClientState {
         self.pairings.retain(|pairing| pairing.expiry > now);
         self.sessions.retain(|session| session.expiry > now);
         let topics: Vec<String> = self.sessions.iter().map(|session| session.topic.clone()).collect();
-        self.requests.retain(|request| topics.contains(&request.topic) && request.expiry.is_none_or(|expiry| expiry > now));
+        self.requests.retain(|request| topics.contains(&request.topic) && request.expiry.is_some_and(|expiry| expiry > now));
         self.answered.retain(|answered| answered.expiry > now);
         self.outbox.retain(|outgoing| outgoing.expiry > now);
         count != self.pairings.len() + self.sessions.len() + self.requests.len() + self.answered.len() + self.outbox.len()
@@ -182,8 +182,8 @@ mod tests {
         assert_eq!(state.topics(), vec!["live", "live"]);
         assert_eq!(
             state.requests,
-            vec![PendingRequest::mock("live", 1, Some(200)), PendingRequest::mock("live", 3, None)],
-            "requests outlive neither their expiry nor their session"
+            vec![PendingRequest::mock("live", 1, Some(200))],
+            "requests outlive neither their expiry nor their session, and one stored without an expiry is not kept"
         );
         assert_eq!(state.answered, vec![AnsweredRequest::mock(5, 200)]);
         assert_eq!(state.outbox, vec![Outgoing::mock(7, 200)], "an answer the relay never confirmed is dropped once its time to live is over");

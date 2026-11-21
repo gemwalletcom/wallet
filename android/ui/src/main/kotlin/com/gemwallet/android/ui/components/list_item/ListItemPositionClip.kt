@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.unit.Dp
 import com.gemwallet.android.ui.models.ListPosition
 import com.gemwallet.android.ui.theme.adaptivePadding
@@ -48,6 +49,22 @@ private fun ListPosition.shape() = when (this) {
     ListPosition.Single -> singleItemShape
     ListPosition.Last -> lastItemShape
 }
+
+private fun ListPosition.segmentShape() = when (this) {
+    ListPosition.Subhead, ListPosition.Middle -> RectangleShape
+    ListPosition.First -> RoundedCornerShape(topStart = largeCornerRadius, topEnd = largeCornerRadius)
+    ListPosition.Single -> singleItemShape
+    ListPosition.Last -> RoundedCornerShape(bottomStart = largeCornerRadius, bottomEnd = largeCornerRadius)
+}
+
+@Composable
+fun Modifier.listItemSegment(position: ListPosition, background: Color = MaterialTheme.colorScheme.background): Modifier = padding(horizontal = adaptivePadding(default = largeCornerRadius, compact = paddingSmall))
+    .padding(
+        top = if (position == ListPosition.First || position == ListPosition.Single) normalTopPadding else space0,
+        bottom = if (position == ListPosition.Last || position == ListPosition.Single) normalBottomPadding else space0,
+    )
+    .clip(position.segmentShape())
+    .background(background)
 
 @Composable
 fun Modifier.listItem(position: ListPosition = ListPosition.Single, background: Color = MaterialTheme.colorScheme.background, paddingVertical: Dp? = null, paddingHorizontal: Dp? = null): Modifier {

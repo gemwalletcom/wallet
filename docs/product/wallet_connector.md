@@ -40,6 +40,7 @@ flowchart LR
 | A second connection is approved before the first dapp confirms its own | each connection is listed under, and signs with, the wallet it was approved with | a request is reviewed and signed by its connection's wallet (`the connection is listed under the wallet that approved it`) |
 | The app is opened with a dapp already connected and a new dapp's code arrives at once | the new proposal shows and can be approved | the client is set up once, so the proposal arrives once and no copy of it is refused, which the dapp would see as a failed connection |
 | A request has expired | "Request expired"; it cannot be approved and is never signed | |
+| A request names no expiry | it expires 15 minutes after it arrives | WalletConnect's own dapp library stops waiting for an answer after 15 minutes, so a request sent days ago must not show when the app next opens |
 | A request expires while its review is open, including while the review offers Buy or Receive | the review closes within a few seconds with "Request expired" and nothing is signed | the dapp has stopped waiting; a send it never hears about invites the user to pay twice |
 | A dapp sends a transaction Gem can't read or sign as it is, such as one missing a field | the review shows "This request is invalid and can't be completed." and nothing is signed | technical text means nothing to someone deciding whether to sign |
 | A message to sign comes from a site flagged as malicious | it is refused before anything is signed | a message to sign is checked like a transaction |
