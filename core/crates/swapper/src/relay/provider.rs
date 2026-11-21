@@ -115,7 +115,7 @@ where
         };
 
         let response = self.client.get_quote(relay_request).await?;
-        mapper::validate_quote_response(from_chain, &response, &from_value)?;
+        mapper::validate_quote_response(from_chain, &response, request)?;
 
         let to_value = BigUint::from_str(&response.details.currency_out.amount).map_err(SwapperError::compute_quote_error)?;
 
@@ -136,10 +136,7 @@ where
             RelayChain::Bitcoin => mapper::map_bitcoin_quote_data(&response, &quote.from_value),
             RelayChain::Evm(_) => mapper::map_evm_quote_data(&response, approval),
             RelayChain::Tron => mapper::map_tron_quote_data(&response, approval),
-            RelayChain::Solana => {
-                let step = response.get_solana_step().ok_or(SwapperError::InvalidRoute)?;
-                solana::build_quote_data(quote, step, self.rpc_provider.clone()).await
-            }
+            RelayChain::Solana => solana::build_quote_data(&quote.request, &response, self.rpc_provider.clone()).await,
             RelayChain::Ton => mapper::map_ton_quote_data(&response),
             RelayChain::Xrp => mapper::map_xrp_quote_data(&response, &quote.from_value),
         }

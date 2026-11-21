@@ -1,14 +1,9 @@
 use gem_encoding::borsh::{BorshDeserialize, DecodeError, Reader};
-use gem_solana::{
-    Instruction, JUPITER_PROGRAM_ID, Pubkey,
-    anchor::{global_discriminator, instruction_arguments},
-    associated_token::is_associated_token_address,
-};
+use gem_solana::{Instruction, JUPITER_PROGRAM_ID, Pubkey, anchor::global_discriminator, associated_token::is_associated_token_address};
 
 use crate::fees::subtract_bps;
 
-const ROUTE: &str = "route_v2";
-const SHARED_ACCOUNTS_ROUTE: &str = "shared_accounts_route_v2";
+type UnitRouteStep = [u8; 4];
 
 struct RouteLayout {
     instruction: &'static str,
@@ -16,22 +11,25 @@ struct RouteLayout {
     source: usize,
     destination: usize,
     user_destination: Option<usize>,
+    arguments: fn(&[u8]) -> Option<RouteArguments>,
 }
 
 const ROUTE_LAYOUTS: [RouteLayout; 3] = [
     RouteLayout {
-        instruction: ROUTE,
+        instruction: "route_v2",
         authority: 0,
         source: 1,
         destination: 7,
         user_destination: Some(2),
+        arguments: RouteArguments::route,
     },
     RouteLayout {
-        instruction: SHARED_ACCOUNTS_ROUTE,
+        instruction: "shared_accounts_route_v2",
         authority: 1,
         source: 2,
         destination: 5,
         user_destination: None,
+        arguments: RouteArguments::shared_accounts_route,
     },
     RouteLayout {
         instruction: "route",
@@ -39,11 +37,12 @@ const ROUTE_LAYOUTS: [RouteLayout; 3] = [
         source: 2,
         destination: 4,
         user_destination: Some(3),
+        arguments: RouteArguments::unit_steps_route,
     },
 ];
 
 #[derive(Debug, PartialEq, Eq)]
-pub(super) struct RouteArguments {
+pub(crate) struct RouteArguments {
     pub in_amount: u64,
     pub quoted_out_amount: u64,
     pub slippage_bps: u16,
@@ -65,21 +64,50 @@ impl RouteArguments {
     pub(super) fn minimum_out(&self) -> u64 {
         subtract_bps(&self.quoted_out_amount, u32::from(self.slippage_bps))
     }
+
+    fn route(mut body: &[u8]) -> Option<Self> {
+        Self::deserialize(&mut body).ok()
+    }
+
+    fn shared_accounts_route(mut body: &[u8]) -> Option<Self> {
+        <(u8, Self)>::deserialize(&mut body).ok().map(|(_, arguments)| arguments)
+    }
+
+    fn unit_steps_route(body: &[u8]) -> Option<Self> {
+        UnitStepsRoute::try_from_slice(body).ok().map(|UnitStepsRoute(arguments)| arguments)
+    }
+}
+
+struct UnitStepsRoute(RouteArguments);
+
+impl BorshDeserialize for UnitStepsRoute {
+    fn deserialize_reader(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        reader.read::<Vec<UnitRouteStep>>()?;
+        Ok(Self(RouteArguments {
+            in_amount: reader.read()?,
+            quoted_out_amount: reader.read()?,
+            slippage_bps: reader.read()?,
+            platform_fee_bps: u16::from(reader.read::<u8>()?),
+        }))
+    }
 }
 
 #[derive(Debug, PartialEq, Eq)]
-pub(crate) struct RouteAccounts {
+pub(crate) struct JupiterRoute {
     pub authority: Pubkey,
     pub source: Pubkey,
     pub destination: Pubkey,
+    pub arguments: RouteArguments,
 }
 
-impl RouteAccounts {
+impl JupiterRoute {
     pub(crate) fn decode(instruction: &Instruction) -> Option<Self> {
         if instruction.program_id.to_base58() != JUPITER_PROGRAM_ID {
             return None;
         }
-        let layout = ROUTE_LAYOUTS.iter().find(|layout| instruction.data.starts_with(&global_discriminator(layout.instruction)))?;
+        let (layout, body) = ROUTE_LAYOUTS
+            .iter()
+            .find_map(|layout| instruction.data.strip_prefix(global_discriminator(layout.instruction).as_slice()).map(|body| (layout, body)))?;
         let destination = match (instruction.account(layout.destination)?, layout.user_destination) {
             (placeholder, Some(user_destination)) if *placeholder == instruction.program_id => instruction.account(user_destination)?,
             (destination, _) => destination,
@@ -88,28 +116,12 @@ impl RouteAccounts {
             authority: *instruction.account(layout.authority)?,
             source: *instruction.account(layout.source)?,
             destination: *destination,
+            arguments: (layout.arguments)(body)?,
         })
     }
 
     pub(crate) fn spends_from(&self, wallet: &Pubkey, mint: &Pubkey) -> bool {
         self.authority == *wallet && is_associated_token_address(&self.source, wallet, mint)
-    }
-}
-
-#[derive(Debug, PartialEq, Eq)]
-pub(super) struct JupiterRoute {
-    pub accounts: RouteAccounts,
-    pub arguments: RouteArguments,
-}
-
-impl JupiterRoute {
-    pub(super) fn decode(instruction: &Instruction) -> Option<Self> {
-        let accounts = RouteAccounts::decode(instruction)?;
-        let arguments = match instruction_arguments::<RouteArguments>(&instruction.data, ROUTE) {
-            Ok(arguments) => arguments,
-            Err(_) => instruction_arguments::<(u8, RouteArguments)>(&instruction.data, SHARED_ACCOUNTS_ROUTE).ok()?.1,
-        };
-        Some(Self { accounts, arguments })
     }
 }
 
@@ -130,11 +142,9 @@ mod tests {
         assert_eq!(
             JupiterRoute::decode(&route),
             Some(JupiterRoute {
-                accounts: RouteAccounts {
-                    authority: wallet,
-                    source: wrapped_sol,
-                    destination: usdc,
-                },
+                authority: wallet,
+                source: wrapped_sol,
+                destination: usdc,
                 arguments: RouteArguments {
                     in_amount: 100_000_000,
                     quoted_out_amount: 6_829_563,
@@ -147,11 +157,9 @@ mod tests {
         assert_eq!(
             JupiterRoute::decode(&shared_accounts_route),
             Some(JupiterRoute {
-                accounts: RouteAccounts {
-                    authority: wallet,
-                    source: usdc,
-                    destination: wrapped_sol,
-                },
+                authority: wallet,
+                source: usdc,
+                destination: wrapped_sol,
                 arguments: RouteArguments {
                     in_amount: 20_000_000,
                     quoted_out_amount: 289_924_882,
@@ -163,14 +171,10 @@ mod tests {
 
         let mut explicit_destination = route.clone();
         explicit_destination.accounts[7] = AccountMeta::new_writable(wrapped_sol);
-        assert_eq!(RouteAccounts::decode(&explicit_destination).map(|accounts| accounts.destination), Some(wrapped_sol));
+        assert_eq!(JupiterRoute::decode(&explicit_destination).map(|route| route.destination), Some(wrapped_sol));
 
         let other_program = Instruction {
             program_id: token_program(),
-            ..route.clone()
-        };
-        let other_instruction = Instruction {
-            data: [global_discriminator("route").as_slice(), &route.data[8..]].concat(),
             ..route.clone()
         };
         let short_accounts = Instruction {
@@ -179,8 +183,39 @@ mod tests {
         };
         let short_data = Instruction { data: route.data[..12].to_vec(), ..route };
         assert_eq!(JupiterRoute::decode(&other_program), None);
-        assert_eq!(JupiterRoute::decode(&other_instruction), None, "a route whose amount sits behind its route plan is refused");
         assert_eq!(JupiterRoute::decode(&short_accounts), None);
         assert_eq!(JupiterRoute::decode(&short_data), None);
+    }
+
+    #[test]
+    fn test_decode_unit_steps_route() {
+        let route = Instruction {
+            data: [
+                global_discriminator("route").as_slice(),
+                &1u32.to_le_bytes(),
+                &[195, 100, 0, 1],
+                &100_000_000u64.to_le_bytes(),
+                &6_829_563u64.to_le_bytes(),
+                &100u16.to_le_bytes(),
+                &[50],
+            ]
+            .concat(),
+            ..decode_instruction::<Base64InstructionData>(BuildResponse::mock().swap_instruction).unwrap()
+        };
+        let trailing = Instruction {
+            data: [route.data.as_slice(), &[0]].concat(),
+            ..route.clone()
+        };
+
+        assert_eq!(
+            JupiterRoute::decode(&route).map(|route| route.arguments),
+            Some(RouteArguments {
+                in_amount: 100_000_000,
+                quoted_out_amount: 6_829_563,
+                slippage_bps: 100,
+                platform_fee_bps: 50,
+            })
+        );
+        assert_eq!(JupiterRoute::decode(&trailing), None, "Jupiter ignores bytes after its arguments, so they could hide the amount it reads");
     }
 }
