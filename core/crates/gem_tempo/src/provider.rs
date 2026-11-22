@@ -179,8 +179,8 @@ mod tests {
     use super::*;
     use crate::testkit::TEMPO_TEST_ADDRESS;
     use gem_evm::encode::encode_erc20_transfer;
-    use gem_evm::provider::preload_mapper::get_transaction_params;
     use gem_evm::rpc::model::TransactionReceipt;
+    use gem_evm::transaction_params::transaction_call;
     use gem_jsonrpc::testkit::mock_jsonrpc_client;
     use num_bigint::{BigInt, BigUint};
     use primitives::{EVMChain, TransactionChange, asset_constants::TEMPO_PATHUSD_TOKEN_ID, known_assets::TEMPO_PATHUSD, testkit::signer_mock::TEST_EVM_RECIPIENT};
@@ -197,7 +197,7 @@ mod tests {
     #[test]
     fn test_maps_pathusd_transfer_as_tip20() {
         let input = TransactionLoadInput::mock_evm(TransactionInputType::Transfer { asset: TEMPO_PATHUSD.clone() }, "1000000");
-        let params = get_transaction_params(&input).unwrap();
+        let params = transaction_call(&input).unwrap();
 
         assert_eq!(params.to, TEMPO_PATHUSD_TOKEN_ID);
         assert_eq!(params.value, BigInt::ZERO);

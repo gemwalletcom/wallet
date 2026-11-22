@@ -1,93 +1,73 @@
 use primitives::hex;
-use std::str::FromStr;
 
-use alloy_primitives::{Address, Bytes, U256};
-use primitives::{ChainSigner, NFTType, SignerError, SignerInput, StakeType, decode_hex, swap::SwapQuoteDataType};
+use num_bigint::BigInt;
+use primitives::{ChainSigner, SignerError, SignerInput, StakeType, TransactionFee, TransactionLoadInput, decode_hex, swap::SwapQuoteDataType};
 use signer::Signer;
 
 use super::Eip1559Transaction;
-use super::model::TransactionParams;
 use crate::eip712::hash_typed_data;
-use crate::encode::{encode_erc20_approve_max_value, encode_erc20_transfer, encode_erc721_transfer, encode_erc1155_transfer};
+use crate::transaction_params::{TransactionCalls, TransactionParams, transaction_call, transaction_calls};
 
 pub struct EvmChainSigner;
 
 impl ChainSigner for EvmChainSigner {
     fn sign_transfer(&self, input: &SignerInput, private_key: &[u8]) -> Result<String, SignerError> {
-        let params = TransactionParams::from_input(input)?;
-        sign_and_encode(&build_eip1559_transaction(&params, &input.destination_address, value_u256(&input.value.to_string())?, Bytes::new())?, private_key)
+        sign_transaction(input, private_key)
     }
 
     fn sign_token_transfer(&self, input: &SignerInput, private_key: &[u8]) -> Result<String, SignerError> {
-        let params = TransactionParams::from_input(input)?;
-        let token_id = input.input_type.get_asset().id.get_token_id()?;
-        let data = encode_erc20_transfer(&input.destination_address, &input.value_as_bigint())?;
-        sign_and_encode(&build_eip1559_transaction(&params, token_id, U256::ZERO, Bytes::from(data))?, private_key)
+        sign_transaction(input, private_key)
     }
 
     fn sign_deposit(&self, input: &SignerInput, private_key: &[u8]) -> Result<String, SignerError> {
-        self.sign_token_transfer(input, private_key)
+        sign_transaction(input, private_key)
     }
 
     fn sign_nft_transfer(&self, input: &SignerInput, private_key: &[u8]) -> Result<String, SignerError> {
-        let params = TransactionParams::from_input(input)?;
-        let nft_asset = input.input_type.get_nft_asset()?;
-        let contract = nft_asset.get_contract_address()?;
-        let data = match nft_asset.token_type {
-            NFTType::ERC721 => encode_erc721_transfer(&input.sender_address, &input.destination_address, &nft_asset.token_id),
-            NFTType::ERC1155 => encode_erc1155_transfer(&input.sender_address, &input.destination_address, &nft_asset.token_id),
-            _ => return Err(SignerError::invalid_input("unsupported NFT type for EVM")),
-        }?;
-        sign_and_encode(&build_eip1559_transaction(&params, contract, U256::ZERO, Bytes::from(data))?, private_key)
+        sign_transaction(input, private_key)
     }
 
     fn sign_token_approval(&self, input: &SignerInput, private_key: &[u8]) -> Result<String, SignerError> {
-        let params = TransactionParams::from_input(input)?;
-        let approval = input.input_type.get_approval_data()?;
-        sign_and_encode(&build_eip1559_transaction(&params, &approval.token, U256::ZERO, Bytes::from(encode_erc20_approve_max_value(&approval.spender)?))?, private_key)
+        sign_transaction(input, private_key)
     }
 
     fn sign_swap(&self, input: &SignerInput, private_key: &[u8]) -> Result<Vec<String>, SignerError> {
-        let swap = input.input_type.get_swap_data()?;
-        let swap_data = &swap.data;
-
-        match swap_data.data_type {
+        match input.input_type.get_swap_data()?.data.data_type {
             SwapQuoteDataType::Transfer => SignerError::invalid_input_err("unsupported EVM transfer swap"),
-            SwapQuoteDataType::Contract => sign_contract_call(
-                input,
-                &swap_data.to,
-                decode_hex(&swap_data.data)?,
-                input.swap_gas_limit()?,
-                value_u256(&swap_data.value.to_string())?,
-                swap_data.approval.as_ref(),
-                private_key,
-            ),
+            SwapQuoteDataType::Contract => sign_calls(input, &input.fee, &transaction_calls(input)?, private_key),
         }
     }
 
     fn sign_earn(&self, input: &SignerInput, private_key: &[u8]) -> Result<Vec<String>, SignerError> {
-        let earn_data = input.input_type.get_earn_data()?;
-        let gas_limit = earn_data.gas_limit.as_ref().and_then(|gl| gl.parse().ok()).map_or_else(|| input.fee.gas_limit(), Ok)?;
-        sign_contract_call(input, &earn_data.contract_address, decode_hex(&earn_data.call_data)?, gas_limit, U256::ZERO, earn_data.approval.as_ref(), private_key)
+        let calls = transaction_calls(input)?;
+        let provider_gas_limit = input.input_type.get_earn_data()?.gas_limit.as_ref().and_then(|gas_limit| gas_limit.parse::<u64>().ok());
+        match (&calls, provider_gas_limit) {
+            (TransactionCalls::Call(_), Some(gas_limit)) => sign_calls(
+                input,
+                &TransactionFee {
+                    gas_limit: BigInt::from(gas_limit),
+                    ..input.fee.clone()
+                },
+                &calls,
+                private_key,
+            ),
+            _ => sign_calls(input, &input.fee, &calls, private_key),
+        }
     }
 
     fn sign_stake(&self, input: &SignerInput, private_key: &[u8]) -> Result<Vec<String>, SignerError> {
         let stake_type = input.input_type.get_stake_type()?;
         let contract_call = input.metadata.get_contract_call()?;
         let value = match stake_type {
-            StakeType::Stake(_) => value_u256(&input.value.to_string())?,
-            _ => U256::ZERO,
+            StakeType::Stake(_) => input.value_as_bigint(),
+            _ => BigInt::ZERO,
         };
-        sign_contract_call(input, &contract_call.contract_address, decode_hex(&contract_call.call_data)?, input.fee.gas_limit()?, value, None, private_key)
+        let calls = TransactionCalls::Call(TransactionParams::new(contract_call.contract_address.clone(), decode_hex(&contract_call.call_data)?, value));
+        sign_calls(input, &input.fee, &calls, private_key)
     }
 
     fn sign_data(&self, input: &SignerInput, private_key: &[u8]) -> Result<String, SignerError> {
-        let extra = input.input_type.get_generic_data()?;
-        let params = TransactionParams::from_input(input)?;
-        sign_and_encode(
-            &build_eip1559_transaction(&params, &extra.to, value_u256(&input.value.to_string())?, Bytes::from(extra.data.clone().unwrap_or_default()))?,
-            private_key,
-        )
+        sign_transaction(input, private_key)
     }
 
     fn sign_message(&self, message: &[u8], private_key: &[u8]) -> Result<String, SignerError> {
@@ -98,45 +78,16 @@ impl ChainSigner for EvmChainSigner {
     }
 }
 
-fn value_u256(value: &str) -> Result<U256, SignerError> {
-    U256::from_str(value).map_err(SignerError::from_display)
+fn sign_transaction(input: &SignerInput, private_key: &[u8]) -> Result<String, SignerError> {
+    sign_and_encode(&Eip1559Transaction::new(input, &input.fee, &transaction_call(input)?)?, private_key)
 }
 
-fn build_eip1559_transaction(params: &TransactionParams, to: &str, value: U256, input: Bytes) -> Result<Eip1559Transaction, SignerError> {
-    let to_address = Address::parse_checksummed(to, None).or_else(|_| to.parse::<Address>()).map_err(|_| SignerError::invalid_input("invalid to address"))?;
-
-    Ok(Eip1559Transaction {
-        chain_id: params.chain_id,
-        nonce: params.nonce,
-        gas_limit: params.gas_limit,
-        max_fee_per_gas: params.max_fee_per_gas,
-        max_priority_fee_per_gas: params.max_priority_fee_per_gas,
-        to: to_address,
-        value,
-        input,
-    })
+fn sign_calls(input: &TransactionLoadInput, fee: &TransactionFee, calls: &TransactionCalls, private_key: &[u8]) -> Result<Vec<String>, SignerError> {
+    Eip1559Transaction::from_calls(input, fee, calls)?.iter().map(|transaction| sign_and_encode(transaction, private_key)).collect()
 }
 
 fn sign_and_encode(transaction: &Eip1559Transaction, private_key: &[u8]) -> Result<String, SignerError> {
     Ok(hex::encode(transaction.sign(private_key)?))
-}
-
-fn sign_contract_call(input: &SignerInput, contract_address: &str, call_data: Vec<u8>, gas_limit: u64, value: U256, approval: Option<&primitives::swap::ApprovalData>, private_key: &[u8]) -> Result<Vec<String>, SignerError> {
-    let params = TransactionParams::from_input(input)?;
-
-    if let Some(approval) = approval {
-        let approval_transaction = build_eip1559_transaction(&params, &approval.token, U256::ZERO, Bytes::from(encode_erc20_approve_max_value(&approval.spender)?))?;
-        let main_params = TransactionParams {
-            nonce: params.nonce + 1,
-            gas_limit,
-            ..params
-        };
-        let main_transaction = build_eip1559_transaction(&main_params, contract_address, value, Bytes::from(call_data))?;
-        Ok(vec![sign_and_encode(&approval_transaction, private_key)?, sign_and_encode(&main_transaction, private_key)?])
-    } else {
-        let main_params = TransactionParams { gas_limit, ..params };
-        Ok(vec![sign_and_encode(&build_eip1559_transaction(&main_params, contract_address, value, Bytes::from(call_data))?, private_key)?])
-    }
 }
 
 #[cfg(test)]
@@ -254,6 +205,25 @@ mod tests {
             result[0],
             "02f8760180843b9aca008504a817c80083030d40942b5ad5c4795c026514f8317c7a215e218dccd6cf880de0b6b3a764000082abcdc001a0a576e21827f710051c5d9402777cd913469bfa46a6a87281c60b2c48eb620db1a052ec097cab72419fd228b09276db146c1ad8c4e6fa35a34166ba718bdeadc892"
         );
+
+        let token_swap = SignerInput::mock_evm(
+            TransactionInputType::mock_swap(
+                Asset::mock_erc20(),
+                SwapQuoteData {
+                    value: BigUint::from(5000u32),
+                    ..SwapQuoteData::mock()
+                },
+            ),
+            "1000000",
+            200000,
+        );
+        assert_eq!(
+            signer.sign_swap(&token_swap, &TEST_PRIVATE_KEY).unwrap(),
+            vec![
+                "02f86e0180843b9aca008504a817c80083030d40942b5ad5c4795c026514f8317c7a215e218dccd6cf82138880c001a07160cbddf76da145b3b8cd5e1ea33888cf7e8eb3999f5dfafbb40baf5c6bd3bca0681258ab4d42cce971d82e0b4efe315d49bdc30958fd516d52d1001470b8f3b6"
+            ],
+            "a token contract swap signs the quote's value"
+        );
     }
 
     #[test]
@@ -346,6 +316,22 @@ mod tests {
         assert_eq!(
             result[0],
             "02f86e0180843b9aca008504a817c80083030d40942b5ad5c4795c026514f8317c7a215e218dccd6cf8082abcdc001a00a342182b976d28a460ede1a104708d57d1174a5f4ba383eef91c2a774dfab62a0657d5a65976b2241a13554260c538372066938c51eb8116bbad6211c6b29bfff"
+        );
+
+        let input = SignerInput::mock_evm(
+            TransactionInputType::mock_earn(ContractCallData {
+                gas_limit: Some("300000".to_string()),
+                ..ContractCallData::mock()
+            }),
+            "0",
+            200000,
+        );
+        assert_eq!(
+            signer.sign_earn(&input, &TEST_PRIVATE_KEY).unwrap(),
+            vec![
+                "02f86e0180843b9aca008504a817c800830493e0942b5ad5c4795c026514f8317c7a215e218dccd6cf8082abcdc080a09babac95a7855e263320ab8b237c3d3618fb147e7d3c539bb91d9c6c33850614a07fc3c7cf7b166133af818eddbe45aae6962040e4d166247ae056315176643f18"
+            ],
+            "the provider's gas limit is signed"
         );
     }
 
