@@ -4,10 +4,8 @@ use super::{
     wormhole_chain::WormholeChain,
 };
 use gem_solana::Instruction;
-use primitives::{
-    SolanaAccountMeta, SolanaInstruction,
-    asset_constants::{BASE_USDC_TOKEN_ID, ETHEREUM_USDC_TOKEN_ID, SOLANA_USDC_TOKEN_ID, SUI_USDC_TOKEN_ID},
-};
+use gem_solana::models::{SolanaAccountMeta, SolanaInstruction};
+use primitives::asset_constants::{BASE_USDC_TOKEN_ID, ETHEREUM_USDC_TOKEN_ID, SOLANA_USDC_TOKEN_ID, SUI_USDC_TOKEN_ID};
 
 pub fn mock_solana_instruction(instruction: Instruction) -> SolanaInstruction {
     SolanaInstruction {

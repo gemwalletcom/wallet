@@ -1,6 +1,7 @@
 use async_trait::async_trait;
-use primitives::{FiatProviderCountry, FiatProviderName, FiatQuoteRequest, FiatQuoteResponse, FiatQuoteType, FiatQuoteUrl, FiatQuoteUrlData, FiatTransactionUpdate, FiatWebhook};
+use primitives::{FiatProviderCountry, FiatProviderName, FiatQuoteResponse, FiatQuoteType, FiatQuoteUrl, FiatQuoteUrlData, FiatTransactionUpdate, FiatWebhook};
 
+use crate::FiatQuoteRequest;
 use crate::{
     FiatProvider, FiatWebhookRequest,
     error::FiatQuoteError,
@@ -104,9 +105,10 @@ mod tests {
 
 #[cfg(all(test, feature = "fiat_integration_tests"))]
 mod fiat_integration_tests {
+    use crate::FiatQuoteRequest;
     use crate::testkit::create_banxa_test_client;
     use crate::{FiatProvider, model::FiatMapping};
-    use primitives::{FiatProviderName, FiatQuoteRequest};
+    use primitives::FiatProviderName;
 
     #[tokio::test]
     async fn test_banxa_get_buy_quote() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {

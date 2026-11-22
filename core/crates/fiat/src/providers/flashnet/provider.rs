@@ -1,8 +1,9 @@
 use std::error::Error;
 
 use async_trait::async_trait;
-use primitives::{FiatProviderCountry, FiatProviderName, FiatQuoteRequest, FiatQuoteResponse, FiatQuoteUrl, FiatQuoteUrlData, FiatWebhook, PaymentType};
+use primitives::{FiatProviderCountry, FiatProviderName, FiatQuoteResponse, FiatQuoteUrl, FiatQuoteUrlData, FiatWebhook, PaymentType};
 
+use crate::FiatQuoteRequest;
 use crate::error::FiatQuoteError;
 use crate::model::{FiatMapping, FiatProviderAsset};
 use crate::provider::generate_quote_id;

@@ -58,7 +58,7 @@ Individual `gem_*` crates for each blockchain with unified RPC client patterns:
 - `signer/`: Cryptographic signing operations for transactions across multiple blockchain types
 
 ### Data & Storage
-- `primitives/`: Central types and models shared across the system
+- `primitives/`: Models shared across crates: what the apps and the server exchange, every type `just generate-models` reads (`Model` derives and `remote_types.yml` entries), and the types storage and domain crates hand to `services`. Code with one owning crate lives in that crate, so an edit to it does not rebuild every crate that depends on `primitives`
 - `storage/`: Database models, migrations, and data access layer using Diesel ORM
 - `cacher/`: Caching layer for improved performance
 
@@ -86,6 +86,8 @@ Individual `gem_*` crates for each blockchain with unified RPC client patterns:
 - `streamer/`: Real-time data streaming utilities
 - `gem_tracing/`: Logging and tracing infrastructure
 - `settings/`: Configuration management
+- `links/`: The links the app opens: deep links, WalletConnect links and the `UrlAction` that routes them
+- `sign_in/`: Domain and host parsing for Sign-In with Ethereum and Sign-In with Solana messages and the WalletConnect origin checks
 - `chain_providers/`: Builds each chain's provider and runs node checks
 
 ## Key Dependency Relationships

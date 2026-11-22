@@ -10,10 +10,11 @@ use serde_json::Value;
 use std::{collections::BTreeSet, ops::Deref, str::FromStr};
 
 use gem_evm::ethereum_address_checksum_or_original;
+use gem_solana::models::SolanaInstruction;
 pub use gem_sui::tx_builder::transaction_json::TransactionArgument as SuiTransactionArgument;
+use primitives::OptionStringExt;
 use primitives::contract_constants::EVM_ZERO_ADDRESS;
 use primitives::swap::{SlippageMode, SwapStatus};
-use primitives::{OptionStringExt, SolanaInstruction};
 
 #[derive(Debug, Clone, Deserialize)]
 #[serde(rename_all = "camelCase")]

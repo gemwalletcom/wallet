@@ -16,6 +16,7 @@ name = "gemstone"
 swapper = { path = "../crates/swapper" }
 payment = { path = "../crates/payment" }
 primitives = { path = "../crates/primitives" }
+links = { path = "../crates/links" }
 chain_primitives = { path = "../crates/chain_primitives" }
 node_probes = { path = "../crates/node_probes" }
 push_notification = { path = "../crates/push_notification" }

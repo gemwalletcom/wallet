@@ -1,4 +1,6 @@
-use crate::{Deeplink, Payment, WalletConnectLink};
+use primitives::Payment;
+
+use crate::{Deeplink, WalletConnectLink};
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum UrlAction {
@@ -22,7 +24,7 @@ impl UrlAction {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{AssetId, Chain};
+    use primitives::{AssetId, Chain};
 
     #[test]
     fn test_from_url() {

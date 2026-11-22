@@ -1,5 +1,6 @@
 use primitives::{Account, Chain};
 
+use crate::WalletConnectRequest;
 use crate::sign_type::SignDigestType;
 use crate::validator::SignMessageValidation;
 
@@ -30,5 +31,17 @@ pub fn mock_ton_account() -> Account {
 impl<'a> SignMessageValidation<'a> {
     pub fn mock(chain: Chain, sign_type: &'a SignDigestType, data: &'a str, session_domain: &'a str) -> Self {
         Self { chain, sign_type, data, session_domain }
+    }
+}
+
+impl WalletConnectRequest {
+    pub fn mock(method: &str, params: &str, chain_id: Option<&str>) -> Self {
+        Self {
+            topic: "test-topic".to_string(),
+            method: method.to_string(),
+            params: params.to_string(),
+            chain_id: chain_id.map(ToString::to_string),
+            domain: "example.com".to_string(),
+        }
     }
 }

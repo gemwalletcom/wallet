@@ -1,4 +1,5 @@
-use primitives::{AssetId, CoreListItemIcon, DateTime, InAppNotification, OptionStringExt, UrlAction};
+use links::UrlAction;
+use primitives::{AssetId, CoreListItemIcon, DateTime, InAppNotification, OptionStringExt};
 
 use crate::services::localization::GemLocalizedText;
 

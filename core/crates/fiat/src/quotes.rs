@@ -5,10 +5,12 @@ use std::time::Instant;
 
 use num_bigint::BigUint;
 use number_formatter::BigNumberFormatter;
-use primitives::{Asset, FiatProvider as PrimitiveFiatProvider, FiatProviderCountry, FiatQuote, FiatQuoteRequest, FiatQuoteType, PaymentType, sort_by_priority_then_amount};
+use primitives::{Asset, FiatProvider as PrimitiveFiatProvider, FiatProviderCountry, FiatQuote, FiatQuoteType, PaymentType};
 
 use crate::FiatProvider;
+use crate::FiatQuoteRequest;
 use crate::model::FiatMapping;
+use crate::priority::sort_by_priority_then_amount;
 
 pub fn is_country_allowed(countries: &[FiatProviderCountry], country_code: &str, provider_id: Option<&str>) -> bool {
     countries.iter().any(|country| country.alpha2 == country_code && country.is_allowed && provider_id.is_none_or(|id| country.provider.id() == id))
@@ -45,7 +47,7 @@ pub fn compare_quotes(quote_type: FiatQuoteType, a: &FiatQuote, b: &FiatQuote, p
         FiatQuoteType::Buy => false,
         FiatQuoteType::Sell => true,
     };
-    sort_by_priority_then_amount(a.provider.id.as_ref(), b.provider.id.as_ref(), &a.crypto_amount, &b.crypto_amount, providers, ascending)
+    sort_by_priority_then_amount(a.provider.id.as_ref(), b.provider.id.as_ref(), a.crypto_amount, b.crypto_amount, providers, ascending)
 }
 
 pub async fn get_provider_quote(provider: &(dyn FiatProvider + Send + Sync), request: &FiatQuoteRequest, asset: &Asset, mapping: &FiatMapping, db_payment_methods: &[PaymentType]) -> Result<FiatQuote, Box<dyn Error + Send + Sync>> {

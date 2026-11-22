@@ -2,8 +2,8 @@ use url::Url;
 
 use super::error::{PaymentDecoderError, Result};
 use super::query;
+use links::{HTTPS_URL_SCHEME, WALLET_CONNECT_URL_SCHEME, WalletConnectLink};
 use primitives::payment::{Payment, PaymentLink, WALLET_CONNECT_PAY_HOST};
-use primitives::{HTTPS_URL_SCHEME, WALLET_CONNECT_URL_SCHEME, WalletConnectLink};
 
 const WALLET_CONNECT_PAY_HOST_SUFFIX: &str = ".pay.walletconnect.com";
 const PAYMENT_ID_PREFIX: &str = "pay_";

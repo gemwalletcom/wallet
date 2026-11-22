@@ -1,8 +1,8 @@
 #![no_main]
 
 use libfuzzer_sys::fuzz_target;
+use links::WalletConnectLink;
 use payment::{PaymentURLDecoder, classify_url};
-use primitives::WalletConnectLink;
 
 fuzz_target!(|url: &str| {
     let _ = PaymentURLDecoder::decode(url);

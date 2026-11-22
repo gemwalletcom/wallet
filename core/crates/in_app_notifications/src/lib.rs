@@ -1,6 +1,7 @@
+use links::Deeplink;
 use localizer::LanguageLocalizer;
 use number_formatter::{ValueFormatter, ValueStyle};
-use primitives::{CoreEmoji, CoreListItem, CoreListItemBadge, CoreListItemIcon, Deeplink, InAppNotification, JsonDecode, NotificationData, NotificationRewardsMetadata, NotificationRewardsRedeemMetadata, NotificationType, WalletId};
+use primitives::{CoreEmoji, CoreListItem, CoreListItemBadge, CoreListItemIcon, InAppNotification, JsonDecode, NotificationData, NotificationRewardsMetadata, NotificationRewardsRedeemMetadata, NotificationType, WalletId};
 
 pub fn map_notification(notification: NotificationData, localizer: &LanguageLocalizer) -> Option<InAppNotification> {
     let wallet_id = WalletId::from_id(&notification.wallet_id)?;

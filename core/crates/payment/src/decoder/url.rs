@@ -1,7 +1,8 @@
 use std::str::FromStr;
 
 use super::error::{PaymentDecoderError, Result};
-use primitives::{Chain, ChainType, HTTPS_URL_SCHEME, WALLET_CONNECT_URL_SCHEME, payment::Payment};
+use links::{HTTPS_URL_SCHEME, WALLET_CONNECT_URL_SCHEME};
+use primitives::{Chain, ChainType, payment::Payment};
 
 use super::{bip21, bip321, erc681, solana_pay, ton_pay, wallet_connect_pay, xrp};
 

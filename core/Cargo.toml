@@ -26,6 +26,8 @@ members = [
     "crates/node_probes",
     "crates/push_notification",
     "crates/payment",
+    "crates/links",
+    "crates/sign_in",
     "crates/fiat",
     "crates/cacher",
     "crates/name_resolver",

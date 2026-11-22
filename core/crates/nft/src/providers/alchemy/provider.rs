@@ -1,10 +1,11 @@
 use std::error::Error;
 
 use gem_client::Client;
-use primitives::{Chain, NFTAsset, NFTAssetId, NFTChain, NFTCollection, NFTCollectionId};
+use primitives::{Chain, NFTAsset, NFTAssetId, NFTCollection, NFTCollectionId};
 
 use super::AlchemyClient;
 use super::mapper::{map_asset, map_assets, map_collection};
+use crate::NFTChain;
 use crate::provider::NFTProvider;
 
 const PAGE_SIZE: usize = 50;

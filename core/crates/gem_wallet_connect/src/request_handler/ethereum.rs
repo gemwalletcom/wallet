@@ -1,7 +1,8 @@
+use crate::WCEthereumTransaction;
 use crate::actions::{WalletConnectAction, WalletConnectTransaction, WalletConnectTransactionType};
 use crate::sign_type::SignDigestType;
 use gem_evm::{eip712::validate_eip712_chain_id, transaction::decode_transaction_kind, validate_address};
-use primitives::{Chain, ValueAccess, WCEthereumTransaction, WalletConnectionMethods};
+use primitives::{Chain, ValueAccess, WalletConnectionMethods};
 use serde_json::Value;
 
 pub struct EthereumRequestHandler;

@@ -1,26 +1,15 @@
 use std::cmp::Ordering;
-use std::ops::{Mul, Sub};
 
-pub trait PrioritizedProvider {
-    fn provider_id(&self) -> &str;
-    fn priority(&self) -> i32;
-    fn threshold_bps(&self) -> i32;
-}
+use primitives::FiatProvider;
 
-pub fn sort_by_priority_then_amount<P, A>(a_id: &str, b_id: &str, a_amount: &A, b_amount: &A, providers: &[P], ascending: bool) -> Ordering
-where
-    P: PrioritizedProvider,
-    A: PartialOrd + Clone + Sub<Output = A> + Mul<Output = A> + From<i32>,
-{
-    let a_provider = providers.iter().find(|p| p.provider_id() == a_id);
-    let b_provider = providers.iter().find(|p| p.provider_id() == b_id);
-    let a_pri = a_provider.map(PrioritizedProvider::priority).filter(|&p| p > 0);
-    let b_pri = b_provider.map(PrioritizedProvider::priority).filter(|&p| p > 0);
-
-    let cmp_amount = |x: &A, y: &A| x.partial_cmp(y).unwrap_or(Ordering::Equal);
+pub fn sort_by_priority_then_amount(a_id: &str, b_id: &str, a_amount: f64, b_amount: f64, providers: &[FiatProvider], ascending: bool) -> Ordering {
+    let a_provider = providers.iter().find(|provider| provider.id.as_ref() == a_id);
+    let b_provider = providers.iter().find(|provider| provider.id.as_ref() == b_id);
+    let a_pri = a_provider.and_then(|provider| provider.priority).filter(|&priority| priority > 0);
+    let b_pri = b_provider.and_then(|provider| provider.priority).filter(|&priority| priority > 0);
 
     let by_amount = || {
-        let ord = cmp_amount(a_amount, b_amount);
+        let ord = a_amount.partial_cmp(&b_amount).unwrap_or(Ordering::Equal);
         if ascending { ord } else { ord.reverse() }
     };
 
@@ -35,43 +24,39 @@ where
     }
 }
 
-fn exceeds_threshold<P, A>(provider: &P, a: &A, b: &A, ascending: bool) -> bool
-where
-    P: PrioritizedProvider,
-    A: PartialOrd + Clone + Sub<Output = A> + Mul<Output = A> + From<i32>,
-{
-    let bps = provider.threshold_bps();
+fn exceeds_threshold(provider: &FiatProvider, a: f64, b: f64, ascending: bool) -> bool {
+    let bps = provider.threshold_bps.unwrap_or(0);
     if bps == 0 {
         return false;
     }
-    let better = if ascending == (a < b) { a } else { b }.clone();
-    let diff = if a > b { a.clone() - b.clone() } else { b.clone() - a.clone() };
-    diff * A::from(10000) > A::from(bps) * better
+    let better = if ascending == (a < b) { a } else { b };
+    let diff = if a > b { a - b } else { b - a };
+    diff * 10000.0 > f64::from(bps) * better
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{FiatProvider, FiatProviderName};
+    use primitives::FiatProviderName;
 
     #[test]
     fn test_no_priority_sorts_by_amount_desc() {
         let providers: Vec<FiatProvider> = vec![];
-        let result = sort_by_priority_then_amount("moonpay", "mercuryo", &100.0, &200.0, &providers, false);
+        let result = sort_by_priority_then_amount("moonpay", "mercuryo", 100.0, 200.0, &providers, false);
         assert_eq!(result, Ordering::Greater);
     }
 
     #[test]
     fn test_priority_wins_over_amount() {
         let providers = vec![FiatProvider::mock_with_priority(FiatProviderName::MoonPay, 1, None), FiatProvider::mock_with_priority(FiatProviderName::Mercuryo, 2, None)];
-        let result = sort_by_priority_then_amount("moonpay", "mercuryo", &100.0, &200.0, &providers, false);
+        let result = sort_by_priority_then_amount("moonpay", "mercuryo", 100.0, 200.0, &providers, false);
         assert_eq!(result, Ordering::Less);
     }
 
     #[test]
     fn test_threshold_override() {
         let providers = vec![FiatProvider::mock_with_priority(FiatProviderName::MoonPay, 1, Some(500)), FiatProvider::mock_with_priority(FiatProviderName::Mercuryo, 2, None)];
-        let result = sort_by_priority_then_amount("moonpay", "mercuryo", &100.0, &200.0, &providers, false);
+        let result = sort_by_priority_then_amount("moonpay", "mercuryo", 100.0, 200.0, &providers, false);
         assert_eq!(result, Ordering::Greater);
     }
 
@@ -81,35 +66,35 @@ mod tests {
             FiatProvider::mock_with_priority(FiatProviderName::MoonPay, 1, Some(5000)),
             FiatProvider::mock_with_priority(FiatProviderName::Mercuryo, 2, None),
         ];
-        let result = sort_by_priority_then_amount("moonpay", "mercuryo", &100.0, &110.0, &providers, false);
+        let result = sort_by_priority_then_amount("moonpay", "mercuryo", 100.0, 110.0, &providers, false);
         assert_eq!(result, Ordering::Less);
     }
 
     #[test]
     fn test_unprioritized_sorted_after_prioritized() {
         let providers = vec![FiatProvider::mock_with_priority(FiatProviderName::MoonPay, 1, None)];
-        let result = sort_by_priority_then_amount("moonpay", "mercuryo", &50.0, &200.0, &providers, false);
+        let result = sort_by_priority_then_amount("moonpay", "mercuryo", 50.0, 200.0, &providers, false);
         assert_eq!(result, Ordering::Less);
     }
 
     #[test]
     fn test_ascending_order() {
         let providers: Vec<FiatProvider> = vec![];
-        let result = sort_by_priority_then_amount("moonpay", "mercuryo", &100.0, &200.0, &providers, true);
+        let result = sort_by_priority_then_amount("moonpay", "mercuryo", 100.0, 200.0, &providers, true);
         assert_eq!(result, Ordering::Less);
     }
 
     #[test]
     fn test_same_priority_sorts_by_amount() {
         let providers = vec![FiatProvider::mock_with_priority(FiatProviderName::MoonPay, 1, None), FiatProvider::mock_with_priority(FiatProviderName::Mercuryo, 1, None)];
-        let result = sort_by_priority_then_amount("moonpay", "mercuryo", &200.0, &100.0, &providers, false);
+        let result = sort_by_priority_then_amount("moonpay", "mercuryo", 200.0, 100.0, &providers, false);
         assert_eq!(result, Ordering::Less);
     }
 
     #[test]
     fn test_priority_zero_treated_as_unranked() {
         let providers = vec![FiatProvider::mock_with_priority(FiatProviderName::MoonPay, 0, None), FiatProvider::mock_with_priority(FiatProviderName::Mercuryo, 1, None)];
-        let result = sort_by_priority_then_amount("moonpay", "mercuryo", &200.0, &100.0, &providers, false);
+        let result = sort_by_priority_then_amount("moonpay", "mercuryo", 200.0, 100.0, &providers, false);
         assert_eq!(result, Ordering::Greater);
     }
 }

@@ -44,10 +44,16 @@ pub fn node_selections(nodes: Vec<Node>, selected_url: &str) -> Vec<GemNodeSelec
         .map(|node| GemNodeSelection {
             host: node_host(&node.url),
             is_selected: node.url == selected_url,
-            gem_node_flag: NodeRegion::from_url(&node.url).map(|region| region.flag().to_string()),
+            gem_node_flag: node_region(&node.url).map(|region| region.flag().to_string()),
             url: node.url,
         })
         .collect()
+}
+
+fn node_region(url: &str) -> Option<NodeRegion> {
+    let url = Url::parse(url).ok()?;
+    let host = url.host_str()?;
+    NodeRegion::all().into_iter().find(|region| region.host() == host)
 }
 
 fn node_host(url: &str) -> String {
@@ -190,6 +196,15 @@ mod tests {
         assert_eq!(selected_node(chain, eu_url.clone(), vec![]).url, eu_url);
         assert_eq!(selected_node(chain, "https://added.example".to_string(), added.clone()).url, "https://added.example");
         assert_eq!(selected_node(chain, "https://removed.example".to_string(), added).url, NodeRegion::Us.url(chain), "a node the chain no longer offers");
+    }
+
+    #[test]
+    fn test_node_region_from_url() {
+        assert_eq!(node_region("https://gemnodes.com/bitcoin"), Some(NodeRegion::Us));
+        assert_eq!(node_region("https://eu.gemnodes.com/ethereum"), Some(NodeRegion::Eu));
+        assert_eq!(node_region("https://asia.gemnodes.com/solana"), Some(NodeRegion::Asia));
+        assert_eq!(node_region("https://gemnodes.com.evil.example/bitcoin"), None);
+        assert_eq!(node_region("invalid"), None);
     }
 
     #[test]

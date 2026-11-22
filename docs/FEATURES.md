@@ -384,7 +384,7 @@ NFT support includes wallet assets, collections, and individual asset details. A
 | [Alchemy NFT](../core/crates/nft/src/providers/alchemy/provider.rs) | ✅ | BNB Chain, Arc | ✅ | ✅ | ✅ |
 | [TON](../core/crates/nft/src/providers/ton/provider.rs) | ✅ | TON | ✅ | ✅ | ✅ |
 
-<sub>Reviewed 2026-09-27. Sources: [active provider factory](../core/crates/nft/src/factory.rs), [provider contract and fallback behavior](../core/crates/nft/src/provider.rs), [supported NFT chains](../core/crates/primitives/src/chain_nft.rs), and [NFT settings](../core/crates/settings/src/lib.rs).</sub>
+<sub>Reviewed 2026-09-27. Sources: [active provider factory](../core/crates/nft/src/factory.rs), [provider contract and fallback behavior](../core/crates/nft/src/provider.rs), [supported NFT chains](../core/crates/nft/src/chain_nft.rs), and [NFT settings](../core/crates/settings/src/lib.rs).</sub>
 
 ## Coverage gaps
 

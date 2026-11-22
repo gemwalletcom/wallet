@@ -9,6 +9,7 @@ serde_json = { workspace = true }
 reqwest = { workspace = true }
 futures.workspace = true
 async-trait = { workspace = true }
+strum = { workspace = true }
 
 primitives = { path = "../primitives" }
 alchemy = { path = "../alchemy", features = ["nft"] }

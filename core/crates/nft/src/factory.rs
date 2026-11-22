@@ -5,8 +5,9 @@ use blockscout::Client as BlockscoutClient;
 use gem_client::RemoteProviderConfig;
 use gem_reqwest::ReqwestClient;
 use gem_ton::rpc::client::TonClient;
-use primitives::{EVMChain, NFTChain};
+use primitives::EVMChain;
 
+use crate::NFTChain;
 use crate::config::NFTProviderConfig;
 use crate::provider::NFTProvider;
 use crate::providers::ton::provider::TonNftProvider;

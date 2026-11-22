@@ -1,29 +1,8 @@
 use crate::currency::Currency;
 use crate::fiat_assets::{FiatAsset, FiatAssetLimits};
-use crate::{Asset, AssetId, Chain, DateTime, FiatProvider, FiatProviderName, FiatQuote, FiatQuoteRequest, FiatQuoteType, FiatTransaction, FiatTransactionStatus, PaymentType};
+use crate::{Asset, AssetId, Chain, DateTime, FiatProvider, FiatProviderName, FiatQuote, FiatQuoteType, FiatTransaction, FiatTransactionStatus, PaymentType};
 use num_bigint::BigUint;
 use std::collections::HashMap;
-
-impl FiatQuoteRequest {
-    pub fn mock() -> Self {
-        FiatQuoteRequest {
-            asset_id: AssetId::from_chain(Chain::Bitcoin),
-            quote_type: FiatQuoteType::Buy,
-            currency: "USD".to_string(),
-            amount: 100.0,
-            provider_id: None,
-            ip_address: "192.168.1.1".to_string(),
-        }
-    }
-
-    pub fn mock_sell() -> Self {
-        FiatQuoteRequest {
-            quote_type: FiatQuoteType::Sell,
-            amount: 250.0,
-            ..Self::mock()
-        }
-    }
-}
 
 impl FiatProvider {
     pub fn mock(id: FiatProviderName) -> Self {

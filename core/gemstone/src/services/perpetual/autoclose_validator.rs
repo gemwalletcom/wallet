@@ -1,6 +1,6 @@
-use crate::{PerpetualDirection, TpslType};
+use primitives::{PerpetualDirection, PriceChangeCalculator, TpslType};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
 pub enum AutocloseValidation {
     Valid,
     InvalidAmount,
@@ -107,6 +107,10 @@ impl AutocloseEstimator {
         Self::new(market_price, position_size, direction, leverage)
     }
 
+    pub fn percent_suggestions(&self) -> Vec<u8> {
+        crate::config::perpetual_config::get_autoclose_suggestions(self.leverage)
+    }
+
     pub fn has_size(&self) -> bool {
         self.position_size != 0.0
     }
@@ -120,7 +124,7 @@ impl AutocloseEstimator {
     }
 
     pub fn price_change_percent(&self, price: f64) -> f64 {
-        let raw = crate::price_change::PriceChangeCalculator::percentage(self.entry_price, price);
+        let raw = PriceChangeCalculator::percentage(self.entry_price, price);
         match self.direction {
             PerpetualDirection::Short => -raw,
             PerpetualDirection::Long => raw,
@@ -129,6 +133,13 @@ impl AutocloseEstimator {
 
     pub fn roe(&self, price: f64) -> f64 {
         self.price_change_percent(price) * f64::from(self.leverage)
+    }
+
+    pub fn is_profit(&self, price: Option<f64>, tpsl_type: TpslType) -> bool {
+        match price {
+            Some(price) => self.roe(price) >= 0.0,
+            None => tpsl_type == TpslType::TakeProfit,
+        }
     }
 
     pub fn target_price_from_roe(&self, roe_percent: i32, trigger_type: TpslType) -> f64 {
@@ -165,5 +176,15 @@ mod estimator_tests {
         assert!((AutocloseEstimator::new(100.0, 1.0, PerpetualDirection::Long, 2).target_price_from_roe(20, TpslType::TakeProfit) - 110.0).abs() < 1e-9);
         assert!((AutocloseEstimator::new(100.0, 1.0, PerpetualDirection::Long, 2).target_price_from_roe(20, TpslType::StopLoss) - 90.0).abs() < 1e-9);
         assert!(AutocloseEstimator::new(100.0, 1.0, PerpetualDirection::Long, 0).target_price_from_roe(20, TpslType::TakeProfit).is_finite());
+    }
+
+    #[test]
+    fn test_a_target_price_reads_as_profit_from_its_return_and_falls_back_to_the_trigger_kind() {
+        let estimator = AutocloseEstimator::new(100.0, 1.0, PerpetualDirection::Long, 5);
+
+        assert!(estimator.is_profit(Some(110.0), TpslType::StopLoss));
+        assert!(!estimator.is_profit(Some(90.0), TpslType::TakeProfit));
+        assert!(estimator.is_profit(None, TpslType::TakeProfit));
+        assert!(!estimator.is_profit(None, TpslType::StopLoss));
     }
 }

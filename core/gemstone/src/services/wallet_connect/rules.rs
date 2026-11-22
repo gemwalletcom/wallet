@@ -10,11 +10,12 @@ use gem_solana::{Pubkey, SolanaTransfer, VersionedTransaction, VersionedTransact
 use gem_sui::tx_builder::validate_wallet_connect_sender;
 use gem_ton::models::decode_wallet_connect_transfer;
 use gem_tron::{decode_wallet_connect_contract, decode_wallet_connect_owners};
+use links::{GEM_HOST, GEM_URL_SCHEME, HTTP_URL_SCHEME, HTTPS_URL_SCHEME, WALLET_CONNECT_URL_SCHEME, WalletConnectLink};
+use primitives::ChainType;
 use primitives::{
     Account, ApplicationMetadata, ApplicationMetadataSource, Chain, Platform, Wallet, WalletConnectCAIP2, WalletConnection, WalletConnectionEvents, WalletConnectionMethods, WalletConnectionSession, WalletConnectionState, WalletId,
     WalletType,
 };
-use primitives::{ChainType, GEM_HOST, GEM_URL_SCHEME, HTTP_URL_SCHEME, HTTPS_URL_SCHEME, WALLET_CONNECT_URL_SCHEME, WalletConnectLink};
 use primitives::{DateTime, WalletConnectionVerificationStatus};
 use url::Url;
 
@@ -545,9 +546,10 @@ mod tests {
     }
 
     use super::*;
+    use gem_wallet_connect::WCEthereumTransaction;
     use gem_wallet_connect::WCSuiTransactionData;
     use num_bigint::BigUint;
-    use primitives::{Account, DAY, WCEthereumTransaction};
+    use primitives::{Account, DAY};
     use std::time::Duration;
 
     use crate::testkit::mock_wc_ethereum_transaction;

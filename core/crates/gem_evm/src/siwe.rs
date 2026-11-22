@@ -1,8 +1,7 @@
 use alloy_primitives::Address;
-use primitives::{Chain, ChainType, DateTime, domain::parse_domain};
+use primitives::{Chain, ChainType, DateTime};
+use sign_in::{host_with_port, parse_domain};
 use url::Url;
-
-use crate::domain::host_with_port;
 
 const PREAMBLE_SUFFIX: &str = " wants you to sign in with your Ethereum account:";
 const URI_PREFIX: &str = "URI:";

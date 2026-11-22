@@ -6,7 +6,7 @@ mod service;
 mod solana_pay;
 mod wallet_connect_pay;
 
-use primitives::UrlAction;
+use links::UrlAction;
 
 pub use decoder::{PaymentDecoderError, PaymentURLDecoder};
 pub use error::PaymentError;
@@ -21,8 +21,9 @@ pub fn classify_url(url: &str) -> Option<UrlAction> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use links::{Deeplink, WalletConnectLink};
     use primitives::payment::{Payment, PaymentLink};
-    use primitives::{AssetId, Chain, Deeplink, WalletConnectLink};
+    use primitives::{AssetId, Chain};
 
     #[test]
     fn test_classify_url_reads_a_pay_link_before_a_wallet_connect_pairing() {

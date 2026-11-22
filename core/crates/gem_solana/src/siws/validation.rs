@@ -1,5 +1,6 @@
 use gem_encoding::is_valid_percent_encoding;
-use primitives::{Address, Chain, DateTime, domain::parse_domain};
+use primitives::{Address, Chain, DateTime};
+use sign_in::parse_domain;
 use url::Url;
 
 use super::SiwsMessage;

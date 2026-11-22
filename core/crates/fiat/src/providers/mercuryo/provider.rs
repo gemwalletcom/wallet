@@ -1,3 +1,4 @@
+use crate::FiatQuoteRequest;
 use crate::{
     FiatProvider, FiatWebhookRequest,
     error::FiatQuoteError,
@@ -9,7 +10,7 @@ use async_trait::async_trait;
 use futures::future;
 use primitives::currency::Currency;
 use primitives::fiat_assets::FiatAssetLimits;
-use primitives::{FiatProviderCountry, FiatProviderName, FiatQuoteRequest, FiatQuoteResponse, FiatQuoteType, FiatQuoteUrl, FiatQuoteUrlData, FiatWebhook};
+use primitives::{FiatProviderCountry, FiatProviderName, FiatQuoteResponse, FiatQuoteType, FiatQuoteUrl, FiatQuoteUrlData, FiatWebhook};
 use std::collections::HashMap;
 use std::error::Error;
 
@@ -120,9 +121,10 @@ impl FiatProvider for MercuryoClient {
 
 #[cfg(all(test, feature = "fiat_integration_tests"))]
 mod fiat_integration_tests {
+    use crate::FiatQuoteRequest;
     use crate::testkit::*;
     use crate::{FiatProvider, model::FiatMapping};
-    use primitives::{FiatProviderName, FiatQuoteRequest};
+    use primitives::FiatProviderName;
 
     #[tokio::test]
     async fn test_mercuryo_get_buy_quote() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {

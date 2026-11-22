@@ -18,6 +18,7 @@ zeroize = "1.9.0"
 
 gemstone = { path = "../gemstone" }
 primitives = { path = "../crates/primitives" }
+links = { path = "../crates/links" }
 payment = { path = "../crates/payment" }
 signer = { path = "../crates/signer" }
 gem_auth = { path = "../crates/gem_auth" }

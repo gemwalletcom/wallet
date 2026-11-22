@@ -1,8 +1,9 @@
 use std::error::Error;
 
 use async_trait::async_trait;
-use primitives::{FiatProviderCountry, FiatProviderName, FiatQuoteRequest, FiatQuoteResponse, FiatQuoteType, FiatQuoteUrl, FiatQuoteUrlData, FiatWebhook, PaymentType};
+use primitives::{FiatProviderCountry, FiatProviderName, FiatQuoteResponse, FiatQuoteType, FiatQuoteUrl, FiatQuoteUrlData, FiatWebhook, PaymentType};
 
+use crate::FiatQuoteRequest;
 use crate::error::FiatQuoteError;
 use crate::model::{FiatMapping, FiatProviderAsset};
 use crate::{FiatProvider, FiatWebhookRequest};
@@ -88,9 +89,10 @@ impl FonbnkClient {
 
 #[cfg(all(test, feature = "fiat_integration_tests"))]
 mod fiat_integration_tests {
+    use crate::FiatQuoteRequest;
     use crate::testkit::*;
     use crate::{FiatProvider, model::FiatMapping};
-    use primitives::{FiatAssetSymbol, FiatQuoteRequest};
+    use primitives::FiatAssetSymbol;
 
     fn mapping(country_code: &str) -> FiatMapping {
         FiatMapping {

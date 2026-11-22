@@ -24,6 +24,7 @@ num-bigint = { workspace = true }
 url = { workspace = true }
 serde_serializers = { path = "../serde_serializers", features = ["bigint"] }
 primitives = { path = "../primitives" }
+sign_in = { path = "../sign_in" }
 date_time = { path = "../date_time", features = ["serde"] }
 gem_jsonrpc = { path = "../gem_jsonrpc" }
 async-trait = { workspace = true, optional = true }

@@ -2,14 +2,17 @@ pub mod error;
 pub mod hmac_signature;
 pub mod ip_check_client;
 pub mod model;
+mod priority;
 pub mod provider;
 pub mod providers;
+mod quote_request;
 pub mod quotes;
 pub mod rsa_signature;
 pub mod transaction_info_mapper;
 pub mod webhook;
 
 pub use provider::FiatProvider;
+pub use quote_request::FiatQuoteRequest;
 pub use webhook::FiatWebhookRequest;
 
 use crate::providers::{BanxaClient, FlashnetClient, FonbnkClient, MercuryoClient, MoonPayClient, PaybisClient, TopperClient, TransakClient};

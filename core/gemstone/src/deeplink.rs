@@ -1,4 +1,5 @@
-use primitives::{AssetId, Chain, Deeplink, UrlAction};
+use links::{Deeplink, UrlAction};
+use primitives::{AssetId, Chain};
 
 #[uniffi::remote(Enum)]
 pub enum Deeplink {

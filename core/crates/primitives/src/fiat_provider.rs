@@ -1,4 +1,4 @@
-use crate::{PaymentType, PrioritizedProvider};
+use crate::PaymentType;
 use model_derive::Model;
 use serde::{Deserialize, Serialize};
 use strum::{AsRefStr, EnumString};
@@ -29,20 +29,6 @@ impl FiatProvider {
 
     pub fn is_sell_enabled(&self) -> bool {
         self.enabled && self.sell_enabled
-    }
-}
-
-impl PrioritizedProvider for FiatProvider {
-    fn provider_id(&self) -> &str {
-        self.id.as_ref()
-    }
-
-    fn priority(&self) -> i32 {
-        self.priority.unwrap_or(0)
-    }
-
-    fn threshold_bps(&self) -> i32 {
-        self.threshold_bps.unwrap_or(0)
     }
 }
 
