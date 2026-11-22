@@ -3,6 +3,7 @@ use std::error::Error;
 use std::sync::Arc;
 
 use super::repository::Repository;
+use crate::subscriptions::one_address_per_chain;
 use cacher::AddressStatusCacher;
 use chain_providers::ChainProviders;
 use futures::future::join_all;
@@ -54,7 +55,7 @@ impl WalletConfigurationClient {
 
     async fn subscribed_addresses(&self, device_id: i32, wallet_id: i32) -> Result<HashSet<ChainAddress>, Box<dyn Error + Send + Sync>> {
         let subscriptions = self.repository.get_wallet_subscriptions(device_id, wallet_id).await?;
-        Ok(subscriptions.into_iter().filter(|subscription| ADDRESS_STATUS_CHAINS.contains(&subscription.chain)).collect())
+        Ok(one_address_per_chain(subscriptions).into_iter().filter(|subscription| ADDRESS_STATUS_CHAINS.contains(&subscription.chain)).collect())
     }
 
     async fn get_statuses(&self, address: &ChainAddress) -> Option<Vec<AddressStatus>> {

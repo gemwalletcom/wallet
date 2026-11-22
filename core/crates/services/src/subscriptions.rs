@@ -6,7 +6,7 @@ use std::time::Duration;
 use cacher::SubscriptionAddressCacher;
 use config_keys::ConfigKey;
 use gem_tracing::warn_with_fields;
-use primitives::{Chain, DeviceSubscription};
+use primitives::{Chain, ChainAddress, DeviceSubscription};
 
 use crate::ConfigCacher;
 
@@ -76,6 +76,11 @@ impl SubscriptionLookup {
         let ttl = self.config.get_duration(ConfigKey::SubscriptionAddressStatusCacheDuration).await?;
         Ok((ttl.as_secs() > 0).then_some(ttl))
     }
+}
+
+pub(crate) fn one_address_per_chain(subscriptions: Vec<ChainAddress>) -> Vec<ChainAddress> {
+    let mut chains = HashSet::new();
+    subscriptions.into_iter().filter(|subscription| chains.insert(subscription.chain)).collect()
 }
 
 #[cfg(test)]
@@ -205,5 +210,15 @@ mod tests {
         assert_eq!(subscriptions.len(), 1);
         assert_eq!(subscriptions[0].chain, Chain::Ethereum);
         assert_eq!(subscriptions[0].address, address);
+    }
+
+    #[test]
+    fn test_one_address_per_chain() {
+        let address = |chain: Chain, address: &str| ChainAddress::new(chain, address.to_string());
+        let wallet = vec![address(Chain::Ethereum, "0x1"), address(Chain::Solana, "a"), address(Chain::Ton, "b")];
+        let crowded = (0..16_000).map(|index| address(Chain::Ethereum, &format!("0x{index}"))).chain([address(Chain::Solana, "a")]).collect();
+
+        assert_eq!(one_address_per_chain(wallet.clone()), wallet);
+        assert_eq!(one_address_per_chain(crowded), vec![address(Chain::Ethereum, "0x0"), address(Chain::Solana, "a")]);
     }
 }

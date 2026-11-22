@@ -7,6 +7,7 @@ use primitives::nft::NFTAssetData;
 use primitives::{AssetId, Chain, ImageFormatter, NFTAsset, NFTAssetId, NFTCollection, NFTCollectionId, NFTData};
 
 use super::repository::Repository;
+use crate::subscriptions::one_address_per_chain;
 
 pub struct NFTClient {
     repository: Arc<dyn Repository>,
@@ -38,7 +39,7 @@ impl NFTClient {
         let subscriptions = self.repository.get_wallet_subscriptions(device_id, wallet_id).await?;
 
         let mut asset_ids: HashSet<NFTAssetId> = HashSet::new();
-        for subscription in subscriptions {
+        for subscription in one_address_per_chain(subscriptions) {
             let chain = subscription.chain;
             let ids = match self.provider_client.get_nft_asset_ids(chain, &subscription.address).await {
                 Ok(ids) => ids,
