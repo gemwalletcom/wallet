@@ -86,7 +86,7 @@ Individual `gem_*` crates for each blockchain with unified RPC client patterns:
 - `gem_tracing/`: Logging and tracing infrastructure
 - `settings/`: Configuration management
 - `links/`: The links the app opens: deep links, WalletConnect links and the `UrlAction` that routes them
-- `sign_in/`: Domain parsing shared by Sign-In with Ethereum and Sign-In with Solana messages
+- `sign_in/`: Domain and host parsing for Sign-In with Ethereum and Sign-In with Solana messages and the WalletConnect origin checks
 - `chain_providers/`: Builds each chain's provider and runs node checks
 
 ## Key Dependency Relationships

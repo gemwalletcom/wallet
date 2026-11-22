@@ -6,9 +6,9 @@ use gem_solana::models::SolanaInstruction;
 use gem_solana::{
     ASSOCIATED_TOKEN_ACCOUNT_PROGRAM, AccountMeta, Base64InstructionData, COMPUTE_BUDGET_PROGRAM_ID, Instruction, JUPITER_PROGRAM_ID, Pubkey, SYSTEM_PROGRAM_ID, SolanaAddress, TOKEN_PROGRAM, TOKEN_PROGRAM_2022, anchor,
     associated_token::{create_associated_token_account_idempotent_with_address, get_associated_token_address_with_program_id, is_create_account_data},
-    compute_budget, instruction_from_primitive,
+    compute_budget, decode_instruction, decode_instructions,
     instructions::program_ids,
-    instructions_from_primitives, system, token, wrapped_sol,
+    system, token, wrapped_sol,
 };
 
 use crate::{
@@ -60,14 +60,14 @@ pub(in crate::mayan::tx_builder) fn append_client_swap_instructions(
     verify_client_swap(&swap, user, destination_account)?;
     let setup = swap.setup_instructions.unwrap_or_default();
     let compute_budget = swap.compute_budget_instructions.unwrap_or_default();
-    instructions.extend(instructions_from_primitives::<Base64InstructionData>(compute_budget).map_err(solana_error)?);
+    instructions.extend(decode_instructions::<Base64InstructionData>(compute_budget).map_err(solana_error)?);
     if from_token_contract == EVM_ZERO_ADDRESS && !setup_wraps_native_sol(&setup, user)? {
         instructions.extend(wrap_native_sol_instructions(user, amount_in64.parse::<u64>()?)?);
     }
     instructions.extend(setup_instructions(setup, relayer)?);
-    instructions.push(instruction_from_primitive::<Base64InstructionData>(swap.swap_instruction).map_err(solana_error)?);
+    instructions.push(decode_instruction::<Base64InstructionData>(swap.swap_instruction).map_err(solana_error)?);
     if let Some(cleanup_instruction) = swap.cleanup_instruction {
-        instructions.push(wrap_instruction_in_cpi_proxy(instruction_from_primitive::<Base64InstructionData>(cleanup_instruction).map_err(solana_error)?)?);
+        instructions.push(wrap_instruction_in_cpi_proxy(decode_instruction::<Base64InstructionData>(cleanup_instruction).map_err(solana_error)?)?);
     }
     Ok(swap.address_lookup_table_addresses)
 }
@@ -77,7 +77,7 @@ fn setup_instructions(instructions: Vec<SolanaInstruction>, payer: &Pubkey) -> R
         .into_iter()
         .map(|instruction| {
             override_setup_payer(instruction, payer)
-                .and_then(|instruction| instruction_from_primitive::<Base64InstructionData>(instruction).map_err(solana_error))
+                .and_then(|instruction| decode_instruction::<Base64InstructionData>(instruction).map_err(solana_error))
                 .and_then(wrap_instruction_in_cpi_proxy)
         })
         .collect()

@@ -4,10 +4,9 @@ use crate::actions::WalletConnectTransactionType;
 use crate::decode::decode_message_bytes;
 use crate::sign_type::SignDigestType;
 use crate::siws;
-use gem_evm::domain::host_only;
 use gem_evm::siwe::SiweMessage;
 use primitives::Chain;
-use sign_in::parse_domain;
+use sign_in::{host_only, parse_domain};
 
 pub struct SignMessageValidation<'a> {
     pub chain: Chain,

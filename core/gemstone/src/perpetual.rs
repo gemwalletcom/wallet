@@ -1,17 +1,14 @@
-pub mod autoclose_validator;
-
 use gem_hypercore::{
     models::{perp_dex::PerpDex, websocket::HyperliquidSubscription},
     perpetual_formatter::PerpetualFormatter,
 };
 use primitives::contract_constants::HYPERLIQUID_ARBITRUM_DEPOSIT_ADDRESS;
 use primitives::known_assets::{ARBITRUM_USDC, HYPERCORE_SPOT_USDC};
-use primitives::{Asset, PerpetualAccountMode, PerpetualDirection, PerpetualProvider, PerpetualType, TpslType};
+use primitives::{Asset, PerpetualAccountMode, PerpetualProvider, PerpetualType};
 
 use crate::formatted_number::GemFormattedNumber;
 use crate::models::custom_types::GemBigInt;
 use crate::models::perpetual::GemPerpetualSubscription;
-use crate::perpetual::autoclose_validator::AutocloseEstimator as Estimator;
 use crate::services::error::GemServiceError;
 use crate::services::transfer::model::{GemRecipient, GemTransferData};
 use primitives::TransactionInputType;
@@ -109,52 +106,6 @@ impl GemPerpetual {
     }
 }
 
-#[derive(Debug)]
-pub struct GemAutocloseEstimator {
-    inner: Estimator,
-}
-
-impl GemAutocloseEstimator {
-    pub fn new(entry_price: f64, position_size: f64, direction: PerpetualDirection, leverage: u8) -> Self {
-        Self {
-            inner: Estimator::new(entry_price, position_size, direction, leverage),
-        }
-    }
-
-    pub fn for_open(market_price: f64, size: f64, leverage: u8, direction: PerpetualDirection) -> Self {
-        Self {
-            inner: Estimator::for_open(market_price, size, leverage, direction),
-        }
-    }
-
-    pub fn percent_suggestions(&self) -> Vec<u8> {
-        crate::config::perpetual_config::get_autoclose_suggestions(self.inner.leverage)
-    }
-
-    pub fn pnl(&self, price: f64) -> f64 {
-        self.inner.pnl(price)
-    }
-
-    pub fn is_profit(&self, price: Option<f64>, tpsl_type: TpslType) -> bool {
-        match price {
-            Some(price) => self.inner.roe(price) >= 0.0,
-            None => tpsl_type == TpslType::TakeProfit,
-        }
-    }
-
-    pub fn target_price_from_roe(&self, roe_percent: i32, trigger_type: TpslType) -> f64 {
-        self.inner.target_price_from_roe(roe_percent, trigger_type)
-    }
-
-    pub fn roe(&self, price: f64) -> f64 {
-        self.inner.roe(price)
-    }
-
-    pub fn has_size(&self) -> bool {
-        self.inner.has_size()
-    }
-}
-
 impl GemPerpetualSubscription {
     pub(crate) fn map(self, dexes: &[PerpDex]) -> Vec<HyperliquidSubscription> {
         match self {
@@ -180,15 +131,5 @@ mod tests {
             GemPerpetualSubscription::MarketData { symbol: "xyz:NVDA".to_string() }.map(&[PerpDex::Main, PerpDex::Xyz]),
             vec![HyperliquidSubscription::MarketData { symbol: "xyz:NVDA".to_string() }]
         );
-    }
-
-    #[test]
-    fn test_a_target_price_reads_as_profit_from_its_return_and_falls_back_to_the_trigger_kind() {
-        let estimator = GemAutocloseEstimator::new(100.0, 1.0, PerpetualDirection::Long, 5);
-
-        assert!(estimator.is_profit(Some(110.0), TpslType::StopLoss));
-        assert!(!estimator.is_profit(Some(90.0), TpslType::TakeProfit));
-        assert!(estimator.is_profit(None, TpslType::TakeProfit));
-        assert!(!estimator.is_profit(None, TpslType::StopLoss));
     }
 }

@@ -10,6 +10,7 @@ use primitives::EVMChain;
 #[cfg(feature = "nft_integration_tests")]
 use settings::testkit::get_test_settings;
 
+#[cfg(feature = "nft_integration_tests")]
 use crate::NFTChain;
 #[cfg(feature = "nft_integration_tests")]
 use crate::factory::NFTProviderFactory;

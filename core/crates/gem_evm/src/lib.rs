@@ -6,7 +6,6 @@ pub mod address_deserializer;
 pub mod beacon;
 pub mod constants;
 pub mod contracts;
-pub mod domain;
 pub mod eip712;
 pub mod encode;
 pub mod ether_conv;

@@ -1,4 +1,5 @@
 pub mod autoclose;
+pub mod autoclose_validator;
 pub mod candles;
 pub mod chart;
 pub mod details;

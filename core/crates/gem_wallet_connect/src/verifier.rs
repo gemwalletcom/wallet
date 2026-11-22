@@ -1,5 +1,5 @@
-use gem_evm::domain::host;
 use primitives::WalletConnectionVerificationStatus;
+use sign_in::host;
 
 pub struct WalletConnectVerifier;
 

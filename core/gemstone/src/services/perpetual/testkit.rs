@@ -12,7 +12,6 @@ use super::model::{GemPerpetualOrderAction, GemPerpetualOrderInput, GemPerpetual
 use super::{GemAutocloseEstimate, GemAutocloseField, GemAutocloseModify, GemPerpetualService, GemPerpetualStore};
 use crate::api::GemDeviceApiClient;
 use crate::gateway::GemGateway;
-use crate::perpetual::autoclose_validator::AutocloseValidation;
 use crate::services::assets::testkit::MemoryAssetStore;
 use crate::services::assets::{GemAssetStore, GemAssetsService};
 use crate::services::balance::GemBalanceService;
@@ -22,6 +21,7 @@ use crate::services::device::GemDeviceKeyService;
 use crate::services::error::GemServiceError;
 use crate::services::name::GemNameService;
 use crate::services::node::GemNodeService;
+use crate::services::perpetual::autoclose_validator::AutocloseValidation;
 use crate::services::preferences::GemPreferencesService;
 use crate::services::preferences::testkit::MemoryPreferencesStore;
 use crate::services::price::GemPriceService;

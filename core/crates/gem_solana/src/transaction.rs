@@ -221,7 +221,7 @@ impl InstructionDataDecoder for HexInstructionData {
     }
 }
 
-pub fn instruction_from_primitive<D: InstructionDataDecoder>(instruction: SolanaInstruction) -> Result<Instruction, String> {
+pub fn decode_instruction<D: InstructionDataDecoder>(instruction: SolanaInstruction) -> Result<Instruction, String> {
     let program_id = Pubkey::from_base58(&instruction.program_id).map_err(|err| format!("Invalid Solana address {}: {err}", instruction.program_id))?;
     let accounts = instruction
         .accounts
@@ -241,8 +241,8 @@ pub fn instruction_from_primitive<D: InstructionDataDecoder>(instruction: Solana
     })
 }
 
-pub fn instructions_from_primitives<D: InstructionDataDecoder>(instructions: Vec<SolanaInstruction>) -> Result<Vec<Instruction>, String> {
-    instructions.into_iter().map(instruction_from_primitive::<D>).collect()
+pub fn decode_instructions<D: InstructionDataDecoder>(instructions: Vec<SolanaInstruction>) -> Result<Vec<Instruction>, String> {
+    instructions.into_iter().map(decode_instruction::<D>).collect()
 }
 
 #[cfg(test)]
