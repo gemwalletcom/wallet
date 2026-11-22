@@ -149,7 +149,7 @@ async fn response_data(response: reqwest::Response) -> Result<Response, ClientEr
     Ok(Response { status: Some(status), headers, data })
 }
 
-pub fn map_response_headers(headers: &HeaderMap) -> HashMap<String, String> {
+pub(crate) fn map_response_headers(headers: &HeaderMap) -> HashMap<String, String> {
     headers.iter().filter_map(|(name, value)| Some((name.to_string(), value.to_str().ok()?.to_string()))).collect()
 }
 

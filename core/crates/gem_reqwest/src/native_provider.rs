@@ -8,7 +8,8 @@ use gem_jsonrpc::{HttpMethod, RpcResponse, Target};
 use primitives::{Chain, node_config::get_nodes_for_chain};
 use reqwest::{Client, Method};
 
-use crate::{map_response_headers, reqwest_client};
+use crate::client::map_response_headers;
+use crate::reqwest_client;
 
 #[derive(Debug)]
 pub struct NativeProvider {

@@ -2,8 +2,6 @@ pub mod abi;
 pub mod across;
 pub mod address;
 pub mod address_deserializer;
-#[cfg(feature = "rpc")]
-pub mod beacon;
 pub mod constants;
 pub mod contracts;
 pub mod domain;

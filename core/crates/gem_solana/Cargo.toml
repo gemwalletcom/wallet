@@ -13,10 +13,7 @@ rpc = [
     "dep:futures",
 ]
 signer = ["dep:num-traits", "dep:signer"]
-chain_integration_tests = [
-    "rpc",
-    "dep:settings",
-]
+chain_integration_tests = ["rpc"]
 
 [dependencies]
 sha2 = { workspace = true }
@@ -33,12 +30,12 @@ async-trait = { workspace = true, optional = true }
 gem_client = { path = "../gem_client", optional = true }
 chain_traits = { path = "../chain_traits", optional = true }
 futures = { workspace = true, optional = true }
-settings = { path = "../settings", optional = true }
 curve25519-dalek = { workspace = true }
 num-traits = { workspace = true, optional = true }
 signer = { path = "../signer", optional = true }
 
 [dev-dependencies]
+settings = { path = "../settings" }
 gem_reqwest = { path = "../gem_reqwest" }
 gem_solana = { path = ".", features = ["rpc", "signer"] }
 chain_traits = { path = "../chain_traits" }
