@@ -33,8 +33,14 @@ interface WalletsDao {
     @Query("SELECT * FROM wallets")
     fun getWallets(): Flow<List<DbWallet>>
 
-    @Query("SELECT * FROM wallets WHERE id = :id")
-    fun getById(id: String): Flow<DbWallet?>
+    @Query(
+        """
+        SELECT * FROM wallets
+        LEFT JOIN accounts ON wallets.id = accounts.wallet_id
+        WHERE wallets.id = :id
+    """,
+    )
+    fun getById(id: String): Flow<Map<DbWallet, List<DbAccount>>>
 
     @Query(
         """

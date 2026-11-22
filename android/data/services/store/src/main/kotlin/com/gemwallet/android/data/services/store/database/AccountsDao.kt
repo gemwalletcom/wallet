@@ -13,9 +13,6 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface AccountsDao {
-    @Query("SELECT * FROM accounts WHERE wallet_id = :walletId")
-    suspend fun getByWalletId(walletId: String): List<DbAccount>
-
     @Transaction
     @Query("SELECT * FROM accounts WHERE chain = :chain")
     fun getWalletAddresses(chain: Chain): Flow<List<DbWalletAddress>>
