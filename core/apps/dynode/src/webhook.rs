@@ -1,7 +1,8 @@
 use std::collections::HashMap;
 
 use chain_providers::BroadcastProviders;
-use gem_client::{ClientError, ClientExt, ReqwestClient, Target};
+use gem_client::{ClientError, ClientExt, Target};
+use gem_reqwest::ReqwestClient;
 use gem_tracing::{error_with_fields, info_with_fields};
 use primitives::TransactionId;
 use serde_json::Value;
@@ -23,7 +24,7 @@ impl DynodeBroadcastWebhookClient {
             enabled: config.enabled,
             url: config.url,
             token: config.token,
-            client: gem_client::reqwest_client(),
+            client: gem_reqwest::reqwest_client(),
         }
     }
 
@@ -32,7 +33,7 @@ impl DynodeBroadcastWebhookClient {
             enabled: false,
             url: String::new(),
             token: String::new(),
-            client: gem_client::reqwest_client(),
+            client: gem_reqwest::reqwest_client(),
         }
     }
 

@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use crate::DEFAULT_REQUEST_TIMEOUT;
+use gem_client::DEFAULT_REQUEST_TIMEOUT;
 
 const GEM_WALLET_USER_AGENT: &str = concat!("Gem/Rust/", env!("CARGO_PKG_VERSION"));
 const FAILED_TO_BUILD_REQWEST_CLIENT: &str = "Failed to build reqwest client";

@@ -7,8 +7,7 @@ edition = { workspace = true }
 default = []
 signer = ["dep:signer", "dep:num-traits"]
 rpc = ["dep:chain_traits", "dep:gem_client", "dep:futures", "gem_jsonrpc/client", "dep:async-trait"]
-reqwest = ["gem_client/reqwest", "gem_jsonrpc/reqwest"]
-chain_integration_tests = ["rpc", "reqwest"]
+chain_integration_tests = ["rpc"]
 
 [dependencies]
 serde = { workspace = true, features = ["derive"] }
@@ -30,6 +29,7 @@ gem_jsonrpc = { path = "../gem_jsonrpc" }
 serde_serializers = { path = "../serde_serializers", features = ["bigint"] }
 
 [dev-dependencies]
+gem_reqwest = { path = "../gem_reqwest" }
 gem_xrp = { path = ".", features = ["rpc", "signer"] }
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
 

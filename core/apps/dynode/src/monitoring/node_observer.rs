@@ -19,7 +19,7 @@ pub(super) async fn observe_node(chain: Chain, request: &NodeCheckRequest, url: 
         Ok(headers) => headers,
         Err(error) => return observation(NodeStatusState::error(error)).with_monitor_error(NodeMonitorError::Request),
     };
-    let client = match gem_client::builder().default_headers(headers).build() {
+    let client = match gem_reqwest::builder().default_headers(headers).build() {
         Ok(client) => client,
         Err(error) => return observation(NodeStatusState::error(error.to_string())).with_monitor_error(NodeMonitorError::Request),
     };

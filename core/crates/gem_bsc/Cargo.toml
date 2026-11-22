@@ -6,8 +6,7 @@ edition = { workspace = true }
 [features]
 default = []
 rpc = ["gem_evm/rpc", "dep:async-trait", "dep:gem_client", "dep:gem_evm", "dep:primitives", "dep:alloy-primitives", "dep:alloy-sol-types", "dep:num-bigint"]
-reqwest = ["rpc", "gem_evm/reqwest", "gem_client/reqwest"]
-chain_integration_tests = ["rpc", "reqwest"]
+chain_integration_tests = ["rpc"]
 
 [dependencies]
 primitives = { path = "../primitives", optional = true }
@@ -20,6 +19,8 @@ alloy-sol-types = { workspace = true, optional = true }
 num-bigint = { workspace = true, optional = true }
 
 [dev-dependencies]
+gem_reqwest = { path = "../gem_reqwest" }
+gem_jsonrpc = { path = "../gem_jsonrpc" }
 gem_bsc = { path = ".", features = ["rpc"] }
 gem_evm = { path = "../gem_evm", features = ["rpc"] }
 settings = { path = "../settings" }

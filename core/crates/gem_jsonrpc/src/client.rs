@@ -88,15 +88,6 @@ impl<C: Client + Clone> JsonRpcClient<C> {
     }
 }
 
-#[cfg(feature = "reqwest")]
-impl JsonRpcClient<gem_client::ReqwestClient> {
-    pub fn new_reqwest(url: String) -> Self {
-        use gem_client::ReqwestClient;
-        let client = ReqwestClient::new(url, gem_client::reqwest_client());
-        Self { client }
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use gem_client::{Response, deserialize_response, testkit::MockClient};

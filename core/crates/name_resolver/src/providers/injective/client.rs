@@ -1,7 +1,7 @@
 use std::error::Error;
 
-use gem_client::ReqwestClient;
 use gem_cosmos::rpc::CosmosClient;
+use gem_reqwest::ReqwestClient;
 use primitives::chain_cosmos::CosmosChain;
 use serde_json::json;
 

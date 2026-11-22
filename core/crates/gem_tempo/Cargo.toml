@@ -6,9 +6,8 @@ version = { workspace = true }
 [features]
 default = []
 rpc = ["dep:gem_evm", "gem_evm/rpc", "dep:async-trait", "dep:chain_traits", "dep:gem_client", "dep:primitives", "dep:num-bigint"]
-reqwest = ["rpc", "gem_evm/reqwest"]
 signer = ["dep:gem_evm", "gem_evm/signer", "dep:signer", "dep:primitives", "dep:num-bigint"]
-chain_integration_tests = ["rpc", "reqwest"]
+chain_integration_tests = ["rpc"]
 
 [dependencies]
 primitives = { path = "../primitives", optional = true }
@@ -23,6 +22,7 @@ alloy-sol-types = { workspace = true }
 num-bigint = { workspace = true, optional = true }
 
 [dev-dependencies]
+gem_reqwest = { path = "../gem_reqwest" }
 gem_tempo = { path = ".", features = ["rpc", "signer"] }
 gem_jsonrpc = { path = "../gem_jsonrpc" }
 gem_client = { path = "../gem_client" }

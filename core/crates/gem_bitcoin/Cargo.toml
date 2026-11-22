@@ -8,8 +8,7 @@ publish = false
 default = []
 rpc = ["dep:chain_traits", "dep:gem_client", "signer", "dep:async-trait", "dep:futures", "dep:number_formatter"]
 signer = ["dep:bech32", "dep:bitcoin", "dep:gem_encoding", "dep:gem_hash"]
-reqwest = ["gem_client/reqwest"]
-chain_integration_tests = ["rpc", "reqwest"]
+chain_integration_tests = ["rpc"]
 
 [dependencies]
 num-traits = { workspace = true }
@@ -32,6 +31,7 @@ bitcoin = { workspace = true, optional = true }
 bech32 = { workspace = true, optional = true }
 
 [dev-dependencies]
+gem_reqwest = { path = "../gem_reqwest" }
 gem_bitcoin = { path = ".", features = ["rpc", "signer"] }
 chain_traits = { path = "../chain_traits" }
 gem_client = { path = "../gem_client" }

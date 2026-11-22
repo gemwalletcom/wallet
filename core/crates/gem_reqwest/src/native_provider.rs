@@ -1,15 +1,15 @@
 use std::collections::HashMap;
 
-use super::{AlienError, HttpMethod, Target};
-use primitives::{Chain, node_config::get_nodes_for_chain};
-
 use async_trait::async_trait;
 use futures::TryFutureExt;
-use gem_client::{map_response_headers, reqwest_client};
-use gem_jsonrpc::RpcResponse;
-use gem_jsonrpc::alien::RpcProvider;
+use gem_jsonrpc::alien::{AlienError, RpcProvider};
 use gem_jsonrpc::rpc::RpcProvider as GenericRpcProvider;
+use gem_jsonrpc::{HttpMethod, RpcResponse, Target};
+use primitives::{Chain, node_config::get_nodes_for_chain};
 use reqwest::{Client, Method};
+
+use crate::client::map_response_headers;
+use crate::reqwest_client;
 
 #[derive(Debug)]
 pub struct NativeProvider {

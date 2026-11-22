@@ -1212,7 +1212,8 @@ mod tests {
 #[cfg(all(test, feature = "swap_integration_tests"))]
 mod swap_integration_tests {
     use super::*;
-    use crate::{NativeProvider, Options, SwapperQuoteAsset};
+    use crate::{Options, SwapperQuoteAsset};
+    use gem_reqwest::NativeProvider;
     use primitives::Chain;
     use primitives::{
         AssetId,

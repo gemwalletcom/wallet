@@ -616,10 +616,11 @@ mod tests {
         assert_eq!(Across::gas_fee_in_output(U256::from(310_000) * gwei(21), one, one, 6), U256::from(6_510));
     }
 
-    #[cfg(all(test, feature = "swap_integration_tests", feature = "reqwest_provider"))]
+    #[cfg(all(test, feature = "swap_integration_tests"))]
     mod swap_integration_tests {
         use super::*;
-        use crate::{FetchQuoteData, NativeProvider, Options, QuoteRequest, SwapperError};
+        use crate::{FetchQuoteData, Options, QuoteRequest, SwapperError};
+        use gem_reqwest::NativeProvider;
         use primitives::{AssetId, Chain, swap::SwapStatus};
         use std::{sync::Arc, time::SystemTime};
 

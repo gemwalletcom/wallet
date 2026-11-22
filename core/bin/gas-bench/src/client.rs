@@ -6,9 +6,9 @@ use gem_evm::fee_calculator::{get_fee_history_blocks, get_reward_percentiles};
 use gem_evm::jsonrpc::EthereumRpc;
 use gem_evm::models::fee::EthereumFeeHistory;
 use gem_evm::provider::preload_mapper::map_transaction_fee_rates;
-use gem_jsonrpc::alien::RpcProvider;
-use gemstone::alien::{new_alien_client, reqwest_provider::NativeProvider};
-use gemstone::network::JsonRpcClient;
+use gem_jsonrpc::alien::{RpcClient, RpcProvider};
+use gem_jsonrpc::client::JsonRpcClient;
+use gem_reqwest::NativeProvider;
 use num_bigint::BigInt;
 use primitives::{EVMChain, PriorityFeeValue, fee::FeePriority};
 use std::sync::Arc;
@@ -56,7 +56,7 @@ impl GemstoneClient {
 
     pub async fn get_fee_data(&self) -> Result<GemstoneFeeData, Box<dyn Error + Send + Sync>> {
         let endpoint = self.native_provider.get_endpoint(self.chain.to_chain())?;
-        let client = JsonRpcClient::new(new_alien_client(endpoint, self.native_provider.clone()));
+        let client = JsonRpcClient::new(RpcClient::new(endpoint, self.native_provider.clone()));
         let blocks = get_fee_history_blocks(self.chain);
         let call = EthereumRpc::FeeHistory {
             blocks,

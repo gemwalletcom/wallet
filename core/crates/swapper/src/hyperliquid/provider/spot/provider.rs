@@ -343,14 +343,15 @@ mod unit_tests {
     }
 }
 
-#[cfg(all(test, feature = "swap_integration_tests", feature = "reqwest_provider"))]
+#[cfg(all(test, feature = "swap_integration_tests"))]
 mod swap_integration_tests {
     use super::*;
     use crate::{hyperliquid::provider::spot::math::SPOT_ASSET_OFFSET, testkit::mock_quote};
+    use gem_reqwest::NativeProvider;
     use primitives::swap::SwapQuoteDataType;
 
     async fn assert_spot_quote(from_asset: &primitives::Asset, to_asset: &primitives::Asset) {
-        let spot = HyperCoreSpot::new(Arc::new(crate::NativeProvider::new()));
+        let spot = HyperCoreSpot::new(Arc::new(NativeProvider::new()));
 
         let mut request = mock_quote(
             SwapperQuoteAsset::mock_with_asset_id(from_asset.id.clone(), &from_asset.symbol, from_asset.decimals),

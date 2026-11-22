@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use gem_client::ReqwestClient;
+use gem_reqwest::ReqwestClient;
 
 use crate::{FiatWebhookRequest, hmac_signature::generate_hmac_signature_hex};
 
@@ -14,7 +14,7 @@ const TEST_AFFILIATE_ID: &str = "test_affiliate";
 impl FlashnetClient {
     pub fn mock() -> Self {
         Self::new(
-            ReqwestClient::new(String::new(), gem_client::reqwest_client()),
+            ReqwestClient::new(String::new(), gem_reqwest::reqwest_client()),
             TEST_API_KEY.to_string(),
             TEST_AFFILIATE_ID.to_string(),
             TEST_WEBHOOK_SIGNING_KEY.to_string(),

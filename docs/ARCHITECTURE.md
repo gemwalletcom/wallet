@@ -1820,9 +1820,9 @@ Variant fields are named: `GetAccount(String)` does not say what the string is. 
 
 **Tests.** A client test over `MockClient` or `mock_jsonrpc_client` asserts behaviour the wire shape does not show: an envelope's failure branch, the paths a pagination loop produced, the body and content type of a broadcast, a merged credential header. Do not test `path()` by copying its implementation into the expectation. A wire-contract regression test uses an independently specified request and exercises the real client through its mock transport.
 
-**Redirects.** Backend clients are built from `gem_client::builder()`, which follows no redirects, so a provider key never travels to another host. A client opts in at its own construction only when its upstream is known to redirect.
+**Redirects.** Backend clients are built from `gem_reqwest::builder()`, which follows no redirects, so a provider key never travels to another host. A client opts in at its own construction only when its upstream is known to redirect.
 
-**Deliberate exceptions.** Two things stay on raw `reqwest` because they are not REST clients: the off-chain NFT metadata fetch (an arbitrary HTTPS URL read under a byte cap) and the egress node health probe (only the status matters). The OKX client sends the string it signed rather than a target, and the alien reqwest provider is the transport itself.
+**Deliberate exceptions.** Two things stay on raw `reqwest` because they are not REST clients: the off-chain NFT metadata fetch (an arbitrary HTTPS URL read under a byte cap) and the egress node health probe (only the status matters). The OKX client sends the string it signed rather than a target, and `gem_reqwest`'s `NativeProvider` is the transport itself.
 
 ## 13. Shapes that were tried and reverted
 

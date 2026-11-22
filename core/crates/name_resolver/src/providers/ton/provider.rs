@@ -1,7 +1,7 @@
 use std::error::Error;
 
 use async_trait::async_trait;
-use gem_client::ReqwestClient;
+use gem_reqwest::ReqwestClient;
 use gem_ton::address::hex_to_base64_address;
 use gem_ton::models::DnsRecordsResponse;
 use gem_ton::rpc::client::TonClient;

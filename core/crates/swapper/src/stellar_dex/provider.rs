@@ -137,7 +137,8 @@ mod tests {
 #[cfg(all(test, feature = "swap_integration_tests"))]
 mod swap_integration_tests {
     use super::*;
-    use crate::{alien::reqwest_provider::NativeProvider, stellar_dex::testkit::mock_request};
+    use crate::stellar_dex::testkit::mock_request;
+    use gem_reqwest::NativeProvider;
     use gem_stellar::models::StellarSwapData;
     use primitives::asset_constants::STELLAR_USDC_ASSET_ID;
 

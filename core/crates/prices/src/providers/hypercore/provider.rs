@@ -3,8 +3,9 @@ use std::error::Error;
 
 use async_trait::async_trait;
 use chain_traits::ChainPerpetual;
-use gem_client::{Client, ReqwestClient};
+use gem_client::Client;
 use gem_hypercore::rpc::client::HyperCoreClient;
+use gem_reqwest::ReqwestClient;
 use primitives::{AssetId, Chain};
 
 use crate::{AssetPriceFull, AssetPriceMapping, PriceAssetsProvider, PriceProvider, PriceProviderAsset};

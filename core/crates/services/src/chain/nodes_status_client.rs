@@ -23,7 +23,7 @@ pub struct NodesStatusClient {
 
 impl Default for NodesStatusClient {
     fn default() -> Self {
-        Self { client: gem_client::reqwest_client() }
+        Self { client: gem_reqwest::reqwest_client() }
     }
 }
 

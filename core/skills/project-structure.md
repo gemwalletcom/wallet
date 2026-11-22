@@ -45,7 +45,8 @@ Individual `gem_*` crates for each blockchain with unified RPC client patterns:
 ## Core Crates
 
 ### Blockchain Infrastructure
-- `gem_client/`: Client trait abstraction; implementations: `ReqwestClient` (backend) and `AlienProvider` (mobile)
+- `gem_client/`: Client trait abstraction; implementations: `ReqwestClient` in `gem_reqwest` (backend) and `AlienProvider` (mobile)
+- `gem_reqwest/`: reqwest-backed `ReqwestClient`, `ReqwestGrpcTransport` and `NativeProvider` for server apps, tools and live tests; crates on the app path never depend on it
 - `http_server/`: the hyper accept loop with graceful drain, shutdown signal, JSON error bodies, panic and timeout layers, security headers and per-route HTTP metrics shared by `api`, `daemon` and `dynode`
 - `gem_jsonrpc/`: Internal JSON-RPC client library (replaces external alloy dependencies)
 - `gem_hash/`: Hashing utilities for blockchain operations
@@ -105,11 +106,11 @@ apps/ (api, daemon, dynode)
   ├── services/    ← backend orchestration and infra construction
   ├── storage/     ← Diesel ORM + PostgreSQL
   ├── prices/      ← price providers and alert rules
-  ├── gem_client/  ← ReqwestClient for backend HTTP
+  ├── gem_reqwest/ ← ReqwestClient for backend HTTP
   └── primitives/  ← shared models
 ```
 
-`primitives/` is the root dependency — nearly every crate imports it. Changes there ripple everywhere. `gem_client/` has two implementations: `ReqwestClient` (backend) and `AlienProvider` (mobile via gemstone).
+`primitives/` is the root dependency — nearly every crate imports it. Changes there ripple everywhere. `gem_client/` has two implementations: `ReqwestClient` in `gem_reqwest` (backend) and `AlienProvider` (mobile via gemstone).
 
 ## Technology Stack
 

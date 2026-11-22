@@ -543,11 +543,11 @@ mod tests {
     }
 }
 
-#[cfg(all(test, feature = "swap_integration_tests", feature = "reqwest_provider"))]
+#[cfg(all(test, feature = "swap_integration_tests"))]
 mod swap_integration_tests {
     use crate::testkit::{dynode_provider, mock_quote, simulate_swap};
     use crate::{
-        FetchQuoteData, NativeProvider, Options, QuoteRequest, Swapper, SwapperError,
+        FetchQuoteData, Options, QuoteRequest, Swapper, SwapperError,
         client_factory::{create_client_with_chain, create_eth_client},
         eth_address,
         fees::{bps_of, default_referral_fees},
@@ -569,6 +569,7 @@ mod swap_integration_tests {
         deployment::v3::get_uniswap_router_deployment_by_chain,
         path::TokenPair,
     };
+    use gem_reqwest::NativeProvider;
     use num_bigint::BigUint;
     use num_traits::ToPrimitive;
     use primitives::{

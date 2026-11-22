@@ -2,8 +2,9 @@ use std::collections::HashMap;
 use std::error::Error;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use gem_client::{ClientExt, ReqwestClient, Target};
+use gem_client::{ClientExt, Target};
 use gem_encoding::{EncodingError, decode_base64};
+use gem_reqwest::ReqwestClient;
 use primitives::FiatProviderName;
 
 use super::model::{FonbnkCurrency, FonbnkOrderLimits, FonbnkOrderLimitsQuery, FonbnkQuote, FonbnkQuoteLeg, FonbnkQuoteRequest};

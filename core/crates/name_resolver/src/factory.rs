@@ -1,4 +1,4 @@
-use gem_client::{ReqwestClient, reqwest_client};
+use gem_reqwest::{ReqwestClient, reqwest_client};
 use settings::Name;
 
 use crate::providers::{

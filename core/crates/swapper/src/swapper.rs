@@ -219,7 +219,7 @@ impl GemSwapper {
     }
 }
 
-#[cfg(all(test, feature = "reqwest_provider"))]
+#[cfg(test)]
 mod tests {
     use num_bigint::BigUint;
 
@@ -234,10 +234,10 @@ mod tests {
     use super::*;
     use crate::{
         Options, SwapperProvider, SwapperQuoteAsset,
-        alien::reqwest_provider::NativeProvider,
         testkit::{MockSwapper, mock_quote},
         uniswap::universal_router::{new_pancakeswap, new_uniswap_v3},
     };
+    use gem_reqwest::NativeProvider;
 
     #[test]
     fn test_filter_by_provider_type() {
@@ -452,7 +452,8 @@ mod swap_integration_tests {
     };
 
     use super::*;
-    use crate::{QuoteRequest, SwapperQuoteAsset, alien::reqwest_provider::NativeProvider, config::API_BASE_URL, models::Options, testkit::mock_quote};
+    use crate::{QuoteRequest, SwapperQuoteAsset, config::API_BASE_URL, models::Options, testkit::mock_quote};
+    use gem_reqwest::NativeProvider;
 
     const CONTRACT_CHECK_AMOUNT_USD: f64 = 50.0;
     const CONTRACT_CHECK_CONCURRENCY: usize = 4;

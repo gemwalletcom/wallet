@@ -13,15 +13,6 @@ mod types;
 #[cfg(any(test, debug_assertions))]
 pub mod testkit;
 
-#[cfg(feature = "reqwest")]
-mod reqwest_client;
-
-#[cfg(feature = "reqwest")]
-pub mod retry;
-
-#[cfg(feature = "reqwest")]
-pub mod client_config;
-
 pub mod query;
 
 pub use content_type::{CONTENT_TYPE, ContentType};
@@ -33,15 +24,6 @@ pub use request::{GetRequest, PostRequest};
 pub use target::Target;
 use target::body_headers;
 pub use types::{ClientError, Response, decode_json_byte_array, deserialize_response, encode_request_body, validate_response};
-
-#[cfg(feature = "reqwest")]
-pub use reqwest_client::{ReqwestClient, map_response_headers};
-
-#[cfg(feature = "reqwest")]
-pub use retry::{default_should_retry, retry, retry_policy};
-
-#[cfg(feature = "reqwest")]
-pub use client_config::{builder, reqwest_client};
 
 pub const DEFAULT_REQUEST_TIMEOUT: Duration = Duration::from_secs(30);
 

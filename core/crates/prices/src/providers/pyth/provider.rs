@@ -2,7 +2,7 @@ use std::collections::{HashMap, HashSet};
 use std::error::Error;
 
 use async_trait::async_trait;
-use gem_client::ReqwestClient;
+use gem_reqwest::ReqwestClient;
 use primitives::AssetId;
 
 use super::{

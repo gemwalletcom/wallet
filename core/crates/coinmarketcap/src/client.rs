@@ -1,7 +1,8 @@
 use crate::mapper::map_fiat_rate;
 use crate::model::{Info, Listing, ListingsResponse, PriceConversionResponse};
 use crate::target::CoinMarketCapTarget;
-use gem_client::{Client, ClientExt, RemoteProviderConfig, ReqwestClient};
+use gem_client::{Client, ClientExt, RemoteProviderConfig};
+use gem_reqwest::ReqwestClient;
 use primitives::{Currency, FiatRate};
 use serde_json::Value;
 use std::{collections::HashMap, error::Error};

@@ -24,8 +24,7 @@ signer = [
     "dep:sha2",
     "dep:zeroize",
 ]
-reqwest = ["dep:gem_client", "gem_client/reqwest"]
-chain_integration_tests = ["rpc", "reqwest"]
+chain_integration_tests = ["rpc"]
 
 [dependencies]
 primitives = { path = "../primitives" }
@@ -45,6 +44,7 @@ sha2 = { workspace = true, optional = true }
 zeroize = { workspace = true, optional = true }
 
 [dev-dependencies]
+gem_reqwest = { path = "../gem_reqwest" }
 gem_cardano = { path = ".", features = ["rpc", "signer"] }
 gem_client = { path = "../gem_client" }
 tokio = { workspace = true, features = ["macros"] }

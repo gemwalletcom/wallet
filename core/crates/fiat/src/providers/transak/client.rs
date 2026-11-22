@@ -3,7 +3,8 @@ use super::{
     models::{Asset, Country, CreateWidgetUrlRequest, CreateWidgetUrlResponse, Data, FiatCurrency, QuoteQuery, RefreshTokenRequest, Response, TokenResponse, TransakQuote, TransakResponse},
     target::{TransakGatewayTarget, TransakTarget},
 };
-use gem_client::{ClientError, ClientExt, ReqwestClient};
+use gem_client::{ClientError, ClientExt};
+use gem_reqwest::ReqwestClient;
 use primitives::{AccessTokenCacher, FiatProviderName, FiatQuoteUrlData};
 use serde_json::Value;
 use std::collections::HashMap;

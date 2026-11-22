@@ -530,12 +530,13 @@ mod tests {
     }
 }
 
-#[cfg(all(test, feature = "swap_integration_tests", feature = "reqwest_provider"))]
+#[cfg(all(test, feature = "swap_integration_tests"))]
 mod swap_integration_tests {
     use super::*;
     use crate::near_intents::assets::NEAR_INTENTS_BTC_NATIVE;
     use crate::near_intents::testkit::mock_hypercore_quote_request;
-    use crate::{FetchQuoteData, SwapperQuoteAsset, alien::reqwest_provider::NativeProvider, models::Options};
+    use crate::{FetchQuoteData, SwapperQuoteAsset, models::Options};
+    use gem_reqwest::NativeProvider;
     use primitives::{
         AssetId, Chain,
         asset_constants::{ARBITRUM_USDC_ASSET_ID, BASE_USDC_ASSET_ID, NEAR_USDT_ASSET_ID},

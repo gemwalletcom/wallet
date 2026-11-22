@@ -2,9 +2,11 @@ use num_bigint::BigUint;
 use primitives::{AssetId, Chain, Delegation, DelegationBase, DelegationState, DelegationValidator};
 
 #[cfg(feature = "chain_integration_tests")]
-use gem_client::ReqwestClient;
-#[cfg(feature = "chain_integration_tests")]
 use gem_evm::rpc::EthereumClient;
+#[cfg(feature = "chain_integration_tests")]
+use gem_jsonrpc::JsonRpcClient;
+#[cfg(feature = "chain_integration_tests")]
+use gem_reqwest::ReqwestClient;
 #[cfg(feature = "chain_integration_tests")]
 use primitives::EVMChain;
 #[cfg(feature = "chain_integration_tests")]
@@ -45,5 +47,5 @@ pub fn mock_delegation(validator_id: &str, state: DelegationState, balance: u64,
 #[cfg(feature = "chain_integration_tests")]
 pub fn create_staking_client() -> BscStakingClient<ReqwestClient> {
     let settings = get_test_settings();
-    BscStakingClient::new(EthereumClient::mock_with_url(EVMChain::SmartChain, &settings.chains.smartchain.url))
+    BscStakingClient::new(EthereumClient::new(JsonRpcClient::new(ReqwestClient::new_test_client(settings.chains.smartchain.url)), EVMChain::SmartChain))
 }

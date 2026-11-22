@@ -245,8 +245,8 @@ mod tests {
 mod chain_integration_tests {
     use super::*;
     use crate::testkit::TEMPO_TEST_ADDRESS;
-    use gem_client::ReqwestClient;
     use gem_jsonrpc::JsonRpcClient;
+    use gem_reqwest::ReqwestClient;
     use num_bigint::BigInt;
     use num_bigint::BigUint;
     use primitives::{EVMChain, TransactionPreloadInput, known_assets::TEMPO_PATHUSD};

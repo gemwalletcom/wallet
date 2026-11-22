@@ -39,9 +39,10 @@ services = { path = "../../crates/services" }
 config_keys = { path = "../../crates/config_keys" }
 defi = { path = "../../crates/defi" }
 nft = { path = "../../crates/nft" }
-gem_client = { path = "../../crates/gem_client", features = ["reqwest"] }
+gem_client = { path = "../../crates/gem_client" }
+gem_reqwest = { path = "../../crates/gem_reqwest" }
 gem_jsonrpc = { path = "../../crates/gem_jsonrpc" }
-swapper = { path = "../../crates/swapper", features = ["reqwest_provider"] }
+swapper = { path = "../../crates/swapper" }
 localizer = { path = "../../crates/localizer" }
 
 security = { path = "../../crates/security" }

@@ -1,7 +1,8 @@
 use std::error::Error;
 
 use gem_encoding::protobuf::{decode_grpc_message, encode_grpc_message};
-use gem_jsonrpc::grpc::{GrpcStatusError, GrpcTransport, ReqwestGrpcTransport};
+use gem_jsonrpc::grpc::{GrpcStatusError, GrpcTransport};
+use gem_reqwest::ReqwestGrpcTransport;
 
 use super::model::{LookupNameRequest, LookupNameResponse};
 

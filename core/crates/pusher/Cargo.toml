@@ -6,7 +6,8 @@ version = { workspace = true }
 [dependencies]
 async-trait = { workspace = true }
 serde = { workspace = true }
-gem_client = { path = "../gem_client", features = ["reqwest"] }
+gem_client = { path = "../gem_client" }
+gem_reqwest = { path = "../gem_reqwest" }
 push_notification = { path = "../push_notification" }
 
 [dev-dependencies]

@@ -1,5 +1,5 @@
-use gem_client::ReqwestClient;
 use gem_hypercore::rpc::client::HyperCoreClient;
+use gem_reqwest::ReqwestClient;
 
 use crate::HypercoreProvider;
 

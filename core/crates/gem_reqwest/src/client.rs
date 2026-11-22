@@ -5,7 +5,9 @@ use reqwest::header::{HeaderMap, USER_AGENT};
 use reqwest::{Method, RequestBuilder};
 use serde::{Serialize, de::DeserializeOwned};
 
-use crate::{Client, ClientError, Response, build_request_url, deserialize_response, encode_request_body, retry_policy};
+use gem_client::{Client, ClientError, Response, build_request_url, deserialize_response, encode_request_body};
+
+use crate::{builder, retry_policy};
 
 #[derive(Debug, Clone)]
 pub struct ReqwestClient {
@@ -35,7 +37,7 @@ impl ReqwestClient {
     }
 
     pub fn new_with_retry(url: String, timeout_secs: u64, max_retries: u32) -> Self {
-        let client = crate::client_config::builder()
+        let client = builder()
             .timeout(Duration::from_secs(timeout_secs))
             .retry(retry_policy(url.clone(), max_retries))
             .build()
@@ -147,7 +149,7 @@ async fn response_data(response: reqwest::Response) -> Result<Response, ClientEr
     Ok(Response { status: Some(status), headers, data })
 }
 
-pub fn map_response_headers(headers: &HeaderMap) -> HashMap<String, String> {
+pub(crate) fn map_response_headers(headers: &HeaderMap) -> HashMap<String, String> {
     headers.iter().filter_map(|(name, value)| Some((name.to_string(), value.to_str().ok()?.to_string()))).collect()
 }
 

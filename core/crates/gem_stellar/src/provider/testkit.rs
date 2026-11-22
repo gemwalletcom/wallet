@@ -1,7 +1,7 @@
 #[cfg(all(test, feature = "chain_integration_tests"))]
 use crate::rpc::client::StellarClient;
 #[cfg(all(test, feature = "chain_integration_tests"))]
-use gem_client::ReqwestClient;
+use gem_reqwest::ReqwestClient;
 #[cfg(all(test, feature = "chain_integration_tests"))]
 use settings::testkit::get_test_settings;
 
@@ -18,7 +18,7 @@ pub const TEST_TRANSACTION_ID: &str = "356f0ece1eb64da9569b9a2b7a2fe0c3c5a00346a
 #[cfg(all(test, feature = "chain_integration_tests"))]
 pub fn create_test_client() -> StellarClient<ReqwestClient> {
     let settings = get_test_settings();
-    let reqwest_client = ReqwestClient::new(settings.chains.stellar.url, gem_client::reqwest_client());
+    let reqwest_client = ReqwestClient::new(settings.chains.stellar.url, gem_reqwest::reqwest_client());
     StellarClient::new(reqwest_client)
 }
 

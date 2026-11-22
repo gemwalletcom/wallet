@@ -279,6 +279,7 @@ dependencies = [
  "gem_client",
  "gem_crypto",
  "gem_jsonrpc",
+ "gem_reqwest",
  "gem_tracing",
  "http",
  "http-body-util",
@@ -1246,6 +1247,7 @@ dependencies = [
  "gem_monad",
  "gem_near",
  "gem_polkadot",
+ "gem_reqwest",
  "gem_solana",
  "gem_stellar",
  "gem_sui",
@@ -1316,7 +1318,6 @@ checksum = "f09628afdcc538b57f3c6341e9c8e9970f18e4a481690a64974d7023bd33548b"
 dependencies = [
  "anstyle",
  "clap_lex",
- "strsim",
 ]
 
 [[package]]
@@ -1358,6 +1359,7 @@ version = "2.114.102"
 dependencies = [
  "chain_primitives",
  "gem_client",
+ "gem_reqwest",
  "primitives",
  "reqwest",
  "serde",
@@ -1369,6 +1371,7 @@ name = "coinmarketcap"
 version = "2.114.102"
 dependencies = [
  "gem_client",
+ "gem_reqwest",
  "primitives",
  "reqwest",
  "serde",
@@ -1751,6 +1754,7 @@ dependencies = [
  "futures",
  "gem_client",
  "gem_encoding",
+ "gem_reqwest",
  "jupiter",
  "num-bigint 0.5.1",
  "number_formatter",
@@ -1818,6 +1822,7 @@ name = "dexscreener"
 version = "2.114.102"
 dependencies = [
  "gem_client",
+ "gem_reqwest",
  "primitives",
  "reqwest",
  "serde",
@@ -1963,6 +1968,7 @@ dependencies = [
  "gem_encoding",
  "gem_evm",
  "gem_hash",
+ "gem_reqwest",
  "gem_solana",
  "gem_tracing",
  "gem_uuid",
@@ -2106,7 +2112,6 @@ version = "2.114.102"
 dependencies = [
  "gem_client",
  "primitives",
- "reqwest",
  "serde",
  "serde_json",
  "serde_serializers",
@@ -2142,6 +2147,8 @@ dependencies = [
  "everstake",
  "gem_client",
  "gem_evm",
+ "gem_jsonrpc",
+ "gem_reqwest",
  "num-bigint 0.5.1",
  "num-traits",
  "primitives",
@@ -2200,6 +2207,7 @@ dependencies = [
  "gem_client",
  "gem_crypto",
  "gem_encoding",
+ "gem_reqwest",
  "gem_uuid",
  "hmac 0.13.0",
  "jsonwebtoken",
@@ -2477,8 +2485,8 @@ dependencies = [
  "gem_client",
  "gem_evm",
  "gem_jsonrpc",
+ "gem_reqwest",
  "gem_solana",
- "gemstone",
  "num-bigint 0.5.1",
  "primitives",
  "serde",
@@ -2496,6 +2504,7 @@ dependencies = [
  "gem_client",
  "gem_encoding",
  "gem_hash",
+ "gem_reqwest",
  "num-bigint 0.5.1",
  "num-traits",
  "primitives",
@@ -2535,6 +2544,7 @@ dependencies = [
  "gem_aptos",
  "gem_client",
  "gem_hash",
+ "gem_reqwest",
  "num-bigint 0.5.1",
  "num-traits",
  "primitives",
@@ -2574,6 +2584,7 @@ dependencies = [
  "gem_client",
  "gem_encoding",
  "gem_hash",
+ "gem_reqwest",
  "num-bigint 0.5.1",
  "num-traits",
  "number_formatter",
@@ -2595,6 +2606,8 @@ dependencies = [
  "gem_bsc",
  "gem_client",
  "gem_evm",
+ "gem_jsonrpc",
+ "gem_reqwest",
  "num-bigint 0.5.1",
  "primitives",
  "settings",
@@ -2613,6 +2626,7 @@ dependencies = [
  "gem_cardano",
  "gem_client",
  "gem_hash",
+ "gem_reqwest",
  "num-bigint 0.5.1",
  "num-traits",
  "primitives",
@@ -2630,9 +2644,7 @@ name = "gem_client"
 version = "2.114.102"
 dependencies = [
  "async-trait",
- "gem_client",
  "primitives",
- "reqwest",
  "serde",
  "serde_json",
  "tokio",
@@ -2650,6 +2662,7 @@ dependencies = [
  "gem_cosmos",
  "gem_encoding",
  "gem_hash",
+ "gem_reqwest",
  "num-bigint 0.5.1",
  "number_formatter",
  "primitives",
@@ -2727,6 +2740,7 @@ dependencies = [
  "gem_evm",
  "gem_hash",
  "gem_jsonrpc",
+ "gem_reqwest",
  "num-bigint 0.5.1",
  "num-traits",
  "primitives",
@@ -2765,6 +2779,7 @@ dependencies = [
  "gem_evm",
  "gem_hash",
  "gem_hypercore",
+ "gem_reqwest",
  "num-bigint 0.5.1",
  "number_formatter",
  "primitives",
@@ -2787,7 +2802,6 @@ dependencies = [
  "gem_encoding",
  "gem_jsonrpc",
  "primitives",
- "reqwest",
  "serde",
  "serde_json",
  "tokio",
@@ -2827,6 +2841,7 @@ dependencies = [
  "gem_evm",
  "gem_jsonrpc",
  "gem_monad",
+ "gem_reqwest",
  "num-bigint 0.5.1",
  "num-traits",
  "primitives",
@@ -2848,6 +2863,7 @@ dependencies = [
  "gem_hash",
  "gem_jsonrpc",
  "gem_near",
+ "gem_reqwest",
  "num-bigint 0.5.1",
  "num-traits",
  "primitives",
@@ -2887,6 +2903,7 @@ dependencies = [
  "gem_encoding",
  "gem_hash",
  "gem_polkadot",
+ "gem_reqwest",
  "num-bigint 0.5.1",
  "num-traits",
  "number_formatter",
@@ -2896,6 +2913,21 @@ dependencies = [
  "serde_serializers",
  "settings",
  "signer",
+ "tokio",
+]
+
+[[package]]
+name = "gem_reqwest"
+version = "2.114.102"
+dependencies = [
+ "async-trait",
+ "futures",
+ "gem_client",
+ "gem_jsonrpc",
+ "primitives",
+ "reqwest",
+ "serde",
+ "serde_json",
  "tokio",
 ]
 
@@ -2911,6 +2943,7 @@ dependencies = [
  "gem_client",
  "gem_encoding",
  "gem_jsonrpc",
+ "gem_reqwest",
  "gem_solana",
  "num-bigint 0.5.1",
  "num-traits",
@@ -2935,6 +2968,7 @@ dependencies = [
  "gem_client",
  "gem_encoding",
  "gem_hash",
+ "gem_reqwest",
  "gem_stellar",
  "num-bigint 0.5.1",
  "num-traits",
@@ -2963,6 +2997,7 @@ dependencies = [
  "gem_encoding",
  "gem_hash",
  "gem_jsonrpc",
+ "gem_reqwest",
  "gem_sui",
  "num-bigint 0.5.1",
  "num-traits",
@@ -2986,6 +3021,7 @@ dependencies = [
  "gem_client",
  "gem_evm",
  "gem_jsonrpc",
+ "gem_reqwest",
  "gem_tempo",
  "num-bigint 0.5.1",
  "primitives",
@@ -3006,6 +3042,7 @@ dependencies = [
  "gem_client",
  "gem_encoding",
  "gem_hash",
+ "gem_reqwest",
  "gem_ton",
  "num-bigint 0.5.1",
  "primitives",
@@ -3039,6 +3076,7 @@ dependencies = [
  "gem_encoding",
  "gem_evm",
  "gem_hash",
+ "gem_reqwest",
  "gem_tron",
  "num-bigint 0.5.1",
  "num-traits",
@@ -3086,6 +3124,7 @@ dependencies = [
  "gem_encoding",
  "gem_hash",
  "gem_jsonrpc",
+ "gem_reqwest",
  "gem_xrp",
  "num-bigint 0.5.1",
  "num-traits",
@@ -3110,6 +3149,7 @@ dependencies = [
  "gem_bitcoin",
  "gem_client",
  "gem_hash",
+ "gem_reqwest",
  "gem_zcash",
  "num-bigint 0.5.1",
  "primitives",
@@ -4017,6 +4057,7 @@ name = "jupiter"
 version = "2.114.102"
 dependencies = [
  "gem_client",
+ "gem_reqwest",
  "reqwest",
  "serde",
  "serde_json",
@@ -4279,6 +4320,7 @@ dependencies = [
  "gem_hash",
  "gem_jsonrpc",
  "gem_near",
+ "gem_reqwest",
  "gem_solana",
  "gem_ton",
  "idna",
@@ -4306,6 +4348,7 @@ dependencies = [
  "futures",
  "gem_client",
  "gem_evm",
+ "gem_reqwest",
  "gem_ton",
  "primitives",
  "reqwest",
@@ -4330,7 +4373,7 @@ dependencies = [
  "chain_providers",
  "chain_traits",
  "clap",
- "gem_client",
+ "gem_reqwest",
  "gem_tracing",
  "node_probes",
  "primitives",
@@ -4687,6 +4730,7 @@ dependencies = [
  "futures",
  "gem_client",
  "gem_hypercore",
+ "gem_reqwest",
  "gem_ton",
  "gem_tracing",
  "jupiter",
@@ -4796,6 +4840,7 @@ version = "2.114.102"
 dependencies = [
  "async-trait",
  "gem_client",
+ "gem_reqwest",
  "primitives",
  "push_notification",
  "serde",
@@ -5120,6 +5165,7 @@ dependencies = [
  "gem_client",
  "gem_evm",
  "gem_hash",
+ "gem_reqwest",
  "localizer",
  "num-bigint 0.5.1",
  "num-traits",
@@ -5533,6 +5579,7 @@ dependencies = [
  "aws-lc-rs",
  "chain_primitives",
  "gem_client",
+ "gem_reqwest",
  "gem_tracing",
  "jupiter",
  "primitives",
@@ -5724,6 +5771,7 @@ dependencies = [
  "gem_crypto",
  "gem_evm",
  "gem_jsonrpc",
+ "gem_reqwest",
  "gem_solana",
  "gem_tracing",
  "gem_uuid",
@@ -6081,6 +6129,7 @@ dependencies = [
  "gem_hypercore",
  "gem_jsonrpc",
  "gem_polkadot",
+ "gem_reqwest",
  "gem_solana",
  "gem_stellar",
  "gem_sui",
@@ -6099,7 +6148,6 @@ dependencies = [
  "settings",
  "sha2 0.11.0",
  "strum",
- "swapper",
  "tokio",
 ]
 
@@ -6668,10 +6716,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "edf78ecfb9bb8d7c4f8da11e8eb2ab6304e8ec0adb3ab32d8fc77c21a5bb0b86"
 dependencies = [
  "anyhow",
- "camino",
- "cargo_metadata",
- "clap",
- "uniffi_bindgen",
  "uniffi_core",
  "uniffi_macros",
  "uniffi_pipeline",
@@ -6681,7 +6725,8 @@ dependencies = [
 name = "uniffi-bindgen"
 version = "2.114.102"
 dependencies = [
- "uniffi",
+ "clap",
+ "uniffi_bindgen",
 ]
 
 [[package]]

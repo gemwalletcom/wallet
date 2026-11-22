@@ -1,9 +1,11 @@
 use primitives::{AssetId, Chain, Delegation, DelegationBase, DelegationState, DelegationValidator};
 
 #[cfg(feature = "chain_integration_tests")]
-use gem_client::ReqwestClient;
-#[cfg(feature = "chain_integration_tests")]
 use gem_evm::rpc::EthereumClient;
+#[cfg(feature = "chain_integration_tests")]
+use gem_jsonrpc::JsonRpcClient;
+#[cfg(feature = "chain_integration_tests")]
+use gem_reqwest::ReqwestClient;
 #[cfg(feature = "chain_integration_tests")]
 use primitives::EVMChain;
 #[cfg(feature = "chain_integration_tests")]
@@ -39,7 +41,7 @@ pub fn mock_delegation(state: DelegationState) -> Delegation {
 pub fn create_everstake_staking_client() -> EverstakeStakingClient<ReqwestClient> {
     let settings = get_test_settings();
     EverstakeStakingClient::new(
-        EthereumClient::mock_with_url(EVMChain::Ethereum, &settings.chains.ethereum.url),
-        Some(EverstakeClient::new(ReqwestClient::new(settings.everstake.url, gem_client::reqwest_client()))),
+        EthereumClient::new(JsonRpcClient::new(ReqwestClient::new_test_client(settings.chains.ethereum.url)), EVMChain::Ethereum),
+        Some(EverstakeClient::new(ReqwestClient::new(settings.everstake.url, gem_reqwest::reqwest_client()))),
     )
 }

@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use gem_client::{ReqwestClient, reqwest_client};
+    use gem_reqwest::{ReqwestClient, reqwest_client};
     use name_resolver::providers::{
         alldomains::AllDomainsProvider,
         aptos::AptosProvider,

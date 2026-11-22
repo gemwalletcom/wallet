@@ -6,5 +6,5 @@ mod target;
 pub use mapper::{chain_from_id, chain_id};
 pub use model::{Meta, MetaDetails, Pair};
 
-use gem_client::ReqwestClient;
+use gem_reqwest::ReqwestClient;
 pub type DexScreenerClient = client::DexScreenerClient<ReqwestClient>;

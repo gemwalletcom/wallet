@@ -3,7 +3,7 @@ use crate::models::{StakingPool, StakingPoolResponse, TransactionResponse};
 #[cfg(all(test, feature = "chain_integration_tests"))]
 use crate::rpc::client::CosmosClient;
 #[cfg(all(test, feature = "chain_integration_tests"))]
-use gem_client::ReqwestClient;
+use gem_reqwest::ReqwestClient;
 #[cfg(all(test, feature = "chain_integration_tests"))]
 use primitives::chain_cosmos::CosmosChain;
 #[cfg(all(test, feature = "chain_integration_tests"))]
@@ -44,21 +44,21 @@ impl StakingPoolResponse {
 #[cfg(all(test, feature = "chain_integration_tests"))]
 pub fn create_osmosis_test_client() -> CosmosClient<ReqwestClient> {
     let settings = get_test_settings();
-    let reqwest_client = ReqwestClient::new(settings.chains.osmosis.url, gem_client::reqwest_client());
+    let reqwest_client = ReqwestClient::new(settings.chains.osmosis.url, gem_reqwest::reqwest_client());
     CosmosClient::new(CosmosChain::Osmosis, reqwest_client)
 }
 
 #[cfg(all(test, feature = "chain_integration_tests"))]
 pub fn create_cosmos_test_client() -> CosmosClient<ReqwestClient> {
     let settings = get_test_settings();
-    let reqwest_client = ReqwestClient::new(settings.chains.cosmos.url, gem_client::reqwest_client());
+    let reqwest_client = ReqwestClient::new(settings.chains.cosmos.url, gem_reqwest::reqwest_client());
     CosmosClient::new(CosmosChain::Cosmos, reqwest_client)
 }
 
 #[cfg(all(test, feature = "chain_integration_tests"))]
 pub fn create_celestia_test_client() -> CosmosClient<ReqwestClient> {
     let settings = get_test_settings();
-    let reqwest_client = ReqwestClient::new(settings.chains.celestia.url, gem_client::reqwest_client());
+    let reqwest_client = ReqwestClient::new(settings.chains.celestia.url, gem_reqwest::reqwest_client());
     CosmosClient::new(CosmosChain::Celestia, reqwest_client)
 }
 
@@ -75,5 +75,5 @@ pub fn create_test_client(chain: CosmosChain) -> CosmosClient<ReqwestClient> {
         CosmosChain::Sei => chains.sei.url,
         CosmosChain::Noble => chains.noble.url,
     };
-    CosmosClient::new(chain, ReqwestClient::new(url, gem_client::reqwest_client()))
+    CosmosClient::new(chain, ReqwestClient::new(url, gem_reqwest::reqwest_client()))
 }

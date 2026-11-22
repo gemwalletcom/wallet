@@ -25,7 +25,8 @@ primitives = { path = "../primitives" }
 chain_primitives = { path = "../chain_primitives" }
 serde_serializers = { path = "../serde_serializers" }
 number_formatter = { path = "../number_formatter" }
-gem_client = { path = "../gem_client", features = ["reqwest"] }
+gem_client = { path = "../gem_client" }
+gem_reqwest = { path = "../gem_reqwest" }
 
 [dev-dependencies]
 

@@ -6,15 +6,10 @@ use crate::{
     rpc::{HttpMethod, Target},
 };
 
-#[cfg(feature = "reqwest")]
-mod reqwest_transport;
-#[cfg(feature = "reqwest")]
-pub use reqwest_transport::ReqwestGrpcTransport;
-
 const STATUS_OK: &str = "0";
 const STATUS_NOT_FOUND: &str = "5";
-const HEADER_STATUS: &str = "grpc-status";
-const HEADER_MESSAGE: &str = "grpc-message";
+pub const HEADER_STATUS: &str = "grpc-status";
+pub const HEADER_MESSAGE: &str = "grpc-message";
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct GrpcStatusError {
@@ -50,7 +45,7 @@ fn unary_target(endpoint: &str, path: &str, body: Vec<u8>) -> Target {
     }
 }
 
-fn validate_grpc_status(status: Option<&str>, message: Option<&str>) -> Result<(), Box<dyn Error + Send + Sync>> {
+pub fn validate_grpc_status(status: Option<&str>, message: Option<&str>) -> Result<(), Box<dyn Error + Send + Sync>> {
     match status {
         Some(code) if code != STATUS_OK => Err(Box::new(GrpcStatusError {
             code: code.to_string(),
@@ -60,7 +55,7 @@ fn validate_grpc_status(status: Option<&str>, message: Option<&str>) -> Result<(
     }
 }
 
-fn validate_http_status(status: Option<u16>) -> Result<(), Box<dyn Error + Send + Sync>> {
+pub fn validate_http_status(status: Option<u16>) -> Result<(), Box<dyn Error + Send + Sync>> {
     if let Some(status) = status
         && !(200..300).contains(&status)
     {
@@ -69,7 +64,7 @@ fn validate_http_status(status: Option<u16>) -> Result<(), Box<dyn Error + Send 
     Ok(())
 }
 
-fn grpc_headers() -> HashMap<String, String> {
+pub fn grpc_headers() -> HashMap<String, String> {
     HashMap::from([
         ("Content-Type".into(), "application/grpc+proto".into()),
         ("Accept".into(), "application/grpc+proto".into()),

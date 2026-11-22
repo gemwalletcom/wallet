@@ -7,5 +7,5 @@ pub(crate) mod testkit;
 
 pub use self::model::*;
 
-use gem_client::ReqwestClient;
+use gem_reqwest::ReqwestClient;
 pub type JupiterClient = client::JupiterClient<ReqwestClient>;
