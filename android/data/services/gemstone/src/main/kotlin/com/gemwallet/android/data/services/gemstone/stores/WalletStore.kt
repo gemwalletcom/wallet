@@ -15,7 +15,6 @@ import com.wallet.core.primitives.Wallet
 import com.wallet.core.primitives.WalletId
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.withContext
 import uniffi.gemstone.GemWalletStore
 
@@ -58,7 +57,7 @@ class GemstoneWalletStore(private val walletsDao: WalletsDao, private val accoun
     suspend fun setImageUrl(walletId: WalletId, imageUrl: String?) = walletsDao.setImageUrl(walletId.id, imageUrl)
 
     suspend fun removeWallet(walletId: WalletId): Boolean = withContext(Dispatchers.IO) {
-        val wallet = walletsDao.getById(walletId.id).firstOrNull() ?: return@withContext false
+        val wallet = walletsDao.getByIdNow(walletId.id).keys.firstOrNull() ?: return@withContext false
         accountsDao.deleteByWalletId(walletId.id)
         walletsDao.delete(wallet)
         true

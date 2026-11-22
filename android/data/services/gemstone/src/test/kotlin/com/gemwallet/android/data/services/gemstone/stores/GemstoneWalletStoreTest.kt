@@ -13,14 +13,12 @@ import com.gemwallet.android.testkit.mockWallet
 import com.wallet.core.primitives.Chain
 import com.wallet.core.primitives.WalletId
 import com.wallet.core.primitives.WalletType
-import io.mockk.coEvery
 import io.mockk.coJustRun
 import io.mockk.coVerifyOrder
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.mockkStatic
 import io.mockk.unmockkAll
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -48,9 +46,6 @@ class GemstoneWalletStoreTest {
     @Test
     fun addWallet_insertsNativeAssetBeforeAccount() = runBlocking {
         stubNativeAssets()
-        every { walletsDao.getById("wallet-1") } returns flowOf(null)
-        every { walletsDao.getAll() } returns flowOf(emptyMap())
-        coEvery { accountsDao.getByWalletId("wallet-1") } returns emptyList()
         coJustRun { walletsDao.insert(any()) }
         coJustRun { assetsDao.insert(any<List<DbAsset>>()) }
         coJustRun { accountsDao.insert(any<List<DbAccount>>()) }
