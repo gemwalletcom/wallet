@@ -4,12 +4,14 @@ import android.app.Activity
 import android.content.Context
 import android.content.ContextWrapper
 import android.content.Intent
+import android.view.Window
 import android.view.WindowManager
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.platform.LocalContext
 import com.gemwallet.android.application.security.cases.AuthRequester
 import com.gemwallet.android.model.AuthRequest
+import java.util.WeakHashMap
 
 fun Context.findActivity(): Activity? {
     var context = this
@@ -34,18 +36,20 @@ fun Context.shareText(subject: String?, text: String?, chooserTitle: String) {
     startActivity(Intent.createChooser(intent, chooserTitle))
 }
 
+private val secureScreens = WeakHashMap<Window, Int>()
+
 @Composable
 fun DisableScreenShooting() {
-    val context = LocalContext.current
+    val window = LocalContext.current.findActivity()?.window ?: return
 
-    DisposableEffect(Unit) {
-        context.findActivity()?.window?.setFlags(
-            WindowManager.LayoutParams.FLAG_SECURE,
-            WindowManager.LayoutParams.FLAG_SECURE,
-        )
+    DisposableEffect(window) {
+        secureScreens.merge(window, 1, Int::plus)
+        window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
 
         onDispose {
-            context.findActivity()?.window?.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+            if (secureScreens.computeIfPresent(window) { _, screens -> (screens - 1).takeIf { it > 0 } } == null) {
+                window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+            }
         }
     }
 }
