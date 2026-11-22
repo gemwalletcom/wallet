@@ -1,7 +1,11 @@
 mod broadcast;
 mod traffic;
 
-use std::{sync::Arc, time::Duration};
+use std::{
+    collections::{HashMap, HashSet},
+    sync::{Arc, Mutex, PoisonError},
+    time::Duration,
+};
 
 use gem_tracing::path;
 use http_server::HttpMetrics;
@@ -12,6 +16,10 @@ use primitives::unix_seconds;
 use crate::config::MetricsConfig;
 use broadcast::BroadcastLabels;
 use traffic::{ClientResponseLabels, CooldownLabels, EndpointLabels, FailoverLabels, ProxyLabels, RequestLabels, TrafficLabels, UpstreamLabels};
+
+const METHOD_LABELS_PER_CHAIN: usize = 128;
+const METHOD_LABEL_LENGTH: usize = 64;
+const OTHER_METHOD: &str = "other";
 
 #[derive(Debug, Clone)]
 pub struct Metrics {
@@ -28,6 +36,7 @@ pub struct Metrics {
     proxy_available: Family<ProxyLabels, Gauge>,
     proxy_requests: Family<ProxyRequestLabels, Counter>,
     proxy_requests_by_method: Family<ProxyRequestByMethodLabels, Counter>,
+    method_labels: Arc<Mutex<HashMap<String, HashSet<String>>>>,
     proxy_response_latency: Family<ResponseLabels, Histogram>,
     proxy_upstream_response_latency: Family<UpstreamResponseLabels, Histogram>,
     proxy_retries: Family<RetryLabels, Counter>,
@@ -273,6 +282,7 @@ impl Metrics {
             proxy_available,
             proxy_requests,
             proxy_requests_by_method,
+            method_labels: Arc::default(),
             proxy_response_latency,
             proxy_upstream_response_latency,
             proxy_retries,
@@ -293,7 +303,7 @@ impl Metrics {
             .inc();
 
         for method in methods {
-            let method = self.truncate_method(method);
+            let method = self.method_label(chain, method);
             self.proxy_requests_by_method
                 .get_or_create(&ProxyRequestByMethodLabels {
                     traffic: TrafficLabels::node(&self.source, chain),
@@ -305,7 +315,7 @@ impl Metrics {
     }
 
     pub fn add_proxy_upstream_response(&self, chain: &str, method: &str, host: &str, status: u16, latency: u128) {
-        let method = self.truncate_method(method);
+        let method = self.method_label(chain, method);
         self.proxy_upstream_response_latency
             .get_or_create(&UpstreamResponseLabels {
                 traffic: TrafficLabels::node(&self.source, chain),
@@ -432,8 +442,18 @@ impl Metrics {
         &self.http
     }
 
-    fn truncate_method(&self, method: &str) -> String {
-        if method.contains('/') { path::redact(method) } else { method.to_string() }
+    fn method_label(&self, chain: &str, method: &str) -> String {
+        let label = if method.contains('/') { path::redact(method) } else { method.to_string() };
+        let mut labels = self.method_labels.lock().unwrap_or_else(PoisonError::into_inner);
+        let labels = labels.entry(chain.to_string()).or_default();
+        if labels.contains(&label) {
+            return label;
+        }
+        if labels.len() >= METHOD_LABELS_PER_CHAIN || label.len() > METHOD_LABEL_LENGTH {
+            return OTHER_METHOD.to_string();
+        }
+        labels.insert(label.clone());
+        label
     }
 }
 
@@ -495,16 +515,30 @@ mod tests {
     use crate::config::MetricsConfig;
 
     #[test]
-    fn test_truncate_method() {
+    fn test_method_label() {
         let m = Metrics::new(MetricsConfig {
             prefix: "test".to_string(),
             ..MetricsConfig::mock()
         });
 
-        assert_eq!(m.truncate_method("eth_getBlockByNumber"), "eth_getBlockByNumber");
-        assert_eq!(m.truncate_method("eth_getBalance"), "eth_getBalance");
-        assert_eq!(m.truncate_method("/api/v1/blocks/by_height/12345"), "/api/v1/blocks/by_height/:number");
-        assert_eq!(m.truncate_method("/v1/verylongsegmentthatisgreaterthan20characters"), "/v1/:value");
+        assert_eq!(m.method_label("ethereum", "eth_getBlockByNumber"), "eth_getBlockByNumber");
+        assert_eq!(m.method_label("ethereum", "eth_getBalance"), "eth_getBalance");
+        assert_eq!(m.method_label("bitcoin", "/api/v1/blocks/by_height/12345"), "/api/v1/blocks/by_height/:number");
+        assert_eq!(m.method_label("bitcoin", "/v1/verylongsegmentthatisgreaterthan20characters"), "/v1/:value");
+        assert_eq!(m.method_label("solana", &"a".repeat(METHOD_LABEL_LENGTH)), "a".repeat(METHOD_LABEL_LENGTH));
+        assert_eq!(m.method_label("solana", &"a".repeat(METHOD_LABEL_LENGTH + 1)), OTHER_METHOD);
+        assert_eq!(m.method_label("solana", &"/a".repeat(METHOD_LABEL_LENGTH)), OTHER_METHOD);
+
+        for index in 3..METHOD_LABELS_PER_CHAIN {
+            assert_eq!(m.method_label("solana", &format!("method{index}")), format!("method{index}"));
+        }
+        assert_eq!(m.method_label("solana", "getBalance"), "getBalance");
+        assert_eq!(m.method_label("solana", "getBalance"), "getBalance");
+        assert_eq!(m.method_label("solana", "getSlot"), "getSlot");
+        assert_eq!(m.method_label("solana", "another"), OTHER_METHOD);
+        assert_eq!(m.method_label("solana", "path/another"), OTHER_METHOD);
+        assert_eq!(m.method_label("solana", "method3"), "method3");
+        assert_eq!(m.method_label("sui", "another"), "another");
     }
 
     #[test]
