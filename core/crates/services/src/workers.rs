@@ -6,10 +6,10 @@ use chain_providers::ChainProviders;
 use coingecko::CoinGeckoClient;
 use config_keys::ConfigKey;
 use prices::{FiatRatesProvider, PriceAssetsProvider, PriceProvider};
-use primitives::{AccessTokenCacher, Chain, ChartTimeframe, DateTime, SwapProvider};
+use primitives::{AccessTokenCacher, Chain, ChartTimeframe, DateTime, FiatProviderName, SwapProvider};
 use search_index::SearchIndexClient;
 use settings::service_user_agent;
-use storage::{Database, PricesProvidersRepository};
+use storage::{Database, FiatRepository, PricesProvidersRepository};
 use streamer::{StreamProducer, StreamProducerQueue};
 use swapper::swapper::GemSwapper;
 
@@ -107,9 +107,14 @@ pub struct FiatJobs {
     price_client: PriceClient,
     access_token_cacher: Arc<dyn AccessTokenCacher>,
     asset_catalog: Arc<dyn AssetCatalogCacher>,
+    enabled_providers: Vec<FiatProviderName>,
 }
 
 impl FiatJobs {
+    pub fn enabled_providers(&self) -> &[FiatProviderName] {
+        &self.enabled_providers
+    }
+
     pub fn rates_updater(&self, provider: Arc<dyn FiatRatesProvider>) -> FiatRatesUpdater {
         FiatRatesUpdater::new(provider, self.price_client.clone())
     }
@@ -390,11 +395,20 @@ impl Services {
 
     pub async fn fiat_jobs(&self) -> Result<FiatJobs, Box<dyn Error + Send + Sync>> {
         let cacher = self.cacher().await?;
+        let enabled_providers = self
+            .database()
+            .run(FiatRepository::get_fiat_providers)
+            .await?
+            .into_iter()
+            .filter(|provider| provider.enabled)
+            .map(|provider| provider.id)
+            .collect();
         Ok(FiatJobs {
             services: self.clone(),
             price_client: self.prices(cacher.clone()),
             access_token_cacher: self.fiat_access_token_cacher().await?,
             asset_catalog: Arc::new(cacher),
+            enabled_providers,
         })
     }
 
