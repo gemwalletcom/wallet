@@ -71,16 +71,16 @@ impl Pusher {
         })
     }
 
-    pub fn message(localizer: LanguageLocalizer, transaction: &Transaction, address: &str, assets: &Vec<Asset>, to_address: &str, from_address: &str) -> Result<Message, Box<dyn Error + Send + Sync>> {
+    pub fn message(localizer: LanguageLocalizer, transaction: &Transaction, address: &str, assets: &Vec<Asset>, to_address: &str, from_address: &str) -> Result<Option<Message>, Box<dyn Error + Send + Sync>> {
         if transaction.state.is_failed()
             && let Some(message) = Self::failed_message(&localizer, transaction, to_address)
         {
-            return Ok(message);
+            return Ok(Some(message));
         }
         let asset = assets.asset_result(transaction.asset_id.clone())?;
         let amount = ValueFormatter::format_with_symbol(ValueStyle::Auto, &transaction.value, asset.decimals, &asset.symbol)?;
 
-        match transaction.transaction_type {
+        let message: Result<Message, Box<dyn Error + Send + Sync>> = match transaction.transaction_type {
             TransactionType::Transfer | TransactionType::SmartContractCall => {
                 let is_sent = transaction.is_sent(address.to_string());
                 let title = localizer.notification_transfer_title(is_sent, &amount);
@@ -128,7 +128,9 @@ impl Pusher {
                 message: Some(localizer.notification_received_description(to_address)),
             }),
             TransactionType::Swap => {
-                let metadata = transaction.metadata.clone().ok_or("Missing metadata")?;
+                let Some(metadata) = transaction.metadata.clone() else {
+                    return Ok(None);
+                };
                 let metadata: TransactionSwapMetadata = serde_json::from_value(metadata)?;
                 let from_asset = assets.asset_result(metadata.from_asset.clone())?;
                 let to_asset = assets.asset_result(metadata.to_asset.clone())?;
@@ -169,7 +171,8 @@ impl Pusher {
                 title: localizer.notification_unfreeze_title(&amount),
                 message: None,
             }),
-        }
+        };
+        message.map(Some)
     }
 
     pub async fn get_messages(&self, subscription: &DeviceSubscription, transaction: Transaction, assets: Vec<Asset>) -> Result<Vec<GorushNotification>, Box<dyn Error + Send + Sync>> {
@@ -180,7 +183,9 @@ impl Pusher {
         let from_address = self.get_address(chain, transaction.from.as_str()).await?;
 
         let localizer = LanguageLocalizer::new_with_language(subscription.device.locale.as_ref());
-        let message = Self::message(localizer, &transaction, &subscription.address, &assets, &to_address, &from_address)?;
+        let Some(message) = Self::message(localizer, &transaction, &subscription.address, &assets, &to_address, &from_address)? else {
+            return Ok(vec![]);
+        };
 
         let data = PushNotification::new_transaction(subscription.wallet_id.clone(), &transaction, subscription.device.platform, &subscription.device.version);
 
@@ -192,7 +197,7 @@ impl Pusher {
 mod tests {
     use super::*;
     use crate::testkit::MemoryNotificationsRepository;
-    use primitives::{ScanAddress, TransactionState};
+    use primitives::{ScanAddress, TransactionDirection, TransactionState};
 
     #[test]
     fn test_message_failed() {
@@ -202,15 +207,29 @@ mod tests {
             state: TransactionState::Reverted,
             ..Transaction::mock()
         };
-        let swap = Pusher::message(LanguageLocalizer::new(), &failed_swap, "0xfrom", &assets, "0xto", "0xfrom").unwrap();
+        let swap = Pusher::message(LanguageLocalizer::new(), &failed_swap, "0xfrom", &assets, "0xto", "0xfrom").unwrap().unwrap();
         assert_eq!((swap.title.as_str(), swap.message), ("❌ \u{2068}Swap\u{2069}: Failed", None));
 
         let failed_transfer = Transaction {
             state: TransactionState::Failed,
             ..Transaction::mock()
         };
-        let transfer = Pusher::message(LanguageLocalizer::new(), &failed_transfer, "0xfrom", &assets, "0xto", "0xfrom").unwrap();
+        let transfer = Pusher::message(LanguageLocalizer::new(), &failed_transfer, "0xfrom", &assets, "0xto", "0xfrom").unwrap().unwrap();
         assert_eq!((transfer.title.as_str(), transfer.message.as_deref()), ("❌ \u{2068}Transfer\u{2069}: Failed", Some("To \u{2068}0xto\u{2069}")));
+    }
+
+    #[tokio::test]
+    async fn test_get_messages() {
+        let pusher = Pusher::new(Arc::new(MemoryNotificationsRepository::default()));
+        let subscription = DeviceSubscription::mock("0xfrom");
+        let assets = vec![Asset::mock_eth()];
+        let swap = Transaction::mock_with_state(TransactionType::Swap, TransactionState::Confirmed, TransactionDirection::Outgoing);
+        let refunded_swap = Transaction::mock_with_state(TransactionType::Swap, TransactionState::Refunded, TransactionDirection::Outgoing);
+        let titles = |notifications: Vec<GorushNotification>| notifications.into_iter().map(|notification| notification.title).collect::<Vec<_>>();
+
+        assert_eq!(titles(pusher.get_messages(&subscription, Transaction::mock(), assets.clone()).await.unwrap()), vec!["💸 Sent: \u{2068}0.000000000001 ETH\u{2069}".to_string()]);
+        assert_eq!(titles(pusher.get_messages(&subscription, swap, assets.clone()).await.unwrap()), Vec::<String>::new());
+        assert_eq!(titles(pusher.get_messages(&subscription, refunded_swap, assets).await.unwrap()), Vec::<String>::new());
     }
 
     #[tokio::test]
