@@ -2,7 +2,7 @@ use core::str;
 
 use date_time::deserialize_datetime_from_seconds;
 use gem_encoding::decode_base64;
-use primitives::{DateTime, TransactionState};
+use primitives::{DateTime, TransactionState, TransactionType};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -27,6 +27,8 @@ pub struct Transaction {
     pub note: Option<String>,
     #[serde(rename = "payment-transaction")]
     pub payment_transaction: Option<PaymentTransaction>,
+    #[serde(rename = "asset-transfer-transaction")]
+    pub asset_transfer_transaction: Option<AssetTransferTransaction>,
     #[serde(rename = "tx-type")]
     pub transaction_type: String,
 }
@@ -37,9 +39,28 @@ pub struct PaymentTransaction {
     pub receiver: Option<String>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct AssetTransferTransaction {
+    pub amount: u64,
+    #[serde(rename = "asset-id")]
+    pub asset_id: u64,
+    pub receiver: String,
+}
+
 impl Transaction {
     pub fn get_memo(&self) -> Option<String> {
         self.note.clone().and_then(|note| decode_base64(&note).ok()).and_then(|decoded| str::from_utf8(&decoded).ok().map(ToString::to_string))
+    }
+
+    pub fn asset_transfer_type(&self) -> Option<TransactionType> {
+        let asset_transfer = self.asset_transfer_transaction.as_ref()?;
+        if asset_transfer.amount > 0 {
+            Some(TransactionType::Transfer)
+        } else if self.sender.as_ref() == Some(&asset_transfer.receiver) {
+            Some(TransactionType::AssetActivation)
+        } else {
+            None
+        }
     }
 }
 
