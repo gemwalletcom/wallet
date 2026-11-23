@@ -15,6 +15,14 @@ pub struct Ledger {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BlockHeader {
+    #[serde(deserialize_with = "deserialize_u64_from_str")]
+    pub first_version: u64,
+    #[serde(deserialize_with = "deserialize_u64_from_str")]
+    pub last_version: u64,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Block {
     pub block_height: String,
     pub transactions: Vec<Transaction>,

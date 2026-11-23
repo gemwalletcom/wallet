@@ -13,7 +13,6 @@ use crate::health::HealthState;
 use crate::metrics::parser::ParserMetrics;
 use crate::reporters::parser::ParserReporter;
 use chain_traits::ChainTraits;
-use futures::future::join_all;
 use gem_tracing::{DurationMs, error_with_fields, info_with_fields};
 use primitives::{Chain, Transaction};
 use services::Services;
@@ -211,7 +210,7 @@ impl Parser {
 
     async fn parse_blocks(&self, blocks: Vec<u64>) -> Result<usize, Box<dyn Error + Send + Sync>> {
         let missing = missing_blocks(&self.fetched_blocks.lock().unwrap(), &blocks);
-        let results = join_all(missing.into_iter().map(|block| async move { (block, self.provider.get_transactions_by_block(block).await) })).await;
+        let results = self.provider.get_transactions_in_blocks(missing).await;
 
         let transactions = {
             let mut fetched_blocks = self.fetched_blocks.lock().unwrap();

@@ -23,6 +23,7 @@ mod tests {
     #[test]
     fn test_map_transaction_status_confirmed() {
         let transaction = Transaction {
+            version: None,
             hash: Some("0xabc123".to_string()),
             sender: Some("0x123".to_string()),
             success: true,
@@ -44,6 +45,7 @@ mod tests {
     #[test]
     fn test_map_transaction_status_failed() {
         let transaction = Transaction {
+            version: None,
             hash: Some("0xdef456".to_string()),
             sender: Some("0x456".to_string()),
             success: false,
