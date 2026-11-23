@@ -11,8 +11,8 @@ use crate::{FiatProvider, FiatWebhookRequest};
 
 use super::{
     client::FlashnetClient,
-    mapper::{map_amount, map_assets, map_crypto_amount, map_redirect_url, map_source_amount, map_webhook},
-    model::{FlashnetOnrampRequest, FlashnetWebhookPayload},
+    mapper::{map_assets, map_crypto_amount, map_onramp_request, map_redirect_url, map_source_amount, map_webhook},
+    model::FlashnetWebhookPayload,
 };
 
 #[async_trait]
@@ -47,7 +47,7 @@ impl FiatProvider for FlashnetClient {
     async fn get_quote_buy(&self, request: FiatQuoteRequest, request_map: FiatMapping) -> Result<FiatQuoteResponse, Box<dyn Error + Send + Sync>> {
         let chain = FiatMapping::get_network(request_map.asset_symbol.network)?;
         let symbol = request_map.asset_symbol.symbol;
-        let amount = map_source_amount(request.amount);
+        let amount = map_source_amount(request.amount)?;
         let estimate = self.get_estimate(&chain, &symbol, &amount).await?;
         let crypto_amount = map_crypto_amount(&estimate.estimated_out, request_map.asset.decimals)?;
 
@@ -56,16 +56,7 @@ impl FiatProvider for FlashnetClient {
 
     async fn get_quote_url(&self, data: FiatQuoteUrlData) -> Result<FiatQuoteUrl, Box<dyn Error + Send + Sync>> {
         let network = FiatMapping::get_network(data.asset_symbol.network.clone())?;
-        let amount = map_amount(data.quote.crypto_amount, data.quote.asset.decimals);
-
-        let request = FlashnetOnrampRequest {
-            destination_chain: network,
-            destination_asset: data.asset_symbol.symbol.clone(),
-            recipient_address: data.wallet_address.clone(),
-            amount,
-            amount_mode: "exact_out".to_string(),
-            affiliate_id: self.affiliate_id.clone(),
-        };
+        let request = map_onramp_request(&data, network, self.affiliate_id.clone());
         let response = self.create_onramp(request, &data.quote.id).await?;
 
         Ok(FiatQuoteUrl {

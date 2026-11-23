@@ -1,6 +1,6 @@
 use crate::currency::Currency;
 use crate::fiat_assets::{FiatAsset, FiatAssetLimits};
-use crate::{Asset, AssetId, Chain, DateTime, FiatProvider, FiatProviderName, FiatQuote, FiatQuoteType, FiatTransaction, FiatTransactionStatus, PaymentType};
+use crate::{Asset, AssetId, Chain, DateTime, FiatAssetSymbol, FiatProvider, FiatProviderName, FiatQuote, FiatQuoteType, FiatQuoteUrlData, FiatTransaction, FiatTransactionStatus, FiatTransactionUpdate, PaymentType};
 use num_bigint::BigUint;
 use std::collections::HashMap;
 
@@ -41,6 +41,35 @@ impl FiatQuote {
             value: BigUint::from(100_000u64),
             latency: 0,
             payment_methods: vec![PaymentType::Card],
+        }
+    }
+}
+
+impl FiatQuoteUrlData {
+    pub fn mock(quote: FiatQuote) -> Self {
+        FiatQuoteUrlData {
+            quote,
+            asset_symbol: FiatAssetSymbol {
+                symbol: "BTC".to_string(),
+                network: Some("bitcoin".to_string()),
+            },
+            wallet_address: "0x123".to_string(),
+            ip_address: "127.0.0.1".to_string(),
+            country_code: "US".to_string(),
+            locale: "en".to_string(),
+        }
+    }
+}
+
+impl FiatTransactionUpdate {
+    pub fn mock(transaction_id: &str, status: FiatTransactionStatus, transaction_hash: Option<&str>) -> Self {
+        FiatTransactionUpdate {
+            transaction_id: transaction_id.to_string(),
+            provider_transaction_id: None,
+            status,
+            transaction_hash: transaction_hash.map(str::to_string),
+            fiat_amount: None,
+            fiat_currency: Some(Currency::USD.to_string()),
         }
     }
 }
