@@ -94,36 +94,37 @@ fun GemListRowView(
             )
         }
 
-        is GemListRowUIModel.Item -> GemListRowMenu(items = row.menu) { menuModifier ->
+        is GemListRowUIModel.Item -> {
             val selects = selectAction != null && row.url == null
             val openAddress = row.address?.let { address -> onSelectAddress?.let { select -> { select(address) } } }
-            ListItem(
-                model = row.model,
-                listPosition = listPosition,
-                modifier = rowModifier.then(menuModifier).then(
-                    when {
-                        openAddress != null -> Modifier.clickable(onClick = openAddress)
-                        row.url != null -> Modifier.clickable { uriHandler.open(context, row.url) }
-                        selects -> Modifier.clickable { onSelect(selectAction) }
-                        else -> Modifier
-                    },
-                ),
-                minHeight = ListItemDefaults.plainMinHeight,
-                accessory = when {
-                    row.trailingImage != null -> {
-                        { DataBadgeChevron(isShowChevron = selects) { ListItemImageView(image = row.trailingImage, size = row.trailingImageSize) } }
-                    }
-
-                    openAddress != null || row.url != null || row.opensAnotherScreen || selects -> {
-                        {
-                            DataBadgeChevron()
-                            if (accessory != null) accessory()
+            val onClick = when {
+                openAddress != null -> openAddress
+                row.url != null -> ({ uriHandler.open(context, row.url) })
+                selects -> ({ onSelect(selectAction) })
+                else -> null
+            }
+            GemListRowMenu(items = row.menu, onClick = onClick) { menuModifier ->
+                ListItem(
+                    model = row.model,
+                    listPosition = listPosition,
+                    modifier = rowModifier.then(menuModifier),
+                    minHeight = ListItemDefaults.plainMinHeight,
+                    accessory = when {
+                        row.trailingImage != null -> {
+                            { DataBadgeChevron(isShowChevron = selects) { ListItemImageView(image = row.trailingImage, size = row.trailingImageSize) } }
                         }
-                    }
 
-                    else -> accessory
-                },
-            )
+                        openAddress != null || row.url != null || row.opensAnotherScreen || selects -> {
+                            {
+                                DataBadgeChevron()
+                                if (accessory != null) accessory()
+                            }
+                        }
+
+                        else -> accessory
+                    },
+                )
+            }
         }
 
         is GemListRowUIModel.Rate -> AssetRatePropertyItem(title = row.title, rate = row.rate, listPosition = listPosition)
@@ -200,9 +201,9 @@ fun GemListRowView(
 }
 
 @Composable
-private fun GemListRowMenu(items: List<GemListRowMenuItem>, onClick: () -> Unit = {}, content: @Composable (Modifier) -> Unit) {
+private fun GemListRowMenu(items: List<GemListRowMenuItem>, onClick: (() -> Unit)?, content: @Composable (Modifier) -> Unit) {
     if (items.isEmpty()) {
-        content(Modifier)
+        content(onClick?.let { Modifier.clickable(onClick = it) } ?: Modifier)
         return
     }
     val context = LocalContext.current
@@ -214,7 +215,7 @@ private fun GemListRowMenu(items: List<GemListRowMenuItem>, onClick: () -> Unit 
         isExpanded = isExpanded,
         onDismiss = { isExpanded = false },
         onLongClick = { isExpanded = true },
-        onClick = onClick,
+        onClick = onClick ?: {},
         content = content,
         menuItems = {
             items.forEach { item ->
