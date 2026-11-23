@@ -93,6 +93,7 @@ pub struct GemRecipientSession {
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemRecipientRow {
+    pub id: String,
     pub title: String,
     pub subtitle: String,
     pub recipient: GemRecipient,
