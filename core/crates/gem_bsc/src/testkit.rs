@@ -12,11 +12,22 @@ use primitives::EVMChain;
 #[cfg(feature = "chain_integration_tests")]
 use settings::testkit::get_test_settings;
 
-use crate::model::BscUndelegation;
+use crate::model::{BscUndelegation, BscValidator};
 #[cfg(feature = "chain_integration_tests")]
 use crate::staking::BscStakingClient;
 
 pub const TEST_SMARTCHAIN_STAKING_ADDRESS: &str = "0xBA4D1d35bCe0e8F28E5a3403e7a0b996c5d50AC4";
+
+impl BscValidator {
+    pub fn mock(operator_address: &str) -> Self {
+        Self {
+            operator_address: operator_address.to_string(),
+            moniker: "Kraken".to_string(),
+            commission: 1_000,
+            apy: 40,
+        }
+    }
+}
 
 pub fn mock_undelegation(unlock_time: Option<u64>) -> BscUndelegation {
     BscUndelegation {

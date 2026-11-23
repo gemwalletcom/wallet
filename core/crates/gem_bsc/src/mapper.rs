@@ -1,10 +1,12 @@
+use std::collections::HashSet;
+
 use num_bigint::BigUint;
 use primitives::{AssetId, Balance, Chain, DateTime, DelegationBase, DelegationState, DelegationValidator};
 
 use crate::model::{BscDelegation, BscUndelegation, BscValidator};
 
-pub fn map_validators(validators: Vec<BscValidator>) -> Vec<DelegationValidator> {
-    validators.into_iter().map(map_validator).collect()
+pub fn map_validators(validators: Vec<BscValidator>, elected: &HashSet<String>) -> Vec<DelegationValidator> {
+    validators.into_iter().map(|validator| map_validator(validator, elected)).collect()
 }
 
 pub fn map_delegations(delegations: Vec<BscDelegation>, undelegations: Vec<BscUndelegation>) -> Vec<DelegationBase> {
@@ -22,12 +24,13 @@ pub fn map_staking_balance(delegations: &[BscDelegation], undelegations: &[BscUn
     Balance::stake_balance(staked, pending, None)
 }
 
-fn map_validator(validator: BscValidator) -> DelegationValidator {
+fn map_validator(validator: BscValidator, elected: &HashSet<String>) -> DelegationValidator {
+    let is_active = elected.contains(&validator.operator_address);
     DelegationValidator::stake(
         Chain::SmartChain,
         validator.operator_address,
         validator.moniker,
-        !validator.jailed,
+        is_active,
         validator.commission as f64 / 10_000.0,
         validator.apy as f64 / 100.0,
     )
@@ -70,7 +73,20 @@ fn map_undelegation(asset_id: &AssetId, undelegation: BscUndelegation) -> Delega
 mod tests {
     use super::*;
     use crate::testkit::{TEST_SMARTCHAIN_STAKING_ADDRESS, mock_undelegation};
-    use std::collections::HashSet;
+
+    #[test]
+    fn test_map_validators() {
+        let elected = "0x773760b0708a5Cc369c346993a0c225D8e4043B1";
+        let candidate = "0x343dA7Ff0446247ca47AA41e2A25c5Bbb230ED0A";
+
+        assert_eq!(
+            map_validators(vec![BscValidator::mock(elected), BscValidator::mock(candidate)], &HashSet::from([elected.to_string()])),
+            vec![
+                DelegationValidator::stake(Chain::SmartChain, elected.to_string(), "Kraken".to_string(), true, 0.1, 0.4),
+                DelegationValidator::stake(Chain::SmartChain, candidate.to_string(), "Kraken".to_string(), false, 0.1, 0.4),
+            ]
+        );
+    }
 
     #[test]
     fn test_map_delegations() {
