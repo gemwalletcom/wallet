@@ -4,7 +4,9 @@
   "result": {
     "header": {
       "hash": "hash",
-      "height": 212520210
-    }
+      "height": 212520210,
+      "timestamp": 1788947000000000000
+    },
+    "chunks": []
   }
 }

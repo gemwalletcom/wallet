@@ -7,7 +7,8 @@ use primitives::TransactionState;
 use serde::{Deserialize, Serialize};
 use serde_serializers::deserialize_bigint_from_str;
 
-use crate::models::transaction::{BroadcastTransaction, ExecutionStatus, Outcome};
+use crate::models::transaction::{BroadcastTransaction, Outcome};
+use crate::rpc::mapper::map_execution_state;
 
 #[derive(Clone, Copy, Debug, Serialize)]
 #[serde(rename_all = "lowercase")]
@@ -58,28 +59,6 @@ pub(super) struct TransactionsResponse {
 }
 
 #[derive(Debug, Deserialize)]
-pub(super) struct FastNearBlockResponse {
-    pub block: Option<FastNearBlock>,
-    pub block_txs: Option<Vec<FastNearBlockTransaction>>,
-}
-
-#[derive(Debug, Serialize)]
-pub(super) struct FastNearBlockRequest {
-    pub block_id: u64,
-    pub with_transactions: bool,
-}
-
-#[derive(Debug, Deserialize)]
-pub(super) struct FastNearBlock {
-    pub block_height: u64,
-}
-
-#[derive(Debug, Deserialize)]
-pub(super) struct FastNearBlockTransaction {
-    pub transaction_hash: String,
-}
-
-#[derive(Debug, Deserialize)]
 pub(super) struct FastNearTransaction {
     pub execution_outcome: FastNearExecutionOutcome,
     pub receipts: Vec<FastNearReceipt>,
@@ -113,14 +92,6 @@ impl FastNearTransaction {
     }
 
     pub(super) fn state(&self) -> TransactionState {
-        let mut pending = false;
-        for outcome in iter::once(&self.execution_outcome).chain(self.receipts.iter().map(|receipt| &receipt.execution_outcome)) {
-            match &outcome.outcome.status {
-                ExecutionStatus::Failure(_) => return TransactionState::Failed,
-                ExecutionStatus::NotStarted | ExecutionStatus::Started => pending = true,
-                ExecutionStatus::SuccessReceiptId(_) | ExecutionStatus::SuccessValue(_) => {}
-            }
-        }
-        if pending { TransactionState::Pending } else { TransactionState::Confirmed }
+        map_execution_state(iter::once(&self.execution_outcome).chain(self.receipts.iter().map(|receipt| &receipt.execution_outcome)).map(|outcome| &outcome.outcome.status))
     }
 }

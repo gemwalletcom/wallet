@@ -1,19 +1,12 @@
 use std::error::Error;
 
 use async_trait::async_trait;
-use chain_traits::{ChainBlockTransactions, ChainTransaction, ChainTransactions, TransactionsRequest, TransactionsResult};
+use chain_traits::{ChainTransaction, ChainTransactions, TransactionsRequest, TransactionsResult};
 
 use gem_client::Client;
 use primitives::{Transaction, TransactionIdRequest};
 
 use crate::rpc::NearIndexer;
-
-#[async_trait]
-impl<C: Client> ChainBlockTransactions for NearIndexer<C> {
-    async fn get_transactions_by_block(&self, block: u64) -> Result<Vec<Transaction>, Box<dyn Error + Sync + Send>> {
-        NearIndexer::get_transactions_by_block(self, block).await
-    }
-}
 
 #[async_trait]
 impl<C: Client> ChainTransaction for NearIndexer<C> {
@@ -95,10 +88,10 @@ mod chain_integration_tests {
     async fn test_near_get_transactions_by_skipped_and_future_block() -> Result<(), Box<dyn Error + Send + Sync>> {
         let client = create_near_test_client();
         let transactions = client.get_transactions_by_block(212520205).await?;
-        let error = client.get_transactions_by_block(999999999).await.unwrap_err();
+        let future = client.get_transactions_by_block(999999999).await;
 
         assert!(transactions.is_empty());
-        assert_eq!(error.to_string(), "FastNear block 999999999 is not indexed");
+        assert!(future.is_err());
         Ok(())
     }
 }

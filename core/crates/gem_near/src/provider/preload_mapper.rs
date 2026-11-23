@@ -55,7 +55,7 @@ pub(super) fn map_transaction_fee(input: &TransactionLoadInput, destination_addr
 mod tests {
     use super::*;
     use crate::models::{AccountAccessKey, AccountAccessKeyPermission, Block, BlockHeader};
-    use primitives::{Asset, Chain, GasPriceType, SwapProvider, TransactionInputType, swap::SwapData};
+    use primitives::{Asset, Chain, DateTime, GasPriceType, SwapProvider, TransactionInputType, swap::SwapData};
 
     #[test]
     fn test_map_transaction_preload() {
@@ -68,7 +68,9 @@ mod tests {
             header: BlockHeader {
                 hash: "F45xbjXiyHn5noj1692RVqeuNC6X232qhKpvvPrv92iz".to_string(),
                 height: 12345,
+                timestamp: DateTime::default(),
             },
+            chunks: vec![],
         };
 
         let result = map_transaction_preload(&access_key, &block);

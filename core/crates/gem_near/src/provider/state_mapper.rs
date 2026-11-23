@@ -35,9 +35,15 @@ mod tests {
     #[test]
     fn test_map_node_status() {
         use crate::models::{Block, BlockHeader};
+        use primitives::DateTime;
 
         let block = Block {
-            header: BlockHeader { hash: String::new(), height: 123456789 },
+            header: BlockHeader {
+                hash: String::new(),
+                height: 123456789,
+                timestamp: DateTime::default(),
+            },
+            chunks: vec![],
         };
         let mapped = map_node_status(&block).unwrap();
 

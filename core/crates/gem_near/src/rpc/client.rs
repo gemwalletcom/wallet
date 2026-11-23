@@ -1,12 +1,17 @@
-use super::NearRpcError;
-use crate::{
-    jsonrpc::NearRpc,
-    models::{Account, AccountAccessKey, AccountAccessKeyList, Block, BroadcastResult, GasPrice, NodeStatus, ProtocolConfig},
+use super::{
+    NearRpcError,
+    mapper::{is_transfer, map_transaction_result},
 };
+use crate::{
+    constants::{BLOCK_REQUEST_CONCURRENCY, EMPTY_TRANSACTION_ROOT},
+    jsonrpc::NearRpc,
+    models::{Account, AccountAccessKey, AccountAccessKeyList, Block, BroadcastResult, Chunk, GasPrice, NodeStatus, ProtocolConfig},
+};
+use futures::{StreamExt, TryStreamExt, stream};
 use gem_client::Client;
 use gem_encoding::encode_base64;
 use gem_jsonrpc::{client::JsonRpcClient, types::JsonRpcError};
-use primitives::Chain;
+use primitives::{Chain, Transaction};
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use std::error::Error;
 
@@ -68,6 +73,32 @@ impl<C: Client + Clone> NearClient<C> {
 
     pub async fn get_block(&self, height: u64) -> Result<Block, NearRpcError> {
         self.client.request_with_error(NearRpc::GetBlock { height }).await
+    }
+
+    pub async fn get_transactions_by_block(&self, height: u64) -> Result<Vec<Transaction>, Box<dyn Error + Sync + Send>> {
+        let block = self.get_block(height).await?;
+        let chunk_requests = block
+            .chunks
+            .into_iter()
+            .filter(|chunk| chunk.height_included == height && chunk.tx_root != EMPTY_TRANSACTION_ROOT)
+            .map(|chunk| NearRpc::GetChunk { chunk_hash: chunk.chunk_hash })
+            .collect();
+        let chunks: Vec<Chunk> = self.request_all(chunk_requests).await?;
+        let transaction_requests = chunks
+            .into_iter()
+            .flat_map(|chunk| chunk.transactions)
+            .filter(|transaction| transaction.actions.iter().any(is_transfer))
+            .map(|transaction| NearRpc::GetTransactionStatus {
+                transaction_hash: transaction.hash,
+                sender_account_id: transaction.signer_id,
+            })
+            .collect();
+        let results: Vec<BroadcastResult> = self.request_all(transaction_requests).await?;
+        results.into_iter().map(|result| map_transaction_result(result, height, block.header.timestamp)).collect()
+    }
+
+    async fn request_all<R: DeserializeOwned + Send>(&self, requests: Vec<NearRpc>) -> Result<Vec<R>, JsonRpcError> {
+        stream::iter(requests).map(|request| self.client.request(request)).buffered(BLOCK_REQUEST_CONCURRENCY).try_collect().await
     }
 
     pub async fn is_skipped_block(&self, height: u64) -> Result<bool, Box<dyn Error + Sync + Send>> {

@@ -76,6 +76,7 @@ pub struct TransferAction {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct FunctionCallAction {
+    pub method_name: String,
     pub deposit: String,
 }
 

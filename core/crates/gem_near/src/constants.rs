@@ -4,7 +4,13 @@ pub const TRANSACTION_STATUS_EXECUTED_OPTIMISTIC: &str = "EXECUTED_OPTIMISTIC";
 pub const TRANSACTION_STATUSES_EXECUTED: [&str; 3] = [TRANSACTION_STATUS_FINAL, TRANSACTION_STATUS_EXECUTED, TRANSACTION_STATUS_EXECUTED_OPTIMISTIC];
 
 #[cfg(feature = "rpc")]
+pub(crate) const BLOCK_REQUEST_CONCURRENCY: usize = 5;
+#[cfg(feature = "rpc")]
+pub(crate) const EMPTY_TRANSACTION_ROOT: &str = "11111111111111111111111111111111";
+#[cfg(feature = "rpc")]
 pub(crate) const EVENT_JSON_PREFIX: &str = "EVENT_JSON:";
+#[cfg(feature = "rpc")]
+pub(crate) const FUNGIBLE_TOKEN_TRANSFER_METHODS: [&str; 2] = ["ft_transfer", "ft_transfer_call"];
 #[cfg(feature = "rpc")]
 pub(crate) const FUNGIBLE_TOKEN_TRANSFER_EVENT: &str = "ft_transfer";
 #[cfg(feature = "rpc")]
