@@ -1,8 +1,10 @@
 use alloy_primitives::{Address, B256, Bytes, Signature, U256, keccak256};
-use primitives::SignerError;
+use primitives::{SignerError, TransactionFee, TransactionLoadInput};
 use signer::{SignatureScheme, Signer};
 
 use super::rlp;
+use crate::transaction_params::{TransactionCalls, TransactionParams};
+use crate::u256::bigint_to_u256;
 
 const EIP1559_TX_TYPE_ID: u8 = 0x02;
 
@@ -18,6 +20,34 @@ pub struct Eip1559Transaction {
 }
 
 impl Eip1559Transaction {
+    pub fn new(input: &TransactionLoadInput, fee: &TransactionFee, call: &TransactionParams) -> Result<Self, SignerError> {
+        Ok(Self {
+            chain_id: input.metadata.get_chain_id_u64()?,
+            nonce: input.metadata.get_sequence()?,
+            gas_limit: fee.gas_limit()?,
+            max_fee_per_gas: fee.gas_price_u64()?.into(),
+            max_priority_fee_per_gas: fee.priority_fee_u64()?.into(),
+            to: call.to.parse().map_err(|_| SignerError::invalid_input("invalid to address"))?,
+            value: bigint_to_u256(&call.value)?,
+            input: Bytes::from(call.data.clone()),
+        })
+    }
+
+    pub fn from_calls(input: &TransactionLoadInput, fee: &TransactionFee, calls: &TransactionCalls) -> Result<Vec<Self>, SignerError> {
+        match calls {
+            TransactionCalls::Call(call) => Ok(vec![Self::new(input, fee, call)?]),
+            TransactionCalls::ApproveAndCall { approval, call, call_gas_limit } => {
+                let approval = Self::new(input, fee, approval)?;
+                let call = Self {
+                    nonce: approval.nonce + 1,
+                    gas_limit: *call_gas_limit,
+                    ..Self::new(input, fee, call)?
+                };
+                Ok(vec![approval, call])
+            }
+        }
+    }
+
     pub fn sign(&self, private_key: &[u8]) -> Result<Vec<u8>, SignerError> {
         let signature = Signer::sign_digest(SignatureScheme::Secp256k1, self.signature_hash().as_slice(), private_key)?;
         let signature = Signature::try_from(signature.as_slice()).map_err(SignerError::from_display)?;
