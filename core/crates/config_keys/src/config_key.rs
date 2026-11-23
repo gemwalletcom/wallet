@@ -70,7 +70,6 @@ pub enum ConfigKey {
     ReferralRiskScoreDeviceFarmingPenaltyPerDevice,
 
     ReferralAbuseDisableThreshold,
-    ReferralAbuseAttemptPenalty,
     ReferralAbuseVerifiedThresholdMultiplier,
     ReferralAbuseLookback,
     ReferralAbuseMinReferralsToEvaluate,
@@ -280,7 +279,6 @@ impl ConfigKey {
             Self::ReferralRiskScoreDeviceFarmingThreshold => "10",
             Self::ReferralRiskScoreDeviceFarmingPenaltyPerDevice => "3",
             Self::ReferralAbuseDisableThreshold => "200",
-            Self::ReferralAbuseAttemptPenalty => "15",
             Self::ReferralAbuseVerifiedThresholdMultiplier => "2",
             Self::ReferralAbuseLookback => "7d",
             Self::ReferralAbuseMinReferralsToEvaluate => "2",

@@ -6,7 +6,6 @@ impl AbuseDetectionConfig {
     pub fn mock() -> Self {
         Self {
             disable_threshold: 200,
-            attempt_penalty: 15,
             verified_threshold_multiplier: 2.0,
             lookback: WEEK,
             min_referrals_to_evaluate: 2,

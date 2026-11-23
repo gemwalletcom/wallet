@@ -13,23 +13,15 @@ struct AbuseEvaluation {
     username: String,
     status: RewardStatus,
     referrals: i64,
-    attempts: i64,
     risk_score: i64,
     patterns: AbusePatterns,
-    score: AbuseScoreBreakdown,
+    risk_score_per_referral: f64,
     pattern_penalty: PatternPenaltyBreakdown,
     referrer_disabled: bool,
     disabled_referrer_penalty: f64,
     threshold: f64,
     abuse_score: f64,
     abuse_percent: f64,
-}
-
-struct AbuseScoreBreakdown {
-    base_score: f64,
-    risk_score_per_referral: f64,
-    attempts_per_referral: f64,
-    attempt_penalty_score: f64,
 }
 
 struct PatternPenaltyBreakdown {
@@ -94,16 +86,15 @@ impl RewardsAbuseChecker {
             username,
             status,
             referral_count,
-            attempt_count,
             risk_score_sum,
             patterns,
             referrer_disabled,
         } = facts;
-        let score = calculate_abuse_score_breakdown(risk_score_sum, attempt_count, referral_count, config);
+        let risk_score_per_referral = calculate_risk_score_per_referral(risk_score_sum, referral_count);
         let pattern_penalty = calculate_pattern_penalty_breakdown(&patterns, config, &status);
         let disabled_referrer_penalty = if referrer_disabled { config.disabled_referrer_penalty as f64 } else { 0.0 };
 
-        let abuse_score = score.base_score + pattern_penalty.total() + disabled_referrer_penalty;
+        let abuse_score = risk_score_per_referral + pattern_penalty.total() + disabled_referrer_penalty;
         let threshold = calculate_abuse_threshold(config, &status);
         let abuse_percent = (abuse_score / threshold * 100.0).min(100.0);
 
@@ -111,10 +102,9 @@ impl RewardsAbuseChecker {
             username,
             status,
             referrals: referral_count,
-            attempts: attempt_count,
             risk_score: risk_score_sum,
             patterns,
-            score,
+            risk_score_per_referral,
             pattern_penalty,
             referrer_disabled,
             disabled_referrer_penalty,
@@ -130,7 +120,6 @@ impl RewardsAbuseChecker {
             username = eval.username,
             status = eval.status.as_ref(),
             referrals = eval.referrals.to_string(),
-            attempts = eval.attempts.to_string(),
             risk_score = eval.risk_score.to_string(),
             countries_per_device = eval.patterns.max_countries_per_device.to_string(),
             referrers_per_device = eval.patterns.max_referrers_per_device.to_string(),
@@ -138,10 +127,7 @@ impl RewardsAbuseChecker {
             devices_per_ip = eval.patterns.max_devices_per_ip.to_string(),
             velocity_burst = eval.patterns.signals_in_velocity_window.to_string(),
             referrer_disabled = eval.referrer_disabled.to_string(),
-            base_score = format!("{:.2}", eval.score.base_score),
-            risk_score_per_referral = format!("{:.2}", eval.score.risk_score_per_referral),
-            attempts_per_referral = format!("{:.2}", eval.score.attempts_per_referral),
-            attempt_penalty_score = format!("{:.2}", eval.score.attempt_penalty_score),
+            risk_score_per_referral = format!("{:.2}", eval.risk_score_per_referral),
             country_rotation_penalty = format!("{:.0}", eval.pattern_penalty.country_rotation_penalty),
             ring_penalty = format!("{:.0}", eval.pattern_penalty.ring_penalty),
             device_farming_penalty = format!("{:.0}", eval.pattern_penalty.device_farming_penalty),
@@ -164,16 +150,12 @@ impl RewardsAbuseChecker {
 
         let reason = "Auto-disabled due to abuse detection";
         let comment = format!(
-            "abuse_score={:.0}, threshold={:.0}, base_score={:.2}, risk_scores={}, attempts={}, referrals={}, risk_score/referral={:.2}, attempts/referral={:.2}, attempt_penalty_score={:.2}, pattern_penalty={:.0}, country_rotation_penalty={:.0}, ring_penalty={:.0}, device_farming_penalty={:.0}, velocity_penalty={:.0}, disabled_referrer_penalty={:.0}, countries/device={}, referrers/device={}, referrers/fingerprint={}, devices/ip={}, velocity_burst={}, referrer_disabled={}",
+            "abuse_score={:.0}, threshold={:.0}, risk_scores={}, referrals={}, risk_score/referral={:.2}, pattern_penalty={:.0}, country_rotation_penalty={:.0}, ring_penalty={:.0}, device_farming_penalty={:.0}, velocity_penalty={:.0}, disabled_referrer_penalty={:.0}, countries/device={}, referrers/device={}, referrers/fingerprint={}, devices/ip={}, velocity_burst={}, referrer_disabled={}",
             eval.abuse_score,
             eval.threshold,
-            eval.score.base_score,
             eval.risk_score,
-            eval.attempts,
             eval.referrals,
-            eval.score.risk_score_per_referral,
-            eval.score.attempts_per_referral,
-            eval.score.attempt_penalty_score,
+            eval.risk_score_per_referral,
             eval.pattern_penalty.total(),
             eval.pattern_penalty.country_rotation_penalty,
             eval.pattern_penalty.ring_penalty,
@@ -193,22 +175,8 @@ impl RewardsAbuseChecker {
     }
 }
 
-#[cfg(test)]
-fn calculate_abuse_score(risk_score_sum: i64, attempt_count: i64, referral_count: i64, config: &AbuseDetectionConfig) -> f64 {
-    calculate_abuse_score_breakdown(risk_score_sum, attempt_count, referral_count, config).base_score
-}
-
-fn calculate_abuse_score_breakdown(risk_score_sum: i64, attempt_count: i64, referral_count: i64, config: &AbuseDetectionConfig) -> AbuseScoreBreakdown {
-    let referrals = referral_count.max(1) as f64;
-    let risk_score_per_referral = risk_score_sum as f64 / referrals;
-    let attempts_per_referral = attempt_count as f64 / referrals;
-    let attempt_penalty_score = attempts_per_referral * config.attempt_penalty as f64;
-    AbuseScoreBreakdown {
-        base_score: risk_score_per_referral + attempt_penalty_score,
-        risk_score_per_referral,
-        attempts_per_referral,
-        attempt_penalty_score,
-    }
+fn calculate_risk_score_per_referral(risk_score_sum: i64, referral_count: i64) -> f64 {
+    risk_score_sum as f64 / referral_count.max(1) as f64
 }
 
 fn calculate_abuse_threshold(config: &AbuseDetectionConfig, status: &RewardStatus) -> f64 {
@@ -270,22 +238,11 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_abuse_score() {
-        assert_eq!(calculate_abuse_score(100, 5, 1, &AbuseDetectionConfig::mock()), 175.0);
-        assert_eq!(calculate_abuse_score(0, 10, 1, &AbuseDetectionConfig::mock()), 150.0);
-        assert_eq!(calculate_abuse_score(200, 0, 1, &AbuseDetectionConfig::mock()), 200.0);
-        assert_eq!(calculate_abuse_score(100, 5, 10, &AbuseDetectionConfig::mock()), 17.5);
-        assert_eq!(calculate_abuse_score(0, 10, 10, &AbuseDetectionConfig::mock()), 15.0);
-        assert_eq!(calculate_abuse_score(200, 0, 10, &AbuseDetectionConfig::mock()), 20.0);
-    }
-
-    #[test]
-    fn test_abuse_score_breakdown() {
-        let score = calculate_abuse_score_breakdown(44, 0, 2, &AbuseDetectionConfig::mock());
-        assert_eq!(score.risk_score_per_referral, 22.0);
-        assert_eq!(score.attempts_per_referral, 0.0);
-        assert_eq!(score.attempt_penalty_score, 0.0);
-        assert_eq!(score.base_score, 22.0);
+    fn test_risk_score_per_referral() {
+        assert_eq!(calculate_risk_score_per_referral(200, 0), 200.0);
+        assert_eq!(calculate_risk_score_per_referral(200, 1), 200.0);
+        assert_eq!(calculate_risk_score_per_referral(44, 2), 22.0);
+        assert_eq!(calculate_risk_score_per_referral(200, 10), 20.0);
     }
 
     #[test]

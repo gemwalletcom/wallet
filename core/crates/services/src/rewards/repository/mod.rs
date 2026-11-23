@@ -233,7 +233,7 @@ impl Repository for PostgresRepository {
                     return Ok(Err(ReferralError::DuplicateAttempt));
                 }
 
-                let existing_signals = client.get_matching_risk_signals(&fingerprint, &signal_input.ip_address, &signal_input.ip_isp, &signal_input.device_model, signal_input.device_id, since)?;
+                let existing_signals = client.get_matching_risk_signals(&input.username, &fingerprint, &signal_input.ip_address, &signal_input.ip_isp, &signal_input.device_model, signal_input.device_id, since)?;
                 let device_model_ring_count = client.get_unique_referrers_count_for_device_model_pattern(&signal_input.device_model, signal_input.device_platform, &signal_input.device_locale, since)?;
                 let ip_abuser_count = client.get_disabled_users_count_by_ip(&signal_input.ip_address, since)?;
                 let cross_referrer_fingerprint_count = client.get_unique_referrers_count_for_fingerprint(&fingerprint, since)?;

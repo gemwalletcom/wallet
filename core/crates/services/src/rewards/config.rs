@@ -128,7 +128,6 @@ pub(crate) async fn risk_score_config(config: &ConfigCacher) -> Result<RiskScore
 
 pub(crate) struct AbuseDetectionConfig {
     pub(crate) disable_threshold: i64,
-    pub(crate) attempt_penalty: i64,
     pub(crate) verified_threshold_multiplier: f64,
     pub(crate) lookback: Duration,
     pub(crate) min_referrals_to_evaluate: i64,
@@ -152,7 +151,6 @@ impl AbuseDetectionConfig {
     pub(crate) async fn from_config(config: &ConfigCacher) -> Result<Self, DatabaseError> {
         Ok(Self {
             disable_threshold: config.get_i64(ConfigKey::ReferralAbuseDisableThreshold).await?,
-            attempt_penalty: config.get_i64(ConfigKey::ReferralAbuseAttemptPenalty).await?,
             verified_threshold_multiplier: config.get_f64(ConfigKey::ReferralAbuseVerifiedThresholdMultiplier).await?,
             lookback: config.get_duration(ConfigKey::ReferralAbuseLookback).await?,
             min_referrals_to_evaluate: config.get_i64(ConfigKey::ReferralAbuseMinReferralsToEvaluate).await?,
