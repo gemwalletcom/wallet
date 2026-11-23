@@ -1,0 +1,82 @@
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "blockTime": 1795387778,
+    "slot": 472714252,
+    "meta": {
+      "err": null,
+      "fee": 250000,
+      "preBalances": [
+        16491741283,
+        189459456851,
+        0,
+        2000000,
+        1,
+        1,
+        42706560
+      ],
+      "postBalances": [
+        16491491283,
+        189359477651,
+        99979200,
+        2000000,
+        1,
+        1,
+        42706560
+      ],
+      "preTokenBalances": [],
+      "postTokenBalances": [],
+      "loadedAddresses": {
+        "readonly": [],
+        "writable": []
+      }
+    },
+    "transaction": {
+      "signatures": [
+        "5a5jXE94xYxB85zSbSwxzsPfxx9w8fgCyb8HsFv6hykLkoq4tnjWuvp3iwQFbakLwFAzqoQr1SWLGgcqsbVBe6XT",
+        "3nH3J18ubDivqGX55AbAegAG4opf2WBFZUPXbBVGKSfpTUCEMchUWMgfdTtVnvXKLsCa3W1gfA1KzpHPKkCR1Xb3"
+      ],
+      "message": {
+        "accountKeys": [
+          "DScDQ1zV4qVMU8HQmfcJkjZhfo5QqCWdV7dbxkb2gU9C",
+          "B48kNVXs4YK4amkBCH2XokQiv1SeiVQGHDR17xDeKAAn",
+          "8LsfsSBxo81xKL37VYbCwWFrTw2hVnTEESq77qc6dMaW",
+          "Gq7AGjiuUrDj5yu9Xn6fVysmHgPhodVwBHwzNE96FHRx",
+          "11111111111111111111111111111111",
+          "ComputeBudget111111111111111111111111111111",
+          "SysvarRecentB1ockHashes11111111111111111111"
+        ],
+        "instructions": [
+          {
+            "programIdIndex": 4,
+            "accounts": [
+              3,
+              6,
+              0
+            ],
+            "data": "6vx8P"
+          },
+          {
+            "programIdIndex": 4,
+            "accounts": [
+              1,
+              2
+            ],
+            "data": "3Bxs4Z4kosjhhrCX"
+          },
+          {
+            "programIdIndex": 5,
+            "accounts": [],
+            "data": "Fj2Eoy"
+          },
+          {
+            "programIdIndex": 5,
+            "accounts": [],
+            "data": "3avKVPuic5LT"
+          }
+        ]
+      }
+    }
+  }
+}

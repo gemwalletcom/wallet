@@ -123,6 +123,14 @@ impl BlockTransaction {
             .nth(index)
     }
 
+    pub fn instruction_program(&self, instruction: &Instruction) -> Option<&str> {
+        self.account_key(instruction.program_id_index).map(String::as_str)
+    }
+
+    pub fn instruction_account(&self, instruction: &Instruction, position: usize) -> Option<&String> {
+        self.account_key(usize::from(*instruction.accounts.get(position)?))
+    }
+
     pub fn fee(&self) -> BigUint {
         BigUint::from(self.meta.fee)
     }
