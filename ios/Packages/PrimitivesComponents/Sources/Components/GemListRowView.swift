@@ -46,10 +46,12 @@ public struct GemListRowView: View {
 
     @ViewBuilder
     private var content: some View {
-        if case let .identifier(title, copy, _, address?, _) = row, let onSelectAddress {
+        if case let .identifier(title, copy, _, address?, menu) = row, let onSelectAddress {
             NavigationCustomLink(with: ListItemView(model: ListItemModel(title: title.text, subtitle: copy.display))) {
                 onSelectAddress(address)
             }
+            .contextMenu(contextMenu(menu))
+            .safariSheet(url: isPresentingUrl)
         } else if case let .field(title, .address(text, copy, _, menu)) = row, let onSelectAddress {
             NavigationCustomLink(with: ListItemView(model: ListItemModel(title: title.text, subtitle: text))) {
                 onSelectAddress(copy.value)
