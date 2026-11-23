@@ -5,7 +5,6 @@ pub struct BscValidator {
     pub moniker: String,
     pub commission: u64,
     pub apy: u64,
-    pub jailed: bool,
 }
 
 pub struct BscDelegation {
