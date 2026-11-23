@@ -1,9 +1,9 @@
 use num_bigint::BigUint;
 use std::error::Error;
 
-use crate::constants::TRANSACTION_TYPE_PAY;
+use crate::constants::{TRANSACTION_TYPE_ASSET_TRANSFER, TRANSACTION_TYPE_PAY};
 use crate::models::{Transaction as AlgoTransaction, TransactionBroadcast, TransactionLookup};
-use primitives::{Transaction, TransactionState, TransactionType, chain::Chain};
+use primitives::{AssetId, Transaction, TransactionState, TransactionType, chain::Chain};
 
 pub fn map_transaction_broadcast(result: &TransactionBroadcast) -> Result<String, Box<dyn Error + Sync + Send>> {
     if let Some(message) = &result.message {
@@ -24,31 +24,48 @@ pub fn map_transaction_by_hash(transaction: TransactionLookup) -> Option<Transac
 }
 
 pub fn map_transaction(transaction: AlgoTransaction) -> Option<Transaction> {
-    let chain = Chain::Algorand;
     match transaction.transaction_type.as_str() {
-        TRANSACTION_TYPE_PAY => Some(Transaction::new(
-            transaction.id.clone(),
-            chain.as_asset_id(),
-            transaction.sender.clone().unwrap_or_default(),
-            transaction.payment_transaction.clone()?.receiver.unwrap_or_default(),
-            None,
-            TransactionType::Transfer,
-            TransactionState::Confirmed,
-            BigUint::try_from(transaction.fee.unwrap_or_default()).ok()?,
-            chain.as_asset_id(),
-            BigUint::try_from(transaction.payment_transaction.clone()?.amount.unwrap_or_default()).ok()?,
-            transaction.clone().get_memo(),
-            None,
-            transaction.round_time,
-        )),
+        TRANSACTION_TYPE_PAY => {
+            let payment = transaction.payment_transaction.clone()?;
+            let value = BigUint::try_from(payment.amount.unwrap_or_default()).ok()?;
+            map_transfer(&transaction, Chain::Algorand.as_asset_id(), payment.receiver.unwrap_or_default(), TransactionType::Transfer, value)
+        }
+        TRANSACTION_TYPE_ASSET_TRANSFER => {
+            let asset_transfer = transaction.asset_transfer_transaction.clone()?;
+            let transaction_type = transaction.asset_transfer_type()?;
+            let asset_id = AssetId::token(Chain::Algorand, asset_transfer.asset_id.to_string());
+            map_transfer(&transaction, asset_id, asset_transfer.receiver, transaction_type, BigUint::from(asset_transfer.amount))
+        }
         _ => None,
     }
+}
+
+fn map_transfer(transaction: &AlgoTransaction, asset_id: AssetId, to: String, transaction_type: TransactionType, value: BigUint) -> Option<Transaction> {
+    Some(Transaction::new(
+        transaction.id.clone(),
+        asset_id,
+        transaction.sender.clone().unwrap_or_default(),
+        to,
+        None,
+        transaction_type,
+        TransactionState::Confirmed,
+        BigUint::try_from(transaction.fee.unwrap_or_default()).ok()?,
+        Chain::Algorand.as_asset_id(),
+        value,
+        transaction.get_memo(),
+        None,
+        transaction.round_time,
+    ))
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{models::TransactionBroadcast, provider::testkit::TEST_TRANSACTION_ID};
+    use crate::{
+        models::{TransactionBroadcast, Transactions},
+        provider::testkit::TEST_TRANSACTION_ID,
+    };
+    use primitives::DateTime;
 
     #[test]
     fn test_map_transaction_broadcast_success() {
@@ -80,5 +97,34 @@ mod tests {
         assert_eq!(transaction.from, "RXIOUIR5IGFZMIZ7CR7FJXDYY4JI7NZG5UCWCZZNWXUPFJRLG6K6X5ITXM");
         assert_eq!(transaction.to, "NXSHXB3CLKPZ4JJ3LIXOKOEAB575EDDHCUTDYAKYRXZWVJ6CCQUP55ZEPE");
         assert_eq!(transaction.value, BigUint::from(100000u64));
+    }
+
+    #[test]
+    fn test_map_transactions() {
+        let transactions: Transactions = serde_json::from_str(include_str!("../../testdata/transactions_asset_transfer.json")).unwrap();
+        let transactions = map_transactions(transactions.transactions);
+
+        assert_eq!(
+            transactions.iter().map(|transaction| (transaction.transaction_type.clone(), transaction.value.clone())).collect::<Vec<_>>(),
+            vec![(TransactionType::Transfer, BigUint::from(67054139u64)), (TransactionType::AssetActivation, BigUint::ZERO)]
+        );
+        assert_eq!(
+            transactions[0],
+            Transaction::new(
+                "HEXAEW76JHUPVMUF72DWNXG2FO7OVMAO3DK6RIEEGQTHKWNTA6AA".to_string(),
+                AssetId::token(Chain::Algorand, "31566704"),
+                "NZXX6SALQ6FVBMFMNY76E4IHO4S47QOHMO5U3BDYJ3UVVUN4J6IBE65MN4".to_string(),
+                "76LLFZPDOPRADXS4VSCQNNJYCPZM7TCFXRW5VTEDVWBMYD47CHNCTG3J7U".to_string(),
+                None,
+                TransactionType::Transfer,
+                TransactionState::Confirmed,
+                BigUint::from(1000u64),
+                Chain::Algorand.as_asset_id(),
+                BigUint::from(67054139u64),
+                None,
+                None,
+                DateTime::from_timestamp(1795361617),
+            )
+        );
     }
 }
