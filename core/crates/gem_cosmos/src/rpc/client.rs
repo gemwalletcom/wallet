@@ -59,11 +59,11 @@ impl<C: Client> CosmosClient<C> {
             CosmosChain::Thorchain | CosmosChain::Mayachain => return Ok(vec![]),
         };
 
-        let inbound_query = format!("message.sender='{address}'");
-        let outbound_query = format!("message.recipient='{address}'");
-        let (inbound, outbound) = futures::try_join!(self.get_transactions_by_query(key, &inbound_query, limit), self.get_transactions_by_query(key, &outbound_query, limit),)?;
-        let responses = inbound.tx_responses.into_iter().chain(outbound.tx_responses);
-        let txs = inbound.txs.into_iter().chain(outbound.txs).collect::<Vec<_>>();
+        let outbound_query = format!("message.sender='{address}'");
+        let inbound_query = format!("transfer.recipient='{address}'");
+        let (outbound, inbound) = futures::try_join!(self.get_transactions_by_query(key, &outbound_query, limit), self.get_transactions_by_query(key, &inbound_query, limit))?;
+        let responses = outbound.tx_responses.into_iter().chain(inbound.tx_responses);
+        let txs = outbound.txs.into_iter().chain(inbound.txs).collect::<Vec<_>>();
         Ok(responses.zip(txs).map(|(response, tx)| TransactionResponse { tx, tx_response: response }).collect::<Vec<_>>())
     }
 
@@ -201,7 +201,7 @@ mod tests {
             let address = "celestia1cvh8mpz04az0x7vht6h6ekksg8wd650rq0wm5l";
             let expected_path = match request_count_for_client.fetch_add(1, Ordering::SeqCst) {
                 0 => format!("/cosmos/tx/v1beta1/txs?query=message.sender='{address}'&pagination.limit=1&page=1"),
-                1 => format!("/cosmos/tx/v1beta1/txs?query=message.recipient='{address}'&pagination.limit=1&page=1"),
+                1 => format!("/cosmos/tx/v1beta1/txs?query=transfer.recipient='{address}'&pagination.limit=1&page=1"),
                 _ => panic!("unexpected request"),
             };
             assert_eq!(path, expected_path);
