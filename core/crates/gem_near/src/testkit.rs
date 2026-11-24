@@ -12,15 +12,27 @@ impl BroadcastResult {
                 receiver_id: "receiver.near".to_string(),
                 actions: vec![],
             },
-            transaction_outcome: TransactionOutcome {
-                outcome: Outcome {
-                    executor_id: None,
-                    logs: vec![],
-                    status: ExecutionStatus::SuccessValue(String::new()),
-                    tokens_burnt: "417494768750000000000".parse().unwrap(),
-                },
-            },
+            transaction_outcome: TransactionOutcome { outcome: Outcome::mock() },
             receipts_outcome: vec![],
+        }
+    }
+}
+
+impl Outcome {
+    pub fn mock() -> Self {
+        Self {
+            executor_id: None,
+            logs: vec![],
+            status: ExecutionStatus::SuccessValue(String::new()),
+            tokens_burnt: "417494768750000000000".parse().unwrap(),
+        }
+    }
+
+    pub fn mock_with_logs(executor_id: &str, logs: &[&str]) -> Self {
+        Self {
+            executor_id: Some(executor_id.to_string()),
+            logs: logs.iter().map(ToString::to_string).collect(),
+            ..Self::mock()
         }
     }
 }
