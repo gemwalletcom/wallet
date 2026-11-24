@@ -4,8 +4,9 @@ edition = { workspace = true }
 version = { workspace = true }
 
 [dependencies]
+gem_crypto = { path = "../gem_crypto", features = ["random"] }
+gem_uuid = { path = "../gem_uuid" }
 async-trait = { workspace = true }
-chrono = { workspace = true }
 cacher = { path = "../cacher" }
 chain_primitives = { path = "../chain_primitives" }
 chain_providers = { path = "../chain_providers" }
@@ -15,9 +16,10 @@ config_keys = { path = "../config_keys" }
 defi = { path = "../defi" }
 fiat = { path = "../fiat" }
 futures = { workspace = true }
-gem_client = { path = "../gem_client", features = ["reqwest"] }
-gem_evm = { path = "../gem_evm", features = ["rpc", "reqwest"] }
-gem_jsonrpc = { path = "../gem_jsonrpc", features = ["client", "reqwest"] }
+gem_client = { path = "../gem_client" }
+gem_reqwest = { path = "../gem_reqwest" }
+gem_evm = { path = "../gem_evm", features = ["rpc"] }
+gem_jsonrpc = { path = "../gem_jsonrpc", features = ["client"] }
 gem_tracing = { path = "../gem_tracing" }
 in_app_notifications = { path = "../in_app_notifications" }
 job_runner = { path = "../job_runner" }
@@ -41,9 +43,8 @@ storage = { path = "../storage" }
 streamer = { path = "../streamer" }
 strum = { workspace = true }
 support = { path = "../support" }
-swapper = { path = "../swapper", features = ["reqwest_provider"] }
+swapper = { path = "../swapper" }
 tokio = { workspace = true, features = ["sync"] }
-uuid = { workspace = true }
 
 [dev-dependencies]
 gem_solana = { path = "../gem_solana", features = ["rpc"] }

@@ -1,7 +1,7 @@
 use std::error::Error;
 use std::fmt;
 
-use primitives::Localize;
+use rewards::Localize;
 use rewards::{ReferralError, RewardsError, RewardsRedemptionError};
 use storage::DatabaseError;
 

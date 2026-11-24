@@ -1,7 +1,6 @@
-use chrono::NaiveDateTime;
 use serde_json::Value;
 
-use crate::{IpUsageType, Platform, PlatformStore};
+use crate::{DateTime, IpUsageType, Platform, PlatformStore};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct RiskSignal {
@@ -12,7 +11,7 @@ pub struct RiskSignal {
     pub device_model: String,
     pub ip_address: String,
     pub ip_isp: String,
-    pub created_at: NaiveDateTime,
+    pub created_at: DateTime,
 }
 
 #[derive(Debug, Clone, PartialEq)]

@@ -1,10 +1,10 @@
 use cacher::AssetCatalogCacher;
-use chrono::{Duration, Utc};
 use fiat::{FiatProvider, model::FiatProviderAsset};
 use gem_tracing::{info_with_fields, warn_with_fields};
-use primitives::{AssetId, AssetIdVecExt, AssetTag, FiatProviderName, currency::Currency};
+use primitives::{AssetId, AssetIdVecExt, AssetTag, DateTime, DurationExt, FiatProviderName, currency::Currency};
 use std::collections::HashSet;
 use std::sync::Arc;
+use std::time::Duration;
 
 use storage::{AssetFilter, AssetUpdate, FiatAssetFilter};
 
@@ -87,8 +87,8 @@ impl FiatAssetsUpdater {
     }
 
     pub async fn update_trending_fiat_assets(&self) -> Result<usize, Box<dyn std::error::Error + Send + Sync>> {
-        let from = Utc::now() - Duration::days(30);
-        Ok(self.repository.set_popular_assets_tag(AssetTag::TrendingFiatPurchase.as_ref().to_string(), from.naive_utc(), 30).await?)
+        let from = DateTime::now() - Duration::days(30);
+        Ok(self.repository.set_popular_assets_tag(AssetTag::TrendingFiatPurchase.as_ref().to_string(), from, 30).await?)
     }
 
     fn get_provider(&self, provider_name: FiatProviderName) -> Result<&(dyn FiatProvider + Send + Sync), Box<dyn std::error::Error + Send + Sync>> {

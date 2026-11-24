@@ -9,7 +9,7 @@ pub struct Position {
     pub images: NFTImages,
     pub tags: Vec<String>,
     pub state: ConnectionState,
-    pub updated_at: DateTime<Utc>,
+    pub updated_at: DateTime,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Model)]

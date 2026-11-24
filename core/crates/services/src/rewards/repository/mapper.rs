@@ -38,7 +38,7 @@ pub(super) fn rewards(identity: RewardIdentity, record: RewardsRecord, redemptio
         used_referral_code: record.referrer_username,
         status: record.status,
         created_at: record.created_at,
-        verify_after: record.verify_after.map(|verify_after| verify_after.and_utc()),
+        verify_after: record.verify_after,
         redemption_options,
         disable_reason: record.disable_reason,
         referral_allowance: Default::default(),

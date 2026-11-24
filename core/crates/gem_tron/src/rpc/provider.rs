@@ -1,11 +1,12 @@
 use std::{error::Error, ops::Deref};
 
 use async_trait::async_trait;
-use chain_traits::{ChainAccount, ChainPerpetual, ChainProvider, ChainTraits, ChainTransactions, EmptyTransactionsProvider, TransactionsRequest, TransactionsResult};
+use chain_traits::{ChainAccount, ChainPerpetual, ChainProvider, ChainTraits, ChainTransactions, EmptyTransactionsProvider, TransactionFeeEstimates, TransactionsRequest, TransactionsResult};
 use gem_client::Client;
 use primitives::Chain;
 
 use super::TronClient;
+use crate::provider::preload_mapper::map_transaction_fee_estimates;
 use crate::rpc::trongrid::model::TronGridAccount;
 
 #[async_trait]
@@ -67,6 +68,11 @@ impl<C: Client> ChainProvider for TronProvider<C> {
     }
 }
 
-impl<C: Client> ChainTraits for TronProvider<C> {}
+#[async_trait]
+impl<C: Client> ChainTraits for TronProvider<C> {
+    async fn get_transaction_fee_estimates(&self) -> Result<TransactionFeeEstimates, Box<dyn Error + Sync + Send>> {
+        map_transaction_fee_estimates(&self.get_chain_parameters().await?)
+    }
+}
 impl<C: Client> ChainAccount for TronProvider<C> {}
 impl<C: Client> ChainPerpetual for TronProvider<C> {}

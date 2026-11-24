@@ -1,0 +1,14 @@
+[package]
+name = "gem_uuid"
+version = { workspace = true }
+edition = { workspace = true }
+
+[features]
+default = []
+v5 = ["dep:gem_hash"]
+
+[dependencies]
+gem_hash = { path = "../gem_hash", optional = true }
+
+[dev-dependencies]
+gem_uuid = { path = ".", features = ["v5"] }

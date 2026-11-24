@@ -1,6 +1,7 @@
 use crate::{Delegation, DelegationValidator};
 
 #[derive(Debug, Clone)]
+#[allow(clippy::large_enum_variant)]
 pub enum EarnType {
     Deposit(DelegationValidator),
     Withdraw(Delegation),

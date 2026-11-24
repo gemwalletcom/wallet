@@ -1,12 +1,11 @@
 use std::collections::{HashMap, HashSet};
 use std::time::Duration;
 
-use chrono::NaiveDateTime;
 use diesel::prelude::*;
 use diesel::sql_types::{Nullable, SingleValue, SqlType};
 use diesel::upsert::excluded;
 use primitives::price_provider::{primary_price, ranked_prices};
-use primitives::{AssetBasic, AssetId, AssetMarket, AssetPriceInfo, ChartTimeframe, PriceData, PriceId, PriceProvider};
+use primitives::{AssetBasic, AssetId, AssetMarket, AssetPriceInfo, ChartTimeframe, DateTime, PriceData, PriceId, PriceProvider};
 
 use crate::error::ResourceName;
 use crate::models::min_max::MinMax;
@@ -15,7 +14,7 @@ use crate::repositories::assets_repository::{all_asset_ids, asset_ids_updated_si
 use crate::repositories::charts_repository::{ChartResult, aggregate_chart_rows, chart_extremes, chart_price_at, insert_chart_rows};
 use crate::repositories::prices_providers_repository::PricesProvidersRepository;
 use crate::repositories::{Condition, QueryFilter, matching};
-use crate::sql_types::PriceProviderRow;
+use crate::sql_types::{DateTimeRow, PriceProviderRow};
 use crate::{DatabaseClient, DatabaseError, DieselResultExt};
 
 diesel::define_sql_function! {
@@ -24,13 +23,13 @@ diesel::define_sql_function! {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum AssetsWithPricesFilter {
-    UpdatedSince(NaiveDateTime),
+    UpdatedSince(DateTime),
 }
 
 #[derive(Debug, Clone)]
 pub enum PriceFilter {
     Provider(PriceProvider),
-    UpdatedBefore(NaiveDateTime),
+    UpdatedBefore(DateTime),
     Ids(Vec<String>),
 }
 
@@ -48,8 +47,8 @@ pub struct AssetWithMarket {
 
 #[derive(Debug, Clone)]
 pub enum PriceUpdate {
-    AllTimeHigh { value: f64, date: Option<NaiveDateTime> },
-    AllTimeLow { value: f64, date: Option<NaiveDateTime> },
+    AllTimeHigh { value: f64, date: Option<DateTime> },
+    AllTimeLow { value: f64, date: Option<DateTime> },
 }
 
 pub trait PricesRepository {
@@ -63,7 +62,7 @@ pub trait PricesRepository {
     fn get_primary_prices(&mut self, asset_ids: &[AssetId], max_age: Duration) -> Result<Vec<(AssetId, PriceData)>, DatabaseError>;
     fn get_price_infos(&mut self, asset_ids: &[AssetId]) -> Result<Vec<AssetPriceInfo>, DatabaseError>;
     fn get_prices_for_asset(&mut self, asset_id: &AssetId) -> Result<Vec<PriceData>, DatabaseError>;
-    fn get_price_at(&mut self, asset_id: &AssetId, at: NaiveDateTime) -> Result<Option<ChartResult>, DatabaseError>;
+    fn get_price_at(&mut self, asset_id: &AssetId, at: DateTime) -> Result<Option<ChartResult>, DatabaseError>;
     fn get_prices_assets_for_price_ids(&mut self, ids: Vec<String>) -> Result<Vec<PriceAsset>, DatabaseError>;
     fn delete_prices(&mut self, ids: Vec<String>) -> Result<usize, DatabaseError>;
     fn get_assets_markets(&mut self, filters: Vec<AssetsWithPricesFilter>, max_age: Duration) -> Result<Vec<AssetWithMarket>, DatabaseError>;
@@ -94,12 +93,12 @@ fn price_row(client: &mut DatabaseClient, price_id: &str) -> Result<PriceRow, di
     prices.filter(id.eq(price_id)).select(PriceRow::as_select()).first(&mut client.connection)
 }
 
-fn price_asset_ids_updated_since(client: &mut DatabaseClient, since: NaiveDateTime) -> Result<Vec<String>, diesel::result::Error> {
+fn price_asset_ids_updated_since(client: &mut DatabaseClient, since: DateTime) -> Result<Vec<String>, diesel::result::Error> {
     use crate::schema::{prices, prices_assets};
 
     prices_assets::table
         .inner_join(prices::table.on(prices_assets::price_id.eq(prices::id)))
-        .filter(prices::last_updated_at.gt(since))
+        .filter(prices::last_updated_at.gt(DateTimeRow::from(since)))
         .select(prices_assets::asset_id)
         .load::<crate::sql_types::AssetId>(&mut client.connection)
         .map(|ids| ids.into_iter().map(|id| id.0.to_string()).collect())
@@ -122,7 +121,7 @@ impl QueryFilter<crate::schema::prices::table> for PriceFilter {
         use crate::schema::prices::dsl::*;
         match self {
             PriceFilter::Provider(value) => Box::new(provider.eq(PriceProviderRow::from(value))),
-            PriceFilter::UpdatedBefore(time) => Box::new(last_updated_at.lt(time).or(last_updated_at.is_null())),
+            PriceFilter::UpdatedBefore(time) => Box::new(last_updated_at.lt(DateTimeRow::from(time)).or(last_updated_at.is_null())),
             PriceFilter::Ids(ids) => Box::new(id.eq_any(ids)),
         }
     }
@@ -243,7 +242,7 @@ impl PricesRepository for DatabaseClient {
         Ok(prices_for_asset_ids(self, &[asset_id.to_string()])?.into_iter().map(|(_, row)| row.as_price_data()).collect())
     }
 
-    fn get_price_at(&mut self, asset_id: &AssetId, at: NaiveDateTime) -> Result<Option<ChartResult>, DatabaseError> {
+    fn get_price_at(&mut self, asset_id: &AssetId, at: DateTime) -> Result<Option<ChartResult>, DatabaseError> {
         let providers = self.get_prices_providers()?;
         let rows = prices_for_asset_ids(self, &[asset_id.to_string()])?.into_iter().map(|(_, row)| row).collect::<Vec<_>>();
         let Some(row) = ranked_prices(&providers, &rows, PriceRow::provider_value).into_iter().next() else {
@@ -315,7 +314,7 @@ impl PricesRepository for DatabaseClient {
                 client.update_prices(vec![PriceFilter::Ids(vec![id])], updates)?;
             }
 
-            let chart_updates: Vec<(String, NaiveDateTime)> = current_prices.iter().map(|price| (price.id.to_string(), price.last_updated_at)).collect();
+            let chart_updates: Vec<(String, DateTime)> = current_prices.iter().map(|price| (price.id.to_string(), price.last_updated_at.into())).collect();
             let charts: Vec<ChartRow> = current_prices.iter().cloned().map(ChartRow::from_price).collect();
             insert_chart_rows(client, ChartTimeframe::Raw, charts)?;
             aggregate_chart_rows(client, chart_updates)?;
@@ -436,8 +435,7 @@ mod tests {
 
 #[cfg(all(test, feature = "database_integration_tests"))]
 mod database_integration_tests {
-    use chrono::Utc;
-    use primitives::{Asset, AssetId, AssetType, Chain, PriceData, PriceId, PriceProvider};
+    use primitives::{Asset, AssetId, AssetType, Chain, DateTime, PriceData, PriceId, PriceProvider};
 
     use crate::{AssetsRepository, ChainsRepository, Database, DatabaseError, PriceAsset, PricesProvidersRepository, PricesRepository};
 
@@ -453,7 +451,7 @@ mod database_integration_tests {
             price_change_percentage_24h: Some(5.0),
             market_cap: Some(12_600.0),
             circulating_supply: Some(300.0),
-            last_updated_at: Utc::now(),
+            last_updated_at: DateTime::now(),
             ..PriceData::mock()
         };
         let jupiter_id = PriceId::new(PriceProvider::Jupiter, "price-test".to_string());
@@ -464,7 +462,7 @@ mod database_integration_tests {
             price: 41.0,
             market_cap: Some(41_000.0),
             circulating_supply: Some(1_000.0),
-            last_updated_at: Utc::now(),
+            last_updated_at: DateTime::now(),
             ..PriceData::mock()
         };
         let requested = asset_id.clone();

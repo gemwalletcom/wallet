@@ -7,9 +7,7 @@ pub(crate) mod testkit;
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use chrono::Utc;
-
-use primitives::{Asset, AssetId, Chain, ContractCallData, Currency, Delegation, DelegationBase, DelegationValidator, EarnType, Feature, Platform, StakeProviderType, WalletId, WalletType};
+use primitives::{Asset, AssetId, Chain, ContractCallData, Currency, DateTime, Delegation, DelegationBase, DelegationValidator, EarnType, Feature, Platform, StakeProviderType, WalletId, WalletType};
 
 use crate::api::GemStaticApiClient;
 use crate::gateway::GemGateway;
@@ -124,7 +122,7 @@ impl GemStakeService {
 
     pub fn delegation_details(&self, wallet_type: WalletType, delegation: Delegation, asset: Asset, price: Option<f64>, currency: Currency, validators: Vec<DelegationValidator>) -> GemDelegationDetails {
         let rows = self.delegation_rows(delegation.clone());
-        rules::delegation_details(wallet_type, &delegation, &asset, price, currency, rows, &validators, self.unavailable_topic().as_ref(), Utc::now())
+        rules::delegation_details(wallet_type, &delegation, &asset, price, currency, rows, &validators, self.unavailable_topic().as_ref(), DateTime::now())
     }
 }
 
@@ -139,7 +137,7 @@ impl GemStakeService {
     }
 
     pub fn delegation_rows(&self, delegation: Delegation) -> Vec<GemListRow> {
-        rules::delegation_rows(&delegation, Utc::now())
+        rules::delegation_rows(&delegation, DateTime::now())
     }
 
     pub async fn sync(&self, chain: Chain) -> Result<(), GemServiceError> {
@@ -266,7 +264,7 @@ mod tests {
     }
 
     #[test]
-    fn test_delegations_on_inactive_validators_become_inactive() {
+    fn test_only_active_delegations_on_inactive_validators_become_inactive() {
         let validators: HashMap<_, _> = [(
             "v".to_string(),
             DelegationValidator {
@@ -275,9 +273,25 @@ mod tests {
             },
         )]
         .into();
-        let delegations = delegations_with_state(vec![DelegationBase::mock_with_validator("v"), DelegationBase::mock_with_validator("other")], &validators);
-        assert_eq!(delegations[0].state, DelegationState::Inactive);
-        assert_eq!(delegations[1].state, DelegationState::Active);
+        let delegations = delegations_with_state(
+            vec![
+                DelegationBase::mock_with_validator("v"),
+                DelegationBase {
+                    state: DelegationState::Pending,
+                    ..DelegationBase::mock_with_validator("v")
+                },
+                DelegationBase {
+                    state: DelegationState::AwaitingWithdrawal,
+                    ..DelegationBase::mock_with_validator("v")
+                },
+                DelegationBase::mock_with_validator("other"),
+            ],
+            &validators,
+        );
+        assert_eq!(
+            delegations.iter().map(|delegation| delegation.state).collect::<Vec<_>>(),
+            vec![DelegationState::Inactive, DelegationState::Pending, DelegationState::AwaitingWithdrawal, DelegationState::Active]
+        );
     }
 
     #[test]

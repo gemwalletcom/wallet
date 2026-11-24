@@ -1,4 +1,5 @@
 use num_bigint::BigUint;
+use primitives::DateTime;
 use serde::{Deserialize, Serialize};
 use serde_serializers::deserialize_biguint_from_str;
 
@@ -17,7 +18,7 @@ pub struct Block {
     pub number: i64,
     pub hash: String,
     #[serde(rename = "forgedAt")]
-    pub forged_at: String,
+    pub forged_at: DateTime,
     pub transactions: Vec<Transaction>,
 }
 
@@ -40,7 +41,7 @@ pub struct AddressTransaction {
     #[serde(flatten)]
     pub transaction: Transaction,
     #[serde(rename = "includedAt")]
-    pub included_at: String,
+    pub included_at: DateTime,
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]

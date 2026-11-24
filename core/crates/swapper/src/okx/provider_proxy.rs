@@ -7,8 +7,8 @@ use crate::{
     SwapperError,
     alien::{RpcClient, RpcProvider},
 };
-use chrono::{SecondsFormat, Utc};
 use gem_client::{Client, ClientExt, Target};
+use primitives::{DateTime, SecondsFormat};
 use std::{fmt::Debug, sync::Arc};
 
 pub fn error_response(error: SwapperError) -> serde_json::Value {
@@ -45,7 +45,7 @@ where
 
     async fn signed_get(&self, target: OkxTarget) -> Result<serde_json::Value, SwapperError> {
         let path = target.path();
-        let timestamp = Utc::now().to_rfc3339_opts(SecondsFormat::Millis, true);
+        let timestamp = DateTime::now().to_rfc3339(SecondsFormat::Millis);
         let headers = build_headers(&self.config, &timestamp, &path);
         self.client.get(&path).headers(headers).await.map_err(SwapperError::from)
     }

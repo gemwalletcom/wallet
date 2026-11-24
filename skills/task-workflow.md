@@ -41,6 +41,7 @@ Do not hard-wrap prose in docs, skills, commit messages, or PR bodies. Keep one 
 - Inspect final diff and status. Report changes, exact commands/results, proof, missing proof and why, skipped or blocked checks, and risks. For wallet-critical flows, explicitly surface skipped records, swallowed errors, and untested branches.
 - Leave changes uncommitted and external systems unchanged unless the user authorized those actions.
 - Local checks are the gate, not CI. Push only after every applicable local check passes, then let CI run in the background and start the next task instead of waiting on it. Name the checks that only CI can run in the handoff, and treat a CI failure as a finding for the next commit.
+- A PR body fills in [the PR template](../.github/pull_request_template.md), whoever or whatever opens it: `gh pr create --body` does not read that file, so read it first. Keep its What, Expected, Before and After table for every change someone can see, and its Before and After screenshots per platform for every screen change.
 
 ## 6. Maintain Agent Guidance
 

@@ -1,4 +1,4 @@
-use chrono::{DateTime, Utc};
+use crate::DateTime;
 use model_derive::Model;
 use serde::{Deserialize, Serialize};
 use strum::{AsRefStr, EnumString};
@@ -18,7 +18,7 @@ pub struct PriceAlert {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub price_direction: Option<PriceAlertDirection>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub last_notified_at: Option<DateTime<Utc>>,
+    pub last_notified_at: Option<DateTime>,
     #[model(skip)]
     #[serde(skip)]
     pub identifier: String,
@@ -191,7 +191,7 @@ mod tests {
 
         assert!(auto.should_display());
         assert!(price.should_display());
-        price.last_notified_at = Some(Utc::now());
+        price.last_notified_at = Some(DateTime::now());
         assert!(!price.should_display());
     }
 

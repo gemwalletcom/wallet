@@ -1,9 +1,8 @@
-use chrono::NaiveDateTime;
 use diesel::prelude::*;
 use primitives::Device;
 use serde::{Deserialize, Serialize};
 
-use crate::sql_types::{Currency, DeviceLocale, Platform, PlatformStore};
+use crate::sql_types::{Currency, DateTimeRow, DeviceLocale, Platform, PlatformStore};
 
 #[derive(Debug, Queryable, Selectable, Serialize, Deserialize, Insertable, AsChangeset, Clone)]
 #[diesel(table_name = crate::schema::devices)]
@@ -22,8 +21,8 @@ pub(crate) struct DeviceRow {
     pub subscriptions_version: i32,
     pub os: String,
     pub model: String,
-    pub updated_at: NaiveDateTime,
-    pub created_at: NaiveDateTime,
+    pub updated_at: DateTimeRow,
+    pub created_at: DateTimeRow,
 }
 
 #[derive(Debug, Queryable, Selectable, Serialize, Deserialize, Insertable, AsChangeset, Clone)]

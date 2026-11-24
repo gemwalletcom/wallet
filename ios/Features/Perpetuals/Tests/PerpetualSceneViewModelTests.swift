@@ -128,6 +128,7 @@ struct PerpetualSceneViewModelTests {
         model.onFinishLeverage([LeverageOption(option: .mock(value: 10))])
 
         #expect(model.isPresentingLeverage == nil)
+        #expect(service.leverageTransferPositions == [position])
         #expect(service.leverageTransfers == [10])
         #expect(transfers.count == 1)
     }

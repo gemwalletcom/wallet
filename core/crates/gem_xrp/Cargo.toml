@@ -6,9 +6,8 @@ edition = { workspace = true }
 [features]
 default = []
 signer = ["dep:signer", "dep:num-traits"]
-rpc = ["dep:chrono", "dep:chain_traits", "dep:gem_client", "dep:futures", "gem_jsonrpc/client", "dep:async-trait"]
-reqwest = ["gem_client/reqwest", "gem_jsonrpc/reqwest"]
-chain_integration_tests = ["rpc", "reqwest"]
+rpc = ["dep:chain_traits", "dep:gem_client", "dep:futures", "gem_jsonrpc/client", "dep:async-trait"]
+chain_integration_tests = ["rpc"]
 
 [dependencies]
 serde = { workspace = true, features = ["derive"] }
@@ -27,10 +26,10 @@ futures = { workspace = true, optional = true }
 gem_client = { path = "../gem_client", optional = true }
 gem_jsonrpc = { path = "../gem_jsonrpc" }
 
-chrono = { workspace = true, features = ["serde"], optional = true }
 serde_serializers = { path = "../serde_serializers", features = ["bigint"] }
 
 [dev-dependencies]
+gem_reqwest = { path = "../gem_reqwest" }
 gem_xrp = { path = ".", features = ["rpc", "signer"] }
 tokio = { workspace = true, features = ["rt-multi-thread", "macros"] }
 

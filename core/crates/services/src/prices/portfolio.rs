@@ -5,7 +5,7 @@ use std::sync::Arc;
 
 use config_keys::ConfigKey;
 use number_formatter::BigNumberFormatter;
-use primitives::{ChartPeriod, ChartValue, ChartValuePercentage, PortfolioAllocation, PortfolioAsset, PortfolioAssets, RequestError};
+use primitives::{ChartPeriod, ChartValue, ChartValuePercentage, DateTime, PortfolioAllocation, PortfolioAsset, PortfolioAssets, RequestError};
 
 use super::repository::{PortfolioPrice, Repository};
 
@@ -43,7 +43,7 @@ impl PortfolioClient {
     fn chart_values(assets: &[ResolvedAsset]) -> BTreeMap<i64, f64> {
         assets
             .iter()
-            .flat_map(|r| r.charts.iter().map(|(ts, price)| (ts.and_utc().timestamp(), r.balance * price / r.asset.asset_id.price_scale())))
+            .flat_map(|r| r.charts.iter().map(|(ts, price)| (ts.timestamp(), r.balance * price / r.asset.asset_id.price_scale())))
             .fold(BTreeMap::new(), |mut acc, (ts, value)| {
                 *acc.entry(ts).or_default() += value;
                 acc
@@ -61,7 +61,7 @@ impl PortfolioClient {
         let total_value_f32 = total_value as f32;
 
         let to_percentage = |cv: &ChartValue| ChartValuePercentage {
-            date: chrono::DateTime::from_timestamp(cv.timestamp as i64, 0).unwrap_or_default(),
+            date: DateTime::from_timestamp(cv.timestamp as i64),
             value: cv.value,
             percentage: if total_value_f32 > 0.0 { (cv.value - total_value_f32) / total_value_f32 * 100.0 } else { 0.0 },
         };
@@ -97,16 +97,15 @@ impl PortfolioClient {
 
 #[cfg(test)]
 mod tests {
-    use chrono::DateTime;
     use num_bigint::BigUint;
-    use primitives::{Asset, AssetId, Chain};
+    use primitives::{Asset, AssetId, Chain, DateTime};
 
     use super::*;
     use crate::testkit::{MemoryConfigRepository, MemoryPricesRepository};
 
     #[tokio::test]
     async fn test_portfolio_skips_unpriced_assets() {
-        let at = DateTime::from_timestamp(1_700_000_000, 0).unwrap().naive_utc();
+        let at = DateTime::from_timestamp(1_700_000_000);
         let bitcoin = PortfolioPrice {
             asset: Asset::mock_btc(),
             price: 100.0,

@@ -9,11 +9,13 @@ serde_json = { workspace = true }
 reqwest = { workspace = true }
 futures.workspace = true
 async-trait = { workspace = true }
+strum = { workspace = true }
 
 primitives = { path = "../primitives" }
 alchemy = { path = "../alchemy", features = ["nft"] }
 blockscout = { path = "../blockscout" }
-gem_client = { path = "../gem_client", features = ["reqwest"] }
+gem_client = { path = "../gem_client" }
+gem_reqwest = { path = "../gem_reqwest" }
 gem_evm = { path = "../gem_evm" }
 gem_ton = { path = "../gem_ton", features = ["rpc"] }
 settings = { path = "../settings" }

@@ -25,7 +25,6 @@ tower = { workspace = true }
 tower-http = { workspace = true }
 strum = { workspace = true }
 redis = { workspace = true }
-chrono = { workspace = true }
 futures = { workspace = true }
 
 metrics = { path = "../../crates/metrics" }
@@ -40,9 +39,10 @@ services = { path = "../../crates/services" }
 config_keys = { path = "../../crates/config_keys" }
 defi = { path = "../../crates/defi" }
 nft = { path = "../../crates/nft" }
-gem_client = { path = "../../crates/gem_client", features = ["reqwest"] }
+gem_client = { path = "../../crates/gem_client" }
+gem_reqwest = { path = "../../crates/gem_reqwest" }
 gem_jsonrpc = { path = "../../crates/gem_jsonrpc" }
-swapper = { path = "../../crates/swapper", features = ["reqwest_provider"] }
+swapper = { path = "../../crates/swapper" }
 localizer = { path = "../../crates/localizer" }
 
 security = { path = "../../crates/security" }
@@ -53,4 +53,4 @@ rewards = { path = "../../crates/rewards" }
 reqwest = { workspace = true }
 serde_urlencoded = { workspace = true }
 signer = { path = "../../crates/signer" }
-uuid = { workspace = true }
+gem_crypto = { path = "../../crates/gem_crypto", features = ["random"] }

@@ -1,4 +1,4 @@
-use borsh::BorshDeserialize;
+use gem_encoding::borsh::{BorshDeserialize, DecodeError, Reader};
 use gem_solana::{Pubkey, SolanaDataSlice, anchor::AnchorAccount};
 
 use crate::{
@@ -18,49 +18,64 @@ const CREATOR_FEE_ON_BOTH_TOKENS: u8 = 0;
 const CREATOR_FEE_ON_TOKEN_0: u8 = 1;
 const CREATOR_FEE_ON_TOKEN_1: u8 = 2;
 
-#[derive(Debug, Clone, PartialEq, BorshDeserialize)]
+#[derive(Debug, Clone, PartialEq)]
 pub(crate) struct Pool {
     pub amm_config: Pubkey,
-    _pool_creator: Pubkey,
     pub token_0_vault: Pubkey,
     pub token_1_vault: Pubkey,
-    _lp_mint: Pubkey,
     pub token_0_mint: Pubkey,
     pub token_1_mint: Pubkey,
-    _token_0_program: Pubkey,
-    _token_1_program: Pubkey,
     pub observation_key: Pubkey,
-    _auth_bump: u8,
     status: u8,
-    _lp_mint_decimals: u8,
-    _mint_0_decimals: u8,
-    _mint_1_decimals: u8,
     pub lp_supply: u64,
     protocol_fees_token_0: u64,
     protocol_fees_token_1: u64,
     fund_fees_token_0: u64,
     fund_fees_token_1: u64,
     open_time: u64,
-    _recent_epoch: u64,
     creator_fee_on: u8,
     enable_creator_fee: u8,
-    _padding1: [u8; 6],
     creator_fees_token_0: u64,
     creator_fees_token_1: u64,
 }
 
-#[derive(Debug, Clone, PartialEq, BorshDeserialize)]
+impl BorshDeserialize for Pool {
+    fn deserialize_reader(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        Ok(Self {
+            amm_config: reader.read()?,
+            token_0_vault: reader.skip(32)?.read()?,
+            token_1_vault: reader.read()?,
+            token_0_mint: reader.skip(32)?.read()?,
+            token_1_mint: reader.read()?,
+            observation_key: reader.skip(64)?.read()?,
+            status: reader.skip(1)?.read()?,
+            lp_supply: reader.skip(3)?.read()?,
+            protocol_fees_token_0: reader.read()?,
+            protocol_fees_token_1: reader.read()?,
+            fund_fees_token_0: reader.read()?,
+            fund_fees_token_1: reader.read()?,
+            open_time: reader.read()?,
+            creator_fee_on: reader.skip(8)?.read()?,
+            enable_creator_fee: reader.read()?,
+            creator_fees_token_0: reader.skip(6)?.read()?,
+            creator_fees_token_1: reader.read()?,
+        })
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub(crate) struct AmmConfig {
-    _bump: u8,
-    _disable_create_pool: u8,
-    _index: u16,
     trade_fee_rate: u64,
-    _protocol_fee_rate: u64,
-    _fund_fee_rate: u64,
-    _create_pool_fee: u64,
-    _protocol_owner: Pubkey,
-    _fund_owner: Pubkey,
     creator_fee_rate: u64,
+}
+
+impl BorshDeserialize for AmmConfig {
+    fn deserialize_reader(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        Ok(Self {
+            trade_fee_rate: reader.skip(4)?.read()?,
+            creator_fee_rate: reader.skip(88)?.read()?,
+        })
+    }
 }
 
 impl AnchorAccount for Pool {
@@ -136,6 +151,7 @@ mod tests {
         assert_eq!(u64::try_from(data.len()).unwrap(), LAYOUT.account_len);
         assert_eq!(at(LAYOUT.mint_offsets[0], 32), Pubkey::from_base58(TEST_JUP_MINT).unwrap().as_bytes());
         assert_eq!(at(LAYOUT.mint_offsets[1], 32), wrapped_sol_mint().as_bytes());
+        assert_eq!((snapshot.pool.token_0_mint, snapshot.pool.token_1_mint), (Pubkey::from_base58(TEST_JUP_MINT).unwrap(), wrapped_sol_mint()));
         assert_eq!(at(LAYOUT.depth.offset, LAYOUT.depth.length), snapshot.pool.lp_supply.to_le_bytes());
         assert_eq!((config.trade_fee_rate, config.creator_fee_rate), (2_500, 500));
     }

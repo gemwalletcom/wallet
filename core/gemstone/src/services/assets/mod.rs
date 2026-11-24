@@ -13,8 +13,7 @@ pub(crate) mod testkit;
 use crate::services::error::GemServiceError;
 use std::sync::Arc;
 
-use chrono::Utc;
-use primitives::{Asset, AssetBasic, AssetFull, AssetId, AssetPrice, AssetProperties, Chain, ConfigVersions, FiatAssets, FiatQuoteType, Wallet, WalletId};
+use primitives::{Asset, AssetBasic, AssetFull, AssetId, AssetPrice, AssetProperties, Chain, ConfigVersions, DateTime, FiatAssets, FiatQuoteType, Wallet, WalletId};
 
 pub use add::GemAddAssetService;
 pub use details::GemAssetDetailsService;
@@ -110,7 +109,7 @@ impl GemAssetsService {
     }
 
     pub async fn update_asset(&self, asset_id: AssetId) -> Result<(), GemServiceError> {
-        if !is_outdated(self.preferences.get_asset_updated_at(&asset_id), Utc::now().timestamp(), rules::ASSET_UPDATE_INTERVAL_SECONDS) {
+        if !is_outdated(self.preferences.get_asset_updated_at(&asset_id), DateTime::now().timestamp(), rules::ASSET_UPDATE_INTERVAL_SECONDS) {
             return Ok(());
         }
         let asset = self.sync_asset(asset_id.clone()).await?;
@@ -118,7 +117,7 @@ impl GemAssetsService {
         if !associations.is_empty() {
             self.sync_missing_assets(associations).await?;
         }
-        self.preferences.set_asset_updated_at(&asset_id, Utc::now().timestamp())
+        self.preferences.set_asset_updated_at(&asset_id, DateTime::now().timestamp())
     }
 
     pub async fn sync_missing_assets(&self, asset_ids: Vec<AssetId>) -> Result<Vec<AssetId>, GemServiceError> {
@@ -310,7 +309,7 @@ mod tests {
     fn test_an_asset_is_updated_at_most_once_an_hour() {
         block_on(async {
             let token = AssetId::from_token(Chain::Ethereum, "0xdAC17F958D2ee523a2206206994597C13D831ec7");
-            let now = Utc::now().timestamp();
+            let now = DateTime::now().timestamp();
 
             let never = Arc::new(TestAlienProvider::offline());
             let _ = GemAssetsService::mock(never.clone(), Arc::new(MemoryAssetStore::default())).update_asset(token.clone()).await;
@@ -385,7 +384,7 @@ mod tests {
             assert_eq!(saved[0].score.rank, 34, "the saved batch keeps the backend metadata");
             assert_eq!(
                 *prices.prices.lock().unwrap(),
-                vec![AssetPrice::new(ETHEREUM_USDT_ASSET_ID.clone(), 0.9998, -0.01, chrono::DateTime::parse_from_rfc3339("2026-09-27T22:44:30Z").unwrap().to_utc())],
+                vec![AssetPrice::new(ETHEREUM_USDT_ASSET_ID.clone(), 0.9998, -0.01, DateTime::parse_rfc3339("2026-09-27T22:44:30Z").unwrap())],
                 "the batch sync saves the prices the backend attaches, like the single sync and search do"
             );
             assert!(service.sync_missing_assets(vec![ETHEREUM_USDT_ASSET_ID.clone()]).await.unwrap().is_empty(), "a stored asset is no longer missing");

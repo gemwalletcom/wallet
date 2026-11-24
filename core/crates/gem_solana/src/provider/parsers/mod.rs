@@ -2,11 +2,10 @@ mod mayan;
 mod relay;
 
 use chain_traits::transaction_parser::{ParseContext as GenericParseContext, TransactionParser, parse_transaction};
-use chrono::{DateTime, Utc};
 use num_bigint::BigUint;
 
 use crate::models::BlockTransaction;
-use primitives::{AssetId, Chain, Transaction, TransactionState, TransactionType};
+use primitives::{AssetId, Chain, DateTime, Transaction, TransactionState, TransactionType};
 
 use self::mayan::MayanParser;
 use self::relay::RelayParser;
@@ -51,7 +50,7 @@ impl ProtocolParsers {
         [&MayanParser, &RelayParser]
     }
 
-    pub(super) fn map_transaction(transaction: &BlockTransaction, created_at: DateTime<Utc>, memo: Option<&str>) -> Option<Transaction> {
+    pub(super) fn map_transaction(transaction: &BlockTransaction, created_at: DateTime, memo: Option<&str>) -> Option<Transaction> {
         let context = ParseContext::new(transaction, created_at, ParseMetadata { memo });
 
         parse_transaction(&context, Self::default_parsers())

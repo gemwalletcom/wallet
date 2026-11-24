@@ -1,3 +1,6 @@
+#[cfg(feature = "rpc")]
+use primitives::DateTime;
+
 use crate::SUI_COIN_TYPE;
 #[cfg(feature = "rpc")]
 use crate::models::{BalanceChange, Digest, Effect, Event, GasObject, GasUsed, Owner, OwnerObject, STATUS_SUCCESS, Status};
@@ -83,7 +86,7 @@ impl Digest {
             move_call_packages: Vec::new(),
             balance_changes: Some(balance_changes),
             events,
-            timestamp_ms: 1778964551487,
+            timestamp: DateTime::from_timestamp_millis(1_778_964_551_487),
         }
     }
 }

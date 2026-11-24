@@ -1,6 +1,7 @@
 package com.gemwallet.android.ui.components.list_item
 
 import android.content.Context
+import androidx.compose.ui.unit.Dp
 import com.gemwallet.android.domains.asset.chain
 import com.gemwallet.android.domains.duration.formatDuration
 import com.gemwallet.android.domains.duration.formatEstimate
@@ -23,6 +24,8 @@ import com.gemwallet.android.ui.style.listItemImage
 import com.gemwallet.android.ui.style.subtitleStyle
 import com.gemwallet.android.ui.style.textStyle
 import com.gemwallet.android.ui.style.walletListItemImage
+import com.gemwallet.android.ui.theme.compactIconSize
+import com.gemwallet.android.ui.theme.smallIconSize
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.Chain
 import uniffi.gemstone.GemAssetIcon
@@ -43,8 +46,15 @@ import java.util.Locale
 
 internal sealed interface GemListRowUIModel {
     data class Notice(val title: String, val message: String?, val kind: GemNoticeKind) : GemListRowUIModel
-    data class Item(val model: ListItemModel, val url: String? = null, val opensAnotherScreen: Boolean = false, val trailingImage: ListItemImage? = null, val menu: List<GemListRowMenuItem> = emptyList(), val address: String? = null) :
-        GemListRowUIModel
+    data class Item(
+        val model: ListItemModel,
+        val url: String? = null,
+        val opensAnotherScreen: Boolean = false,
+        val trailingImage: ListItemImage? = null,
+        val trailingImageSize: Dp = smallIconSize,
+        val menu: List<GemListRowMenuItem> = emptyList(),
+        val address: String? = null,
+    ) : GemListRowUIModel
     data class Provider(val model: ListItemModel, val contract: String?) : GemListRowUIModel
     data class Rate(val title: String, val rate: AssetRatePair) : GemListRowUIModel
     data class Icon(val icon: GemAssetIcon, val imageUrl: String?) : GemListRowUIModel
@@ -140,6 +150,7 @@ internal fun GemListRow.uiModel(context: Context): GemListRowUIModel = when (thi
             info = info?.infoSheet(),
         ),
         trailingImage = status.badgeImage(),
+        trailingImageSize = compactIconSize,
     )
 
     is GemListRow.Date -> GemListRowUIModel.Item(ListItemModel(title = title.text(context), subtitle = context.rowDateFormatter().row(date, ZoneId.systemDefault(), Locale.getDefault())))
@@ -220,7 +231,7 @@ private fun GemListFieldValue.uiModel(context: Context, title: String): GemListR
     is GemListFieldValue.Date -> GemListRowUIModel.Item(ListItemModel(title = title, subtitle = context.rowDateFormatter().row(date, ZoneId.systemDefault(), Locale.getDefault())))
 
     is GemListFieldValue.Address -> GemListRowUIModel.Item(
-        ListItemModel(title = title, subtitle = name ?: copy.display, subtitleExtra = name?.let { copy.display }),
+        ListItemModel(title = title, subtitle = text),
         url = explorer.link,
         menu = menu.map { it.uiModel(context) },
         address = copy.value,

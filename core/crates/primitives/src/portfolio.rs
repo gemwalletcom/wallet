@@ -1,4 +1,4 @@
-use chrono::{DateTime, Utc};
+use crate::DateTime;
 use model_derive::Model;
 use num_bigint::BigUint;
 use serde::{Deserialize, Serialize};
@@ -83,7 +83,7 @@ pub struct PortfolioAllocation {
 #[model(swift = "Equatable, Sendable, Hashable")]
 #[serde(rename_all = "camelCase")]
 pub struct ChartValuePercentage {
-    pub date: DateTime<Utc>,
+    pub date: DateTime,
     pub value: f32,
     pub percentage: f32,
 }

@@ -1,0 +1,12 @@
+{
+  "block_header": {
+    "raw_data": {
+      "number": 3111739,
+      "version": 3,
+      "timestamp": 1539295479000,
+      "txTrieRoot": "64288c2db0641316762a99dbb02ef7c90f968b60f9f2e410835980614332f86d",
+      "parentHash": "00000000002f7b3af4f5f8b9e23a30c530f719f165b742e7358536b280eead2d",
+      "witness_address": "415863f6091b8e71766da808b1dd3159790f61de7d"
+    }
+  }
+}

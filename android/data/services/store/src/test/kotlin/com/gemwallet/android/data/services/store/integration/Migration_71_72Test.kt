@@ -118,7 +118,7 @@ class Migration_71_72Test {
             .build()
 
         val assets = roomDb.assetsDao().getAssetsInfo("wallet-1").first()
-        val accountsAfterMigration = roomDb.accountsDao().getByWalletId("wallet-1")
+        val accountsAfterMigration = roomDb.walletsDao().getByIdNow("wallet-1").values.flatten()
 
         assertEquals(listOf("ethereum", "ethereum_0xtoken"), assets.map { it.id }.sorted())
         assertEquals(assets.map { it.id }.toSet().size, assets.size)

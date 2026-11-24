@@ -3,8 +3,6 @@ use std::{error::Error, str::FromStr, sync::Arc};
 use gem_encoding::decode_base64;
 use gem_encoding::protobuf::{MessageDecode, MessageEncode, decode_grpc_message, encode_grpc_message};
 use gem_jsonrpc::grpc::GrpcTransport;
-#[cfg(feature = "reqwest")]
-use gem_jsonrpc::grpc::ReqwestGrpcTransport;
 use num_bigint::BigInt;
 use primitives::Chain;
 use serde::de::DeserializeOwned;
@@ -51,14 +49,6 @@ pub struct SuiClient {
 }
 
 impl SuiClient {
-    #[cfg(feature = "reqwest")]
-    pub fn new(endpoint: impl Into<String>) -> Self {
-        Self {
-            endpoint: endpoint.into(),
-            transport: Some(Arc::new(ReqwestGrpcTransport::new())),
-        }
-    }
-
     pub fn new_with_transport(endpoint: impl Into<String>, transport: Arc<dyn GrpcTransport>) -> Self {
         Self {
             endpoint: endpoint.into(),

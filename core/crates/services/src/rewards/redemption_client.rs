@@ -1,8 +1,7 @@
 use std::sync::Arc;
 
 use config_keys::RateLimitWindow;
-use primitives::rewards::{RedemptionResult, Rewards};
-use primitives::{NaiveDateTimeExt, now};
+use primitives::{DateTime, RedemptionResult, Rewards};
 use rewards::RewardsRedemptionError;
 use storage::DatabaseError;
 use streamer::{RewardsRedemptionPayload, StreamProducerQueue};
@@ -46,16 +45,16 @@ impl RewardsRedemptionClient {
     }
 
     async fn check_redemption_limits(&self, username: &str, rewards: &Rewards) -> Result<Result<(), RewardsRedemptionError>, DatabaseError> {
-        let current = now();
+        let current = DateTime::now();
 
         let config = RedemptionConfig::from_config(&self.config).await?;
 
-        if rewards.created_at > current.ago(config.min_account_age) {
+        if rewards.created_at > current - config.min_account_age {
             return Ok(Err(RewardsRedemptionError::AccountTooNew));
         }
 
-        let window_limits = RateLimitWindow::ALL.iter().map(|window| (current.ago(window.duration()), config.limits.get(*window))).collect();
-        self.repository.get_redemption_limit_check(username.to_string(), current.ago(config.cooldown_after_referral), window_limits).await
+        let window_limits = RateLimitWindow::ALL.iter().map(|window| (current - window.duration(), config.limits.get(*window))).collect();
+        self.repository.get_redemption_limit_check(username.to_string(), current - config.cooldown_after_referral, window_limits).await
     }
 }
 

@@ -1,9 +1,8 @@
 #[cfg(test)]
 use crate::models::staking::SuiValidator;
 use crate::models::staking::{SuiStakeDelegation, SuiSystemState, SuiValidators};
-use chrono::{DateTime, Utc};
 use num_bigint::BigUint;
-use primitives::{Chain, DelegationBase, DelegationState, DelegationValidator};
+use primitives::{Chain, DateTime, DelegationBase, DelegationState, DelegationValidator};
 
 pub fn map_validators(validators: SuiValidators) -> Vec<DelegationValidator> {
     validators
@@ -45,10 +44,10 @@ pub fn map_staking_apy(validators: SuiValidators) -> Result<f64, Box<dyn std::er
     Ok(max_apy * 100.0)
 }
 
-fn activation_date(activation_epoch: u64, system_state: &SuiSystemState) -> Option<DateTime<Utc>> {
+fn activation_date(activation_epoch: u64, system_state: &SuiSystemState) -> Option<DateTime> {
     let epochs = i64::try_from(activation_epoch.checked_sub(system_state.epoch)?).ok()?;
     let epoch_duration_ms = i64::try_from(system_state.epoch_duration_ms?).ok()?;
-    DateTime::from_timestamp_millis(system_state.epoch_start_ms?.checked_add(epochs.checked_mul(epoch_duration_ms)?)?)
+    Some(DateTime::from_timestamp_millis(system_state.epoch_start_ms?.checked_add(epochs.checked_mul(epoch_duration_ms)?)?))
 }
 
 #[cfg(test)]
@@ -64,7 +63,7 @@ mod tests {
             result.iter().map(|delegation| delegation.state).collect::<Vec<_>>(),
             vec![DelegationState::Active, DelegationState::Active, DelegationState::Active, DelegationState::Activating, DelegationState::Active]
         );
-        assert_eq!(result[3].completion_date, DateTime::from_timestamp_millis(1_750_086_400_000));
+        assert_eq!(result[3].completion_date, Some(DateTime::from_timestamp_millis(1_750_086_400_000)));
         assert_eq!(result[0].completion_date, None);
 
         let result = map_delegations(

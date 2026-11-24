@@ -1,8 +1,7 @@
-use chrono::{DateTime, Utc};
 use model_derive::Model;
 use serde::{Deserialize, Serialize};
 
-use crate::Chain;
+use crate::{Chain, DateTime};
 
 #[derive(Debug, Clone, Serialize, Deserialize, Model)]
 #[model(swift = "Equatable, Hashable, Sendable, Identifiable")]
@@ -12,8 +11,8 @@ pub struct Contact {
     pub name: String,
     pub description: Option<String>,
     pub image_url: Option<String>,
-    pub created_at: DateTime<Utc>,
-    pub updated_at: DateTime<Utc>,
+    pub created_at: DateTime,
+    pub updated_at: DateTime,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Model)]

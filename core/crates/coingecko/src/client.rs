@@ -1,6 +1,7 @@
 use std::error::Error;
 
-use gem_client::{Client, ClientError, ClientExt, RemoteProviderConfig, ReqwestClient, builder, default_should_retry, retry};
+use gem_client::{Client, ClientError, ClientExt, RemoteProviderConfig};
+use gem_reqwest::{ReqwestClient, builder, default_should_retry, retry};
 use primitives::{FiatRate, currency::Currency};
 use reqwest::{
     header::{HeaderMap, HeaderValue, USER_AGENT},

@@ -1,4 +1,3 @@
-use chrono::NaiveDateTime;
 use diesel::associations::HasTable;
 use diesel::dsl::count_star;
 use diesel::prelude::*;
@@ -6,11 +5,11 @@ use diesel::upsert::excluded;
 use primitives::currency::Currency;
 use std::collections::HashSet;
 
-use primitives::{AssetId, FiatAsset, FiatProvider, FiatProviderCountry, FiatProviderName, FiatQuoteType, FiatRate, FiatRateProvider, FiatTransaction, FiatTransactionStatus, FiatTransactionUpdate};
+use primitives::{AssetId, DateTime, FiatAsset, FiatProvider, FiatProviderCountry, FiatProviderName, FiatQuoteType, FiatRate, FiatRateProvider, FiatTransaction, FiatTransactionStatus, FiatTransactionUpdate};
 
 use crate::models::*;
 use crate::schema::fiat_providers;
-use crate::sql_types::{AssetId as AssetIdRow, Currency as CurrencyRow, FiatProviderNameRow};
+use crate::sql_types::{AssetId as AssetIdRow, Currency as CurrencyRow, DateTimeRow, FiatProviderNameRow};
 use crate::{DatabaseClient, DatabaseError, DieselResultExt};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -66,7 +65,7 @@ pub trait FiatRepository {
     fn get_fiat_transactions_by_device_and_wallet_id(&mut self, device_id: i32, wallet_id: i32) -> Result<Vec<FiatTransaction>, DatabaseError>;
     fn get_fiat_transactions_count_by_device_and_wallet_id(&mut self, device_id: i32, wallet_id: i32) -> Result<i64, DatabaseError>;
     fn get_fiat_asset_ids_by_filter(&mut self, filters: Vec<FiatAssetFilter>) -> Result<Vec<AssetId>, DatabaseError>;
-    fn get_fiat_assets_popular(&mut self, from: NaiveDateTime, limit: i64) -> Result<Vec<AssetId>, DatabaseError>;
+    fn get_fiat_assets_popular(&mut self, from: DateTime, limit: i64) -> Result<Vec<AssetId>, DatabaseError>;
     fn get_fiat_assets_for_asset_id(&mut self, asset_id: &AssetId) -> Result<Vec<FiatAsset>, DatabaseError>;
     fn set_fiat_rates(&mut self, provider: FiatRateProvider, rates: Vec<FiatRate>) -> Result<usize, DatabaseError>;
     fn set_fiat_rates_enabled(&mut self, currencies: Vec<Currency>, enabled: bool) -> Result<usize, DatabaseError>;
@@ -140,11 +139,11 @@ fn get_fiat_transactions_by_device_id(client: &mut DatabaseClient, device_id_val
         .load(&mut client.connection)
 }
 
-fn get_fiat_assets_popular(client: &mut DatabaseClient, from: NaiveDateTime, limit: i64) -> Result<Vec<AssetIdRow>, diesel::result::Error> {
+fn get_fiat_assets_popular(client: &mut DatabaseClient, from: DateTime, limit: i64) -> Result<Vec<AssetIdRow>, diesel::result::Error> {
     use crate::schema::fiat_transactions::dsl::*;
 
     fiat_transactions
-        .filter(created_at.gt(from))
+        .filter(created_at.gt(DateTimeRow::from(from)))
         .select(asset_id)
         .group_by(asset_id)
         .order_by(count_star().desc())
@@ -332,7 +331,7 @@ impl FiatRepository for DatabaseClient {
         Ok(rows.into_iter().filter_map(|row| row.asset_id.map(|value| value.0)).collect::<HashSet<_>>().into_iter().collect())
     }
 
-    fn get_fiat_assets_popular(&mut self, from: NaiveDateTime, limit: i64) -> Result<Vec<AssetId>, DatabaseError> {
+    fn get_fiat_assets_popular(&mut self, from: DateTime, limit: i64) -> Result<Vec<AssetId>, DatabaseError> {
         Ok(get_fiat_assets_popular(self, from, limit)?.into_iter().map(Into::into).collect())
     }
 

@@ -5,10 +5,10 @@ use async_trait::async_trait;
 use futures::future::try_join_all;
 use gem_client::Client;
 use gem_evm::provider::preload;
-use gem_evm::provider::preload_mapper::{TransactionParams, get_approved_transaction_params, get_extra_fee_gas_limit};
 use gem_evm::rpc::{EthereumClient, EvmFeeCalculator, EvmStakingClient};
 use gem_evm::signer::Eip1559Transaction;
-use gem_evm::u256::{bigint_to_u256, u256_to_biguint};
+use gem_evm::transaction_params::TransactionCalls;
+use gem_evm::u256::u256_to_biguint;
 use num_bigint::BigInt;
 use primitives::contract_constants::OPTIMISM_GAS_PRICE_ORACLE_CONTRACT;
 use primitives::{TransactionFee, TransactionLoadInput};
@@ -24,9 +24,9 @@ impl<C: Client + Clone> EvmStakingClient for OptimismGasOracle<C> {}
 
 #[async_trait]
 impl<C: Client + Clone> EvmFeeCalculator for OptimismGasOracle<C> {
-    async fn calculate_fee(&self, input: &TransactionLoadInput, params: &TransactionParams, gas_limit: &BigInt) -> Result<TransactionFee, Box<dyn Error + Sync + Send>> {
-        let transaction_fee = preload::calculate_fee(input, gas_limit)?;
-        let l1_fees = try_join_all(l1_fee_transactions(input, params, &transaction_fee)?.iter().map(|transaction| self.l1_fee(transaction.encoded_unsigned()))).await?;
+    async fn calculate_fee(&self, input: &TransactionLoadInput, calls: &TransactionCalls, gas_limit: &BigInt) -> Result<TransactionFee, Box<dyn Error + Sync + Send>> {
+        let transaction_fee = preload::calculate_fee(input, calls, gas_limit)?;
+        let l1_fees = try_join_all(l1_fee_transactions(input, calls, &transaction_fee)?.iter().map(|transaction| self.l1_fee(transaction.encoded_unsigned()))).await?;
         Ok(TransactionFee {
             fee: transaction_fee.fee + l1_fees.into_iter().sum::<BigInt>(),
             ..transaction_fee
@@ -45,32 +45,14 @@ impl<C: Client + Clone> OptimismGasOracle<C> {
     }
 }
 
-fn l1_fee_transactions(input: &TransactionLoadInput, params: &TransactionParams, fee: &TransactionFee) -> Result<Vec<Eip1559Transaction>, Box<dyn Error + Sync + Send>> {
-    let nonce = input.metadata.get_sequence()?;
-    let transaction = l1_fee_transaction(input, fee, params, nonce, fee.gas_limit()?)?;
-    match get_approved_transaction_params(input)? {
-        Some(approved) => Ok(vec![transaction, l1_fee_transaction(input, fee, &approved, nonce + 1, u64::try_from(&get_extra_fee_gas_limit(input)?)?)?]),
-        None => Ok(vec![transaction]),
-    }
-}
-
-fn l1_fee_transaction(input: &TransactionLoadInput, fee: &TransactionFee, params: &TransactionParams, nonce: u64, gas_limit: u64) -> Result<Eip1559Transaction, Box<dyn Error + Sync + Send>> {
-    Ok(Eip1559Transaction {
-        chain_id: input.metadata.get_chain_id_u64()?,
-        nonce,
-        gas_limit,
-        max_fee_per_gas: fee.gas_price_u64()?.into(),
-        max_priority_fee_per_gas: fee.priority_fee_u64()?.into(),
-        to: params.to.parse()?,
-        value: bigint_to_u256(&params.value)?,
-        input: Bytes::from(params.data.clone()),
-    })
+fn l1_fee_transactions(input: &TransactionLoadInput, calls: &TransactionCalls, fee: &TransactionFee) -> Result<Vec<Eip1559Transaction>, Box<dyn Error + Sync + Send>> {
+    Ok(Eip1559Transaction::from_calls(input, fee, calls)?)
 }
 
 #[cfg(test)]
 mod tests {
     use alloy_primitives::hex;
-    use gem_evm::provider::preload_mapper::get_transaction_params;
+    use gem_evm::transaction_params::transaction_calls;
     use num_bigint::BigUint;
     use primitives::asset_constants::OPTIMISM_USDC_TOKEN_ID;
     use primitives::swap::{ApprovalData, SwapData, SwapQuoteData};
@@ -83,8 +65,9 @@ mod tests {
     #[test]
     fn test_l1_fee_transactions() {
         let encoded = |input: &TransactionLoadInput, gas_limit: u64| {
-            let fee = preload::calculate_fee(input, &BigInt::from(gas_limit)).unwrap();
-            let transactions = l1_fee_transactions(input, &get_transaction_params(input).unwrap(), &fee).unwrap();
+            let calls = transaction_calls(input).unwrap();
+            let fee = preload::calculate_fee(input, &calls, &BigInt::from(gas_limit)).unwrap();
+            let transactions = l1_fee_transactions(input, &calls, &fee).unwrap();
             transactions.iter().map(|transaction| hex::encode(transaction.encoded_unsigned())).collect::<Vec<_>>()
         };
 

@@ -9,7 +9,8 @@ use primitives::FiatWebhook;
 use std::error::Error;
 
 use super::{client::MoonPayClient, mapper::map_webhook, models::MoonPayBuyQuote};
-use primitives::{FiatProviderCountry, FiatProviderName, FiatQuoteRequest, FiatQuoteResponse, FiatQuoteType, FiatQuoteUrl, FiatQuoteUrlData};
+use crate::FiatQuoteRequest;
+use primitives::{FiatProviderCountry, FiatProviderName, FiatQuoteResponse, FiatQuoteType, FiatQuoteUrl, FiatQuoteUrlData};
 
 impl MoonPayClient {
     fn map_buy_quote_response(request_amount: f64, quote: MoonPayBuyQuote) -> Result<FiatQuoteResponse, FiatQuoteError> {
@@ -75,9 +76,10 @@ impl FiatProvider for MoonPayClient {
 
 #[cfg(all(test, feature = "fiat_integration_tests"))]
 mod fiat_integration_tests {
+    use crate::FiatQuoteRequest;
     use crate::testkit::*;
     use crate::{FiatProvider, model::FiatMapping};
-    use primitives::{FiatProviderName, FiatQuoteRequest};
+    use primitives::FiatProviderName;
 
     #[tokio::test]
     async fn test_moonpay_get_buy_quote() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {

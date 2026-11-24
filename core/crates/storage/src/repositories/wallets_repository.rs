@@ -1,12 +1,11 @@
 use std::collections::{HashMap, HashSet};
 
-use chrono::NaiveDateTime;
 use diesel::prelude::*;
-use primitives::{Chain, ChainAddress, Device, DeviceSubscription, WalletId, WalletSource, WalletType};
+use primitives::{Chain, ChainAddress, DateTime, Device, DeviceSubscription, WalletId, WalletSource, WalletType};
 
 use crate::models::{DeviceRow, NewWalletAddressRow, NewWalletRow, NewWalletSubscriptionRow, SubscriptionAddressExcludeRow, WalletAddressRow, WalletRow, WalletSubscriptionRow};
 use crate::schema::{devices, subscriptions_addresses_exclude, wallets, wallets_addresses, wallets_subscriptions};
-use crate::sql_types::ChainRow;
+use crate::sql_types::{ChainRow, DateTimeRow};
 use crate::{DatabaseClient, DatabaseError, DieselResultExt};
 
 #[derive(Debug, Clone, PartialEq)]
@@ -104,13 +103,14 @@ pub(crate) fn device_addresses(client: &mut DatabaseClient, device_id: i32, chai
         .load(&mut client.connection)
 }
 
-pub(crate) fn first_subscription_date_by_wallet_id(client: &mut DatabaseClient, wallet_id: i32) -> Result<Option<NaiveDateTime>, diesel::result::Error> {
+pub(crate) fn first_subscription_date_by_wallet_id(client: &mut DatabaseClient, wallet_id: i32) -> Result<Option<DateTime>, diesel::result::Error> {
     wallets_subscriptions::table
         .filter(wallets_subscriptions::wallet_id.eq(wallet_id))
         .select(wallets_subscriptions::created_at)
         .order(wallets_subscriptions::created_at.asc())
-        .first(&mut client.connection)
+        .first::<DateTimeRow>(&mut client.connection)
         .optional()
+        .map(|date| date.map(Into::into))
 }
 
 pub(crate) fn device_multicoin_wallet_ids(client: &mut DatabaseClient, device_id: i32, chain: Chain) -> Result<Vec<i32>, DatabaseError> {

@@ -128,9 +128,7 @@ struct Harness {
 
 impl Harness {
     fn new() -> Self {
-        let mut private_key = [0u8; 32];
-        private_key[..16].copy_from_slice(uuid::Uuid::new_v4().as_bytes());
-        private_key[16..].copy_from_slice(uuid::Uuid::new_v4().as_bytes());
+        let private_key = gem_crypto::random::bytes::<32>().unwrap();
         let device_id = hex::encode(device_public_key(&private_key).unwrap());
         Self {
             base: env::var("API_BASE_URL").unwrap_or_else(|_| "http://127.0.0.1:8000".to_string()),

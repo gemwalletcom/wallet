@@ -1,4 +1,3 @@
-use chrono::Utc;
 use gem_hypercore::perpetual_formatter::usdc_value;
 use num_bigint::BigInt;
 use primitives::swap::{ApprovalData, SwapQuoteDataType};
@@ -7,7 +6,7 @@ use primitives::{
     TransactionInputType, TransactionNFTTransferMetadata, TransactionPaymentMetadata, TransactionPerpetualMetadata, TransactionResourceTypeMetadata, TransactionState, TransactionSwapMetadata, TransactionType,
     TransactionWalletConnectMetadata, TransferDataOutputAction, TransferDataOutputType,
 };
-use primitives::{OptionStringExt, SwapProvider};
+use primitives::{DateTime, OptionStringExt, SwapProvider};
 
 use super::model::{GemConfirmDestination, GemConfirmRow, GemConfirmTitle, GemPendingTransactionInput, GemRecentActivity, GemRecipient, GemTransferData, GemTransferOutput};
 use crate::config::chain::is_memo_supported;
@@ -133,7 +132,7 @@ impl TransferInput for TransactionInputType {
 
     fn shows_memo(&self) -> bool {
         match self {
-            Self::Transfer { .. } | Self::Deposit { .. } | Self::Withdrawal { .. } => is_memo_supported(self.get_asset().chain()),
+            Self::Transfer { .. } | Self::TransferNft { .. } | Self::Deposit { .. } | Self::Withdrawal { .. } => is_memo_supported(self.get_asset().chain()),
             _ => false,
         }
     }
@@ -597,7 +596,7 @@ impl GemPendingTransactionInput {
             value,
             memo,
             metadata,
-            Utc::now(),
+            DateTime::now(),
         );
         transaction.block_number = transaction_metadata_block_number(&self.metadata);
         transaction.sequence = self.sequence.map(|sequence| sequence.to_string());
@@ -639,8 +638,8 @@ mod tests {
     use num_bigint::BigUint;
     use primitives::asset_balance::BalanceMetadata;
     use primitives::{
-        AssetType, Delegation, DelegationBase, DelegationValidator, NFTAsset, PaymentInvoice, PaymentMerchant, PaymentPrice, PerpetualConfirmData, PerpetualDirection, PerpetualModifyConfirmData, PerpetualReduceData, Resource, SwapProvider,
-        TransactionType, TransferDataExtra,
+        AssetType, Delegation, DelegationBase, DelegationValidator, NFTAsset, PaymentInvoice, PaymentMerchant, PaymentPrice, PerpetualConfirmData, PerpetualDirection, PerpetualModifyConfirmData, PerpetualReduceData, RedelegateData,
+        Resource, SwapProvider, TransactionType, TransferDataExtra,
         known_assets::HYPERCORE_PERPETUAL_USDC,
         swap::{SwapData, SwapQuote, SwapQuoteData},
     };
@@ -818,7 +817,7 @@ mod tests {
     }
 
     #[test]
-    fn test_stake_transfer_data_names_the_validator_and_keeps_max_for_new_stake_only() {
+    fn test_stake_transfer_data_names_the_validator_and_keeps_max_for_stake_and_freeze_only() {
         let validator = primitives::DelegationValidator::mock();
         let staked = stake_transfer_data(Asset::from_chain(Chain::Cosmos), StakeType::Stake(validator.clone()), BigInt::from(5), true);
         assert_eq!(staked.recipient.address, validator.id);
@@ -827,6 +826,19 @@ mod tests {
         let unstaked = stake_transfer_data(Asset::from_chain(Chain::Cosmos), StakeType::Unstake(primitives::Delegation::mock()), BigInt::from(5), true);
         assert!(!unstaked.use_max_amount);
         assert_eq!(unstaked.value, BigInt::from(5));
+        let to_validator = DelegationValidator::mock_cosmos("to");
+        let redelegated = stake_transfer_data(
+            Asset::from_chain(Chain::Cosmos),
+            StakeType::Redelegate(RedelegateData {
+                delegation: Delegation::mock(),
+                to_validator: to_validator.clone(),
+            }),
+            BigInt::from(5),
+            true,
+        );
+        assert_eq!(redelegated.recipient, GemRecipient::named(to_validator.id, to_validator.name), "a redelegation goes to the new validator");
+        assert!(!redelegated.use_max_amount);
+        assert!(stake_transfer_data(Asset::from_chain(Chain::Tron), StakeType::Freeze(Resource::Bandwidth), BigInt::from(5), true).use_max_amount);
     }
 
     #[test]
@@ -893,6 +905,14 @@ mod tests {
     fn test_memo_row_only_for_sends_on_memo_chains() {
         assert!(TransactionInputType::Transfer { asset: Asset::from_chain(Chain::Cosmos) }.shows_memo());
         assert!(!TransactionInputType::Transfer { asset: Asset::from_chain(Chain::Ethereum) }.shows_memo());
+        let nft = |chain: Chain, nft_asset: NFTAsset| GemTransferData::mock(TransactionInputType::TransferNft { asset: Asset::from_chain(chain), nft_asset });
+        for (transfer, shows_memo) in [
+            (nft(Chain::Solana, NFTAsset::mock_solana("token", "collection")), true),
+            (nft(Chain::Ton, NFTAsset::mock_ton()), true),
+            (nft(Chain::Ethereum, NFTAsset::mock()), false),
+        ] {
+            assert_eq!(transfer.confirm_rows().contains(&GemConfirmRow::Memo), shows_memo, "{:?}", transfer.input_type.get_asset().chain());
+        }
         assert!(
             !TransactionInputType::Stake {
                 asset: Asset::from_chain(Chain::Cosmos),

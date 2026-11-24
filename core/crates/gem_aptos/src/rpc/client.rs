@@ -15,7 +15,7 @@ use crate::models::{
 use crate::provider::payload_builder::build_swap_transaction_payload;
 use crate::rpc::target::AptosTarget;
 use crate::signer::{build_delegation_pool_transaction_payload, build_token_transfer_transaction_payload, build_transfer_transaction_payload};
-use crate::{DEFAULT_MAX_GAS_AMOUNT, DEFAULT_SWAP_MAX_GAS_AMOUNT, SIMULATION_MAX_GAS_AMOUNT};
+use crate::{DEFAULT_MAX_GAS_AMOUNT, DEFAULT_SWAP_MAX_GAS_AMOUNT, GAS_LIMIT_MULTIPLIER, SIMULATION_MAX_GAS_AMOUNT};
 
 #[derive(Debug)]
 pub struct AptosClient<C: Client> {
@@ -116,7 +116,8 @@ impl<C: Client> AptosClient<C> {
             },
             TransactionInputType::Stake { stake_type, .. } => {
                 let payload = build_delegation_pool_transaction_payload(stake_type, &input.value.to_string()).ok_or("Unsupported Aptos stake type")?;
-                self.simulate_transaction(&input.sender_address, sequence, payload.into(), &input.gas_price.gas_price().to_string()).await
+                let gas_used = self.simulate_transaction(&input.sender_address, sequence, payload.into(), &input.gas_price.gas_price().to_string()).await?;
+                Ok(gas_used.saturating_mul(GAS_LIMIT_MULTIPLIER) / 100)
             }
             TransactionInputType::Generic { .. } | TransactionInputType::Payment { .. } => Ok(DEFAULT_MAX_GAS_AMOUNT),
             TransactionInputType::TokenApprove { .. } | TransactionInputType::Perpetual { .. } | TransactionInputType::Earn { .. } => Err("Unsupported Aptos transaction type".into()),

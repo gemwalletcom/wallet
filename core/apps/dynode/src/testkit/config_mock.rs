@@ -123,7 +123,7 @@ impl MonitoringConfig {
     pub fn mock() -> Self {
         Self {
             enabled: true,
-            profile: NodeCheckProfile::Basic,
+            profile: NodeCheckProfile::Wallet,
             interval: MINUTE * 10,
             trigger: FailureTriggerConfig::mock(),
         }

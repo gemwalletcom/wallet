@@ -149,14 +149,13 @@ mod tests {
 
     use alloy_primitives::{Address, B256, Bytes, U256};
     use alloy_sol_types::SolCall;
-    use chrono::DateTime;
 
     use crate::rpc::{
         model::{Transaction, TransactionReceipt},
         parsers::ProtocolParsers,
     };
     use primitives::{
-        AssetId, Chain, SwapProvider, TransactionType,
+        AssetId, Chain, DateTime, SwapProvider, TransactionType,
         asset_constants::{POLYGON_USDC_ASSET_ID, POLYGON_USDC_TOKEN_ID},
         hex,
         testkit::json_rpc::load_json_rpc_result,

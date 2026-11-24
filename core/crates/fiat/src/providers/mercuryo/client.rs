@@ -1,4 +1,5 @@
-use gem_client::{ClientError, ClientExt, ReqwestClient};
+use gem_client::{ClientError, ClientExt};
+use gem_reqwest::ReqwestClient;
 use primitives::{FiatProviderName, FiatQuoteType};
 use std::collections::HashMap;
 

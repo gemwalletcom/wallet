@@ -1,9 +1,8 @@
 use std::str;
 
 use ::signer::Ed25519KeyPair;
-use chrono::Utc;
 use gem_encoding::{encode_base58, encode_base64};
-use primitives::{Chain, ChainSigner, SignerError, SignerInput, TransactionInputType, TransferDataOutputType};
+use primitives::{Chain, ChainSigner, DateTime, SignerError, SignerInput, TransactionInputType, TransferDataOutputType};
 
 use super::{instructions, sign_message as sign_solana_message, swap, transaction};
 use crate::{Pubkey, VersionedTransactionExt, decode_transaction, siws::SiwsMessage, transaction::is_transaction_bytes};
@@ -45,7 +44,7 @@ impl ChainSigner for SolanaChainSigner {
         if let Ok(raw) = str::from_utf8(message)
             && let Some(siws) = SiwsMessage::parse(raw).map_err(SignerError::invalid_input)?
         {
-            siws.validate(Chain::Solana, Utc::now()).map_err(SignerError::invalid_input)?;
+            siws.validate(Chain::Solana, DateTime::now()).map_err(SignerError::invalid_input)?;
             let public_key = Ed25519KeyPair::from_private_key(private_key)?.public_key_bytes;
             if siws.address != encode_base58(public_key) {
                 return SignerError::invalid_input_err("SIWS account mismatch");

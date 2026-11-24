@@ -1,11 +1,10 @@
 use std::collections::HashMap;
 
-use chrono::{DateTime, Utc};
 use coingecko::{
     Coin, CoinInfo, CoinMarket, get_asset_ids_for_coin,
     model::{MarketChart, Ohlc},
 };
-use primitives::{AssetId, AssetLink, AssetMarket, ChartCandleStick, ChartCandleStickVecExt, ChartPeriod, ChartValue, ChartValuePercentage, LinkType, OptionStringExt, PriceProvider};
+use primitives::{AssetId, AssetLink, AssetMarket, ChartCandleStick, ChartCandleStickVecExt, ChartPeriod, ChartValue, ChartValuePercentage, DateTime, LinkType, OptionStringExt, PriceProvider};
 
 use crate::{AssetPriceFull, AssetPriceMapping, PriceProviderAsset, PriceProviderAssetMetadata};
 
@@ -22,15 +21,13 @@ pub fn ohlc_days(period: ChartPeriod) -> &'static str {
 pub fn map_ohlc(candles: Vec<Ohlc>) -> Vec<ChartCandleStick> {
     let candles: Vec<ChartCandleStick> = candles
         .into_iter()
-        .filter_map(|(timestamp, open, high, low, close)| {
-            Some(ChartCandleStick {
-                date: DateTime::<Utc>::from_timestamp_millis(timestamp)?,
-                open,
-                high,
-                low,
-                close,
-                volume: 0.0,
-            })
+        .map(|(timestamp, open, high, low, close)| ChartCandleStick {
+            date: DateTime::from_timestamp_millis(timestamp),
+            open,
+            high,
+            low,
+            close,
+            volume: 0.0,
         })
         .collect();
     let interval = candles.interval().unwrap_or_default();
@@ -44,7 +41,7 @@ pub fn map_market_chart(chart: MarketChart) -> Vec<ChartValue> {
         .filter_map(|p| {
             let ts_ms = *p.first()?;
             let value = *p.get(1)?;
-            let ts = DateTime::<Utc>::from_timestamp_millis(ts_ms as i64)?.timestamp() as i32;
+            let ts = DateTime::from_timestamp_millis(ts_ms as i64).timestamp() as i32;
             Some(ChartValue { timestamp: ts, value: value as f32 })
         })
         .collect()
@@ -81,7 +78,7 @@ pub fn map_coin_markets(markets: Vec<CoinMarket>, by_id: &HashMap<String, Vec<As
 }
 
 pub fn map_coin_market(market: CoinMarket, mapping: AssetPriceMapping) -> AssetPriceFull {
-    let updated_at = market.last_updated.unwrap_or_else(Utc::now);
+    let updated_at = market.last_updated.unwrap_or_else(DateTime::now);
     let price = market.current_price.unwrap_or_default();
     let market_data = coin_market_to_asset_market(&market);
     AssetPriceFull::new(mapping, price, market.price_change_percentage_24h, updated_at, PriceProvider::Coingecko, Some(market_data))
@@ -201,7 +198,7 @@ fn map_coin_info_links(coin_info: &CoinInfo) -> Vec<AssetLink> {
         results.push(AssetLink::new(&format!("https://t.me/{value}"), LinkType::Telegram));
     }
 
-    if let Some(value) = links.chat_url.iter().find(|x| x.contains("discord.com")) {
+    if let Some(value) = links.chat_url.iter().find(|x| x.contains("discord.com") || x.contains("discord.gg")) {
         results.push(AssetLink::new(value, LinkType::Discord));
     }
 
@@ -227,13 +224,13 @@ mod tests {
         let candles = map_ohlc(month);
 
         assert_eq!(candles.len(), 180);
-        assert_eq!(candles[0].date, DateTime::from_timestamp(1_791_820_800, 0).unwrap(), "CoinGecko's close time becomes the open time");
+        assert_eq!(candles[0].date, DateTime::from_timestamp(1_791_820_800), "CoinGecko's close time becomes the open time");
 
         assert_eq!(
             map_ohlc(vec![(1_700_001_000_000, 1.0, 2.0, 0.5, 1.5), (1_700_002_800_000, 1.5, 3.0, 1.0, 2.5)]),
             vec![
                 ChartCandleStick {
-                    date: DateTime::from_timestamp(1_699_999_200, 0).unwrap(),
+                    date: DateTime::from_timestamp(1_699_999_200),
                     open: 1.0,
                     high: 2.0,
                     low: 0.5,
@@ -241,7 +238,7 @@ mod tests {
                     volume: 0.0,
                 },
                 ChartCandleStick {
-                    date: DateTime::from_timestamp(1_700_001_000, 0).unwrap(),
+                    date: DateTime::from_timestamp(1_700_001_000),
                     open: 1.5,
                     high: 3.0,
                     low: 1.0,
@@ -282,5 +279,19 @@ mod tests {
 
         assert_eq!(map_coin_market(unknown, mapping.clone()).as_price_data().price_change_percentage_24h, None);
         assert_eq!(map_coin_market(CoinMarket::mock_with_id("bitcoin"), mapping).as_price_data().price_change_percentage_24h, Some(1.5));
+    }
+
+    #[test]
+    fn test_map_coin_info_links_discord() {
+        let discord = |chat_url: &str| {
+            let mut coin_info: CoinInfo = serde_json::from_str(include_str!("../../../testdata/coingecko/coin_info_bitcoin.json")).unwrap();
+            coin_info.links.chat_url = vec![chat_url.to_string()];
+            map_coin_info_links(&coin_info).into_iter().find(|link| link.name == LinkType::Discord.name()).map(|link| link.url)
+        };
+
+        for url in ["https://discord.gg/FCfyBSbCU5", "https://discord.com/invite/aptosnetwork"] {
+            assert_eq!(discord(url).as_deref(), Some(url));
+        }
+        assert_eq!(discord("https://medium.com/mysten-labs"), None);
     }
 }

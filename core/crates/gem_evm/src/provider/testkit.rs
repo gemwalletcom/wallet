@@ -9,9 +9,9 @@ use crate::{
 #[cfg(all(test, feature = "chain_integration_tests"))]
 use alchemy::{AlchemyApi, alchemy_url};
 #[cfg(all(test, feature = "chain_integration_tests"))]
-use gem_client::ReqwestClient;
-#[cfg(all(test, feature = "chain_integration_tests"))]
 use gem_jsonrpc::JsonRpcClient;
+#[cfg(all(test, feature = "chain_integration_tests"))]
+use gem_reqwest::ReqwestClient;
 #[cfg(all(test, feature = "chain_integration_tests"))]
 use primitives::{EVMChain, FeeRate};
 #[cfg(all(test, feature = "chain_integration_tests"))]
@@ -35,12 +35,12 @@ fn build_test_indexer(chain: EVMChain, rpc_url: &str) -> Arc<EVMIndexer<ReqwestC
                 .clone()
                 .with_base_url(alchemy_url(chain.to_chain(), &settings.indexer.alchemy.url, AlchemyApi::JsonRpc, &settings.indexer.alchemy.key.secret)),
             client.clone().with_base_url(format!("{}/{}", settings.indexer.ankr.url, settings.indexer.ankr.key.secret)),
-            settings.indexer.blockscout.remote_provider_config().configure_client(client.clone()),
+            client.clone().with_base_url(settings.indexer.blockscout.remote_provider_config().url),
             settings.indexer.blockscout.key.secret,
             EtherscanClients::new(
-                settings.indexer.etherscan.remote_provider_config().configure_client(client.clone()),
+                client.clone().with_base_url(settings.indexer.etherscan.remote_provider_config().url),
                 Some(settings.indexer.etherscan.key.secret).filter(|key| !key.is_empty()),
-                settings.indexer.zksync.remote_provider_config().configure_client(client),
+                client.with_base_url(settings.indexer.zksync.remote_provider_config().url),
             ),
             chain,
         )

@@ -6,7 +6,7 @@ edition = { workspace = true }
 [features]
 default = ["mnemonic"]
 mnemonic = ["dep:bip39", "dep:gem_crypto", "gem_crypto/random", "dep:zeroize"]
-storage = ["mnemonic", "dep:aes-gcm", "dep:argon2", "dep:gem_encoding", "dep:serde", "dep:serde_json", "dep:strum", "dep:uuid", "dep:zeroize"]
+storage = ["mnemonic", "dep:aes-gcm", "dep:argon2", "dep:gem_encoding", "dep:serde", "dep:serde_json", "dep:strum", "dep:gem_uuid", "dep:zeroize"]
 v3 = ["storage", "dep:aes", "dep:ctr", "dep:scrypt", "dep:sha3"]
 
 [dependencies]
@@ -17,12 +17,12 @@ bip39 = { workspace = true, optional = true }
 ctr = { workspace = true, optional = true, features = ["zeroize"] }
 gem_crypto = { path = "../gem_crypto", default-features = false, optional = true }
 gem_encoding = { path = "../gem_encoding", default-features = false, optional = true }
+gem_uuid = { path = "../gem_uuid", features = ["v5"], optional = true }
 scrypt = { workspace = true, optional = true }
 serde = { workspace = true, optional = true }
 serde_json = { workspace = true, optional = true }
 sha3 = { workspace = true, optional = true }
 strum = { workspace = true, optional = true }
-uuid = { workspace = true, optional = true }
 zeroize = { workspace = true, optional = true }
 
 [dev-dependencies]

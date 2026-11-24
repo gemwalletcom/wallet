@@ -1,7 +1,8 @@
 use std::error::Error;
 
 use async_trait::async_trait;
-use gem_client::{ClientExt, ReqwestClient};
+use gem_client::ClientExt;
+use gem_reqwest::ReqwestClient;
 use primitives::IpCheckResult;
 
 use super::model::IpApiResponse;
@@ -17,7 +18,7 @@ pub struct IpApiClient {
 impl IpApiClient {
     pub fn new(url: String, api_key: String) -> Self {
         Self {
-            client: ReqwestClient::new(url, gem_client::reqwest_client()),
+            client: ReqwestClient::new(url, gem_reqwest::reqwest_client()),
             api_key,
         }
     }

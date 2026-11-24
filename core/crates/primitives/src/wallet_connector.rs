@@ -1,5 +1,4 @@
-use crate::{ApplicationMetadata, Chain, ChainType, Wallet};
-use chrono::{DateTime, Utc};
+use crate::{ApplicationMetadata, Chain, ChainType, DateTime, Wallet};
 use model_derive::Model;
 use serde::{Deserialize, Serialize};
 
@@ -130,8 +129,8 @@ pub struct WalletConnectionSession {
     pub session_id: String,
     pub state: WalletConnectionState,
     pub chains: Vec<Chain>,
-    pub created_at: DateTime<Utc>,
-    pub expire_at: DateTime<Utc>,
+    pub created_at: DateTime,
+    pub expire_at: DateTime,
     pub metadata: ApplicationMetadata,
 }
 

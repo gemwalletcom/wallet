@@ -3,7 +3,7 @@ use gem_evm::rpc::EthereumClient;
 use gem_jsonrpc::alien::{self, RpcClient, RpcProvider};
 use gem_jsonrpc::client::JsonRpcClient;
 use gem_jsonrpc::grpc::AlienGrpcTransport;
-#[cfg(all(test, feature = "reqwest_provider", feature = "swap_integration_tests"))]
+#[cfg(all(test, feature = "swap_integration_tests"))]
 use gem_solana::SolanaRpcConfig;
 use gem_stellar::rpc::StellarClient;
 use gem_sui::rpc::SuiClient;
@@ -53,10 +53,10 @@ pub fn create_xrp_client(provider: Arc<dyn RpcProvider>) -> Result<XrpClient<Rpc
     Ok(XrpClient::new(create_client_with_chain(provider, Chain::Xrp)?))
 }
 
-#[cfg(all(test, feature = "reqwest_provider", feature = "swap_integration_tests"))]
+#[cfg(all(test, feature = "swap_integration_tests"))]
 mod swap_integration_tests {
     use super::*;
-    use crate::NativeProvider;
+    use gem_reqwest::NativeProvider;
     use gem_solana::{SolanaRpc, models::blockhash::SolanaBlockhashResult, try_decode_blockhash};
     use std::sync::Arc;
 

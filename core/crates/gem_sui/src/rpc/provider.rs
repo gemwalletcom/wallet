@@ -39,13 +39,17 @@ impl ChainTransactions for SuiProvider {
     }
 }
 
-#[cfg(all(test, feature = "reqwest"))]
+#[cfg(test)]
 mod tests {
+    use std::sync::Arc;
+
+    use gem_reqwest::ReqwestGrpcTransport;
+
     use super::*;
 
     #[tokio::test]
     async fn test_rpc_only_provider_returns_empty_transactions() {
-        let provider = SuiProvider::new_rpc_only(SuiClient::new("https://example.com"));
+        let provider = SuiProvider::new_rpc_only(SuiClient::new_with_transport("https://example.com", Arc::new(ReqwestGrpcTransport::new())));
         let transactions = match provider.get_transactions_by_address(TransactionsRequest::new("0x123".to_string(), 10)).await.unwrap() {
             TransactionsResult::Transactions(transactions) => transactions,
             TransactionsResult::TransactionRequests(_) => panic!("RPC-only provider must return an empty transaction list"),

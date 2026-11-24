@@ -130,6 +130,8 @@ impl NodeHealthEvaluator {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use chain_traits::node_check::NodeCheckProfile;
+    use node_probes::node_check_request;
 
     #[test]
     fn test_probe_order() {
@@ -147,7 +149,7 @@ mod tests {
             ..ChainConfig::mock(Chain::Ethereum)
         };
         let nodes = Arc::new(RwLock::new(HashMap::from([(chain_config.chain, Url::mock("https://a"))])));
-        let evaluator = NodeHealthEvaluator::new(chain_config, None, NodeCheckRequest::Basic, nodes, Arc::new(Metrics::mock()));
+        let evaluator = NodeHealthEvaluator::new(chain_config, None, node_check_request(Chain::Ethereum, NodeCheckProfile::Wallet), nodes, Arc::new(Metrics::mock()));
 
         assert!(evaluator.switch_if_current(&Url::mock("https://a"), &Url::mock("https://b"), &NodeSwitchReason::PreferredNode).await);
         assert_eq!(*evaluator.nodes.read().await.get(&Chain::Ethereum).unwrap(), Url::mock("https://b"));

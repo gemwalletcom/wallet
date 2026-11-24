@@ -3,8 +3,7 @@ use std::collections::HashMap;
 use std::str::FromStr;
 
 use crate::DatabaseError;
-use crate::sql_types::{AssetId, Currency, FiatProviderNameRow, FiatRateProviderRow, FiatTransactionStatusRow, FiatTransactionType};
-use chrono::NaiveDateTime;
+use crate::sql_types::{AssetId, Currency, DateTimeRow, FiatProviderNameRow, FiatRateProviderRow, FiatTransactionStatusRow, FiatTransactionType};
 use diesel::prelude::*;
 use primitives::{FiatAsset, FiatProvider, FiatProviderCountry, FiatProviderName, FiatRate, FiatRateProvider, FiatTransaction, FiatTransactionUpdate, PaymentType, fiat_assets::FiatAssetLimits};
 use serde::{Deserialize, Serialize};
@@ -189,8 +188,8 @@ pub(crate) struct FiatTransactionRow {
     pub device_id: i32,
     pub wallet_id: i32,
     pub quote_id: String,
-    pub updated_at: NaiveDateTime,
-    pub created_at: NaiveDateTime,
+    pub updated_at: DateTimeRow,
+    pub created_at: DateTimeRow,
 }
 
 impl FiatTransactionRow {
@@ -210,8 +209,8 @@ impl FiatTransactionRow {
             fiat_currency: self.fiat_currency.clone(),
             value,
             transaction_hash: self.transaction_hash.clone(),
-            created_at: self.created_at.and_utc(),
-            updated_at: self.updated_at.and_utc(),
+            created_at: self.created_at.into(),
+            updated_at: self.updated_at.into(),
         })
     }
 }
@@ -334,9 +333,8 @@ impl UpdateFiatTransactionRow {
 #[cfg(test)]
 mod tests {
     use super::{FiatAssetRow, FiatTransactionRow, UpdateFiatTransactionRow};
-    use chrono::{DateTime, Utc};
     use num_bigint::BigUint;
-    use primitives::{FiatAsset, FiatTransactionStatus, FiatTransactionUpdate};
+    use primitives::{DateTime, FiatAsset, FiatTransactionStatus, FiatTransactionUpdate};
 
     #[test]
     fn from_primitive_leaves_suspended_asset_to_the_provider_flag() {
@@ -349,14 +347,14 @@ mod tests {
 
     #[test]
     fn as_primitive_maps_value_and_timestamps() {
-        let row = FiatTransactionRow::mock_with_timestamps(DateTime::<Utc>::from_timestamp(1, 0).unwrap(), DateTime::<Utc>::from_timestamp(2, 0).unwrap());
+        let row = FiatTransactionRow::mock_with_timestamps(DateTime::from_timestamp(1), DateTime::from_timestamp(2));
 
         let transaction = row.as_primitive().unwrap();
 
         assert_eq!(transaction.id, "1");
         assert_eq!(transaction.value, BigUint::from(123_000_000_000_000_000u64));
-        assert_eq!(transaction.created_at, DateTime::<Utc>::from_timestamp(1, 0).unwrap());
-        assert_eq!(transaction.updated_at, DateTime::<Utc>::from_timestamp(2, 0).unwrap());
+        assert_eq!(transaction.created_at, DateTime::from_timestamp(1));
+        assert_eq!(transaction.updated_at, DateTime::from_timestamp(2));
     }
 
     #[test]

@@ -1,4 +1,4 @@
-use chrono::{DateTime, Utc};
+use primitives::DateTime;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
@@ -90,10 +90,10 @@ pub struct CoinMarket {
     pub total_supply: Option<f64>,
     pub max_supply: Option<f64>,
     pub ath: Option<f64>,
-    pub ath_date: Option<DateTime<Utc>>,
+    pub ath_date: Option<DateTime>,
     pub atl: Option<f64>,
-    pub atl_date: Option<DateTime<Utc>>,
-    pub last_updated: Option<DateTime<Utc>>,
+    pub atl_date: Option<DateTime>,
+    pub last_updated: Option<DateTime>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

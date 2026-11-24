@@ -1,5 +1,7 @@
-use borsh::BorshDeserialize;
-use gem_encoding::decode_base58;
+use gem_encoding::{
+    borsh::{BorshDeserialize, DecodeError, Reader},
+    decode_base58,
+};
 use num_bigint::{BigUint, Sign};
 use primitives::decode_hex_literal;
 use primitives::hex;
@@ -30,10 +32,16 @@ struct DecodedDeposit {
     data: String,
 }
 
-#[derive(BorshDeserialize)]
 struct DepositArguments {
     amount: u64,
-    _id: [u8; 32],
+}
+
+impl BorshDeserialize for DepositArguments {
+    fn deserialize_reader(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        let value = Self { amount: reader.read()? };
+        reader.skip(32)?;
+        Ok(value)
+    }
 }
 
 impl TransactionParser<ParseContext<'_>, Transaction> for RelayParser {
@@ -49,11 +57,11 @@ impl TransactionParser<ParseContext<'_>, Transaction> for RelayParser {
 }
 
 fn is_relay_instruction(context: &ParseContext<'_>, instruction: &Instruction) -> bool {
-    context.transaction.account_key(instruction.program_id_index).is_some_and(|key| RELAY_PROGRAMS.contains(&key.as_str()))
+    context.transaction.instruction_program(instruction).is_some_and(|program| RELAY_PROGRAMS.contains(&program))
 }
 
 fn decode_instruction(context: &ParseContext<'_>, instruction: &Instruction) -> Option<DecodedDeposit> {
-    match context.transaction.account_key(instruction.program_id_index)?.as_str() {
+    match context.transaction.instruction_program(instruction)? {
         RELAY_DEPOSITORY_PROGRAM_ID => decode_deposit(context, instruction),
         RELAY_FORWARDER_PROGRAM_ID => decode_forward(context, instruction),
         _ => None,
@@ -64,7 +72,7 @@ fn decode_deposit(context: &ParseContext<'_>, instruction: &Instruction) -> Opti
     let data = decode_base58(&instruction.data).ok()?;
     let discriminator = data.get(..DEPOSIT_NATIVE_DISCRIMINATOR.len())?;
     let arguments = DepositArguments::try_from_slice(data.get(DEPOSIT_NATIVE_DISCRIMINATOR.len()..)?).ok()?;
-    let account = |position: usize| context.transaction.account_key(*instruction.accounts.get(position)? as usize).cloned();
+    let account = |position: usize| context.transaction.instruction_account(instruction, position).cloned();
     let sender = account(SENDER_ACCOUNT_INDEX)?;
     let asset_id = if discriminator == DEPOSIT_NATIVE_DISCRIMINATOR {
         Chain::Solana.as_asset_id()
@@ -90,7 +98,7 @@ fn decode_forward(context: &ParseContext<'_>, instruction: &Instruction) -> Opti
     if *discriminator != FORWARD_TOKEN_DISCRIMINATOR || id.len() != 32 {
         return None;
     }
-    let sender = context.transaction.account_key(*instruction.accounts.get(FORWARDER_SENDER_ACCOUNT_INDEX)? as usize)?.clone();
+    let sender = context.transaction.instruction_account(instruction, FORWARDER_SENDER_ACCOUNT_INDEX)?.clone();
     let spent = spent_balance_change(context.transaction, &sender)?;
 
     Some(DecodedDeposit {
@@ -115,7 +123,6 @@ fn spent_balance_change(transaction: &BlockTransaction, owner: &str) -> Option<T
 
 #[cfg(test)]
 mod tests {
-    use chrono::DateTime;
     use num_bigint::BigUint;
     use primitives::{AssetId, Chain, JsonRpcResult, TransactionState, TransactionType};
 
@@ -126,7 +133,7 @@ mod tests {
 
     fn parse_transaction(payload: &str) -> Transaction {
         let result: JsonRpcResult<SingleTransaction> = serde_json::from_str(payload).unwrap();
-        let created_at = DateTime::from_timestamp(result.result.block_time, 0).unwrap();
+        let created_at = result.result.block_time;
         let transaction = BlockTransaction {
             meta: result.result.meta,
             transaction: result.result.transaction,

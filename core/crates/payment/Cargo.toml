@@ -5,6 +5,7 @@ version = { workspace = true }
 
 [dependencies]
 primitives = { path = "../primitives" }
+links = { path = "../links" }
 gem_client = { path = "../gem_client" }
 gem_encoding = { path = "../gem_encoding" }
 gem_jsonrpc = { path = "../gem_jsonrpc", features = ["client"] }

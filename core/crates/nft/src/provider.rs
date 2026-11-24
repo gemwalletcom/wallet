@@ -2,8 +2,9 @@ use std::collections::HashMap;
 use std::error::Error;
 use std::sync::Arc;
 
+use crate::NFTChain;
 use async_trait::async_trait;
-use primitives::{Chain, NFTAsset, NFTAssetId, NFTChain, NFTCollection, NFTCollectionId, NFTData, try_in_order};
+use primitives::{Chain, NFTAsset, NFTAssetId, NFTCollection, NFTCollectionId, NFTData, try_in_order};
 
 #[async_trait]
 pub trait NFTProvider: Send + Sync {

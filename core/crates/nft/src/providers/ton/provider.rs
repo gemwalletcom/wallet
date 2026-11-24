@@ -3,9 +3,10 @@ use std::error::Error;
 use futures::{StreamExt, stream};
 use gem_client::Client;
 use gem_ton::rpc::client::TonClient;
-use primitives::{Chain, NFTAsset, NFTAssetId, NFTChain, NFTCollection, NFTCollectionId};
+use primitives::{Chain, NFTAsset, NFTAssetId, NFTCollection, NFTCollectionId};
 
 use super::mapper::{asset_id_from_item, map_asset, map_assets, map_collection, map_indexed_asset, map_offchain_asset};
+use crate::NFTChain;
 use crate::config::OffchainClientConfig;
 use crate::offchain_client::OffchainClient;
 use crate::provider::NFTProvider;

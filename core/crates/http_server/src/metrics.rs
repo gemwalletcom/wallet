@@ -1,4 +1,3 @@
-use std::fmt;
 use std::future::Future;
 use std::pin::Pin;
 use std::task::{Context, Poll};
@@ -6,11 +5,7 @@ use std::time::Instant;
 
 use axum::extract::MatchedPath;
 use http::{Method, Request, Response};
-use prometheus_client::encoding::{EncodeLabelSet, LabelSetEncoder};
-use prometheus_client::metrics::counter::Counter;
-use prometheus_client::metrics::family::Family;
-use prometheus_client::metrics::histogram::{Histogram, exponential_buckets};
-use prometheus_client::registry::Registry;
+use metrics::{Counter, Family, Histogram, LabelEncoder, LabelSet, MetricsRegistry, exponential_buckets};
 use tower::{Layer, Service};
 
 const UNMATCHED_ROUTE: &str = "unmatched";
@@ -22,10 +17,11 @@ struct RequestLabels {
     status: u16,
 }
 
-impl EncodeLabelSet for RequestLabels {
-    fn encode(&self, encoder: &mut LabelSetEncoder) -> Result<(), fmt::Error> {
-        let status = self.status.to_string();
-        [("method", self.method), ("route", self.route.as_str()), ("status", status.as_str())].encode(encoder)
+impl LabelSet for RequestLabels {
+    fn encode(&self, encoder: &mut LabelEncoder<'_>) {
+        encoder.add("method", self.method);
+        encoder.add("route", &self.route);
+        encoder.add("status", &self.status);
     }
 }
 
@@ -35,9 +31,10 @@ struct RouteLabels {
     route: String,
 }
 
-impl EncodeLabelSet for RouteLabels {
-    fn encode(&self, encoder: &mut LabelSetEncoder) -> Result<(), fmt::Error> {
-        [("method", self.method), ("route", self.route.as_str())].encode(encoder)
+impl LabelSet for RouteLabels {
+    fn encode(&self, encoder: &mut LabelEncoder<'_>) {
+        encoder.add("method", self.method);
+        encoder.add("route", &self.route);
     }
 }
 
@@ -61,7 +58,7 @@ impl HttpMetrics {
         }
     }
 
-    pub fn register(&self, registry: &mut Registry) {
+    pub fn register(&self, registry: &mut MetricsRegistry) {
         registry.register("http_requests", "HTTP requests by matched route and status", self.requests.clone());
         registry.register("http_request_duration_seconds", "HTTP request duration by matched route", self.duration.clone());
     }
@@ -145,7 +142,6 @@ mod tests {
     use axum::Router;
     use axum::body::Body;
     use axum::routing::get;
-    use prometheus_client::encoding::text::encode;
     use tower::ServiceExt;
 
     use super::*;
@@ -153,7 +149,7 @@ mod tests {
     #[tokio::test]
     async fn test_unknown_methods_share_one_label() {
         let metrics = HttpMetrics::new();
-        let mut registry = Registry::default();
+        let mut registry = MetricsRegistry::new();
         metrics.register(&mut registry);
         let router = Router::new().route("/", get(|| async {})).layer(metrics.layer());
 
@@ -162,8 +158,7 @@ mod tests {
             router.clone().oneshot(request).await.unwrap();
         }
 
-        let mut output = String::new();
-        encode(&mut output, &registry).unwrap();
+        let output = registry.encode();
         assert!(output.contains(r#"method="GET""#));
         assert!(output.contains(r#"http_requests_total{method="OTHER",route="/",status="405"} 2"#));
         assert!(!output.contains("FOO") && !output.contains("BAR"));

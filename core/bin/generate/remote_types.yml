@@ -266,6 +266,7 @@ mocks:
   - GemAssetItemRow
   - GemAssetItemTrailing
   - GemAssetRowStyle
+  - GemAuthenticationPreview
   - GemChainRow
   - GemChart
   - GemChartBounds
@@ -480,12 +481,11 @@ aliases:
   SwapperProvider: SwapProvider
   SwapperSlippageMode: SlippageMode
 declared:
-  NaiveDateTime: primitives::chrono::NaiveDateTime
   BigInt: GemBigInt
   serde_json::Value: GemJsonValue
   BigUint: GemBigUint
   BigIntValue: GemBigUint
-  DateTime<Utc>: chrono::DateTime<chrono::Utc>
+  DateTime: DateTimeUtc
 
 type_mappings:
   swift:

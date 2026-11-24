@@ -37,7 +37,7 @@ impl StoreTransactionsPerpetualsConsumer {
             size_usd: BigNumberFormatter::value_as_f64(&transaction.value, decimals)?,
             pnl_usd: metadata.pnl,
             referral_fee_amount_usd: BigNumberFormatter::value_as_f64(&referral_fee.value, decimals)?,
-            created_at: transaction.created_at.naive_utc(),
+            created_at: transaction.created_at,
         }))
     }
 }

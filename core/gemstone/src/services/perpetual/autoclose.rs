@@ -2,18 +2,18 @@ use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 use crate::models::custom_types::GemBigInt;
 use crate::models::list::{GemListRow, GemListRowTitle};
 use crate::percentage::GemPercentageStyle;
-use crate::perpetual::GemAutocloseEstimator;
 use crate::perpetual::GemPerpetual;
 use crate::precision::GemCurrencyStyle;
 use crate::services::amount::model::GemNumberFormat;
 use crate::services::amount::rules::plain_number;
 use crate::services::error::GemServiceError;
 use crate::services::localization::GemLocalizedText;
+use crate::services::perpetual::autoclose_validator::{AutocloseEstimator, AutocloseValidation, AutocloseValidator};
 use crate::services::perpetual::model::GemPerpetualPositionRow;
 use crate::services::transfer::GemTransferData;
 use primitives::known_assets::HYPERCORE_PERPETUAL_USDC;
 use primitives::perpetual::{CancelOrderData, PerpetualModifyConfirmData, PerpetualModifyPositionType, TPSLOrderData};
-use primitives::{Asset, AutocloseValidation, AutocloseValidator, Currency, Perpetual, PerpetualDirection, PerpetualPosition, PerpetualProvider, PerpetualType, TpslType};
+use primitives::{Asset, Currency, Perpetual, PerpetualDirection, PerpetualPosition, PerpetualProvider, PerpetualType, TpslType};
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemAutocloseField {
@@ -78,7 +78,7 @@ pub struct GemAutocloseFieldState {
     pub validation: AutocloseValidation,
 }
 
-fn autoclose_field_state(field: GemAutocloseField, text: String, estimator: &GemAutocloseEstimator, shows_errors: bool) -> GemAutocloseFieldState {
+fn autoclose_field_state(field: GemAutocloseField, text: String, estimator: &AutocloseEstimator, shows_errors: bool) -> GemAutocloseFieldState {
     let percent = field.price.map(|price| GemFormattedNumber::percentage(estimator.roe(price), GemPercentageStyle::Signed));
     let estimate = field.price.zip(percent.clone()).map(|(price, percent)| match estimator.has_size() {
         true => GemLocalizedText::Pnl {
@@ -319,11 +319,11 @@ impl GemAutocloseSession {
         session.with_text(TpslType::TakeProfit, take_profit).with_text(TpslType::StopLoss, stop_loss)
     }
 
-    fn estimator(&self) -> GemAutocloseEstimator {
+    fn estimator(&self) -> AutocloseEstimator {
         let direction = self.modify.direction.clone();
         match self.estimate.is_open {
-            true => GemAutocloseEstimator::for_open(self.estimate.entry_price, self.estimate.size, self.estimate.leverage, direction),
-            false => GemAutocloseEstimator::new(self.estimate.entry_price, self.estimate.size, direction, self.estimate.leverage),
+            true => AutocloseEstimator::for_open(self.estimate.entry_price, self.estimate.size, self.estimate.leverage, direction),
+            false => AutocloseEstimator::new(self.estimate.entry_price, self.estimate.size, direction, self.estimate.leverage),
         }
     }
 
@@ -622,7 +622,7 @@ mod tests {
 
     #[test]
     fn test_a_field_estimates_from_any_typed_price_and_names_its_outcome() {
-        let estimator = GemAutocloseEstimator::new(100.0, 2.0, PerpetualDirection::Long, 5);
+        let estimator = AutocloseEstimator::new(100.0, 2.0, PerpetualDirection::Long, 5);
         let profit = autoclose_field_state(GemAutocloseField::mock(Some(120.0), None, true, None), String::new(), &estimator, true);
         let loss = autoclose_field_state(GemAutocloseField::mock(Some(80.0), None, false, None), String::new(), &estimator, true);
         let empty = autoclose_field_state(GemAutocloseField::mock(None, None, false, None), String::new(), &estimator, true);

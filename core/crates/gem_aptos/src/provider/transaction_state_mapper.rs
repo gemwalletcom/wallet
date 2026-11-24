@@ -18,6 +18,7 @@ pub fn map_transaction_status(transaction: &Transaction) -> TransactionUpdate {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use primitives::DateTime;
 
     #[test]
     fn test_map_transaction_status_confirmed() {
@@ -32,7 +33,7 @@ mod tests {
             payload: None,
             transaction_type: Some("user_transaction".to_string()),
             sequence_number: Some("1".to_string()),
-            timestamp: 1234567890,
+            timestamp: DateTime::from_timestamp_micros(1_234_567_890),
         };
 
         let result = map_transaction_status(&transaction);
@@ -53,7 +54,7 @@ mod tests {
             payload: None,
             transaction_type: Some("user_transaction".to_string()),
             sequence_number: Some("2".to_string()),
-            timestamp: 1234567891,
+            timestamp: DateTime::from_timestamp_micros(1_234_567_891),
         };
 
         let result = map_transaction_status(&transaction);

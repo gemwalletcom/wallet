@@ -1,5 +1,6 @@
-use chrono::{DateTime, Utc};
+use date_time::deserialize_datetime_from_millis;
 use gem_evm::address_deserializer::deserialize_ethereum_address_checksum;
+use primitives::DateTime;
 use serde::{Deserialize, Serialize};
 use serde_serializers::deserialize_f64_from_str;
 
@@ -35,8 +36,8 @@ pub struct ReferrerData {
 pub struct ReferralAddress {
     #[serde(deserialize_with = "deserialize_ethereum_address_checksum")]
     pub user: String,
-    #[serde(with = "chrono::serde::ts_milliseconds")]
-    pub time_joined: DateTime<Utc>,
+    #[serde(deserialize_with = "deserialize_datetime_from_millis")]
+    pub time_joined: DateTime,
     #[serde(flatten)]
     pub usdc: ReferralTokenState,
     pub token_to_state: Option<Vec<(i32, ReferralTokenState)>>,

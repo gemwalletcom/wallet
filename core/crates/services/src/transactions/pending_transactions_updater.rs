@@ -7,11 +7,10 @@ use crate::ConfigCacher;
 use crate::transactions::{CheckSchedule, TransactionQueue, TransactionQueueGroup, TransactionQueueMetrics};
 use cacher::PendingTransactionsCacher;
 use chain_providers::{ChainProviders, TransactionIdRequest};
-use chrono::{DateTime, Utc};
 use config_keys::{ConfigKey, ConfigParamKey};
 use futures::{StreamExt, TryStreamExt, future::try_join_all, stream};
 use gem_tracing::{DurationMs, error_with_fields, info_with_fields};
-use primitives::{Chain, JobConfiguration, TransactionId, chain_transaction_timeout};
+use primitives::{Chain, DateTime, JobConfiguration, TransactionId, chain_transaction_timeout};
 use storage::DatabaseError;
 
 use super::repository::Repository;
@@ -103,7 +102,7 @@ impl PendingTransactionsUpdater {
             .map(|(identifier, expires_at)| (TransactionId::new(chain, identifier), expires_at))
             .collect::<Vec<_>>();
         let ids = pending.iter().map(|(id, _)| id.clone()).collect::<Vec<_>>();
-        let now = Utc::now();
+        let now = DateTime::now();
         let due = self.schedule.due(&ids, now).await?;
 
         stream::iter(pending.into_iter().filter(|(id, _)| due.contains(id)))
@@ -112,7 +111,7 @@ impl PendingTransactionsUpdater {
             .await
     }
 
-    async fn check_pending_transaction(&self, id: TransactionId, expires_at: f64, now: DateTime<Utc>) -> Result<usize, Box<dyn Error + Send + Sync>> {
+    async fn check_pending_transaction(&self, id: TransactionId, expires_at: f64, now: DateTime) -> Result<usize, Box<dyn Error + Send + Sync>> {
         let now_seconds = now.timestamp_millis() as f64 / 1000.0;
         if self.update_pending_transaction(id.chain, &id.hash, expires_at, now_seconds).await? {
             self.schedule.remove(&id).await?;
@@ -159,7 +158,7 @@ impl PendingTransactionsUpdater {
 }
 
 fn pending_transaction_elapsed(chain: Chain, expires_at: f64, now: f64) -> Duration {
-    let timeout = f64::from(chain_transaction_timeout(chain)) / 1000.0;
+    let timeout = chain_transaction_timeout(chain).as_secs_f64();
     let added_at = expires_at - timeout;
     Duration::from_secs_f64((now - added_at).max(0.0))
 }
@@ -183,7 +182,7 @@ mod tests {
     fn test_pending_transaction_elapsed_uses_added_at() {
         let chain = Chain::Ethereum;
         let expires_at = 10_000.0;
-        let now = expires_at - f64::from(chain_transaction_timeout(chain) / 1000) + 42.0;
+        let now = expires_at - chain_transaction_timeout(chain).as_secs_f64() + 42.0;
 
         assert_eq!(pending_transaction_elapsed(chain, expires_at, now), Duration::from_secs(42));
     }
@@ -192,7 +191,7 @@ mod tests {
     fn test_pending_transaction_elapsed_is_zero_before_added_at() {
         let chain = Chain::Xrp;
         let expires_at = 10_000.0;
-        let now = expires_at - f64::from(chain_transaction_timeout(chain) / 1000) - 1.0;
+        let now = expires_at - chain_transaction_timeout(chain).as_secs_f64() - 1.0;
 
         assert_eq!(pending_transaction_elapsed(chain, expires_at, now), Duration::ZERO);
     }

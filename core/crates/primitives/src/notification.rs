@@ -1,5 +1,4 @@
-use crate::{CoreListItem, WalletId};
-use chrono::{DateTime, Utc};
+use crate::{CoreListItem, DateTime, WalletId};
 use model_derive::Model;
 use serde::{Deserialize, Serialize};
 
@@ -9,7 +8,7 @@ use serde::{Deserialize, Serialize};
 pub struct InAppNotification {
     pub wallet_id: WalletId,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub read_at: Option<DateTime<Utc>>,
-    pub created_at: DateTime<Utc>,
+    pub read_at: Option<DateTime>,
+    pub created_at: DateTime,
     pub item: CoreListItem,
 }

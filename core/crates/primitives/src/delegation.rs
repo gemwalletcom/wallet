@@ -1,4 +1,3 @@
-use chrono::{DateTime, Utc};
 use model_derive::Model;
 use num_bigint::BigUint;
 use serde::{Deserialize, Serialize};
@@ -6,7 +5,7 @@ use serde_serializers::{deserialize_biguint_from_str, serialize_biguint};
 use strum::{AsRefStr, Display, EnumString};
 
 use crate::stake_provider_type::StakeProviderType;
-use crate::{AssetId, Chain, Price, StakeValidator};
+use crate::{AssetId, Chain, DateTime, Price, StakeValidator};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Model)]
 #[model(swift = "Equatable, Hashable, Sendable")]
@@ -32,7 +31,7 @@ pub struct DelegationBase {
     #[serde(serialize_with = "serialize_biguint", deserialize_with = "deserialize_biguint_from_str")]
     #[model(serialized_as = "BigIntValue")]
     pub rewards: BigUint,
-    pub completion_date: Option<DateTime<Utc>>,
+    pub completion_date: Option<DateTime>,
     pub delegation_id: String,
     pub validator_id: String,
 }

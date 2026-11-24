@@ -4,7 +4,7 @@ use gem_evm::eip712::hash_typed_data;
 use num_bigint::BigUint;
 use number_formatter::BigNumberFormatter;
 use primitives::{
-    ChainSigner, HyperliquidOrder, NumberIncrementer, PerpetualConfirmData, PerpetualDirection, PerpetualModifyConfirmData, PerpetualModifyPositionType, PerpetualType, SignerError, SignerInput, TransactionInputType, UnifiedAccountSwitch,
+    ChainSigner, HyperliquidOrder, PerpetualConfirmData, PerpetualDirection, PerpetualModifyConfirmData, PerpetualModifyPositionType, PerpetualType, SignerError, SignerInput, TransactionInputType, UnifiedAccountSwitch,
     asset_constants::HYPERCORE_CORE_HYPE_TOKEN_ID,
     decode_hex,
     known_assets::{HYPERCORE_PERPETUAL_USDC, HYPERCORE_SPOT_USDC},
@@ -15,6 +15,7 @@ use serde_json::{self, Value};
 use std::time::{SystemTime, UNIX_EPOCH};
 use zeroize::Zeroizing;
 
+use super::number_incrementer::NumberIncrementer;
 use crate::{
     constants::{BUILDER_ADDRESS, REFERRAL_CODE},
     core::{

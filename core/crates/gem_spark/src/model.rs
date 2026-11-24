@@ -1,4 +1,4 @@
-use chrono::{DateTime, Utc};
+use date_time::DateTime;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -36,7 +36,7 @@ pub struct LightningPayment {
     pub status: LightningPaymentStatus,
     pub amount_sats: u64,
     pub fee_sats: u64,
-    pub created_at: DateTime<Utc>,
+    pub created_at: DateTime,
     pub invoice: Option<String>,
 }
 

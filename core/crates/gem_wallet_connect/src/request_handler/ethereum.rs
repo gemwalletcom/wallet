@@ -1,7 +1,8 @@
+use crate::WCEthereumTransaction;
 use crate::actions::{WalletConnectAction, WalletConnectTransaction, WalletConnectTransactionType};
 use crate::sign_type::SignDigestType;
-use gem_evm::{eip712::validate_eip712_chain_id, transaction::decode_transaction_kind};
-use primitives::{Chain, ValueAccess, WCEthereumTransaction, WalletConnectionMethods};
+use gem_evm::{eip712::validate_eip712_chain_id, transaction::decode_transaction_kind, validate_address};
+use primitives::{Chain, ValueAccess, WalletConnectionMethods};
 use serde_json::Value;
 
 pub struct EthereumRequestHandler;
@@ -79,6 +80,9 @@ impl EthereumRequestHandler {
         transaction.as_object().ok_or_else(|| "Expected Ethereum transaction object".to_string())?;
         let parsed: WCEthereumTransaction = serde_json::from_value(transaction.clone()).map_err(|error| error.to_string())?;
         Self::validate_transaction_chain_id(chain, parsed.chain_id)?;
+        if !validate_address(&parsed.to) {
+            return Err(format!("Invalid transaction recipient: {}", parsed.to));
+        }
         Ok(parsed)
     }
 
@@ -168,7 +172,7 @@ mod tests {
 
     #[test]
     fn test_parse_send_transaction() {
-        let params = serde_json::from_str(r#"[{"from":"0xsender","to":"0x123","value":"0x0","chainId":"0x1"}]"#).unwrap();
+        let params = serde_json::from_str(r#"[{"from":"0xsender","to":"0x5615e8ab93b9d695b6d4d6545f7792aa59e1069a","value":"0x0","chainId":"0x1"}]"#).unwrap();
         let action = EthereumRequestHandler::parse_send_transaction(Chain::Ethereum, params).unwrap();
         match action {
             WalletConnectAction::SendTransaction { chain, transaction_type, data } => {
@@ -179,6 +183,15 @@ mod tests {
                 assert_eq!(transaction["chainId"], "0x1");
             }
             _ => panic!("Expected SendTransaction action"),
+        }
+    }
+
+    #[test]
+    fn test_parse_send_transaction_invalid_recipient_rejects() {
+        for to in ["0X5615e8ab93b9d695b6d4d6545f7792aa59e1069a", "0x5615e8ab93b9d695b6d4d6545f7792aA59e1069a", "0x123"] {
+            let params = serde_json::json!([{"from":"0xsender","to":to,"value":"0x0","chainId":"0x1"}]);
+            let result = EthereumRequestHandler::parse_send_transaction(Chain::Ethereum, params);
+            assert_eq!(result.unwrap_err(), format!("Invalid transaction recipient: {to}"));
         }
     }
 

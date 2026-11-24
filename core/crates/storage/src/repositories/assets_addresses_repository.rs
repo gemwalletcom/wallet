@@ -1,15 +1,15 @@
-use chrono::NaiveDateTime;
 use diesel::Connection;
 use diesel::prelude::*;
 use diesel::upsert::excluded;
-use primitives::{AssetAddress as PrimitiveAssetAddress, AssetId, ChainAddress};
+use primitives::{AssetAddress as PrimitiveAssetAddress, AssetId, ChainAddress, DateTime};
 
 use crate::models::{AssetAddressRow, AssetAddressRowsExt};
+use crate::sql_types::DateTimeRow;
 use crate::{DatabaseClient, DatabaseError};
 
 pub trait AssetsAddressesRepository {
     fn add_assets_addresses(&mut self, values: Vec<PrimitiveAssetAddress>) -> Result<usize, DatabaseError>;
-    fn get_assets_by_addresses(&mut self, values: Vec<ChainAddress>, from_datetime: Option<NaiveDateTime>) -> Result<Vec<AssetId>, DatabaseError>;
+    fn get_assets_by_addresses(&mut self, values: Vec<ChainAddress>, from_datetime: Option<DateTime>) -> Result<Vec<AssetId>, DatabaseError>;
     fn get_asset_addresses(&mut self, value: ChainAddress) -> Result<Vec<PrimitiveAssetAddress>, DatabaseError>;
     fn delete_assets_addresses(&mut self, values: Vec<PrimitiveAssetAddress>) -> Result<usize, DatabaseError>;
 }
@@ -28,7 +28,7 @@ impl AssetsAddressesRepository for DatabaseClient {
         Ok(insert.filter(excluded(value).is_not_null().and(value.is_distinct_from(excluded(value)))).execute(&mut self.connection)?)
     }
 
-    fn get_assets_by_addresses(&mut self, values: Vec<ChainAddress>, from_datetime: Option<NaiveDateTime>) -> Result<Vec<AssetId>, DatabaseError> {
+    fn get_assets_by_addresses(&mut self, values: Vec<ChainAddress>, from_datetime: Option<DateTime>) -> Result<Vec<AssetId>, DatabaseError> {
         let chains = values.iter().map(|x| x.chain.as_ref()).collect::<Vec<&str>>();
         let addresses = values.iter().map(|x| x.address.clone()).collect::<Vec<String>>();
         use crate::schema::{assets, assets_addresses::dsl as a};
@@ -42,7 +42,7 @@ impl AssetsAddressesRepository for DatabaseClient {
             .into_boxed();
 
         if let Some(datetime) = from_datetime {
-            query = query.filter(a::created_at.gt(datetime));
+            query = query.filter(a::created_at.gt(DateTimeRow::from(datetime)));
         }
 
         let rows: Vec<AssetAddressRow> = query.load(&mut self.connection)?;

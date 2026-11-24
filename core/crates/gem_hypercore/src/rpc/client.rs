@@ -225,6 +225,7 @@ impl<C: Client> chain_traits::ChainProvider for HyperCoreClient<C> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use chain_traits::node_check::WalletProbe;
     use gem_client::testkit::MockClient;
     use serde_json::json;
 
@@ -241,7 +242,11 @@ mod tests {
 
         assert_eq!(status.latest_block_number, None);
 
-        let report = provider.check_node(&NodeCheckRequest::Basic, &NodeSyncStatus::in_sync(), Duration::ZERO).await;
+        let request = NodeCheckRequest::Wallet(WalletProbe {
+            address: "0x123".to_string(),
+            transaction_id: None,
+        });
+        let report = provider.check_node(&request, &NodeSyncStatus::in_sync(), Duration::ZERO).await;
 
         assert_eq!(report.checks.len(), 1);
         assert_eq!(report.checks[0].method, "all_mids");

@@ -127,8 +127,7 @@ mod tests {
 
     use primitives::AssetId;
 
-    use chrono::Utc;
-    use primitives::SupportMessageStatus;
+    use primitives::{DateTime, SupportMessageStatus};
 
     use super::testkit::AppStartTestkit;
     use super::*;
@@ -154,7 +153,7 @@ mod tests {
     fn test_the_app_start_fails_a_support_message_a_previous_run_left_sending() {
         block_on(async {
             let testkit = AppStartTestkit::new().await;
-            testkit.support.save_messages(vec![pending_message("abandoned".into(), "hi".into(), vec![], Utc::now())]).await.unwrap();
+            testkit.support.save_messages(vec![pending_message("abandoned".into(), "hi".into(), vec![], DateTime::now())]).await.unwrap();
 
             testkit.service.run().await;
 

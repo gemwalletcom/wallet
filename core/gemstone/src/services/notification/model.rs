@@ -1,5 +1,5 @@
-use chrono::{DateTime, Utc};
-use primitives::{AssetId, CoreListItemIcon, InAppNotification, OptionStringExt, UrlAction};
+use links::UrlAction;
+use primitives::{AssetId, CoreListItemIcon, DateTime, InAppNotification, OptionStringExt};
 
 use crate::services::localization::GemLocalizedText;
 
@@ -13,7 +13,7 @@ pub enum GemNotificationIcon {
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemNotificationRow {
     pub id: String,
-    pub created_at: DateTime<Utc>,
+    pub created_at: DateTime,
     pub title: String,
     pub subtitle: Option<String>,
     pub value: Option<String>,
@@ -83,11 +83,11 @@ mod tests {
         let unread = InAppNotification {
             wallet_id: WalletId::Multicoin("wallet".into()),
             read_at: None,
-            created_at: chrono::Utc::now(),
+            created_at: DateTime::now(),
             item,
         };
         let read = InAppNotification {
-            read_at: Some(chrono::Utc::now()),
+            read_at: Some(DateTime::now()),
             ..unread.clone()
         };
 

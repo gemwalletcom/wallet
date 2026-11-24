@@ -1,7 +1,8 @@
+use crate::WCEthereumTransaction;
 use crate::sign_type::SignDigestType;
 pub use gem_evm::transaction::EvmTransactionKind;
 use gem_solana::VersionedTransaction;
-use primitives::{Chain, TransferDataOutputType, WCEthereumTransaction};
+use primitives::{Chain, TransferDataOutputType};
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum WalletConnectAction {

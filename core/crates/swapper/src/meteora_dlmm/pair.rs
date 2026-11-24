@@ -1,4 +1,4 @@
-use borsh::BorshDeserialize;
+use gem_encoding::borsh::{BorshDeserialize, DecodeError, Reader};
 use gem_solana::{
     Pubkey, SolanaDataSlice,
     anchor::AnchorAccount,
@@ -32,7 +32,7 @@ const FEE_PRECISION: u32 = 1_000_000_000;
 const MAX_FEE_RATE: u128 = 100_000_000;
 const VARIABLE_FEE_PRECISION: u128 = 100_000_000_000;
 
-#[derive(Debug, Clone, PartialEq, BorshDeserialize)]
+#[derive(Debug, Clone, PartialEq)]
 struct StaticParameters {
     base_factor: u16,
     filter_period: u16,
@@ -40,72 +40,106 @@ struct StaticParameters {
     reduction_factor: u16,
     variable_fee_control: u32,
     max_volatility_accumulator: u32,
-    _min_bin_id: i32,
-    _max_bin_id: i32,
-    _protocol_share: u16,
     base_fee_power_factor: u8,
     function_type: u8,
     collect_fee_mode: u8,
-    _padding: [u8; 3],
 }
 
-#[derive(Debug, Clone, PartialEq, BorshDeserialize)]
+impl BorshDeserialize for StaticParameters {
+    fn deserialize_reader(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        let value = Self {
+            base_factor: reader.read()?,
+            filter_period: reader.read()?,
+            decay_period: reader.read()?,
+            reduction_factor: reader.read()?,
+            variable_fee_control: reader.read()?,
+            max_volatility_accumulator: reader.read()?,
+            base_fee_power_factor: reader.skip(10)?.read()?,
+            function_type: reader.read()?,
+            collect_fee_mode: reader.read()?,
+        };
+        reader.skip(3)?;
+        Ok(value)
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
 struct VariableParameters {
     volatility_accumulator: u32,
     volatility_reference: u32,
     index_reference: i32,
-    _padding: [u8; 4],
     last_update_timestamp: i64,
-    _padding_1: [u8; 8],
 }
 
-#[derive(Debug, Clone, PartialEq, BorshDeserialize)]
+impl BorshDeserialize for VariableParameters {
+    fn deserialize_reader(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        let value = Self {
+            volatility_accumulator: reader.read()?,
+            volatility_reference: reader.read()?,
+            index_reference: reader.read()?,
+            last_update_timestamp: reader.skip(4)?.read()?,
+        };
+        reader.skip(8)?;
+        Ok(value)
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
 struct RewardInfo {
     mint: Pubkey,
-    _vault: Pubkey,
-    _funder: Pubkey,
-    _reward_duration: u64,
-    _reward_duration_end: u64,
-    _reward_rate: u128,
-    _last_update_time: u64,
-    _cumulative_seconds_with_empty_liquidity_reward: u64,
 }
 
-#[derive(Debug, Clone, PartialEq, BorshDeserialize)]
+impl BorshDeserialize for RewardInfo {
+    fn deserialize_reader(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        let value = Self { mint: reader.read()? };
+        reader.skip(112)?;
+        Ok(value)
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub(crate) struct Pair {
     parameters: StaticParameters,
     v_parameters: VariableParameters,
-    _bump_seed: [u8; 1],
-    _bin_step_seed: [u8; 2],
     pair_type: u8,
     pub active_id: i32,
     pub bin_step: u16,
     status: u8,
-    _require_base_factor_seed: u8,
-    _base_factor_seed: [u8; 2],
     activation_type: ActivationType,
-    _creator_pool_on_off_control: u8,
     pub token_x_mint: Pubkey,
     pub token_y_mint: Pubkey,
     pub reserve_x: Pubkey,
     pub reserve_y: Pubkey,
-    _protocol_fee_amount_x: u64,
-    _protocol_fee_amount_y: u64,
-    _padding_1: [u8; 32],
     reward_infos: [RewardInfo; 2],
     pub oracle: Pubkey,
     bin_array_bitmap: [u64; 16],
-    _last_updated_at: i64,
-    _padding_2: [u8; 32],
-    _pre_activation_swap_address: Pubkey,
-    _base_key: Pubkey,
     activation_point: u64,
-    _pre_activation_duration: u64,
-    _padding_3: [u8; 8],
-    _padding_4: u64,
-    _creator: Pubkey,
     token_mint_x_program_flag: u8,
     token_mint_y_program_flag: u8,
+}
+
+impl BorshDeserialize for Pair {
+    fn deserialize_reader(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        Ok(Self {
+            parameters: reader.read()?,
+            v_parameters: reader.read()?,
+            pair_type: reader.skip(3)?.read()?,
+            active_id: reader.read()?,
+            bin_step: reader.read()?,
+            status: reader.read()?,
+            activation_type: reader.skip(3)?.read()?,
+            token_x_mint: reader.skip(1)?.read()?,
+            token_y_mint: reader.read()?,
+            reserve_x: reader.read()?,
+            reserve_y: reader.read()?,
+            reward_infos: [reader.skip(48)?.read()?, reader.read()?],
+            oracle: reader.read()?,
+            bin_array_bitmap: reader.read()?,
+            activation_point: reader.skip(104)?.read()?,
+            token_mint_x_program_flag: reader.skip(56)?.read()?,
+            token_mint_y_program_flag: reader.read()?,
+        })
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -224,5 +258,45 @@ impl Pair {
             Some((left.checked_sub(used)?, output.checked_add(received)?))
         })?;
         (left == 0 && output > 0).then_some(output)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::meteora_dlmm::testkit::{TEST_SOL_USDC_POOL, mock_pool_snapshot};
+    use gem_solana::{USDC_TOKEN_MINT, WSOL_TOKEN_ADDRESS};
+
+    const TEST_TOKEN_MINT_X_PROGRAM_FLAG_OFFSET: usize = 880;
+    const TEST_TOKEN_MINT_Y_PROGRAM_FLAG_OFFSET: usize = 881;
+
+    #[test]
+    fn test_decode() {
+        let pair = mock_pool_snapshot(TEST_SOL_USDC_POOL).pool;
+
+        assert_eq!(
+            [pair.token_x_mint, pair.token_y_mint, pair.reserve_x, pair.reserve_y, pair.oracle].map(|key| key.to_base58()),
+            [
+                WSOL_TOKEN_ADDRESS,
+                USDC_TOKEN_MINT,
+                "H7j5NPopj3tQvDg4N8CxwtYciTn3e8AEV6wSVrxpyDUc",
+                "HbYjRzx7teCxqW3unpXBEcNHhfVZvW2vW9MQ99TkizWt",
+                "EgEYXef2FCoEYLHJJW74dMbom1atLXo6KwPuA6mSATYA",
+            ]
+        );
+    }
+
+    #[test]
+    fn test_token_programs() {
+        let snapshot = mock_pool_snapshot(TEST_SOL_USDC_POOL);
+        let data = snapshot.accounts[&snapshot.address].as_ref().unwrap();
+        let mut token_2022_x = data.clone();
+        token_2022_x[TEST_TOKEN_MINT_X_PROGRAM_FLAG_OFFSET] = TOKEN_2022;
+        let mut token_2022_y = data.clone();
+        token_2022_y[TEST_TOKEN_MINT_Y_PROGRAM_FLAG_OFFSET] = TOKEN_2022;
+
+        assert_eq!(snapshot.pool.token_programs(), (token_program(), token_program()));
+        assert_eq!(Pair::decode(&token_2022_x).unwrap().token_programs(), (token_2022_program(), token_program()));
+        assert_eq!(Pair::decode(&token_2022_y).unwrap().token_programs(), (token_program(), token_2022_program()));
     }
 }

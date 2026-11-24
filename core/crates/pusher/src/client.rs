@@ -1,5 +1,6 @@
 use async_trait::async_trait;
-use gem_client::{ClientError, ClientExt, ReqwestClient};
+use gem_client::{ClientError, ClientExt};
+use gem_reqwest::ReqwestClient;
 use push_notification::{GorushNotification, GorushNotifications};
 
 use crate::PushProvider;
@@ -15,7 +16,7 @@ pub struct PusherClient {
 impl PusherClient {
     pub fn new(url: String, topic: String) -> Self {
         Self {
-            client: ReqwestClient::new(url, gem_client::reqwest_client()),
+            client: ReqwestClient::new(url, gem_reqwest::reqwest_client()),
             topic,
         }
     }

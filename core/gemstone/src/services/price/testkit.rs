@@ -1,8 +1,7 @@
 use std::sync::Mutex;
 
-use chrono::Utc;
 use primitives::currency::Currency;
-use primitives::{AssetId, AssetMarket, AssetPrice, FiatRate};
+use primitives::{AssetId, AssetMarket, AssetPrice, DateTime, FiatRate};
 
 use super::{GemPriceService, GemPriceStore, GemPriceUpdate};
 use crate::services::error::GemServiceError;
@@ -17,7 +16,7 @@ impl GemPriceUpdate {
             price,
             price_usd: price,
             price_change_percentage_24h,
-            updated_at: Utc::now(),
+            updated_at: DateTime::now(),
         }
     }
 }

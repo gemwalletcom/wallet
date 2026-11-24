@@ -1,6 +1,5 @@
-use chrono::{DateTime, Utc};
 use num_bigint::BigUint;
-use primitives::{Chain, DelegationBase, DelegationState, DelegationValidator};
+use primitives::{Chain, DateTime, DelegationBase, DelegationState, DelegationValidator};
 
 use crate::models::{DelegationPoolStake, RewardRate, ValidatorInfo, ValidatorSet};
 
@@ -12,7 +11,7 @@ pub fn map_validator(validator: &ValidatorInfo, apy: f64, commission: f64, is_ac
     DelegationValidator::stake(Chain::Aptos, validator.addr.clone(), String::new(), is_active, commission, apy - (apy * commission / 100.0))
 }
 
-fn map_delegation(asset_id: &primitives::AssetId, state: DelegationState, balance: BigUint, validator_id: &str, completion_date: Option<DateTime<Utc>>) -> DelegationBase {
+fn map_delegation(asset_id: &primitives::AssetId, state: DelegationState, balance: BigUint, validator_id: &str, completion_date: Option<DateTime>) -> DelegationBase {
     DelegationBase {
         asset_id: asset_id.clone(),
         state,
@@ -27,7 +26,7 @@ fn map_delegation(asset_id: &primitives::AssetId, state: DelegationState, balanc
 
 pub fn map_delegations(stakes: Vec<(String, DelegationPoolStake)>, lockup_secs: u64) -> Vec<DelegationBase> {
     let asset_id = Chain::Aptos.as_asset_id();
-    let withdrawal_completion = DateTime::from_timestamp(lockup_secs as i64, 0);
+    let withdrawal_completion = Some(DateTime::from_timestamp(lockup_secs as i64));
 
     stakes
         .into_iter()

@@ -134,6 +134,7 @@ pub fn deposit_id_from_response(provider: SwapperProvider, data: &[u8]) -> Resul
         | SwapperProvider::Mayan
         | SwapperProvider::CetusClmm
         | SwapperProvider::Hyperliquid
+        | SwapperProvider::HyperliquidBridge
         | SwapperProvider::Orca
         | SwapperProvider::Squid
         | SwapperProvider::Mayachain

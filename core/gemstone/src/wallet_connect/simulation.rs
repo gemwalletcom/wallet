@@ -1,7 +1,8 @@
 use gem_evm::transaction::decode_calldata;
 use gem_tron::decode_wallet_connect_contract;
+use gem_wallet_connect::WCEthereumTransaction;
 use gem_wallet_connect::{EvmTransactionKind, SignDigestType, SignMessageValidation, WalletConnectRequestHandler, WalletConnectTransaction, WalletConnectTransactionType, validate_send_transaction, validate_sign_message};
-use primitives::{Chain, SimulationSeverity, SimulationWarning, SimulationWarningType, WCEthereumTransaction};
+use primitives::{Chain, SimulationSeverity, SimulationWarning, SimulationWarningType};
 
 pub(crate) fn parse_eip712_message(data: &str) -> Option<gem_evm::eip712::EIP712Message> {
     serde_json::from_str(data).ok().and_then(|value| gem_evm::eip712::parse_eip712_json(&value).ok())
@@ -43,7 +44,7 @@ pub(crate) fn decode_ethereum_calldata(transaction: &WCEthereumTransaction) -> R
 mod tests {
     use super::*;
     use gem_encoding::encode_base58;
-    use primitives::{AssetId, TransferDataOutputType};
+    use primitives::TransferDataOutputType;
 
     fn tron_call(call_token_value: u64) -> String {
         serde_json::json!({
@@ -112,29 +113,6 @@ mod tests {
         let (transaction, _) = decode_ethereum_transaction(Chain::Ethereum, &data).unwrap();
 
         assert_eq!(decode_ethereum_calldata(&transaction).unwrap(), vec![0xa9, 0x05, 0x9c, 0xbb]);
-    }
-
-    #[test]
-    fn test_set_approval_for_all_calldata_warns_with_either_prefix_case() {
-        let calldata = "a22cb46500000000000000000000000011111111111111111111111111111111111111110000000000000000000000000000000000000000000000000000000000000001";
-
-        for prefix in ["0x", "0X"] {
-            let data = serde_json::json!({
-                "from": "0xF977814e90dA44bFA03b6295A0616a897441aceC",
-                "to": "0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D",
-                "data": format!("{prefix}{calldata}"),
-            })
-            .to_string();
-
-            let (transaction, _) = decode_ethereum_transaction(Chain::Ethereum, &data).unwrap();
-            let result = ::simulation::evm::simulate_evm_calldata(Chain::Ethereum, &decode_ethereum_calldata(&transaction).unwrap(), &transaction.to);
-
-            assert_eq!(
-                result.warnings.into_iter().map(|warning| warning.warning).collect::<Vec<_>>(),
-                vec![SimulationWarningType::NftCollectionApproval(AssetId::from_token(Chain::Ethereum, "0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D"))],
-                "{prefix}"
-            );
-        }
     }
 
     #[test]

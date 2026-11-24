@@ -52,11 +52,13 @@
         "actions": [
           {
             "FunctionCall": {
+              "method_name": "storage_deposit",
               "deposit": "1250000000000000000000"
             }
           },
           {
             "FunctionCall": {
+              "method_name": "ft_transfer",
               "deposit": "1"
             }
           }

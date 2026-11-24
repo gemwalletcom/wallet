@@ -1,5 +1,5 @@
-use chrono::{DateTime, Utc};
 use num_bigint::{BigInt, BigUint};
+use primitives::DateTime;
 use serde::Deserialize;
 use serde_json::Value;
 use serde_serializers::deserialize_bigint_from_str;
@@ -18,7 +18,7 @@ pub(super) struct GraphqlTransaction {
 #[serde(rename_all = "camelCase")]
 struct GraphqlEffects {
     status: GraphqlExecutionStatus,
-    timestamp: DateTime<Utc>,
+    timestamp: DateTime,
     gas_effects: GraphqlGasEffects,
     balance_changes: GraphqlConnection<GraphqlBalanceChange>,
     events: GraphqlConnection<GraphqlEvent>,
@@ -158,7 +158,7 @@ pub(super) fn map_transaction(transaction: GraphqlTransaction) -> Digest {
         move_call_packages: Vec::new(),
         balance_changes: Some(balance_changes),
         events,
-        timestamp_ms: transaction.effects.timestamp.timestamp_millis() as u64,
+        timestamp: transaction.effects.timestamp,
     }
 }
 

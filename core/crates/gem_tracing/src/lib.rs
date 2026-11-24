@@ -3,6 +3,8 @@ use std::io::Write;
 use std::sync::LazyLock;
 use std::time::Duration;
 
+use date_time::{DateTime, SecondsFormat};
+
 pub mod path;
 
 static ANSI: LazyLock<bool> = LazyLock::new(|| std::env::var("NO_COLOR").map_or(true, |value| value.is_empty()));
@@ -53,7 +55,7 @@ fn format_line(level: Level, message: &str, ansi: bool, timestamp: &str) -> Stri
 }
 
 fn write_line(level: Level, message: &str) {
-    let timestamp = chrono::Utc::now().format("%Y-%m-%dT%H:%M:%S%.6fZ").to_string();
+    let timestamp = DateTime::now().to_rfc3339(SecondsFormat::Micros);
     let _ = std::io::stdout().lock().write_all(format_line(level, message, *ANSI, &timestamp).as_bytes());
 }
 

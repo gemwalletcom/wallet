@@ -90,7 +90,7 @@ private fun GemListItem.identity(): String? = when (this) {
     is GemListItem.Validator -> row.validator.id
     is GemListItem.Connection -> connection.connection.session.id
     is GemListItem.PriceAlert -> item.id
-    is GemListItem.Recipient -> row.recipient.identifier()
+    is GemListItem.Recipient -> row.id
     is GemListItem.TransactionDetail -> item.id
     is GemListItem.Node -> row.node.url
     is GemListItem.Explorer -> row.name

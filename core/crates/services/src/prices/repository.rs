@@ -2,10 +2,9 @@ use std::collections::{HashMap, HashSet};
 use std::time::Duration;
 
 use async_trait::async_trait;
-use chrono::NaiveDateTime;
 use prices::{AssetPriceMapping, PriceAlertNotification, PriceAlertRules, PriceProviderAssetMetadata};
 use primitives::currency::Currency;
-use primitives::{Asset, AssetId, AssetPriceInfo, ChartPeriod, ChartTimeframe, FiatRate, FiatRateProvider, PriceAlert, PriceAlerts, PriceData, PriceProvider, PriceProviderConfig};
+use primitives::{Asset, AssetId, AssetPriceInfo, ChartPeriod, ChartTimeframe, DateTime, FiatRate, FiatRateProvider, PriceAlert, PriceAlerts, PriceData, PriceProvider, PriceProviderConfig};
 use storage::{
     AssetFilter, AssetUpdate, AssetsLinksRepository, AssetsRepository, AssetsUsageRanksRepository, ChartFilter, ChartPoint, ChartResult, ChartsRepository, Database, DatabaseError, FiatRepository, PriceAlertFilter, PriceAlertUpdate,
     PriceAlertsRepository, PriceAsset, PriceFilter, PricesProvidersRepository, PricesRepository, TagRepository,
@@ -38,13 +37,13 @@ pub(crate) trait Repository: Send + Sync {
     async fn get_chart_data(&self, asset_id: AssetId, currency: Currency, period: ChartPeriod, price_max_age: Duration) -> Result<ChartData, DatabaseError>;
     async fn add_charts(&self, timeframe: ChartTimeframe, points: Vec<ChartPoint>) -> Result<usize, DatabaseError>;
     async fn update_chart_aggregates(&self, timeframe: ChartTimeframe) -> Result<usize, DatabaseError>;
-    async fn delete_charts(&self, timeframe: ChartTimeframe, before: NaiveDateTime) -> Result<usize, DatabaseError>;
+    async fn delete_charts(&self, timeframe: ChartTimeframe, before: DateTime) -> Result<usize, DatabaseError>;
     async fn update_extremes_for_price(&self, price_id: String) -> Result<usize, DatabaseError>;
     async fn get_provider_price_assets(&self, provider: PriceProvider, asset_filters: Vec<AssetFilter>) -> Result<(Vec<PriceAsset>, HashSet<AssetId>), DatabaseError>;
     async fn get_price_asset_ids(&self, price_id: String, asset_filters: Vec<AssetFilter>) -> Result<Vec<AssetId>, DatabaseError>;
     async fn get_price_mappings(&self, provider: PriceProvider, window: Option<(usize, usize)>) -> Result<Vec<AssetPriceMapping>, DatabaseError>;
     async fn get_primary_prices(&self, asset_ids: Vec<AssetId>, price_max_age: Duration) -> Result<Vec<(AssetId, PriceData)>, DatabaseError>;
-    async fn get_chart_prices(&self, price_ids: Vec<String>, from: NaiveDateTime, until: NaiveDateTime) -> Result<HashMap<String, f64>, DatabaseError>;
+    async fn get_chart_prices(&self, price_ids: Vec<String>, from: DateTime, until: DateTime) -> Result<HashMap<String, f64>, DatabaseError>;
     async fn set_prices(&self, prices: Vec<PriceData>) -> Result<Vec<AssetPriceInfo>, DatabaseError>;
     async fn delete_prices(&self, filters: Vec<PriceFilter>) -> Result<(Vec<String>, usize), DatabaseError>;
     async fn get_usage_ranks_and_priced_assets(&self) -> Result<(Vec<(AssetId, i32)>, HashSet<AssetId>), DatabaseError>;
@@ -54,7 +53,7 @@ pub(crate) trait Repository: Send + Sync {
     async fn get_device_price_alerts(&self, device_id: String, asset_id: Option<AssetId>) -> Result<Vec<PriceAlert>, DatabaseError>;
     async fn add_price_alerts(&self, device_id: String, price_alerts: PriceAlerts) -> Result<usize, DatabaseError>;
     async fn delete_price_alerts(&self, device_id: String, ids: Vec<String>) -> Result<usize, DatabaseError>;
-    async fn update_notified_price_alerts(&self, rules: PriceAlertRules, notified_before: NaiveDateTime, now: NaiveDateTime, price_max_age: Duration) -> Result<Vec<PriceAlertNotification>, DatabaseError>;
+    async fn update_notified_price_alerts(&self, rules: PriceAlertRules, notified_before: DateTime, now: DateTime, price_max_age: Duration) -> Result<Vec<PriceAlertNotification>, DatabaseError>;
 }
 
 pub(crate) struct PostgresRepository {
@@ -137,7 +136,7 @@ impl Repository for PostgresRepository {
         self.database.run(move |client| client.update_chart_aggregates(timeframe)).await
     }
 
-    async fn delete_charts(&self, timeframe: ChartTimeframe, before: NaiveDateTime) -> Result<usize, DatabaseError> {
+    async fn delete_charts(&self, timeframe: ChartTimeframe, before: DateTime) -> Result<usize, DatabaseError> {
         self.database.run(move |client| client.delete_charts(timeframe, before)).await
     }
 
@@ -189,7 +188,7 @@ impl Repository for PostgresRepository {
         self.database.run(move |client| client.get_primary_prices(&asset_ids, price_max_age)).await
     }
 
-    async fn get_chart_prices(&self, price_ids: Vec<String>, from: NaiveDateTime, until: NaiveDateTime) -> Result<HashMap<String, f64>, DatabaseError> {
+    async fn get_chart_prices(&self, price_ids: Vec<String>, from: DateTime, until: DateTime) -> Result<HashMap<String, f64>, DatabaseError> {
         self.database
             .run(move |client| {
                 let filters = vec![ChartFilter::CreatedAfter(from), ChartFilter::CreatedBefore(until), ChartFilter::PriceIds(price_ids)];
@@ -285,7 +284,7 @@ impl Repository for PostgresRepository {
         self.database.run(move |client| client.delete_price_alerts(&device_id, ids)).await
     }
 
-    async fn update_notified_price_alerts(&self, rules: PriceAlertRules, notified_before: NaiveDateTime, now: NaiveDateTime, price_max_age: Duration) -> Result<Vec<PriceAlertNotification>, DatabaseError> {
+    async fn update_notified_price_alerts(&self, rules: PriceAlertRules, notified_before: DateTime, now: DateTime, price_max_age: Duration) -> Result<Vec<PriceAlertNotification>, DatabaseError> {
         self.database
             .run(move |client| {
                 let price_alerts = client.get_price_alerts(notified_before, price_max_age)?;

@@ -2,7 +2,7 @@ use diesel::prelude::*;
 use primitives::ScanVerdict;
 use serde::{Deserialize, Serialize};
 
-use crate::sql_types::{ChainRow, ScanProviderRow, ScanTypeRow};
+use crate::sql_types::{ChainRow, DateTimeRow, ScanProviderRow, ScanTypeRow};
 
 #[derive(Debug, Queryable, Selectable, Serialize, Deserialize, Clone)]
 #[diesel(table_name = crate::schema::scan_detections)]
@@ -14,8 +14,8 @@ pub(crate) struct ScanDetectionRow {
     pub target: String,
     pub provider: ScanProviderRow,
     pub reason: Option<String>,
-    pub updated_at: chrono::NaiveDateTime,
-    pub created_at: chrono::NaiveDateTime,
+    pub updated_at: DateTimeRow,
+    pub created_at: DateTimeRow,
 }
 
 impl ScanDetectionRow {

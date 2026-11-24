@@ -1,11 +1,10 @@
 use std::fmt;
 use std::time::Duration;
 
-use chrono::{Duration as ChronoDuration, Utc};
 use serde::{Deserialize, Serialize};
 use strum::{AsRefStr, EnumIter, EnumString, IntoEnumIterator};
 
-use crate::Price;
+use crate::{DateTime, Price};
 
 #[derive(Debug, Clone, Copy, Default, Hash, PartialEq, Eq, Serialize, Deserialize, EnumIter, AsRefStr, EnumString)]
 #[serde(rename_all = "lowercase")]
@@ -34,7 +33,7 @@ pub fn ranked_prices<'a, T>(providers: &[PriceProviderConfig], rows: &'a [T], pr
 }
 
 pub fn primary_price<'a, T>(providers: &[PriceProviderConfig], rows: &'a [T], max_age: Duration, price: impl Fn(&T) -> Price) -> Option<&'a T> {
-    let cutoff = Utc::now() - ChronoDuration::from_std(max_age).ok()?;
+    let cutoff = DateTime::now() - max_age;
     ranked_prices(providers, rows, |row| price(row).provider).into_iter().find(|row| price(row).updated_at >= cutoff)
 }
 

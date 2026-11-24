@@ -2,18 +2,15 @@
 
 import Components
 import Foundation
-import struct Gemstone.Account
 import func Gemstone.applicationConnectionRow
-import func Gemstone.authenticationSections
+import struct Gemstone.GemAuthenticationPreview
 import struct Gemstone.GemConnectionRow
 import struct Gemstone.GemGroup
 import enum Gemstone.GemListRow
 import enum Gemstone.GemServiceError
 import protocol Gemstone.GemSignMessageServiceProtocol
 import struct Gemstone.GemWalletRow
-import struct Gemstone.MessagePayloadPreview
 import func Gemstone.signerFailure
-import struct Gemstone.SignMessage
 import func Gemstone.walletRow
 import func Gemstone.walletSections
 import GemstonePrimitives
@@ -76,20 +73,15 @@ public final class AuthenticationSceneViewModel {
     }
 
     var sections: [GemGroup] {
-        authenticationSections(
-            proposal: request.proposal.toGem(),
-            walletId: walletSelectorModel.selectedItems.first?.id,
-            chain: account?.chain,
-            status: request.verificationStatus.toGem(),
-        )
+        preview?.sections ?? []
     }
 
     var primaryPayloadFields: [GemListRow] {
-        preview?.primary ?? []
+        preview?.primaryFields ?? []
     }
 
     var secondaryPayloadFields: [GemListRow] {
-        preview?.secondary ?? []
+        preview?.secondaryFields ?? []
     }
 
     var hasPayloadFields: Bool {
@@ -97,7 +89,7 @@ public final class AuthenticationSceneViewModel {
     }
 
     var messageText: String? {
-        try? approval.get().text
+        preview?.text
     }
 
     public var buttonState: ButtonState {
@@ -112,8 +104,8 @@ public final class AuthenticationSceneViewModel {
 
 public extension AuthenticationSceneViewModel {
     func onSelectPayloadAddress(_ address: String) {
-        guard let account else { return }
-        presentedSheet = .addressDetails(ChainAddress(chain: Chain(core: account.chain), address: address))
+        guard let preview else { return }
+        presentedSheet = .addressDetails(ChainAddress(chain: Chain(core: preview.message.chain), address: address))
     }
 
     func onViewPayloadDetails() {
@@ -125,7 +117,7 @@ public extension AuthenticationSceneViewModel {
         isSigning = true
         Task {
             do {
-                let signature = try await service.sign(walletId: approval.wallet.toGem().id, message: approval.message)
+                let signature = try await service.sign(walletId: approval.wallet.toGem().id, message: approval.preview.message)
                 try await request.approve(approval.wallet, signature)
                 confirmTransferDelegate(.success(signature))
                 onComplete()
@@ -150,24 +142,20 @@ private extension AuthenticationSceneViewModel {
         return request.proposal.wallets.first { $0.id.id == selectedId } ?? request.proposal.defaultWallet
     }
 
-    var account: Gemstone.Account? {
-        try? approval.get().account
-    }
-
-    var preview: MessagePayloadPreview? {
+    var preview: GemAuthenticationPreview? {
         try? approval.get().preview
     }
 
     static func approval(request: WCAuthenticationRequest, wallet: Wallet, service: any GemSignMessageServiceProtocol) -> Result<AuthenticationApproval, any Error> {
         Result {
-            let authMessage = try request.message(wallet)
-            let message = SignMessage(chain: authMessage.account.chain, signType: .siwe, data: Data(authMessage.message.utf8))
-            return AuthenticationApproval(
+            try AuthenticationApproval(
                 wallet: wallet,
-                account: authMessage.account,
-                message: message,
-                text: authMessage.message,
-                preview: service.payloadPreview(message: message),
+                preview: service.authenticationPreview(
+                    message: request.message(wallet),
+                    proposal: request.proposal.toGem(),
+                    walletId: wallet.toGem().id,
+                    status: request.verificationStatus.toGem(),
+                ),
             )
         }
     }
@@ -175,8 +163,5 @@ private extension AuthenticationSceneViewModel {
 
 private struct AuthenticationApproval {
     let wallet: Wallet
-    let account: Gemstone.Account
-    let message: SignMessage
-    let text: String
-    let preview: MessagePayloadPreview?
+    let preview: GemAuthenticationPreview
 }

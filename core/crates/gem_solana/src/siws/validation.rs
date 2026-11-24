@@ -1,6 +1,6 @@
-use chrono::{DateTime, Utc};
 use gem_encoding::is_valid_percent_encoding;
-use primitives::{Address, Chain, domain::parse_domain};
+use primitives::{Address, Chain, DateTime};
+use sign_in::parse_domain;
 use url::Url;
 
 use super::SiwsMessage;
@@ -10,7 +10,7 @@ const MIN_NONCE_LENGTH: usize = 8;
 const REQUEST_ID_CHARACTERS: &[u8] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~!$&'()*+,;=:@%";
 
 impl SiwsMessage {
-    pub fn validate(&self, chain: Chain, now: DateTime<Utc>) -> Result<(), String> {
+    pub fn validate(&self, chain: Chain, now: DateTime) -> Result<(), String> {
         if chain != Chain::Solana {
             return Err("Unsupported chain for SIWS".to_string());
         }
@@ -44,7 +44,7 @@ impl SiwsMessage {
 
         self.validate_request_id()?;
 
-        let [issued_at, expiration_time, not_before] = [&self.issued_at, &self.expiration_time, &self.not_before].map(|value| value.as_deref().map(DateTime::parse_from_rfc3339).transpose().map_err(|_| "Invalid SIWS timestamp"));
+        let [issued_at, expiration_time, not_before] = [&self.issued_at, &self.expiration_time, &self.not_before].map(|value| value.as_deref().map(|text| DateTime::parse_rfc3339(text).ok_or("Invalid SIWS timestamp")).transpose());
         let (issued_at, expiration_time, not_before) = (issued_at?, expiration_time?, not_before?);
 
         if expiration_time.is_some_and(|expiration| expiration <= now || issued_at.is_some_and(|issued| issued >= expiration)) {
@@ -71,13 +71,13 @@ impl SiwsMessage {
 
 #[cfg(test)]
 mod tests {
-    use primitives::Chain;
+    use primitives::{Chain, DateTime};
 
     use super::SiwsMessage;
 
     #[test]
     fn test_validate() {
-        let now = "2026-09-01T12:00:00Z".parse().unwrap();
+        let now = DateTime::parse_rfc3339("2026-09-01T12:00:00Z").unwrap();
         assert_eq!(SiwsMessage::mock_complete().validate(Chain::Solana, now), Ok(()));
         assert_eq!(SiwsMessage::mock_complete().validate(Chain::Ethereum, now), Err("Unsupported chain for SIWS".to_string()));
         for (invalid, error) in [
@@ -182,7 +182,7 @@ mod tests {
                 not_before: Some("2026-09-01T20:00:00+09:00".to_string()),
                 ..SiwsMessage::mock_complete()
             }
-            .validate(Chain::Solana, "2026-09-01T12:00:00Z".parse().unwrap()),
+            .validate(Chain::Solana, DateTime::parse_rfc3339("2026-09-01T12:00:00Z").unwrap()),
             Ok(())
         );
 
@@ -192,14 +192,14 @@ mod tests {
             ("2026-09-02T11:59:59.999Z", Ok(())),
             ("2026-09-02T12:00:00Z", Err("SIWS message expired or invalid expiration".to_string())),
         ] {
-            assert_eq!(SiwsMessage::mock_complete().validate(Chain::Solana, now.parse().unwrap()), expected);
+            assert_eq!(SiwsMessage::mock_complete().validate(Chain::Solana, DateTime::parse_rfc3339(now).unwrap()), expected);
         }
         assert_eq!(
             SiwsMessage {
                 expiration_time: Some("2026-09-01T12:00:00Z".to_string()),
                 ..SiwsMessage::mock_complete()
             }
-            .validate(Chain::Solana, "2026-09-01T11:00:00Z".parse().unwrap()),
+            .validate(Chain::Solana, DateTime::parse_rfc3339("2026-09-01T11:00:00Z").unwrap()),
             Err("SIWS message expired or invalid expiration".to_string())
         );
     }

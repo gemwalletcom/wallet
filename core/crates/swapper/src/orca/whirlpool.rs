@@ -1,4 +1,4 @@
-use borsh::BorshDeserialize;
+use gem_encoding::borsh::{BorshDeserialize, DecodeError, Reader};
 use gem_solana::{Pubkey, anchor::AnchorAccount, find_program_address, instructions::program_ids::orca_whirlpool_program};
 use primitives::decode_hex_literal;
 
@@ -12,22 +12,35 @@ const WHIRLPOOLS_CONFIG: Pubkey = Pubkey::new(decode_hex_literal("13e441f83913ca
 pub(super) const FEE_TIER_INDEXES: [u16; 9] = [1, 4, 8, 16, 64, 1025, 1026, 1028, 1030];
 pub(super) const TICK_ARRAY_SIZE: i32 = 88;
 
-#[derive(Debug, Clone, PartialEq, BorshDeserialize)]
+#[derive(Debug, Clone, PartialEq)]
 pub(crate) struct Whirlpool {
-    _whirlpools_config_and_bump: [u8; 33],
     pub tick_spacing: u16,
     fee_tier_index: u16,
     pub fee_rate: u16,
-    _protocol_fee_rate: u16,
     pub liquidity: u128,
     sqrt_price: u128,
     pub tick_current_index: i32,
-    _protocol_fees_owed: [u8; 16],
     pub token_mint_a: Pubkey,
     pub token_vault_a: Pubkey,
-    _fee_growth_global_a: u128,
     pub token_mint_b: Pubkey,
     pub token_vault_b: Pubkey,
+}
+
+impl BorshDeserialize for Whirlpool {
+    fn deserialize_reader(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        Ok(Self {
+            tick_spacing: reader.skip(33)?.read()?,
+            fee_tier_index: reader.read()?,
+            fee_rate: reader.read()?,
+            liquidity: reader.skip(2)?.read()?,
+            sqrt_price: reader.read()?,
+            tick_current_index: reader.read()?,
+            token_mint_a: reader.skip(16)?.read()?,
+            token_vault_a: reader.read()?,
+            token_mint_b: reader.skip(16)?.read()?,
+            token_vault_b: reader.read()?,
+        })
+    }
 }
 
 impl AnchorAccount for Whirlpool {
@@ -113,7 +126,7 @@ mod tests {
     use super::*;
     use gem_solana::{USDC_TOKEN_MINT, WSOL_TOKEN_ADDRESS};
 
-    use crate::orca::testkit::{TEST_WHIRLPOOL, TEST_XAUT0_MINT, TEST_XAUT0_SOL_WHIRLPOOL, TEST_XAUT0_USDC_WHIRLPOOL};
+    use crate::orca::testkit::{TEST_AQUA_MINT, TEST_WHIRLPOOL, TEST_XAUT0_MINT, TEST_XAUT0_SOL_WHIRLPOOL, TEST_XAUT0_USDC_WHIRLPOOL, mock_aqua_whirlpool};
 
     #[test]
     fn test_addresses() {
@@ -142,5 +155,15 @@ mod tests {
         assert_eq!(Whirlpool { tick_current_index: -5_690, ..whirlpool }.swap_start_tick_indexes(false), vec![-5_632, 0, 5_632]);
         assert_eq!(Whirlpool { tick_current_index: -443_000, ..whirlpool }.swap_start_tick_indexes(true), vec![-444_928]);
         assert_eq!(Whirlpool { tick_current_index: 443_000, ..whirlpool }.swap_start_tick_indexes(false), vec![439_296]);
+    }
+
+    #[test]
+    fn test_decode() {
+        let (_, whirlpool) = mock_aqua_whirlpool();
+
+        assert_eq!(
+            [whirlpool.token_mint_a, whirlpool.token_vault_a, whirlpool.token_mint_b, whirlpool.token_vault_b].map(|key| key.to_base58()),
+            [TEST_AQUA_MINT, "FWbjhu5ZVbCQgMy37uLei19B3uUFJKNCMP8n8pEqD4vb", WSOL_TOKEN_ADDRESS, "99XGVLtpspJQVoWqAdBAaGPGRgpY19Qgzu9NF3TnsxRD",]
+        );
     }
 }

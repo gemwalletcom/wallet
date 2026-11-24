@@ -1,16 +1,15 @@
 use std::collections::{HashMap, HashSet};
 
-use chrono::NaiveDateTime;
 use diesel::dsl::{count, exists};
 use diesel::pg::PgConnection;
 use diesel::prelude::*;
-use primitives::{AssetId, ChainAddress, Transaction, TransactionId, TransactionState as PrimitiveTransactionState, TransactionType as PrimitiveTransactionType};
+use primitives::{AssetId, ChainAddress, DateTime, Transaction, TransactionId, TransactionState as PrimitiveTransactionState, TransactionType as PrimitiveTransactionType};
 
 use crate::models::*;
 use crate::repositories::wallets_repository::wallet_addresses;
 use crate::repositories::{Condition, QueryFilter, matching};
 use crate::schema::{transactions::dsl as transactions_dsl, transactions_addresses, wallets_addresses};
-use crate::sql_types::{AssetId as AssetIdRow, ChainRow, TransactionState, TransactionType};
+use crate::sql_types::{AssetId as AssetIdRow, ChainRow, DateTimeRow, TransactionState, TransactionType};
 use crate::{DatabaseClient, DatabaseError, DieselResultExt};
 
 #[derive(Debug, Clone)]
@@ -18,7 +17,7 @@ pub enum TransactionFilter {
     States(Vec<PrimitiveTransactionState>),
     Chain(String),
     Hash(String),
-    After(NaiveDateTime, TransactionId),
+    After(DateTime, TransactionId),
 }
 
 impl QueryFilter<crate::schema::transactions::table> for TransactionFilter {
@@ -29,8 +28,8 @@ impl QueryFilter<crate::schema::transactions::table> for TransactionFilter {
             TransactionFilter::Chain(value) => Box::new(dsl::chain.eq(value)),
             TransactionFilter::Hash(value) => Box::new(dsl::hash.eq(value)),
             TransactionFilter::After(created_at, id) => Box::new(
-                dsl::created_at.gt(created_at).or(dsl::created_at
-                    .eq(created_at)
+                dsl::created_at.gt(DateTimeRow::from(created_at)).or(dsl::created_at
+                    .eq(DateTimeRow::from(created_at))
                     .and(dsl::chain.gt(id.chain.as_ref().to_string()).or(dsl::chain.eq(id.chain.as_ref().to_string()).and(dsl::hash.gt(id.hash))))),
             ),
         }
@@ -67,18 +66,18 @@ pub trait TransactionsRepository {
         addresses: Vec<String>,
         chains: Vec<String>,
         asset_id: Option<AssetId>,
-        from_datetime: Option<NaiveDateTime>,
+        from_datetime: Option<DateTime>,
         limit: usize,
         offset: usize,
     ) -> Result<Vec<Transaction>, DatabaseError>;
     fn get_transactions_count_by_addresses(&mut self, addresses: Vec<String>, chains: Vec<String>) -> Result<i64, DatabaseError>;
-    fn get_transactions_addresses(&mut self, min_count: i64, limit: i64, since: NaiveDateTime) -> Result<Vec<ChainAddress>, DatabaseError>;
+    fn get_transactions_addresses(&mut self, min_count: i64, limit: i64, since: DateTime) -> Result<Vec<ChainAddress>, DatabaseError>;
     fn delete_transactions_addresses(&mut self, chain_addresses: Vec<ChainAddress>) -> Result<Vec<i64>, DatabaseError>;
     fn delete_orphaned_transactions(&mut self, candidate_ids: Vec<i64>) -> Result<usize, DatabaseError>;
-    fn get_asset_usage_counts(&mut self, since: NaiveDateTime) -> Result<Vec<(AssetId, i64)>, DatabaseError>;
+    fn get_asset_usage_counts(&mut self, since: DateTime) -> Result<Vec<(AssetId, i64)>, DatabaseError>;
     fn get_transactions_by_filter(&mut self, filters: Vec<TransactionFilter>, limit: i64) -> Result<Vec<Transaction>, DatabaseError>;
     fn update_transactions(&mut self, filters: Vec<TransactionFilter>, updates: Vec<TransactionUpdate>) -> Result<usize, DatabaseError>;
-    fn get_addresses_by_chain_and_kind(&mut self, chain: &str, kinds: Vec<PrimitiveTransactionType>, since: NaiveDateTime) -> Result<Vec<String>, DatabaseError>;
+    fn get_addresses_by_chain_and_kind(&mut self, chain: &str, kinds: Vec<PrimitiveTransactionType>, since: DateTime) -> Result<Vec<String>, DatabaseError>;
 }
 
 fn upsert_transaction(connection: &mut PgConnection, transaction: &Transaction) -> Result<(TransactionRow, bool), diesel::result::Error> {
@@ -138,7 +137,7 @@ fn get_transactions_by_device_id(
     addresses: Vec<String>,
     chains: Vec<String>,
     filter_asset_id: Option<String>,
-    from_datetime: Option<NaiveDateTime>,
+    from_datetime: Option<DateTime>,
     limit: usize,
     offset: usize,
 ) -> Result<Vec<TransactionRow>, diesel::result::Error> {
@@ -155,7 +154,7 @@ fn get_transactions_by_device_id(
     };
     let query = transactions.into_boxed().filter(id.eq_any(wallet_transaction_ids)).filter(chain.eq_any(chains)).filter(state.ne(TransactionState::InTransit));
     let query = match from_datetime {
-        Some(datetime) => query.filter(created_at.gt(datetime).or(updated_at.gt(datetime))),
+        Some(datetime) => query.filter(created_at.gt(DateTimeRow::from(datetime)).or(updated_at.gt(DateTimeRow::from(datetime)))),
         None => query,
     };
 
@@ -167,17 +166,17 @@ fn get_transactions_by_device_id(
         .load(&mut client.connection)
 }
 
-fn get_asset_usage_counts(client: &mut DatabaseClient, since: NaiveDateTime) -> Result<Vec<(AssetIdRow, i64)>, diesel::result::Error> {
+fn get_asset_usage_counts(client: &mut DatabaseClient, since: DateTime) -> Result<Vec<(AssetIdRow, i64)>, diesel::result::Error> {
     use crate::schema::assets_addresses::dsl::*;
 
     assets_addresses
-        .filter(updated_at.ge(since))
+        .filter(updated_at.ge(DateTimeRow::from(since)))
         .group_by(asset_id)
         .select((asset_id, count(asset_id)))
         .load::<(AssetIdRow, i64)>(&mut client.connection)
 }
 
-pub(crate) fn transactions_by_wallet_since(client: &mut DatabaseClient, wallet_id: i32, since: NaiveDateTime, filters: Vec<TransactionFilter>) -> Result<Vec<TransactionRow>, diesel::result::Error> {
+pub(crate) fn transactions_by_wallet_since(client: &mut DatabaseClient, wallet_id: i32, since: DateTime, filters: Vec<TransactionFilter>) -> Result<Vec<TransactionRow>, diesel::result::Error> {
     use crate::schema::transactions::dsl as tx_dsl;
     use crate::schema::transactions_addresses::dsl as addr_dsl;
     use crate::schema::wallets_subscriptions::dsl as wallet_sub_dsl;
@@ -189,7 +188,7 @@ pub(crate) fn transactions_by_wallet_since(client: &mut DatabaseClient, wallet_i
 
     tx_dsl::transactions
         .filter(matching(filters))
-        .filter(tx_dsl::created_at.ge(since))
+        .filter(tx_dsl::created_at.ge(DateTimeRow::from(since)))
         .filter(tx_dsl::id.eq_any(wallet_transaction_ids))
         .select(TransactionRow::as_select())
         .load(&mut client.connection)
@@ -254,7 +253,7 @@ impl TransactionsRepository for DatabaseClient {
         addresses: Vec<String>,
         chains: Vec<String>,
         asset_id: Option<AssetId>,
-        from_datetime: Option<NaiveDateTime>,
+        from_datetime: Option<DateTime>,
         limit: usize,
         offset: usize,
     ) -> Result<Vec<Transaction>, DatabaseError> {
@@ -281,13 +280,13 @@ impl TransactionsRepository for DatabaseClient {
             .first(&mut self.connection)?)
     }
 
-    fn get_transactions_addresses(&mut self, min_count: i64, limit: i64, since: NaiveDateTime) -> Result<Vec<ChainAddress>, DatabaseError> {
+    fn get_transactions_addresses(&mut self, min_count: i64, limit: i64, since: DateTime) -> Result<Vec<ChainAddress>, DatabaseError> {
         use crate::schema::transactions::dsl as tx_dsl;
 
         Ok(transactions_addresses::table
             .inner_join(tx_dsl::transactions)
             .inner_join(wallets_addresses::table)
-            .filter(tx_dsl::created_at.ge(since))
+            .filter(tx_dsl::created_at.ge(DateTimeRow::from(since)))
             .select((wallets_addresses::address, tx_dsl::chain))
             .group_by((wallets_addresses::address, tx_dsl::chain))
             .having(count(wallets_addresses::address).gt(min_count))
@@ -352,7 +351,7 @@ impl TransactionsRepository for DatabaseClient {
         Ok(diesel::delete(transactions.filter(id.eq_any(ids))).execute(&mut self.connection)?)
     }
 
-    fn get_asset_usage_counts(&mut self, since: NaiveDateTime) -> Result<Vec<(AssetId, i64)>, DatabaseError> {
+    fn get_asset_usage_counts(&mut self, since: DateTime) -> Result<Vec<(AssetId, i64)>, DatabaseError> {
         Ok(get_asset_usage_counts(self, since)?.into_iter().map(|(asset_id, count)| (asset_id.into(), count)).collect())
     }
 
@@ -381,7 +380,7 @@ impl TransactionsRepository for DatabaseClient {
         })?)
     }
 
-    fn get_addresses_by_chain_and_kind(&mut self, chain: &str, kinds: Vec<PrimitiveTransactionType>, since: NaiveDateTime) -> Result<Vec<String>, DatabaseError> {
+    fn get_addresses_by_chain_and_kind(&mut self, chain: &str, kinds: Vec<PrimitiveTransactionType>, since: DateTime) -> Result<Vec<String>, DatabaseError> {
         use crate::schema::transactions::dsl as tx_dsl;
 
         Ok(transactions_addresses::table
@@ -390,7 +389,7 @@ impl TransactionsRepository for DatabaseClient {
             .filter(tx_dsl::chain.eq(chain))
             .filter(tx_dsl::kind.eq_any(transaction_kinds(kinds)))
             .filter(tx_dsl::state.eq(TransactionState::Confirmed))
-            .filter(tx_dsl::created_at.ge(since))
+            .filter(tx_dsl::created_at.ge(DateTimeRow::from(since)))
             .select(wallets_addresses::address)
             .distinct()
             .load::<String>(&mut self.connection)?)
@@ -399,9 +398,9 @@ impl TransactionsRepository for DatabaseClient {
 
 #[cfg(all(test, feature = "database_integration_tests"))]
 mod database_integration_tests {
-    use chrono::{DateTime, Duration, Utc};
     use num_bigint::BigUint;
-    use primitives::{Asset, Chain, Transaction, TransactionDirection, TransactionId, TransactionType};
+    use primitives::{Asset, Chain, DateTime, Transaction, TransactionDirection, TransactionId, TransactionType};
+    use std::time::Duration;
 
     use super::TransactionFilter;
     use crate::{AssetsRepository, ChainsRepository, Database, DatabaseError, TransactionsRepository, WalletsRepository};
@@ -409,13 +408,13 @@ mod database_integration_tests {
     #[tokio::test]
     async fn test_transaction_pagination_keeps_timestamp_and_hash_ties() {
         let database = Database::mock();
-        let created_at = DateTime::<Utc>::UNIX_EPOCH;
+        let created_at = DateTime::UNIX_EPOCH;
         let hash = "0xintransitpagination";
         let transactions = [
             (Chain::Solana, hash, created_at),
             (Chain::Ethereum, hash, created_at),
             (Chain::Arbitrum, hash, created_at),
-            (Chain::Ethereum, "0xintransitpaginationnew", created_at + Duration::seconds(1)),
+            (Chain::Ethereum, "0xintransitpaginationnew", created_at + Duration::from_secs(1)),
         ]
         .into_iter()
         .map(|(chain, hash, created_at)| Transaction {
@@ -434,10 +433,10 @@ mod database_integration_tests {
                 client.set_transactions(transactions)?;
                 let first = client.get_transactions_by_filter(vec![TransactionFilter::Hash(hash.to_string())], 2)?;
                 let last = first.last().unwrap();
-                let second = client.get_transactions_by_filter(vec![TransactionFilter::Hash(hash.to_string()), TransactionFilter::After(last.created_at.naive_utc(), last.id.clone())], 2)?;
+                let second = client.get_transactions_by_filter(vec![TransactionFilter::Hash(hash.to_string()), TransactionFilter::After(last.created_at, last.id.clone())], 2)?;
                 let last = second.last().unwrap();
-                let third = client.get_transactions_by_filter(vec![TransactionFilter::Hash(hash.to_string()), TransactionFilter::After(last.created_at.naive_utc(), last.id.clone())], 2)?;
-                let newer = client.get_transactions_by_filter(vec![TransactionFilter::Hash("0xintransitpaginationnew".to_string()), TransactionFilter::After(last.created_at.naive_utc(), last.id.clone())], 2)?;
+                let third = client.get_transactions_by_filter(vec![TransactionFilter::Hash(hash.to_string()), TransactionFilter::After(last.created_at, last.id.clone())], 2)?;
+                let newer = client.get_transactions_by_filter(vec![TransactionFilter::Hash("0xintransitpaginationnew".to_string()), TransactionFilter::After(last.created_at, last.id.clone())], 2)?;
                 Ok((first, second, third, newer))
             })
             .await

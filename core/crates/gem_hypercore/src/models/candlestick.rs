@@ -1,10 +1,11 @@
-use chrono::{DateTime, Utc};
-use primitives::chart::{ChartCandleStick, ChartCandleUpdate};
+use date_time::deserialize_datetime_from_millis;
+use primitives::{ChartCandleStick, ChartCandleUpdate, DateTime};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Candlestick {
-    pub t: u64,
+    #[serde(deserialize_with = "deserialize_datetime_from_millis")]
+    pub t: DateTime,
     pub s: String,
     pub i: String,
     pub o: String,
@@ -17,7 +18,7 @@ pub struct Candlestick {
 impl From<&Candlestick> for ChartCandleStick {
     fn from(c: &Candlestick) -> Self {
         ChartCandleStick {
-            date: DateTime::from_timestamp(c.t as i64 / 1000, 0).unwrap_or_else(Utc::now),
+            date: c.t,
             open: c.o.parse().unwrap_or(0.0),
             high: c.h.parse().unwrap_or(0.0),
             low: c.l.parse().unwrap_or(0.0),

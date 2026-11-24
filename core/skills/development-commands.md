@@ -21,7 +21,8 @@ just test                       # Run workspace unit tests
 just test <CRATE>               # Run unit tests for a specific crate
 just test <CRATE> <FILTER>      # Run matching unit tests in one crate
 just test "" <FILTER>           # Run matching workspace unit tests
-just build-integration-tests   # Compile all integration suites without running them
+just build-integration-tests   # Compile every unit and integration test without running them
+just test-ci                    # CI: run workspace unit tests from the build-integration-tests build
 just test-integration           # Run integration tests only
 cargo test --test integration_test --package <CRATE> --features <FEATURE>  # Manual integration test
 just fuzz [SECONDS]             # Fuzz every target in fuzz/ in parallel (default 600s); crash inputs land in fuzz/artifacts/<target>/
@@ -29,9 +30,9 @@ just fuzz [SECONDS]             # Fuzz every target in fuzz/ in parallel (defaul
 
 `just test <CRATE>` includes `--lib` and requires a library target. For binary-only packages such as `generate`, run `cargo test --locked -p generate --bins --all-features` instead.
 
-The optional filter matches test names (for example, `just test gemstone services::assets`). Omitting it keeps the full unit suite. Crate runs pass `--all-features` and skip `integration_tests`; workspace runs rely on feature unification across members. Check the test count so an unmatched filter is not mistaken for coverage.
+The optional filter matches test names (for example, `just test gemstone services::assets`). Omitting it keeps the full unit suite. Crate runs skip `integration_tests`; workspace runs rely on feature unification across members. Check the test count so an unmatched filter is not mistaken for coverage.
 
-`just build-integration-tests` compiles workspace library tests once with the union of the chain, swapper, fiat, NFT, price, security, and database integration features. Swap integration tests belong to the `swapper` crate. It does not run live tests; `just test-integration` runs each suite separately with serial test execution.
+`just build-integration-tests` compiles workspace library and binary tests once with the union of the chain, swapper, fiat, NFT, price, security, and database integration features. Swap integration tests belong to the `swapper` crate. It does not run live tests; `just test-integration` runs each suite separately with serial test execution. CI runs `just build-integration-tests` and then `just test-ci`, which uses the same flags and features and skips `integration_tests` by name: the second step compiles nothing, and the two step times show build and test run separately.
 
 Cargo accepts one positional test filter. Run multiple filters as separate commands. Confirm the active worktree and run commands from the directory assumed by the path arguments. If parallel Cargo commands contend on workspace locks or do not return a clear final status, rerun the closing checks individually.
 
@@ -53,7 +54,9 @@ cargo clippy -p <crate> --all-features -- -D warnings
 
 Before committing or pushing Core changes, run `just lint`, the same command as Core CI. It enables `redundant_clone`, `implicit_clone` and `redundant_closure_for_method_calls` in addition to treating warnings as errors, and runs clippy a second time in release, where testkits do not exist, so production code that calls a mock fails. Per-crate clippy checks provide focused feature coverage and do not replace this closing check.
 
-Most chain crates declare `default = []` and gate whole modules behind features: `gem_bitcoin` keeps `signer/` behind `signer`, `gem_keystore` keeps v3 migration behind `v3`, `swapper` keeps live clients behind `reqwest_provider`. A crate whose tests need its gated modules lists itself under `[dev-dependencies]` with those features, for example `gem_bitcoin = { path = ".", features = ["rpc", "signer"] }`, using only features the workspace build already enables. `cargo test -p <crate>` and `just test <CRATE>` then compile the tests CI runs, without the integration features or a network stack the tests do not use. A lib-only `cargo clippy -p <crate>` skips dev-dependencies and still compiles only the default set, which finishes in seconds and reads as a pass: lint with `--all-targets` or the feature that compiles the changed path, for example `cargo clippy -p gem_bitcoin --features signer --all-targets -- -D warnings`.
+Most chain crates declare `default = []` and gate whole modules behind features: `gem_bitcoin` keeps `signer/` behind `signer`, `gem_keystore` keeps v3 migration behind `v3`. A crate whose tests need its gated modules lists itself under `[dev-dependencies]` with those features, for example `gem_bitcoin = { path = ".", features = ["rpc", "signer"] }`, using only features the workspace build already enables. `cargo test -p <crate>` and `just test <CRATE>` then compile the tests CI runs, without the integration features. A lib-only `cargo clippy -p <crate>` skips dev-dependencies and still compiles only the default set, which finishes in seconds and reads as a pass: lint with `--all-targets` or the feature that compiles the changed path, for example `cargo clippy -p gem_bitcoin --features signer --all-targets -- -D warnings`.
+
+The reqwest-backed clients (`ReqwestClient`, `ReqwestGrpcTransport`, `NativeProvider`) live in `gem_reqwest`, which only server apps, tools and tests depend on. Cargo unifies features across the workspace, so a normal dependency from `gem_client`, `gem_jsonrpc`, a chain crate or `swapper` on reqwest makes every crate on the app path wait for the TLS stack in `just test`, `just lint` and CI. That includes an optional dependency behind `chain_integration_tests`, because CI's build turns every integration feature on. Chain crates and `swapper` list `gem_reqwest` under `[dev-dependencies]`, which only their test binaries link, and keep the code that builds live clients under `#[cfg(test)]`.
 
 ## Dependency Hygiene
 

@@ -8,7 +8,6 @@ pub mod universal_router;
 pub mod yo;
 
 use chain_traits::transaction_parser::{ParseContext as GenericParseContext, parse_transaction};
-use chrono::{DateTime, Utc};
 use num_bigint::BigUint;
 use num_traits::{CheckedSub, Num, Zero};
 
@@ -18,7 +17,7 @@ use super::{
 };
 use crate::{address::ethereum_address_from_topic, ethereum_address_checksum};
 use primitives::{
-    AssetId, Chain, EVMChain, SwapProvider, Transaction as PrimitivesTransaction, TransactionSwapMetadata, TransactionSwapReferralFee, TransactionType, contract_constants::EVM_NATIVE_TOKEN_ADDRESS, swap::EVM_REFERRAL_ADDRESS,
+    AssetId, Chain, DateTime, EVMChain, SwapProvider, Transaction as PrimitivesTransaction, TransactionSwapMetadata, TransactionSwapReferralFee, TransactionType, contract_constants::EVM_NATIVE_TOKEN_ADDRESS, swap::EVM_REFERRAL_ADDRESS,
 };
 
 use self::{across::AcrossParser, aero::AeroParser, mayan::MayanParser, okx::OkxParser, pancakeswap::PancakeSwapParser, universal_router::UniversalRouterParser, yo::YoParser};
@@ -146,11 +145,11 @@ impl ProtocolParsers {
         [&AcrossParser, &AeroParser, &MayanParser, &OkxParser, &YoParser, &PancakeSwapParser, &UniversalRouterParser]
     }
 
-    pub fn map_transaction(chain: &Chain, transaction: &Transaction, receipt: &TransactionReceipt, created_at: DateTime<Utc>) -> Option<PrimitivesTransaction> {
+    pub fn map_transaction(chain: &Chain, transaction: &Transaction, receipt: &TransactionReceipt, created_at: DateTime) -> Option<PrimitivesTransaction> {
         Self::map_transaction_with_parsers(chain, transaction, receipt, created_at, &[])
     }
 
-    pub fn map_transaction_with_parsers(chain: &Chain, transaction: &Transaction, receipt: &TransactionReceipt, created_at: DateTime<Utc>, parsers: &[&'static ProtocolParser]) -> Option<PrimitivesTransaction> {
+    pub fn map_transaction_with_parsers(chain: &Chain, transaction: &Transaction, receipt: &TransactionReceipt, created_at: DateTime, parsers: &[&'static ProtocolParser]) -> Option<PrimitivesTransaction> {
         let context = ParseContext::new(transaction, created_at, ParseMetadata { chain, receipt });
 
         parse_transaction(&context, parsers.iter().copied().chain(Self::default_parsers()))

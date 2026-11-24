@@ -6,7 +6,7 @@ use std::time::{Duration, Instant};
 
 use cacher::{AccessTokenCacherClient, CacherClient, SafeScanTarget, ScanSafeCacher};
 use futures::future;
-use gem_client::ReqwestClient;
+use gem_reqwest::ReqwestClient;
 use gem_tracing::{error_with_fields, info_with_fields};
 use primitives::{ScanOutcome, ScanProvider, ScanTransaction, ScanTransactionPayload, ScanType};
 use security::providers::goplus::GoPlusProvider;

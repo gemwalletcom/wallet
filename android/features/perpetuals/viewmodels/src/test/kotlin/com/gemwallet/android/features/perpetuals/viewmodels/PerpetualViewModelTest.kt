@@ -8,14 +8,17 @@ import com.gemwallet.android.application.transactions.cases.GetTransactions
 import com.gemwallet.android.data.services.store.queries.PerpetualPositionsQuery
 import com.gemwallet.android.data.services.store.queries.PerpetualQuery
 import com.gemwallet.android.domains.confirm.ConfirmTransferInput
+import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.testkit.MainDispatcherRule
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockGemLeverageSelection
+import com.gemwallet.android.testkit.mockGemPerpetualDetails
 import com.gemwallet.android.testkit.mockGemPickerOption
 import com.gemwallet.android.testkit.mockGemTransferData
 import com.gemwallet.android.testkit.mockPerpetual
 import com.gemwallet.android.testkit.mockPerpetualData
+import com.gemwallet.android.testkit.mockPerpetualPosition
 import com.gemwallet.android.testkit.mockSession
 import com.gemwallet.android.ui.models.StateViewType
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
@@ -323,17 +326,19 @@ class PerpetualViewModelTest {
 
     @Test
     fun `changing leverage offers the position leverages then confirms the pick`() = runTest(dispatcher) {
+        val position = mockPerpetualPosition().toGem()
         val selection = mockGemLeverageSelection(options = listOf(mockGemPickerOption(value = 5u), mockGemPickerOption(value = 10u)), selected = mockGemPickerOption(value = 5u))
         val transfer = mockGemTransferData()
         val service: GemPerpetualDetailsServiceInterface = mockk(relaxed = true) {
             every { chartPeriod() } returns uniffi.gemstone.ChartPeriod.DAY
             every { unavailableTopic() } returns null
-            every { leverageSelection(any(), any()) } returns selection
-            every { leverageTransfer(any(), any(), any(), 10u) } returns transfer
+            every { details(any(), any(), any(), any()) } returns mockGemPerpetualDetails(position = position)
+            every { leverageSelection(any(), position) } returns selection
+            every { leverageTransfer(any(), any(), position, 10u) } returns transfer
         }
         val model = viewModel(service = service, data = perpetualData())
         val confirm: ConfirmTransactionAction = mockk(relaxed = true)
-        model.perpetual.first { it != null }
+        model.details.first { it != null }
 
         model.selectLeverage()
         assertEquals(selection, model.leverageSelection.value)
@@ -341,6 +346,26 @@ class PerpetualViewModelTest {
         model.changeLeverage(10u, confirm)
 
         assertNull(model.leverageSelection.value)
+        verify(exactly = 1) { service.leverageTransfer(any(), any(), position, 10u) }
+        verify(exactly = 1) { confirm(ConfirmTransferInput(transfer)) }
+    }
+
+    @Test
+    fun `closing a position sends it to Core and confirms its transfer`() = runTest(dispatcher) {
+        val position = mockPerpetualPosition().toGem()
+        val transfer = mockGemTransferData()
+        val service: GemPerpetualDetailsServiceInterface = mockk(relaxed = true) {
+            every { chartPeriod() } returns uniffi.gemstone.ChartPeriod.DAY
+            every { details(any(), any(), any(), any()) } returns mockGemPerpetualDetails(position = position)
+            every { closeTransfer(any(), any(), position) } returns transfer
+        }
+        val model = viewModel(service = service, data = perpetualData())
+        val confirm: ConfirmTransactionAction = mockk(relaxed = true)
+        model.details.first { it != null }
+
+        model.closePosition(confirm)
+
+        verify(exactly = 1) { service.closeTransfer(any(), any(), position) }
         verify(exactly = 1) { confirm(ConfirmTransferInput(transfer)) }
     }
 

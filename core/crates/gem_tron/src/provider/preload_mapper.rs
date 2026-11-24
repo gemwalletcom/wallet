@@ -1,13 +1,15 @@
 use std::collections::HashMap;
 use std::error::Error;
 
+use chain_traits::{TransactionFeeEstimate, TransactionFeeEstimates};
 use num_bigint::BigInt;
 
+use crate::constants::{SWAP_DATA_BYTES_ESTIMATE, SWAP_ENERGY_ESTIMATE, TOKEN_TRANSFER_DATA_BYTES, TOKEN_TRANSFER_ENERGY_ESTIMATE};
 use crate::models::ChainParameter;
 use crate::models::account::{TronAccount, TronFrozen};
 use crate::models::{TronAccountUsage, TronContractInfo};
 use crate::rpc::constants::{DEFAULT_BANDWIDTH_BYTES, GET_CREATE_ACCOUNT_FEE, GET_CREATE_NEW_ACCOUNT_FEE_IN_SYSTEM_CONTRACT, GET_ENERGY_FEE, GET_MEMO_FEE, GET_TRANSACTION_FEE};
-use primitives::{AssetId, Chain, StakeType, TransactionFee, TronStakeData, TronUnfreeze, TronVote};
+use primitives::{AssetId, Chain, FeePriority, GasPriceType, StakeType, TransactionFee, TronStakeData, TronUnfreeze, TronVote};
 
 pub(crate) const FEE_LIMIT_BUFFER_PERCENT: u64 = 20;
 pub(crate) const SMART_CONTRACT_FEE_LIMIT_BUFFER_PERCENT: u64 = 30;
@@ -67,6 +69,26 @@ pub fn calculate_stake_fee_rate(chain_parameters: &[ChainParameter], account_usa
     let bandwidth_price = get_chain_parameter_value(chain_parameters, GET_TRANSACTION_FEE)? as u64;
     let fee = bandwidth_fee(account_usage, DEFAULT_BANDWIDTH_BYTES, bandwidth_price);
     Ok(BigInt::from(fee))
+}
+
+pub(crate) fn map_transaction_fee_estimates(chain_parameters: &[ChainParameter]) -> Result<TransactionFeeEstimates, Box<dyn Error + Send + Sync>> {
+    let account_usage = TronAccountUsage::default();
+    let token_transfer = calculate_token_fee_rate_with_data(chain_parameters, &account_usage, TOKEN_TRANSFER_ENERGY_ESTIMATE, TOKEN_TRANSFER_DATA_BYTES, false, FEE_LIMIT_BUFFER_PERCENT)?;
+    let swap = calculate_token_fee_rate_with_data(chain_parameters, &account_usage, SWAP_ENERGY_ESTIMATE, SWAP_DATA_BYTES_ESTIMATE, false, SMART_CONTRACT_FEE_LIMIT_BUFFER_PERCENT)?;
+    Ok(TransactionFeeEstimates {
+        fee_asset: AssetId::from_chain(Chain::Tron),
+        transfer: normal_fee_estimates(get_chain_parameter_value(chain_parameters, GET_TRANSACTION_FEE)?, calculate_transfer_fee_rate(chain_parameters, &account_usage, false, false)?),
+        token_transfer: Some(normal_fee_estimates(token_transfer.energy_price, token_transfer.fee)),
+        swap: Some(normal_fee_estimates(swap.energy_price, swap.fee)),
+    })
+}
+
+fn normal_fee_estimates(gas_price: impl Into<BigInt>, fee: impl Into<BigInt>) -> Vec<TransactionFeeEstimate> {
+    vec![TransactionFeeEstimate {
+        priority: FeePriority::Normal,
+        gas_price_type: GasPriceType::regular(gas_price),
+        fee: fee.into(),
+    }]
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -307,6 +329,21 @@ mod tests {
         assert_eq!(fee.fee, 83570 * 420 + DEFAULT_BANDWIDTH_BYTES * 1000);
         assert_eq!(fee.fee_limit, 83570 * 420);
         assert_eq!(fee.energy_price, 420);
+    }
+
+    #[test]
+    fn test_map_transaction_fee_estimates() {
+        let params = vec![ChainParameter::mock(GET_ENERGY_FEE, 100), ChainParameter::mock(GET_TRANSACTION_FEE, 1000)];
+
+        assert_eq!(
+            map_transaction_fee_estimates(&params).unwrap(),
+            TransactionFeeEstimates {
+                fee_asset: AssetId::from_chain(Chain::Tron),
+                transfer: normal_fee_estimates(1000, 300_000),
+                token_transfer: Some(normal_fee_estimates(100, 8_082_200)),
+                swap: Some(normal_fee_estimates(100, 31_100_000)),
+            }
+        );
     }
 
     #[test]

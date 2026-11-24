@@ -906,7 +906,7 @@ mod tests {
         let usdc = Asset::mock_ethereum_usdc();
         let row = |balance: Balance, scope, price: Option<f64>| {
             let data = AssetData {
-                price: price.map(|price| Price::new(price, -2.5, Utc::now(), PriceProvider::Coingecko)),
+                price: price.map(|price| Price::new(price, -2.5, DateTime::now(), PriceProvider::Coingecko)),
                 ..AssetData::mock(usdc.clone(), balance)
             };
             asset_list_row(&data, &Currency::USD, scope, wallet_asset_row_style())
@@ -959,6 +959,7 @@ mod tests {
         let toggle = row(false, GemAssetTrailingStyle::Toggle);
         assert_eq!(toggle.trailing, GemAssetItemTrailing::Toggle { is_on: false });
         assert!(!toggle.masks_balance, "a switch has no balance to hide");
+        assert_eq!(row(true, GemAssetTrailingStyle::Toggle).trailing, GemAssetItemTrailing::Toggle { is_on: true });
         assert_eq!(row(true, GemAssetTrailingStyle::Copy).trailing, GemAssetItemTrailing::Copy);
         assert_eq!(row(true, GemAssetTrailingStyle::None).trailing, GemAssetItemTrailing::None);
     }
@@ -1652,8 +1653,7 @@ mod tests {
         assert!(stakeable_asset_ids().contains(&AssetId::from_chain(Chain::Cosmos)));
         assert!(!stakeable_asset_ids().contains(&bitcoin));
     }
-    use chrono::Utc;
-    use primitives::{Balance, Price, PriceProvider};
+    use primitives::{Balance, DateTime, Price, PriceProvider};
     use primitives::{Chain, PriceAlertDirection, WalletType, currency::Currency};
 
     #[test]
@@ -1731,12 +1731,14 @@ mod tests {
 
     #[test]
     fn test_the_swap_list_adds_swap_supported_natives_once() {
-        let token = AssetId::from_token(Chain::Ethereum, "0x1234");
-        let asset_ids = swappable_asset_ids(vec![token.clone(), AssetId::from_chain(Chain::Ethereum)]);
+        let listed = vec![AssetId::from_token(Chain::Ethereum, "0x1234"), AssetId::from_chain(Chain::Ethereum)];
+        let added: Vec<AssetId> = Chain::all()
+            .into_iter()
+            .filter(|chain| chain.is_swap_supported() && *chain != Chain::Ethereum)
+            .map(AssetId::from_chain)
+            .collect();
 
-        assert_eq!(asset_ids.first(), Some(&token));
-        assert_eq!(asset_ids.iter().filter(|asset_id| **asset_id == AssetId::from_chain(Chain::Ethereum)).count(), 1);
-        assert!(asset_ids.iter().filter(|asset_id| asset_id.token_id.is_none()).all(|asset_id| asset_id.chain.is_swap_supported()));
+        assert_eq!(swappable_asset_ids(listed.clone()), [listed, added].concat());
     }
 
     fn state(wallet_type: WalletType, metadata: &AssetMetaData, banner_events: &[BannerEvent]) -> GemAssetDetailsState {
@@ -2169,7 +2171,7 @@ mod tests {
         let auto = PriceAlert::new_auto(AssetId::from_chain(Chain::Ethereum), Currency::USD);
         let manual = PriceAlert::new_price(AssetId::from_chain(Chain::Ethereum), Currency::USD, 120.0, PriceAlertDirection::Up);
         let mut notified = PriceAlert::new_price(AssetId::from_chain(Chain::Ethereum), Currency::USD, 140.0, PriceAlertDirection::Up);
-        notified.last_notified_at = Some(Utc::now());
+        notified.last_notified_at = Some(DateTime::now());
         let alerts_row = |price: Option<f64>, alerts: Option<Vec<PriceAlert>>| {
             sections(&asset, &metadata, &balance, price, alerts.as_deref())[0].rows.iter().find_map(|row| match row {
                 GemAssetDetailRow::Row {
@@ -2210,7 +2212,7 @@ mod tests {
         let auto = PriceAlert::new_auto(AssetId::from_chain(Chain::Ethereum), Currency::USD);
         let manual = PriceAlert::new_price(AssetId::from_chain(Chain::Ethereum), Currency::USD, 120.0, PriceAlertDirection::Up);
         let mut notified = PriceAlert::new_price(AssetId::from_chain(Chain::Ethereum), Currency::USD, 140.0, PriceAlertDirection::Up);
-        notified.last_notified_at = Some(Utc::now());
+        notified.last_notified_at = Some(DateTime::now());
         let state = |alerts: Option<Vec<PriceAlert>>| details_state(WalletType::Multicoin, &plain, &[], alerts.as_deref());
 
         assert_eq!(state(Some(vec![auto, manual.clone(), notified])).price_alert, Some(GemPriceAlertToggle::Enabled));
@@ -2249,7 +2251,7 @@ mod tests {
         assert!(manage.add_custom_token && manage.shows_add_token(true, true));
         assert!(!manage.shows_add_token(false, true), "a wallet that holds no tokens cannot add one");
         assert!(!manage.shows_add_token(true, false), "there is nothing to add a token to without a chain");
-        assert!(!flow.shows_chain_filter(true, true) || flow.chain_filter);
+        assert!(flow.shows_chain_filter(true, true));
         assert!(!manage.shows_chain_filter(false, true), "a single chain wallet has nothing to filter");
         assert!(!manage.shows_chain_filter(true, false));
     }

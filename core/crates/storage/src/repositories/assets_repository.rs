@@ -2,9 +2,8 @@ use std::collections::HashMap;
 use std::slice;
 use std::time::Duration;
 
-use chrono::NaiveDateTime;
 use diesel::{prelude::*, upsert::excluded};
-use primitives::{Asset, AssetAssociation, AssetAssociationType, AssetBasic, AssetFull, AssetId, AssetIdVecExt, AssetPriceMetadata, AssetType, fiat_assets::AssetCatalog};
+use primitives::{Asset, AssetAssociation, AssetAssociationType, AssetBasic, AssetFull, AssetId, AssetIdVecExt, AssetPriceMetadata, AssetType, DateTime, fiat_assets::AssetCatalog};
 
 use crate::models::{AssetAssociationRow, AssetRow, NewAssetRow, PriceRow};
 use crate::repositories::assets_links_repository::asset_links;
@@ -12,6 +11,7 @@ use crate::repositories::perpetuals_repository::{associated_asset_id, perpetuals
 use crate::repositories::prices_repository::primary_price_rows;
 use crate::repositories::tag_repository::asset_tag_ids;
 use crate::repositories::{Condition, QueryFilter, matching};
+use crate::sql_types::DateTimeRow;
 use crate::{DatabaseClient, DatabaseError, DieselResultExt};
 
 #[derive(Debug, Clone, PartialEq)]
@@ -94,9 +94,9 @@ pub(crate) fn all_asset_ids(client: &mut DatabaseClient) -> Result<Vec<String>, 
     assets.select(id).load(&mut client.connection)
 }
 
-pub(crate) fn asset_ids_updated_since(client: &mut DatabaseClient, since: NaiveDateTime) -> Result<Vec<String>, diesel::result::Error> {
+pub(crate) fn asset_ids_updated_since(client: &mut DatabaseClient, since: DateTime) -> Result<Vec<String>, diesel::result::Error> {
     use crate::schema::assets::dsl::*;
-    assets.filter(updated_at.gt(since)).select(id).load(&mut client.connection)
+    assets.filter(updated_at.gt(DateTimeRow::from(since))).select(id).load(&mut client.connection)
 }
 
 fn asset_associations(client: &mut DatabaseClient, requested_asset_id: &str) -> Result<Vec<AssetAssociationRow>, diesel::result::Error> {

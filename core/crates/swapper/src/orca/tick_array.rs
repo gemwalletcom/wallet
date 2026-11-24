@@ -1,4 +1,4 @@
-use borsh::BorshDeserialize;
+use gem_encoding::borsh::{BorshDeserialize, DecodeError, Reader};
 use gem_solana::{Pubkey, anchor::AnchorAccount, find_program_address, instructions::program_ids::orca_whirlpool_program};
 
 use super::whirlpool::{TICK_ARRAY_SIZE, Whirlpool};
@@ -9,38 +9,82 @@ use crate::{
 
 const TICK_GROWTHS_LEN: usize = 96;
 
-#[derive(BorshDeserialize)]
+#[derive(Default)]
 struct FixedTick {
     initialized: bool,
     liquidity_net: i128,
-    _liquidity_gross_and_growths: [u8; TICK_GROWTHS_LEN],
 }
 
-#[derive(BorshDeserialize)]
+impl BorshDeserialize for FixedTick {
+    fn deserialize_reader(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        let value = Self {
+            initialized: reader.read()?,
+            liquidity_net: reader.read()?,
+        };
+        reader.skip(TICK_GROWTHS_LEN)?;
+        Ok(value)
+    }
+}
+
 struct FixedTickArray {
     start_tick_index: i32,
     ticks: [FixedTick; TICK_ARRAY_SIZE as usize],
     whirlpool: Pubkey,
 }
 
-#[derive(BorshDeserialize)]
-struct DynamicTickData {
-    liquidity_net: i128,
-    _liquidity_gross_and_growths: [u8; TICK_GROWTHS_LEN],
+impl BorshDeserialize for FixedTickArray {
+    fn deserialize_reader(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        Ok(Self {
+            start_tick_index: reader.read()?,
+            ticks: reader.read()?,
+            whirlpool: reader.read()?,
+        })
+    }
 }
 
-#[derive(BorshDeserialize)]
+struct DynamicTickData {
+    liquidity_net: i128,
+}
+
+impl BorshDeserialize for DynamicTickData {
+    fn deserialize_reader(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        let value = Self { liquidity_net: reader.read()? };
+        reader.skip(TICK_GROWTHS_LEN)?;
+        Ok(value)
+    }
+}
+
+#[derive(Default)]
 enum DynamicTick {
+    #[default]
     Uninitialized,
     Initialized(DynamicTickData),
 }
 
-#[derive(BorshDeserialize)]
+impl BorshDeserialize for DynamicTick {
+    fn deserialize_reader(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        match reader.read::<u8>()? {
+            0 => Ok(Self::Uninitialized),
+            1 => Ok(Self::Initialized(reader.read()?)),
+            tag => Err(DecodeError::UnexpectedTag(tag)),
+        }
+    }
+}
+
 struct DynamicTickArray {
     start_tick_index: i32,
     whirlpool: Pubkey,
-    _tick_bitmap: u128,
     ticks: [DynamicTick; TICK_ARRAY_SIZE as usize],
+}
+
+impl BorshDeserialize for DynamicTickArray {
+    fn deserialize_reader(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        Ok(Self {
+            start_tick_index: reader.read()?,
+            whirlpool: reader.read()?,
+            ticks: reader.skip(16)?.read()?,
+        })
+    }
 }
 
 impl AnchorAccount for FixedTickArray {

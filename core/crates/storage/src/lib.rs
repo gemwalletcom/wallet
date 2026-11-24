@@ -1,6 +1,7 @@
 use tokio::task::spawn_blocking;
 
 pub mod database;
+mod diff;
 pub mod error;
 pub(crate) mod models;
 pub mod repositories;

@@ -1,7 +1,9 @@
 use diesel::deserialize::{self, FromSql, FromSqlRow};
 use diesel::expression::AsExpression;
+use diesel::pg::data_types::PgTimestamp;
 use diesel::pg::{Pg, PgValue};
 use diesel::serialize::{self, Output, ToSql};
+use diesel::sql_types::Timestamp;
 use primitives::AssetId as PrimitiveAssetId;
 use primitives::Feature as PrimitiveFeature;
 use primitives::FiatRateProvider as PrimitiveFiatRateProvider;
@@ -10,7 +12,7 @@ use primitives::nft::NFTType as PrimitiveNFTType;
 use primitives::rewards::{RedemptionStatus as PrimitiveRedemptionStatus, RewardEventType as PrimitiveRewardEventType, RewardRedemptionType as PrimitiveRewardRedemptionType, RewardStatus as PrimitiveRewardStatus};
 use primitives::scan::AddressType as PrimitiveAddressType;
 use primitives::{
-    AssetAssociationType as PrimitiveAssetAssociationType, AssetType as PrimitiveAssetType, Chain, DeviceLocale as PrimitiveDeviceLocale, FiatProviderName as PrimitiveFiatProviderName, FiatQuoteType as PrimitiveFiatQuoteType,
+    AssetAssociationType as PrimitiveAssetAssociationType, AssetType as PrimitiveAssetType, Chain, DateTime, DeviceLocale as PrimitiveDeviceLocale, FiatProviderName as PrimitiveFiatProviderName, FiatQuoteType as PrimitiveFiatQuoteType,
     FiatTransactionStatus as PrimitiveFiatTransactionStatus, IpUsageType as PrimitiveIpUsageType, LinkType as PrimitiveLinkType, ListId as PrimitiveListId, NotificationType as PrimitiveNotificationType,
     PerpetualDirection as PrimitivePerpetualDirection, PerpetualProvider as PrimitivePerpetualProvider, Platform as PrimitivePlatform, PlatformStore as PrimitivePlatformStore, PriceAlertDirection as PrimitivePriceAlertDirection,
     PriceId as PrimitivePriceId, PriceProvider as PrimitivePriceProvider, ScanProvider as PrimitiveScanProvider, ScanType as PrimitiveScanType, SwapProvider as PrimitiveSwapProvider, TagVisibility as PrimitiveTagVisibility,
@@ -225,6 +227,47 @@ macro_rules! diesel_varchar {
             }
         }
     };
+}
+
+const POSTGRES_EPOCH_MICROS: i64 = 946_684_800_000_000;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize, AsExpression, FromSqlRow)]
+#[serde(transparent)]
+#[diesel(sql_type = Timestamp)]
+pub struct DateTimeRow(pub DateTime);
+
+impl Deref for DateTimeRow {
+    type Target = DateTime;
+
+    fn deref(&self) -> &Self::Target {
+        &self.0
+    }
+}
+
+impl From<DateTime> for DateTimeRow {
+    fn from(value: DateTime) -> Self {
+        Self(value)
+    }
+}
+
+impl From<DateTimeRow> for DateTime {
+    fn from(value: DateTimeRow) -> Self {
+        value.0
+    }
+}
+
+impl FromSql<Timestamp, Pg> for DateTimeRow {
+    fn from_sql(value: PgValue<'_>) -> deserialize::Result<Self> {
+        let PgTimestamp(micros) = FromSql::<Timestamp, Pg>::from_sql(value)?;
+        Ok(Self(DateTime::from_timestamp_micros(micros.checked_add(POSTGRES_EPOCH_MICROS).ok_or("timestamp out of range")?)))
+    }
+}
+
+impl ToSql<Timestamp, Pg> for DateTimeRow {
+    fn to_sql<'b>(&'b self, out: &mut Output<'b, '_, Pg>) -> serialize::Result {
+        let micros = self.0.timestamp_micros().checked_sub(POSTGRES_EPOCH_MICROS).ok_or("timestamp out of range")?;
+        ToSql::<Timestamp, Pg>::to_sql(&PgTimestamp(micros), &mut out.reborrow())
+    }
 }
 
 diesel_varchar!(ChainRow, Chain);

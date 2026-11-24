@@ -11,7 +11,8 @@ use super::{
     client::PaybisClient,
     mapper::{map_assets, map_webhook},
 };
-use primitives::{FiatProviderCountry, FiatProviderName, FiatQuoteRequest, FiatQuoteResponse, FiatQuoteUrl, FiatQuoteUrlData, FiatWebhook};
+use crate::FiatQuoteRequest;
+use primitives::{FiatProviderCountry, FiatProviderName, FiatQuoteResponse, FiatQuoteUrl, FiatQuoteUrlData, FiatWebhook};
 
 #[async_trait]
 impl FiatProvider for PaybisClient {
@@ -78,11 +79,12 @@ impl FiatProvider for PaybisClient {
 
 #[cfg(all(test, feature = "fiat_integration_tests"))]
 mod fiat_integration_tests {
+    use crate::FiatQuoteRequest;
     use crate::testkit::*;
     use crate::{FiatProvider, model::FiatMapping};
     use primitives::asset_constants::{BASE_USDC_TOKEN_ID, ETHEREUM_USDC_TOKEN_ID, ETHEREUM_USDT_TOKEN_ID, POLYGON_USDC_TOKEN_ID, POLYGON_USDT_TOKEN_ID, SOLANA_USDC_TOKEN_ID, SOLANA_USDT_TOKEN_ID, TRON_USDT_TOKEN_ID};
     use primitives::currency::Currency;
-    use primitives::{Chain, FiatProviderName, FiatQuoteRequest};
+    use primitives::{Chain, FiatProviderName};
 
     #[tokio::test]
     async fn test_paybis_get_buy_quote() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {

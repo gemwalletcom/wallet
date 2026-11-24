@@ -15,6 +15,9 @@ use crate::rpc::EthereumProvider;
 #[async_trait]
 impl<C: Client + Clone> ChainSimulation for EthereumProvider<C> {
     async fn simulate_transaction(&self, input: SimulationInput) -> Result<SimulationResult, Box<dyn Error + Send + Sync>> {
+        if !self.chain.is_trace_call_supported() {
+            return Err(format!("{} does not support trace_call", self.get_chain()).into());
+        }
         let transaction: TransactionObject = serde_json::from_str(&input.encoded_transaction)?;
         let signer = transaction.from.as_deref().non_empty().ok_or("missing sender address")?;
 
@@ -52,6 +55,17 @@ mod tests {
     use primitives::testkit::signer_mock::TEST_EVM_RECIPIENT;
     use primitives::{AssetId, Chain, EVMChain};
     use serde_json::Value;
+
+    #[tokio::test]
+    async fn test_simulate_transaction_without_trace_call_sends_no_request() {
+        let client = mock_jsonrpc_client(|request_method, _| panic!("unexpected {request_method} request"));
+        let provider = EthereumProvider::new_rpc_only(EthereumClient::new(client, EVMChain::Monad));
+
+        let encoded_transaction = serde_json::to_string(&TransactionObject::mock(TEST_EVM_RECIPIENT, None)).unwrap();
+        let error = ChainSimulation::simulate_transaction(&provider, SimulationInput::new(encoded_transaction)).await.unwrap_err();
+
+        assert_eq!(error.to_string(), format!("{} does not support trace_call", Chain::Monad));
+    }
 
     #[tokio::test]
     async fn test_simulate_transaction_native_transfer() {

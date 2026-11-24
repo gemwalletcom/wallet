@@ -1,6 +1,5 @@
 use std::{collections::HashMap, error::Error};
 
-use chrono::{DateTime, Utc};
 use num_bigint::{BigUint, Sign};
 use primitives::{AssetId, Chain, Transaction, TransactionState, TransactionType};
 
@@ -9,7 +8,7 @@ use crate::constants::{NATIVE_ASSET_ID, NEP_141_STANDARD};
 use super::super::model::FastNearTransfer;
 
 pub(in crate::rpc::indexer) fn map_address_transfer(transfer: FastNearTransfer, asset_id: AssetId, fees: &HashMap<String, BigUint>, address: &str) -> Result<Transaction, Box<dyn Error + Send + Sync>> {
-    let created_at = DateTime::<Utc>::from_timestamp_nanos(i64::try_from(transfer.block_timestamp)?);
+    let created_at = transfer.block_timestamp;
     let fee = if transfer.signer_id == address && transfer.predecessor_id == address {
         let transaction_id = transfer.transaction_id.as_ref().ok_or("missing FastNear sender transaction id")?;
         fees.get(transaction_id).ok_or("missing FastNear sender transaction details")?.clone()

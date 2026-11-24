@@ -110,8 +110,9 @@ impl GemConfirmService {
             self.pending_nonces(chain, &input.from.address),
         );
         let metadata = metadata.map_err(|error| error::load_error(&transfer.input_type, error))?.with_nonce_after_pending(&pending_nonces?);
-        let fee_rates = fee_rates.map_err(|error| error::load_error(&transfer.input_type, error))?;
-        let fee_rates = rules::confirmation_fee_rates(&asset.id, transfer.use_max_amount, fee_rates);
+        let network_rates = fee_rates.map_err(|error| error::load_error(&transfer.input_type, error))?;
+        let base_fee = rules::base_fee(&network_rates);
+        let fee_rates = rules::signed_fee_rates(network_rates, transfer.base_fee_increase_percent());
         let simulation = simulation?;
 
         rules::validate_scan(scan.as_ref(), transfer.recipient.memo.as_deref(), &symbol)?;
@@ -142,6 +143,7 @@ impl GemConfirmService {
             selected_priority: selected.priority,
             fee_selection: options.fee_selection.applied(&selected),
             fee_rates,
+            base_fee,
             metadata: load.metadata,
             simulation,
         };

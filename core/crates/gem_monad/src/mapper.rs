@@ -1,7 +1,6 @@
-use chrono::{DateTime, Utc};
 use num_bigint::BigUint;
 use num_traits::{ToPrimitive, Zero};
-use primitives::{AssetId, Chain, DelegationBase, DelegationState, DelegationValidator};
+use primitives::{AssetId, Chain, DateTime, DelegationBase, DelegationState, DelegationValidator};
 
 use crate::constants::{COMMISSION_SCALE, VALIDATOR_NAMES};
 use crate::contracts::IMonadStakingLens;
@@ -26,11 +25,7 @@ pub fn map_validator(validator: &LensValidator, network_apy: f64) -> DelegationV
 
 pub fn map_delegation(address: &str, position: LensDelegation) -> DelegationBase {
     let state = map_state(&position);
-    let completion_date = if position.completion_timestamp == 0 {
-        None
-    } else {
-        DateTime::<Utc>::from_timestamp(position.completion_timestamp as i64, 0)
-    };
+    let completion_date = (position.completion_timestamp != 0).then(|| DateTime::from_timestamp(position.completion_timestamp as i64));
 
     DelegationBase {
         asset_id: AssetId::from_chain(Chain::Monad),
@@ -103,6 +98,6 @@ mod tests {
         assert_eq!(delegation.balance, BigUint::from(5u32));
         assert_eq!(delegation.validator_id, "10");
         assert_eq!(delegation.delegation_id, format!("{TEST_ADDRESS}:10:awaitingwithdrawal:1"));
-        assert_eq!(delegation.completion_date, DateTime::<Utc>::from_timestamp(1_700_000_000, 0));
+        assert_eq!(delegation.completion_date, Some(DateTime::from_timestamp(1_700_000_000)));
     }
 }

@@ -3,14 +3,10 @@ name = "simulation"
 version = { workspace = true }
 edition = { workspace = true }
 
-[features]
-default = []
-rpc = ["gem_evm/rpc", "dep:gem_client"]
-
 [dependencies]
 primitives = { path = "../primitives" }
-gem_evm = { path = "../gem_evm" }
-gem_client = { path = "../gem_client", optional = true }
+gem_evm = { path = "../gem_evm", features = ["rpc"] }
+gem_client = { path = "../gem_client" }
 
 alloy-sol-types = { workspace = true }
 num-bigint = { workspace = true }
@@ -18,8 +14,6 @@ num-traits = { workspace = true }
 strum = { workspace = true }
 
 [dev-dependencies]
-simulation = { path = ".", features = ["rpc"] }
 alloy-primitives = { workspace = true }
-gem_client = { path = "../gem_client" }
 serde_json = { workspace = true }
 tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }

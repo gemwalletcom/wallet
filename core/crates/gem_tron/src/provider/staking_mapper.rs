@@ -1,13 +1,12 @@
 use crate::address::TronAddress;
 use crate::models::{TronAccount, TronReward, TronUnfrozen, TronVote, WitnessesList};
-use chrono::{DateTime, Utc};
 use num_bigint::BigUint;
-use primitives::{Address as _, Asset, AssetId, Chain, DelegationBase, DelegationState, DelegationValidator};
+use primitives::{Address as _, Asset, AssetId, Chain, DateTime, DelegationBase, DelegationState, DelegationValidator};
 use std::cmp::Reverse;
 
 const WITNESS_STANDBY_LENGTH: usize = 127;
 
-pub fn map_staking_delegations(account: TronAccount, reward: TronReward, validators: &[DelegationValidator], now: DateTime<Utc>) -> Vec<DelegationBase> {
+pub fn map_staking_delegations(account: TronAccount, reward: TronReward, validators: &[DelegationValidator], now: DateTime) -> Vec<DelegationBase> {
     let asset_id = Chain::Tron.as_asset_id();
     let unfreezes = account.unfrozen_v2.map(|unfrozen| map_unfreeze_delegations(unfrozen, &asset_id, now)).unwrap_or_default();
     let votes = account.votes.map(|votes| map_vote_delegations(votes, reward.reward, validators, &asset_id)).unwrap_or_default();
@@ -38,13 +37,10 @@ fn map_vote_delegations(votes: Vec<TronVote>, reward: u64, validators: &[Delegat
         .collect()
 }
 
-pub fn map_unfreeze_delegations(unfrozen: Vec<TronUnfrozen>, asset_id: &AssetId, now: DateTime<Utc>) -> Vec<DelegationBase> {
+pub fn map_unfreeze_delegations(unfrozen: Vec<TronUnfrozen>, asset_id: &AssetId, now: DateTime) -> Vec<DelegationBase> {
     let (expired, pending): (Vec<_>, Vec<_>) = unfrozen
         .into_iter()
-        .filter_map(|item| {
-            let completion_date = DateTime::from_timestamp((item.unfreeze_expire_time? / 1000) as i64, 0).unwrap_or(now);
-            Some((completion_date, item.unfreeze_amount))
-        })
+        .filter_map(|item| Some((item.unfreeze_expire_time?, item.unfreeze_amount)))
         .partition(|(completion_date, _)| *completion_date <= now);
 
     let withdrawable = expired
@@ -60,7 +56,7 @@ pub fn map_unfreeze_delegations(unfrozen: Vec<TronUnfrozen>, asset_id: &AssetId,
         .collect()
 }
 
-pub fn map_withdrawable_unfreeze(account: TronAccount, now: DateTime<Utc>) -> BigUint {
+pub fn map_withdrawable_unfreeze(account: TronAccount, now: DateTime) -> BigUint {
     account
         .unfrozen_v2
         .map(|unfrozen| map_unfreeze_delegations(unfrozen, &Chain::Tron.as_asset_id(), now))
@@ -71,7 +67,7 @@ pub fn map_withdrawable_unfreeze(account: TronAccount, now: DateTime<Utc>) -> Bi
         .sum()
 }
 
-fn unfreeze_delegation(asset_id: &AssetId, state: DelegationState, balance: BigUint, completion_date: DateTime<Utc>) -> DelegationBase {
+fn unfreeze_delegation(asset_id: &AssetId, state: DelegationState, balance: BigUint, completion_date: DateTime) -> DelegationBase {
     DelegationBase {
         asset_id: asset_id.clone(),
         state,
@@ -115,7 +111,7 @@ mod tests {
 
     #[test]
     fn test_every_expired_unfreeze_is_one_withdrawal() {
-        let now = DateTime::from_timestamp(1_000_000, 0).unwrap();
+        let now = DateTime::from_timestamp(1_000_000);
         let asset_id = Chain::Tron.as_asset_id();
 
         let delegations = map_unfreeze_delegations(vec![TronUnfrozen::mock(6, 900_000_000), TronUnfrozen::mock(4, 800_000_000)], &asset_id, now);
@@ -127,7 +123,7 @@ mod tests {
 
     #[test]
     fn test_an_unfreeze_still_locked_stays_on_its_own() {
-        let now = DateTime::from_timestamp(1_000_000, 0).unwrap();
+        let now = DateTime::from_timestamp(1_000_000);
         let asset_id = Chain::Tron.as_asset_id();
 
         let delegations = map_unfreeze_delegations(vec![TronUnfrozen::mock(6, 900_000_000), TronUnfrozen::mock(4, 2_000_000_000)], &asset_id, now);
@@ -141,7 +137,7 @@ mod tests {
 
     #[test]
     fn test_map_withdrawable_unfreeze() {
-        let now = DateTime::from_timestamp(1_000_000, 0).unwrap();
+        let now = DateTime::from_timestamp(1_000_000);
         let account = TronAccount {
             unfrozen_v2: Some(vec![TronUnfrozen::mock(6, 900_000_000), TronUnfrozen::mock(5, 800_000_000), TronUnfrozen::mock(4, 2_000_000_000)]),
             ..TronAccount::mock("TJoSEwEqt7cT3TUwmEoUYnYs5cZR3xSukM")

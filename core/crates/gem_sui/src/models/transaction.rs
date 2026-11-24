@@ -7,7 +7,9 @@ use serde_serializers::deserialize_biguint_from_str;
 use crate::gas_budget::calculate_gas_budget;
 
 #[cfg(feature = "rpc")]
-use serde_serializers::deserialize_u64_from_str;
+use date_time::deserialize_datetime_from_millis;
+#[cfg(feature = "rpc")]
+use primitives::DateTime;
 
 #[cfg(feature = "rpc")]
 use super::account::GasObject;
@@ -95,9 +97,8 @@ pub struct Digest {
     #[serde(rename = "balanceChanges")]
     pub balance_changes: Option<Vec<BalanceChange>>,
     pub events: Vec<Event>,
-    #[serde(rename = "timestampMs")]
-    #[serde(deserialize_with = "deserialize_u64_from_str")]
-    pub timestamp_ms: u64,
+    #[serde(rename = "timestampMs", deserialize_with = "deserialize_datetime_from_millis")]
+    pub timestamp: DateTime,
 }
 
 #[cfg(feature = "rpc")]

@@ -1,7 +1,8 @@
 use super::models::{Assets, PaybisQuote, PaybisResponse, QuoteRequest, Request, RequestResponse, SellAssets};
 use super::target::PaybisTarget;
 use crate::rsa_signature::generate_rsa_pss_signature;
-use gem_client::{ClientExt, ReqwestClient};
+use gem_client::ClientExt;
+use gem_reqwest::ReqwestClient;
 use primitives::FiatProviderName;
 use serde::Serialize;
 use std::collections::HashMap;

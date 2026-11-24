@@ -1,19 +1,19 @@
 use std::sync::Arc;
 
 use axum::extract::State;
-use primitives::InAppNotification;
+use primitives::{DateTime, InAppNotification};
 use serde::Deserialize;
 use services::notifications::NotificationsClient;
 
 use crate::auth::device::{AuthenticatedDevice, AuthenticatedDeviceWallet};
 use crate::error::ApiError;
-use crate::request::{Query, QueryLimitParam, lenient};
+use crate::request::{Query, QueryLimitParam, timestamp};
 use crate::response::ApiResponse;
 
 #[derive(Deserialize)]
 pub struct NotificationsQuery {
-    #[serde(default, deserialize_with = "lenient")]
-    from_timestamp: Option<u64>,
+    #[serde(default, deserialize_with = "timestamp")]
+    from_timestamp: Option<DateTime>,
     #[serde(default)]
     limit: QueryLimitParam,
 }

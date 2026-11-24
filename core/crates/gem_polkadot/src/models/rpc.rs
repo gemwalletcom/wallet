@@ -1,6 +1,8 @@
 use core::str;
 
+use date_time::deserialize_datetime_from_millis;
 use num_bigint::BigUint;
+use primitives::DateTime;
 use serde::{Deserialize, Serialize};
 use serde_serializers::{deserialize_biguint_from_str, deserialize_option_biguint_from_str, deserialize_u64_from_str};
 
@@ -51,8 +53,8 @@ pub enum ExtrinsicArguments {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ExtrinsicTimestamp {
-    #[serde(deserialize_with = "deserialize_u64_from_str")]
-    pub now: u64,
+    #[serde(deserialize_with = "deserialize_datetime_from_millis")]
+    pub now: DateTime,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

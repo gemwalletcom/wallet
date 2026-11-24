@@ -1,5 +1,4 @@
-use crate::sql_types::{AssetId, NotificationType};
-use chrono::NaiveDateTime;
+use crate::sql_types::{AssetId, DateTimeRow, NotificationType};
 use diesel::prelude::*;
 use primitives::{Asset, NotificationData};
 use serde::{Deserialize, Serialize};
@@ -14,8 +13,8 @@ pub(crate) struct NotificationRow {
     pub notification_type: NotificationType,
     pub is_read: bool,
     pub metadata: Option<serde_json::Value>,
-    pub read_at: Option<NaiveDateTime>,
-    pub created_at: NaiveDateTime,
+    pub read_at: Option<DateTimeRow>,
+    pub created_at: DateTimeRow,
 }
 
 impl NotificationRow {
@@ -27,8 +26,8 @@ impl NotificationRow {
             notification_type: self.notification_type.0,
             is_read: self.is_read,
             metadata: self.metadata.clone(),
-            read_at: self.read_at.map(|dt| dt.and_utc()),
-            created_at: self.created_at.and_utc(),
+            read_at: self.read_at.map(Into::into),
+            created_at: self.created_at.into(),
         }
     }
 }

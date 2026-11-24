@@ -20,7 +20,7 @@ primitives = { path = "../primitives", optional = true }
 signer = { path = "../signer", optional = true }
 gem_hash = { path = "../gem_hash", optional = true }
 num-bigint = { workspace = true, optional = true }
-chrono = { workspace = true }
+date_time = { path = "../date_time" }
 async-trait = { workspace = true, optional = true }
 bitcoin = { workspace = true, optional = true }
 spark-wallet = { workspace = true, optional = true }

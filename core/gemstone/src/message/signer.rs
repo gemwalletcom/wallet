@@ -545,7 +545,7 @@ Issued At: 2026-03-09T15:48:34.458Z"#;
         match decoder.preview() {
             Ok(MessagePreview::Siwe(siwe)) => {
                 assert_eq!(siwe.domain, "login.xyz");
-                assert_eq!(siwe.chain_id, 1);
+                assert_eq!(siwe.chain_id, "1");
             }
             other => panic!("Unexpected result: {other:?}"),
         }

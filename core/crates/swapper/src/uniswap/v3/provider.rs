@@ -358,7 +358,6 @@ mod tests {
     };
     use alloy_primitives::{Bytes, hex::encode as hex_encode};
     use alloy_sol_types::SolCall;
-    use chrono::DateTime;
     use gem_evm::rpc::{
         model::{Transaction, TransactionReceipt},
         parsers::ProtocolParsers,
@@ -373,7 +372,7 @@ mod tests {
         deployment::v3::{get_aerodrome_router_deployment_by_chain, get_pancakeswap_router_deployment_by_chain},
     };
     use num_bigint::BigUint;
-    use primitives::TransactionSwapMetadata;
+    use primitives::{DateTime, TransactionSwapMetadata};
     use primitives::{
         asset_constants::{BASE_USDC_TOKEN_ID, BASE_WETH_TOKEN_ID, SMARTCHAIN_USDC_TOKEN_ID, SMARTCHAIN_USDT_TOKEN_ID},
         decode_hex,
@@ -544,11 +543,11 @@ mod tests {
     }
 }
 
-#[cfg(all(test, feature = "swap_integration_tests", feature = "reqwest_provider"))]
+#[cfg(all(test, feature = "swap_integration_tests"))]
 mod swap_integration_tests {
     use crate::testkit::{dynode_provider, mock_quote, simulate_swap};
     use crate::{
-        FetchQuoteData, NativeProvider, Options, QuoteRequest, Swapper, SwapperError,
+        FetchQuoteData, Options, QuoteRequest, Swapper, SwapperError,
         client_factory::{create_client_with_chain, create_eth_client},
         eth_address,
         fees::{bps_of, default_referral_fees},
@@ -570,6 +569,7 @@ mod swap_integration_tests {
         deployment::v3::get_uniswap_router_deployment_by_chain,
         path::TokenPair,
     };
+    use gem_reqwest::NativeProvider;
     use num_bigint::BigUint;
     use num_traits::ToPrimitive;
     use primitives::{

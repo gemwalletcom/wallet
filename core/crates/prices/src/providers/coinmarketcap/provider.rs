@@ -2,7 +2,8 @@ use std::error::Error;
 
 use async_trait::async_trait;
 use coinmarketcap::client::CoinMarketCapClient;
-use gem_client::{Client, RemoteProviderConfig, ReqwestClient, reqwest_client};
+use gem_client::{Client, RemoteProviderConfig};
+use gem_reqwest::{ReqwestClient, reqwest_client};
 use gem_tracing::warn_with_fields;
 use primitives::{Currency, FiatRate, FiatRateProvider};
 

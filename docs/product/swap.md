@@ -79,12 +79,12 @@ Every provider that serves the pair is asked at once. You Receive shows the best
 
 The on-chain providers are Across, Orca, Raydium, PumpSwap, Meteora, THORChain and SunSwap: each quotes from the chain and sends the trade straight to its own contract.
 
-Uniswap, PancakeSwap, Aerodrome, Raydium and Meteora each show as one provider. Their pool types quote together, and the swap and its approval are built with the pool type that gave the most.
+Uniswap, Pancake, Aerodrome, Raydium and Meteora each show as one provider. Their pool types quote together, and the swap and its approval are built with the pool type that gave the most.
 
 | Provider | Pool types |
 |---|---|
 | Uniswap | v2 on Ethereum, Robinhood Chain, Base and Polygon, v3, v4 |
-| PancakeSwap | v2 on BNB Chain, v3 |
+| Pancake | v2 on BNB Chain, v3 |
 | Raydium | CLMM, CPMM, AMM v4 |
 | Meteora | DAMM v2, DLMM |
 | Aerodrome | Slipstream, classic volatile and stable pools |
@@ -97,7 +97,7 @@ Some providers swap whatever arrives at a deposit address, so the network fee si
 |---|---|---|
 | the provider swaps whatever arrives: Near Intents except HyperCore, Chainflip from Polkadot, THORChain and Relay from Bitcoin and other non-Ethereum networks | the full balance is quoted and the network fee comes off at signing, so nothing is left behind | a deposit can be any amount |
 | what is left after the fee is under that provider's minimum | the minimum is shown, not Insufficient Balance | the provider would reject or refund it |
-| the provider needs the exact amount: Uniswap, PancakeSwap, OKX, Jupiter, Orca, Mayan, Across, Bridgers, Stellar DEX, XRP Ledger DEX | Swap quotes the balance less a fee reserve; Confirm then sends everything but the actual network fee and shows that amount | the fee is known only on the confirmation screen |
+| the provider needs the exact amount: Uniswap, Pancake, OKX, Jupiter, Orca, Mayan, Across, Bridgers, Stellar DEX, XRP Ledger DEX | Swap quotes the balance less a fee reserve; Confirm then sends everything but the actual network fee and shows that amount | the fee is known only on the confirmation screen |
 | that provider is on Solana, TON, Tron, Sui, Aptos, Stellar or the XRP Ledger | the reserve stays in the wallet | those networks charge more than the fee shown: rent, forwarding, energy, a trust line's reserve |
 | the provider takes any amount but builds a contract call | it is treated as needing the exact amount | otherwise the fee would not fit |
 
@@ -166,7 +166,7 @@ A stablecoin is one on the official list, USDT, USDC, USDS, USDe, USD1, USDG and
 
 | When | Expected | Why |
 |---|---|---|
-| A token takes a fee when it moves | it gets no Uniswap or PancakeSwap v2 quote and no Aerodrome classic quote | those quotes assume the pool receives the full amount, so the swap would fail its slippage check |
+| A token takes a fee when it moves | it gets no Uniswap or Pancake v2 quote and no Aerodrome classic quote | those quotes assume the pool receives the full amount, so the swap would fail its slippage check |
 | A Solana trade between two tokens routes through SOL on PumpSwap, Meteora or Raydium CPMM and AMM v4 | it goes as two swaps in one transaction, and the Minimum Receive still holds | these pools cannot pass one pool's output into the next |
 | A wallet's first PumpSwap trade | about `0.0018 SOL` of rent on top of the network fee | it creates the wallet's pump.fun volume account |
 | A Solana swap runs out of compute | it fails on chain and the network fee is spent | swaps are sent without the node's own check |
@@ -194,6 +194,7 @@ A stablecoin is one on the official list, USDT, USDC, USDS, USDe, USD1, USDG and
 | THORChain has not sent a payout on time | the time left counts to THORChain's next try from another vault, then to the payout | THORChain tries a payout no one sent again from another vault about every `30 minutes`, every `90 minutes` for a token on an EVM network |
 | Near Intents with HyperCore | HyperCore spot USDC can be paid but not received | the provider pays HyperCore USDC into perps, apart from the wallet's spot balance |
 | A Hyperliquid spot swap | the Network Fee is in the token received: HYPE or UBTC when buying, USDC with Gem's fee when selling; no balance is needed for it | Hyperliquid takes the fee out of what the order receives, and Gem's fee only on sells |
+| A Hyperliquid spot swap in History | it shows Confirmed once the order fills, without the In Progress steps of a cross-chain swap | the order completes in its own action |
 | A Hyperliquid spot order would be worth under `10 USDC` once its size is rounded to the token's step, such as 10 USDC of HYPE | Amount too small before Confirm | Hyperliquid rejects orders under `10 USDC` |
 | HyperCore spot HYPE | it is the network's HYPE: one HYPE in the wallet, in swaps and in History | the HYPE spot token and the network coin are one balance |
 
@@ -213,7 +214,7 @@ A provider may only move funds into contracts the app ships for it. Before Confi
 | Relay | Solana | Its depository and forwarder programs, and Jupiter's | At Confirm |
 | Chainflip | EVM, Tron, Solana | The vault, exactly the amount and token quoted, the asset, network and address the swap pays out to, and the refund address, minimum price, and a refund sent as a plain transfer, with no contract message | At Confirm |
 | Mayan | EVM | The forwarder | At Confirm |
-| Mayan | Solana | Its programs, and Jupiter's | At Confirm |
+| Mayan | Solana | Its programs, and Jupiter's; a swap before the bridge pays into the bridge's own account, and the steps around it only create token accounts, wrap SOL into the wallet's own account and close an account back to the wallet | At Confirm |
 | Bridgers | EVM, TON coin | The router | At Confirm |
 | Jupiter, Orca, Raydium, PumpSwap, Meteora | Solana | Their programs | At Confirm |
 | Aero | EVM | The Metarouter | At Confirm |

@@ -2,10 +2,10 @@ use std::error::Error;
 
 use alloy_primitives::Address;
 use alloy_sol_types::SolCall;
-use gem_client::ReqwestClient;
 use gem_evm::rpc::EthereumClient;
 use gem_jsonrpc::JsonRpcClient;
 use gem_jsonrpc::types::JsonRpcError;
+use gem_reqwest::ReqwestClient;
 use primitives::EVMChain;
 
 use super::contract::{Registrator, Router};

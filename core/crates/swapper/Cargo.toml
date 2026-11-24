@@ -6,8 +6,7 @@ license = { workspace = true }
 
 [features]
 default = []
-reqwest_provider = ["dep:reqwest", "gem_client/reqwest"]
-swap_integration_tests = ["reqwest_provider"]
+swap_integration_tests = []
 
 [dependencies]
 primitives = { path = "../primitives" }
@@ -32,28 +31,24 @@ gem_polkadot = { path = "../gem_polkadot" }
 serde_serializers = { path = "../serde_serializers", features = ["bigint"] }
 number_formatter = { path = "../number_formatter" }
 
-reqwest = { workspace = true, optional = true }
-
 strum = { workspace = true }
 
-gem_encoding = { path = "../gem_encoding", features = ["base58"] }
+gem_encoding = { path = "../gem_encoding", features = ["base58", "borsh"] }
 serde.workspace = true
 serde_json.workspace = true
 bcs.workspace = true
 async-trait.workspace = true
-chrono.workspace = true
 alloy-primitives.workspace = true
 alloy-sol-types.workspace = true
 num-bigint.workspace = true
 num-traits.workspace = true
 futures.workspace = true
-borsh = { workspace = true }
 hmac = { workspace = true }
 sha2 = { workspace = true }
 
 [dev-dependencies]
-swapper = { path = ".", features = ["reqwest_provider"] }
+gem_reqwest = { path = "../gem_reqwest" }
+reqwest = { workspace = true }
 tokio.workspace = true
 gem_hypercore = { path = "../gem_hypercore", features = ["signer"] }
-gem_sui = { path = "../gem_sui", features = ["reqwest"] }
 settings = { path = "../settings" }

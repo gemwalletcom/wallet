@@ -3,12 +3,11 @@ use std::error::Error;
 use std::sync::Arc;
 use std::time::Duration;
 
-use chrono::{TimeDelta, Utc};
 use gem_tracing::info_with_fields;
 use localizer::LanguageLocalizer;
 use number_formatter::NumberFormatter;
 use prices::{PriceAlertNotification, PriceAlertRules};
-use primitives::{AssetId, PriceAlert, PriceAlertType, PriceAlerts};
+use primitives::{AssetId, DateTime, PriceAlert, PriceAlertType, PriceAlerts};
 use push_notification::{GorushNotification, PushNotification, PushNotificationAsset, PushNotificationTypes};
 
 use super::repository::Repository;
@@ -37,9 +36,9 @@ impl PriceAlertClient {
     }
 
     pub async fn get_devices_to_alert(&self, rules: PriceAlertRules, primary_price_max_age: Duration) -> Result<Vec<PriceAlertNotification>, Box<dyn Error + Send + Sync>> {
-        let now = Utc::now();
-        let cooldown = TimeDelta::seconds(rules.notification_cooldown.as_secs() as i64);
-        Ok(self.repository.update_notified_price_alerts(rules, (now - cooldown).naive_utc(), now.naive_utc(), primary_price_max_age).await?)
+        let now = DateTime::now();
+        let notified_before = now - rules.notification_cooldown;
+        Ok(self.repository.update_notified_price_alerts(rules, notified_before, now, primary_price_max_age).await?)
     }
 
     pub fn get_notifications_for_price_alerts(&self, notifications: Vec<PriceAlertNotification>) -> Vec<GorushNotification> {

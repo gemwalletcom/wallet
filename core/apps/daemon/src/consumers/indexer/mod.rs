@@ -2,7 +2,8 @@ use std::error::Error;
 use std::sync::Arc;
 
 use futures::future;
-use primitives::{AssetId, Chain, NFTChain, PriceId, TransactionIdRequest};
+use nft::NFTChain;
+use primitives::{AssetId, Chain, PriceId, TransactionIdRequest};
 use services::Services;
 use settings::Settings;
 use streamer::{

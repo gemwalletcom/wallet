@@ -4,9 +4,8 @@ use crate::{
     HYPERION_CONTRACT, STAKE_DEPOSIT_EVENT,
 };
 use chain_primitives::{BalanceDiff, SwapMapper};
-use chrono::DateTime;
 use num_bigint::{BigInt, BigUint};
-use primitives::{AssetId, Chain, SwapProvider, Transaction as PrimitivesTransaction, TransactionState, TransactionSwapReferralFee, TransactionType, swap::APTOS_REFERRAL_ADDRESS};
+use primitives::{AssetId, Chain, DateTime, SwapProvider, Transaction as PrimitivesTransaction, TransactionState, TransactionSwapReferralFee, TransactionType, swap::APTOS_REFERRAL_ADDRESS};
 use std::error::Error;
 
 const PANORA_SWAP_EVENT: &str = "panora_swap";
@@ -75,7 +74,7 @@ struct TransactionMeta {
     sender: String,
     state: TransactionState,
     fee: BigUint,
-    created_at: DateTime<chrono::Utc>,
+    created_at: DateTime,
 }
 
 fn extract_meta(transaction: &Transaction) -> Option<TransactionMeta> {
@@ -85,9 +84,13 @@ fn extract_meta(transaction: &Transaction) -> Option<TransactionMeta> {
     let gas_used = BigUint::from(transaction.gas_used.unwrap_or_default());
     let gas_unit_price = BigUint::from(transaction.gas_unit_price.unwrap_or_default());
     let fee = gas_used * gas_unit_price;
-    let created_at = DateTime::from_timestamp_micros(transaction.timestamp as i64)?;
-
-    Some(TransactionMeta { hash, sender, state, fee, created_at })
+    Some(TransactionMeta {
+        hash,
+        sender,
+        state,
+        fee,
+        created_at: transaction.timestamp,
+    })
 }
 
 fn called_contract(transaction: &Transaction) -> Option<String> {
@@ -328,7 +331,7 @@ mod tests {
                 BigUint::from(14_820_000u32),
                 None,
                 None,
-                DateTime::from_timestamp_micros(1_789_429_930_321_207).unwrap(),
+                DateTime::from_timestamp_micros(1_789_429_930_321_207),
             ))
         );
     }

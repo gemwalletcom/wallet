@@ -7,13 +7,11 @@ use std::collections::HashSet;
 use crate::message::eip712::{GemEIP712Message, GemEIP712Value};
 use crate::message::sign_type::MessageType;
 use crate::models::list::GemListRow;
-use crate::services::localization::GemLocalizedText;
 use crate::services::simulation::payload_rows;
 
-#[derive(Debug, Clone, PartialEq, uniffi::Record)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct MessagePayloadPreview {
     pub message_type: MessageType,
-    pub title: GemLocalizedText,
     pub primary: Vec<GemListRow>,
     pub secondary: Vec<GemListRow>,
 }
@@ -28,7 +26,6 @@ pub struct MessagePayloadFields {
 impl MessagePayloadFields {
     pub(super) fn rows(self, chain: Chain, address_url: impl Fn(Chain, String) -> BlockExplorerLink) -> MessagePayloadPreview {
         MessagePayloadPreview {
-            title: self.message_type.title(),
             message_type: self.message_type,
             primary: payload_rows(&self.primary, chain, &address_url),
             secondary: payload_rows(&self.secondary, chain, &address_url),
@@ -236,7 +233,7 @@ fn siwe_preview_fields(message: &SiweMessage) -> Vec<MessagePayloadField> {
         MessagePayloadField::custom("domain", message.domain.clone(), SimulationPayloadFieldType::Text, SimulationPayloadFieldDisplay::Secondary),
         MessagePayloadField::custom("address", message.address.clone(), SimulationPayloadFieldType::Address, SimulationPayloadFieldDisplay::Secondary),
         MessagePayloadField::custom("uri", message.uri.clone(), SimulationPayloadFieldType::Text, SimulationPayloadFieldDisplay::Secondary),
-        MessagePayloadField::custom("chainId", message.chain_id.to_string(), SimulationPayloadFieldType::Text, SimulationPayloadFieldDisplay::Secondary),
+        MessagePayloadField::custom("chainId", message.chain_id.clone(), SimulationPayloadFieldType::Text, SimulationPayloadFieldDisplay::Secondary),
         MessagePayloadField::custom("nonce", message.nonce.clone(), SimulationPayloadFieldType::Text, SimulationPayloadFieldDisplay::Secondary),
         MessagePayloadField::custom("issuedAt", message.issued_at.clone(), SimulationPayloadFieldType::Timestamp, SimulationPayloadFieldDisplay::Secondary),
         MessagePayloadField::custom("version", message.version.clone(), SimulationPayloadFieldType::Text, SimulationPayloadFieldDisplay::Secondary),
@@ -422,7 +419,7 @@ mod tests {
                 domain: "login.xyz".into(),
                 address: "0x123".into(),
                 uri: "https://login.xyz".into(),
-                chain_id: 1,
+                chain_id: "1".into(),
                 nonce: "nonce".into(),
                 version: "1".into(),
                 issued_at: "2026-03-09T15:48:34.458Z".into(),
@@ -536,7 +533,7 @@ mod tests {
                 domain: "login.xyz".into(),
                 address: "0x123".into(),
                 uri: "https://login.xyz".into(),
-                chain_id: 1,
+                chain_id: "1".into(),
                 nonce: "nonce".into(),
                 version: "1".into(),
                 issued_at: "2026-03-09T15:48:34.458Z".into(),

@@ -3,7 +3,8 @@ use crate::address::serializer::deserialize as tron_address_deserialize;
 use crate::address::serializer::optional as tron_address_optional;
 use crate::models::TronContractType;
 use alloy_sol_types::{SolEvent, Word};
-use primitives::{OptionStringExt, decode_hex};
+use date_time::deserialize_datetime_from_millis;
+use primitives::{DateTime, OptionStringExt, decode_hex};
 use serde::{Deserialize, Deserializer, Serialize};
 use std::str::FromStr;
 
@@ -86,8 +87,8 @@ pub struct TransactionReceiptData {
     pub fee: Option<u64>,
     #[serde(rename = "blockNumber")]
     pub block_number: i64,
-    #[serde(rename = "blockTimeStamp")]
-    pub block_time_stamp: i64,
+    #[serde(rename = "blockTimeStamp", deserialize_with = "deserialize_datetime_from_millis")]
+    pub block_time_stamp: DateTime,
     pub result: Option<String>,
     pub receipt: TransactionReceipt,
     pub log: Option<Vec<TronLog>>,

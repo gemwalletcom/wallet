@@ -20,6 +20,8 @@ Use when writing or changing any Core test, fixture, or integration test gate.
 
 A response body a test feeds in (Gem API, RPC, WebSocket), and any other JSON longer than about 20 lines, lives in the owning crate's `testdata/` and loads with `include_str!`, never as an inline string const; never embed request, response, or transaction JSON with `serde_json::json!` in test files. Only a body built with `format!` from test values, or a one-line stub of a field or two such as `{"balance":"1000"}`, stays at the call site. A file read in one place is `include_str!` at that call; a `const` holds it only when it is read in several places. Per-crate layout is `src/`, `tests/`, `testdata/`.
 
+A live response saved as a fixture keeps only the fields the model deserializes (required ones included) and the code reads, with their real values; drop logs, rewards, headers and other unread fields, even when sibling fixtures keep the raw response. Rerun the tests to prove the trimmed file still decodes and maps the same.
+
 ## Testkit Mocks
 
 A mock exists once, beside its type, so every test reuses it instead of rebuilding the value.
@@ -42,7 +44,7 @@ Build mocked `eth_call` return data with the generated contract bindings (`<Cont
 
 - Add integration tests for RPC functionality to verify real network compatibility
 - Gate live chain RPC tests behind `chain_integration_tests` and live swap provider tests behind `swap_integration_tests`; keep ordinary unit tests deterministic
-- Put every live test in a module named after its feature (`#[cfg(all(test, feature = "chain_integration_tests"))] mod chain_integration_tests`), never a gated `mod tests` or a gated test fn inside one: `just test <CRATE>` runs `--all-features` and skips only names containing `integration_tests`, and `just test-integration` selects by the feature name
+- Put every live test in a module named after its feature (`#[cfg(all(test, feature = "chain_integration_tests"))] mod chain_integration_tests`), never a gated `mod tests` or a gated test fn inside one: `just test <CRATE>` and CI's `just test-ci` skip only names containing `integration_tests` (CI compiles every integration feature), and `just test-integration` selects by the feature name
 - Gate Postgres-backed tests behind `database_integration_tests`. `Database::mock()` (storage testkit) connects to `DATABASE_URL` through one connection held in a test transaction, so every write rolls back when the pool drops; migrate first (`just migrate`), then run `just test-database`
 - Prefer recent blocks for batch operations (more reliable than historical blocks)
 - Verify both successful calls and proper error propagation

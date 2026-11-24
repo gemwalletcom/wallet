@@ -15,7 +15,7 @@ impl<C: Client> ChainBlockTransactions for CardanoClient<C> {
         let transactions = block
             .transactions
             .iter()
-            .filter_map(|transaction| map_transaction(self.get_chain(), &block.forged_at, transaction))
+            .filter_map(|transaction| map_transaction(self.get_chain(), block.forged_at, transaction))
             .collect::<Vec<Transaction>>();
         Ok(transactions)
     }
@@ -25,7 +25,7 @@ impl<C: Client> ChainBlockTransactions for CardanoClient<C> {
 impl<C: Client> ChainTransaction for CardanoClient<C> {
     async fn get_transaction_by_hash(&self, request: TransactionIdRequest) -> Result<Option<Transaction>, Box<dyn Error + Sync + Send>> {
         let transaction = self.get_transaction(&request.hash).await?;
-        Ok(transaction.and_then(|transaction| map_transaction(self.get_chain(), &transaction.included_at, &transaction.transaction)))
+        Ok(transaction.and_then(|transaction| map_transaction(self.get_chain(), transaction.included_at, &transaction.transaction)))
     }
 }
 
@@ -37,7 +37,7 @@ impl<C: Client> ChainTransactions for CardanoClient<C> {
             .get_address_transactions(&address, limit)
             .await?
             .into_iter()
-            .filter_map(|transaction| map_transaction(self.get_chain(), &transaction.included_at, &transaction.transaction))
+            .filter_map(|transaction| map_transaction(self.get_chain(), transaction.included_at, &transaction.transaction))
             .collect();
         Ok(TransactionsResult::Transactions(transactions))
     }

@@ -3,7 +3,7 @@ use std::error::Error;
 
 use ::jupiter::{JupiterClient, Token};
 use async_trait::async_trait;
-use gem_client::ReqwestClient;
+use gem_reqwest::ReqwestClient;
 use primitives::AssetId;
 
 use crate::{AssetPriceFull, AssetPriceMapping, PriceAssetsProvider, PriceProvider, PriceProviderAsset};

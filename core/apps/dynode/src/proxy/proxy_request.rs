@@ -1,3 +1,5 @@
+use std::collections::hash_map::RandomState;
+use std::hash::BuildHasher;
 use std::time::{Duration, Instant};
 
 use bytes::Bytes;
@@ -7,13 +9,12 @@ use primitives::{Chain, ChainRequest, ChainRequestProtocol, ChainRequestType};
 use reqwest::Method;
 use reqwest::header::{HOST, HeaderMap, USER_AGENT};
 use url::Url;
-use uuid::Uuid;
 
 use crate::config::path::path_without_query;
 use crate::jsonrpc_types::{JsonRpcCall, JsonRpcRequest, RequestType};
 
 fn generate_request_id() -> String {
-    format!("{:016x}", Uuid::new_v4().as_u128() as u64)
+    format!("{:016x}", RandomState::new().hash_one(0u8))
 }
 
 #[derive(Debug)]

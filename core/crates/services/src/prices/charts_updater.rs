@@ -4,10 +4,9 @@ use std::time::Duration;
 
 use crate::prices::PriceClient;
 use cacher::ChartsHistoryCacher;
-use chrono::{DateTime, Utc};
 use gem_tracing::info_with_fields;
 use prices::PriceAssetsProvider;
-use primitives::{ChartTimeframe, ChartValue, PriceData, SECONDS_PER_DAY, SECONDS_PER_HOUR};
+use primitives::{ChartTimeframe, ChartValue, DAY, DateTime, HOUR, PriceData};
 use storage::{ChartPoint, PriceFilter};
 
 use super::repository::Repository;
@@ -26,7 +25,7 @@ impl ChartsUpdater {
         self.prices_client.aggregate_charts(timeframe).await
     }
 
-    pub async fn delete_charts(&self, timeframe: ChartTimeframe, before: chrono::NaiveDateTime) -> Result<usize, Box<dyn Error + Send + Sync>> {
+    pub async fn delete_charts(&self, timeframe: ChartTimeframe, before: DateTime) -> Result<usize, Box<dyn Error + Send + Sync>> {
         self.prices_client.delete_charts(timeframe, before).await
     }
 }
@@ -59,15 +58,9 @@ impl ChartsHistoryUpdater {
             let provider_price_id = price.provider_price_id.as_str();
             let price_id = price.id.to_string();
             info_with_fields!("charts history sync started", price_id = price_id.clone());
-            let daily = self.sync(price, "daily", ChartTimeframe::Daily, SECONDS_PER_DAY as i64, self.provider.get_charts_daily(provider_price_id)).await?;
+            let daily = self.sync(price, "daily", ChartTimeframe::Daily, DAY, self.provider.get_charts_daily(provider_price_id)).await?;
             let hourly = self
-                .sync(
-                    price,
-                    "hourly",
-                    ChartTimeframe::Hourly,
-                    SECONDS_PER_HOUR as i64,
-                    self.provider.get_charts_hourly(provider_price_id, self.config.hourly_duration),
-                )
+                .sync(price, "hourly", ChartTimeframe::Hourly, HOUR, self.provider.get_charts_hourly(provider_price_id, self.config.hourly_duration))
                 .await?;
             let has_history = daily.received + hourly.received > 0;
             let extremes_updates = if has_history { self.repository.update_extremes_for_price(price_id.clone()).await? } else { 0 };
@@ -95,14 +88,14 @@ impl ChartsHistoryUpdater {
         price: &PriceData,
         label: &'static str,
         timeframe: ChartTimeframe,
-        bucket_size_seconds: i64,
+        bucket: Duration,
         future: impl std::future::Future<Output = Result<Vec<ChartValue>, Box<dyn Error + Send + Sync>>>,
     ) -> Result<HistorySyncStats, Box<dyn Error + Send + Sync>> {
         let values = future.await.inspect_err(|error| {
             info_with_fields!("charts history get failed", price_id = price.id.to_string(), kind = label, error = error.to_string());
         })?;
         let price_id = price.id.to_string();
-        let rows = bucketed_chart_rows(&price_id, &values, bucket_size_seconds);
+        let rows = bucketed_chart_rows(&price_id, &values, bucket);
         let inserted = self.repository.add_charts(timeframe, rows).await?;
         Ok(HistorySyncStats { received: values.len(), inserted })
     }
@@ -114,17 +107,13 @@ struct HistorySyncStats {
     inserted: usize,
 }
 
-fn bucketed_chart_rows(price_id: &str, values: &[ChartValue], bucket_size_seconds: i64) -> Vec<ChartPoint> {
+fn bucketed_chart_rows(price_id: &str, values: &[ChartValue], bucket: Duration) -> Vec<ChartPoint> {
     values
         .iter()
-        .filter_map(|value| {
-            let bucket = i64::from(value.timestamp).div_euclid(bucket_size_seconds) * bucket_size_seconds;
-            let created_at = DateTime::<Utc>::from_timestamp(bucket, 0)?.naive_utc();
-            Some(ChartPoint {
-                price_id: price_id.to_string(),
-                price: value.value as f64,
-                created_at,
-            })
+        .map(|value| ChartPoint {
+            price_id: price_id.to_string(),
+            price: value.value as f64,
+            created_at: DateTime::from_timestamp(i64::from(value.timestamp)).truncated(bucket),
         })
         .collect()
 }
@@ -138,15 +127,15 @@ mod tests {
     #[test]
     fn test_chart_rows_are_bucketed() {
         let value = ChartValue { timestamp: 1_713_774_896, value: 123.45 };
-        let hourly = bucketed_chart_rows("bitcoin", slice::from_ref(&value), SECONDS_PER_HOUR as i64).remove(0);
-        let daily = bucketed_chart_rows("bitcoin", &[value], SECONDS_PER_DAY as i64).remove(0);
+        let hourly = bucketed_chart_rows("bitcoin", slice::from_ref(&value), HOUR).remove(0);
+        let daily = bucketed_chart_rows("bitcoin", &[value], DAY).remove(0);
 
         assert_eq!(
             hourly,
             ChartPoint {
                 price_id: "bitcoin".to_string(),
                 price: 123.45_f32 as f64,
-                created_at: DateTime::<Utc>::from_timestamp(1_713_772_800, 0).unwrap().naive_utc(),
+                created_at: DateTime::from_timestamp(1_713_772_800),
             }
         );
         assert_eq!(
@@ -154,7 +143,7 @@ mod tests {
             ChartPoint {
                 price_id: "bitcoin".to_string(),
                 price: 123.45_f32 as f64,
-                created_at: DateTime::<Utc>::from_timestamp(1_713_744_000, 0).unwrap().naive_utc(),
+                created_at: DateTime::from_timestamp(1_713_744_000),
             }
         );
     }

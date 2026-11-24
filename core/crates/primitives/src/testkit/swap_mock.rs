@@ -1,6 +1,6 @@
 use super::signer_mock::TEST_EVM_RECIPIENT;
 use crate::{
-    SwapProvider,
+    Asset, Chain, SwapProvider, TransactionInputType,
     asset_constants::ETHEREUM_USDT_TOKEN_ID,
     swap::{ApprovalData, Permit2ApprovalData, Slippage, SlippageMode, SwapData, SwapProviderData, SwapQuote, SwapQuoteData, SwapQuoteDataType},
 };
@@ -23,6 +23,16 @@ impl ApprovalData {
             spender: spender.to_string(),
             value,
             is_unlimited,
+        }
+    }
+}
+
+impl TransactionInputType {
+    pub fn mock_swap(from_asset: Asset, data: SwapQuoteData) -> Self {
+        Self::Swap {
+            from_asset,
+            to_asset: Asset::from_chain(Chain::Ethereum),
+            swap_data: SwapData::mock_with_quote_data(SwapQuote::mock(), data),
         }
     }
 }

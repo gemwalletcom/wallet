@@ -1,7 +1,8 @@
 use std::sync::Arc;
 
 use cacher::{SwapVaultAddressCacher, SwapVaultAddressKind};
-use gem_client::{ClientError, ReqwestClient, Response};
+use gem_client::{ClientError, Response};
+use gem_reqwest::ReqwestClient;
 use gem_tracing::{error_fields, error_with_fields};
 use primitives::SwapProvider;
 use reqwest::{Method, RequestBuilder};
@@ -17,7 +18,7 @@ pub(super) struct SwapProxyClient {
 impl SwapProxyClient {
     pub(super) fn new(url: String, deposit_addresses: Arc<dyn SwapVaultAddressCacher>, provider: SwapProvider) -> Self {
         Self {
-            client: ReqwestClient::new(url, gem_client::reqwest_client()),
+            client: ReqwestClient::new(url, gem_reqwest::reqwest_client()),
             deposit_addresses,
             provider,
         }

@@ -10,11 +10,13 @@ use std::sync::{Arc, Mutex};
 use super::{Options, Quote, QuoteRequest};
 #[cfg(test)]
 use crate::alien::mock::{MockFn, ProviderMock};
-#[cfg(feature = "swap_integration_tests")]
+#[cfg(all(test, feature = "swap_integration_tests"))]
 use crate::client_factory::create_client_with_chain;
-#[cfg(feature = "swap_integration_tests")]
+#[cfg(all(test, feature = "swap_integration_tests"))]
 use gem_evm::jsonrpc::{BlockParameter, EthereumRpc, TransactionObject};
-#[cfg(feature = "swap_integration_tests")]
+#[cfg(all(test, feature = "swap_integration_tests"))]
+use gem_reqwest::NativeProvider;
+#[cfg(all(test, feature = "swap_integration_tests"))]
 use primitives::decode_hex;
 
 pub const TEST_SUI_WALLET: &str = "0x2ec5b7bcf6a0512850fe5f95cbd0a4303e8de5a3ffc01f9dba96bf1fde5f9bb5";
@@ -123,12 +125,12 @@ impl Quote {
     }
 }
 
-#[cfg(feature = "swap_integration_tests")]
-pub fn dynode_provider(chains: impl IntoIterator<Item = Chain>) -> Arc<crate::NativeProvider> {
-    Arc::new(crate::NativeProvider::new_with_endpoints(chains.into_iter().map(|chain| (chain, format!("https://gemnodes.com/{}", chain.as_ref()))).collect()))
+#[cfg(all(test, feature = "swap_integration_tests"))]
+pub fn dynode_provider(chains: impl IntoIterator<Item = Chain>) -> Arc<NativeProvider> {
+    Arc::new(NativeProvider::new_with_endpoints(chains.into_iter().map(|chain| (chain, format!("https://gemnodes.com/{}", chain.as_ref()))).collect()))
 }
 
-#[cfg(feature = "swap_integration_tests")]
+#[cfg(all(test, feature = "swap_integration_tests"))]
 pub async fn simulate_swap(chain: Chain, wallet: &str, data: &SwapperQuoteData) -> Result<(), SwapperError> {
     let balance = format!("0x{:x}", data.value);
     let simulation = EthereumRpc::CallWithBalance {

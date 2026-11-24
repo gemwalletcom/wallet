@@ -1,10 +1,7 @@
-use crate::provider::generate_quote_id;
 use primitives::FiatQuoteType;
 use primitives::hex;
 use sha2::{Digest, Sha512};
 use url::Url;
-
-use super::models::Quote;
 
 const MERCURYO_REDIRECT_URL: &str = "https://exchange.mercuryo.io";
 
@@ -21,26 +18,7 @@ pub struct MercuryoWidget {
 }
 
 impl MercuryoWidget {
-    pub fn new(widget_id: String, secret_key: String, address: String, ip_address: String, quote: Quote, quote_type: FiatQuoteType, network: String) -> Self {
-        let amount = match quote_type {
-            FiatQuoteType::Buy => quote.fiat_amount,
-            FiatQuoteType::Sell => quote.amount,
-        };
-
-        Self {
-            widget_id,
-            secret_key,
-            merchant_transaction_id: generate_quote_id(),
-            address,
-            ip_address,
-            currency: quote.currency,
-            network,
-            quote_type,
-            amount,
-        }
-    }
-
-    pub fn new_from_data(widget_id: String, secret_key: String, merchant_transaction_id: String, address: String, ip_address: String, currency: String, amount: f64, quote_type: FiatQuoteType, network: String) -> Self {
+    pub fn new(widget_id: String, secret_key: String, merchant_transaction_id: String, address: String, ip_address: String, currency: String, amount: f64, quote_type: FiatQuoteType, network: String) -> Self {
         Self {
             widget_id,
             secret_key,
@@ -90,55 +68,35 @@ mod tests {
 
     #[test]
     fn signature_v2_format() {
-        let quote = Quote {
-            amount: 0.5,
-            currency: "BTC".to_string(),
-            fiat_amount: 1000.0,
-        };
-        let mut widget = MercuryoWidget::new("widget123".to_string(), "secret".to_string(), "0x123".to_string(), "127.0.0.1".to_string(), quote, FiatQuoteType::Buy, "BITCOIN".to_string());
-        widget.merchant_transaction_id = "tx123".to_string();
-
-        let signature = widget.signature();
-        let expected_content = "0x123secret127.0.0.1tx123";
-        let expected_hash = hex::encode(Sha512::digest(expected_content));
+        let signature = MercuryoWidget::mock().signature();
+        let expected_hash = hex::encode(Sha512::digest("0x123secret127.0.0.1tx123"));
 
         assert_eq!(signature, format!("v2:{}", expected_hash));
     }
 
     #[test]
     fn build_url_buy() {
-        let quote = Quote {
-            amount: 0.5,
-            currency: "BTC".to_string(),
-            fiat_amount: 1000.0,
-        };
+        let url = MercuryoWidget::mock().to_url();
 
-        let widget = MercuryoWidget::new("widget123".to_string(), "secret".to_string(), "0x123".to_string(), "127.0.0.1".to_string(), quote, FiatQuoteType::Buy, "BITCOIN".to_string());
-        let url = widget.to_url();
-
-        assert!(url.starts_with("https://exchange.mercuryo.io"));
-        assert!(url.contains("widget_id=widget123"));
-        assert!(url.contains("currency=BTC"));
-        assert!(url.contains("address=0x123"));
-        assert!(url.contains("network=BITCOIN"));
-        assert!(url.contains("type=buy"));
-        assert!(url.contains("fiat_amount=1000"));
-        assert!(url.contains("signature=v2%3A"));
+        assert_eq!(
+            url,
+            "https://exchange.mercuryo.io/?widget_id=widget123&merchant_transaction_id=tx123&currency=BTC&address=0x123&network=BITCOIN&signature=v2%3Aead820318be19870c157682e7f4ad1190b41b3811d85c1a31c14b4d614fed9a7806fdddd324e258d7c7d0be78427727d98bed6d44a5a13c3761aabf5b39978e7&type=buy&fiat_amount=1000"
+        );
     }
 
     #[test]
     fn build_url_sell() {
-        let quote = Quote {
-            amount: 1.5,
+        let url = MercuryoWidget {
             currency: "ETH".to_string(),
-            fiat_amount: 3000.0,
-        };
+            amount: 1.5,
+            quote_type: FiatQuoteType::Sell,
+            ..MercuryoWidget::mock()
+        }
+        .to_url();
 
-        let widget = MercuryoWidget::new("widget123".to_string(), "secret".to_string(), "0xdef".to_string(), "127.0.0.1".to_string(), quote, FiatQuoteType::Sell, "ETHEREUM".to_string());
-        let url = widget.to_url();
-
-        assert!(url.contains("type=sell"));
-        assert!(url.contains("amount=1.5"));
-        assert!(!url.contains("fiat_amount="));
+        assert_eq!(
+            url,
+            "https://exchange.mercuryo.io/?widget_id=widget123&merchant_transaction_id=tx123&currency=ETH&address=0x123&network=BITCOIN&signature=v2%3Aead820318be19870c157682e7f4ad1190b41b3811d85c1a31c14b4d614fed9a7806fdddd324e258d7c7d0be78427727d98bed6d44a5a13c3761aabf5b39978e7&type=sell&amount=1.5"
+        );
     }
 }

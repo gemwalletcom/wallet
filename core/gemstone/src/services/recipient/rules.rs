@@ -113,22 +113,28 @@ fn requested_transfer(address: &str, asset: &Asset) -> Option<GemTransferData> {
     }
 }
 
-pub fn contact_recipients(contacts: Vec<ContactData>, chain: Chain) -> Vec<GemRecipient> {
+fn contact_rows(contacts: Vec<ContactData>, chain: Chain) -> Vec<GemRecipientRow> {
     contacts
         .into_iter()
         .flat_map(|data| {
             let name = data.contact.name;
-            data.addresses.into_iter().filter(move |address| address.chain == chain).map(move |address| GemRecipient {
-                address: address.address,
-                name: Some(name.clone()),
-                memo: address.memo,
-                references: vec![],
+            data.addresses.into_iter().filter(move |address| address.chain == chain).map(move |address| {
+                recipient_row(
+                    chain,
+                    address.id,
+                    GemRecipient {
+                        address: address.address,
+                        name: Some(name.clone()),
+                        memo: address.memo,
+                        references: vec![],
+                    },
+                )
             })
         })
         .collect()
 }
 
-pub fn recipient_sections(wallets: Vec<WalletAddressItem>, chain: Chain, contacts: Vec<GemRecipient>) -> Vec<GemGroup> {
+pub fn recipient_sections(wallets: Vec<WalletAddressItem>, chain: Chain, contacts: Vec<ContactData>) -> Vec<GemGroup> {
     let sorted = sorted_by_wallet_order(wallets, |item| &item.wallet);
     let rows = |include: &dyn Fn(&WalletAddressItem) -> bool| -> Vec<GemRecipientRow> {
         sorted
@@ -137,6 +143,7 @@ pub fn recipient_sections(wallets: Vec<WalletAddressItem>, chain: Chain, contact
             .map(|item| {
                 recipient_row(
                     chain,
+                    item.wallet.id.id(),
                     GemRecipient {
                         address: item.address.clone(),
                         name: Some(item.wallet.name.clone()),
@@ -152,7 +159,7 @@ pub fn recipient_sections(wallets: Vec<WalletAddressItem>, chain: Chain, contact
 
     [
         section(GemListSectionTitle::Pinned, rows(&|item| item.wallet.is_pinned)),
-        section(GemListSectionTitle::Contacts, contacts.into_iter().map(|contact| recipient_row(chain, contact)).collect()),
+        section(GemListSectionTitle::Contacts, contact_rows(contacts, chain)),
         section(GemListSectionTitle::MyWallets, rows(&|item| !item.wallet.is_pinned && !is_view(item))),
         section(GemListSectionTitle::ViewWallets, rows(&|item| !item.wallet.is_pinned && is_view(item))),
     ]
@@ -161,8 +168,9 @@ pub fn recipient_sections(wallets: Vec<WalletAddressItem>, chain: Chain, contact
     .collect()
 }
 
-fn recipient_row(chain: Chain, recipient: GemRecipient) -> GemRecipientRow {
+fn recipient_row(chain: Chain, id: String, recipient: GemRecipient) -> GemRecipientRow {
     GemRecipientRow {
+        id,
         title: recipient.name.clone().unwrap_or_default(),
         subtitle: format_address(&recipient.address, Some(chain), AddressFormatStyle::Short),
         recipient,
@@ -173,7 +181,7 @@ fn recipient_row(chain: Chain, recipient: GemRecipient) -> GemRecipientRow {
 mod tests {
     use super::*;
     use crate::services::recipient::model::GemRecipientSession;
-    use primitives::WalletId;
+    use primitives::{Contact, ContactAddress, WalletId};
 
     use gem_spark::testkit::{INVOICE_2000_SATS, INVOICE_AMOUNTLESS};
 
@@ -438,6 +446,10 @@ mod tests {
         recipient_rows(section).into_iter().map(|row| row.title).collect()
     }
 
+    fn ids(section: &GemGroup) -> Vec<String> {
+        recipient_rows(section).into_iter().map(|row| row.id).collect()
+    }
+
     fn title(title: GemListSectionTitle) -> Option<crate::services::localization::GemLocalizedText> {
         Some(crate::services::localization::GemLocalizedText::SectionTitle { title })
     }
@@ -513,21 +525,29 @@ mod tests {
             WalletAddressItem::mock("pinned", WalletId::Multicoin("0x1".to_string()), true),
         ];
 
-        let alice = GemRecipient {
-            memo: Some("1".to_string()),
-            ..GemRecipient::named("0x71C7656EC7ab88b098defB751B7401B5f6d8976F".to_string(), "Alice".to_string())
+        let alice = ContactData {
+            contact: Contact::mock(),
+            addresses: vec![ContactAddress {
+                address: "0x71C7656EC7ab88b098defB751B7401B5f6d8976F".to_string(),
+                memo: Some("1".to_string()),
+                ..ContactAddress::mock("a")
+            }],
         };
 
-        let sections = recipient_sections(wallets, Chain::Ethereum, vec![alice.clone()]);
+        let sections = recipient_sections(wallets, Chain::Ethereum, vec![alice]);
 
         assert_eq!(names(&sections[0]), vec!["pinned"]);
         assert_eq!(sections[1].title, title(GemListSectionTitle::Contacts));
         assert_eq!(
             recipient_rows(&sections[1]),
             vec![GemRecipientRow {
+                id: "a".to_string(),
                 title: "Alice".to_string(),
                 subtitle: format_address("0x71C7656EC7ab88b098defB751B7401B5f6d8976F", Some(Chain::Ethereum), AddressFormatStyle::Short),
-                recipient: alice,
+                recipient: GemRecipient {
+                    memo: Some("1".to_string()),
+                    ..GemRecipient::named("0x71C7656EC7ab88b098defB751B7401B5f6d8976F".to_string(), "Alice".to_string())
+                },
             }]
         );
         assert_eq!(names(&sections[2]), vec!["multicoin", "single", "private key"], "wallets keep the order of the wallets list");
@@ -538,34 +558,65 @@ mod tests {
     fn test_each_contact_address_on_the_chain_is_a_recipient_named_after_its_contact() {
         let contacts = vec![
             ContactData {
-                contact: primitives::Contact::mock(),
+                contact: Contact::mock(),
                 addresses: vec![
-                    primitives::ContactAddress {
+                    ContactAddress {
                         memo: Some("1".to_string()),
-                        ..primitives::ContactAddress::mock("a")
+                        ..ContactAddress::mock("a")
                     },
-                    primitives::ContactAddress {
+                    ContactAddress {
                         chain: Chain::Bitcoin,
-                        ..primitives::ContactAddress::mock("b")
+                        ..ContactAddress::mock("b")
                     },
                 ],
             },
             ContactData {
-                contact: primitives::Contact {
-                    name: "Bob".to_string(),
-                    ..primitives::Contact::mock()
-                },
+                contact: Contact { name: "Bob".to_string(), ..Contact::mock() },
                 addresses: vec![],
             },
         ];
 
         assert_eq!(
-            contact_recipients(contacts, Chain::Ethereum),
-            vec![GemRecipient {
-                memo: Some("1".to_string()),
-                ..GemRecipient::named("0xa".to_string(), "Alice".to_string())
+            contact_rows(contacts, Chain::Ethereum),
+            vec![GemRecipientRow {
+                id: "a".to_string(),
+                title: "Alice".to_string(),
+                subtitle: format_address("0xa", Some(Chain::Ethereum), AddressFormatStyle::Short),
+                recipient: GemRecipient {
+                    memo: Some("1".to_string()),
+                    ..GemRecipient::named("0xa".to_string(), "Alice".to_string())
+                },
             }]
         );
+    }
+
+    #[test]
+    fn test_identical_recipients_keep_the_id_of_their_wallet_or_contact_address() {
+        let multicoin = WalletId::Multicoin("0x1".to_string());
+        let private_key = WalletId::PrivateKey(Chain::Ethereum, "0x1".to_string());
+        let wallets = vec![WalletAddressItem::mock("Main", multicoin.clone(), false), WalletAddressItem::mock("Main", private_key.clone(), false)];
+        let contacts = vec![
+            ContactData {
+                contact: Contact::mock(),
+                addresses: vec![ContactAddress::mock("a")],
+            },
+            ContactData {
+                contact: Contact { id: "copy".to_string(), ..Contact::mock() },
+                addresses: vec![ContactAddress {
+                    id: "b".to_string(),
+                    ..ContactAddress::mock("a")
+                }],
+            },
+        ];
+
+        let sections = recipient_sections(wallets, Chain::Ethereum, contacts);
+        let contact_entries = recipient_rows(&sections[0]);
+        let wallet_entries = recipient_rows(&sections[1]);
+
+        assert_eq!(contact_entries[0].recipient, contact_entries[1].recipient);
+        assert_eq!(wallet_entries[0].recipient, wallet_entries[1].recipient);
+        assert_eq!(ids(&sections[0]), vec!["a", "b"]);
+        assert_eq!(ids(&sections[1]), vec![multicoin.id(), private_key.id()]);
     }
 
     #[test]

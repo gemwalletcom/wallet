@@ -4,4 +4,4 @@ version = { workspace = true }
 edition = { workspace = true }
 
 [dependencies]
-chrono = { workspace = true }
+date_time = { path = "../date_time" }

@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 
-use chrono::{DateTime, Utc};
-use primitives::{Device, OptionStringExt, SupportAgent, SupportMessage, SupportMessageImage, SupportMessageSender, SupportMessageStatus, SupportTyping, SupportTypingStatus};
+use primitives::{DateTime, Device, OptionStringExt, SupportAgent, SupportMessage, SupportMessageImage, SupportMessageSender, SupportMessageStatus, SupportTyping, SupportTypingStatus};
 use serde::{Deserialize, Serialize};
 
 use super::constants::{CHATWOOT_CONTENT_TYPE_TEXT, CHATWOOT_DELIVERY_STATUS_DELIVERED, CHATWOOT_DELIVERY_STATUS_READ, CHATWOOT_DELIVERY_STATUS_SENT, CHATWOOT_FILE_TYPE_IMAGE};
@@ -38,14 +37,14 @@ impl From<MessageType> for i32 {
 #[serde(untagged)]
 pub enum ChatwootDateTime {
     UnixTimestamp(i64),
-    Rfc3339(DateTime<Utc>),
+    Rfc3339(DateTime),
 }
 
 impl ChatwootDateTime {
-    fn datetime(&self) -> Option<DateTime<Utc>> {
+    fn datetime(&self) -> DateTime {
         match self {
-            Self::UnixTimestamp(value) => datetime_from_unix_timestamp(*value),
-            Self::Rfc3339(value) => Some(*value),
+            Self::UnixTimestamp(value) => DateTime::from_timestamp(*value),
+            Self::Rfc3339(value) => *value,
         }
     }
 }
@@ -157,7 +156,7 @@ impl ChatwootWebhookPayload {
             self.private,
             sender,
             SupportMessageStatus::Sent,
-            self.created_at.as_ref()?.datetime()?,
+            self.created_at.as_ref()?.datetime(),
             &self.attachments,
         )
     }
@@ -205,7 +204,7 @@ impl Message {
             private,
             sender,
             support_delivery_status(self.status.as_deref()),
-            datetime_from_unix_timestamp(self.created_at)?,
+            DateTime::from_timestamp(self.created_at),
             &self.attachments,
         )
     }
@@ -319,16 +318,7 @@ pub(crate) fn support_public_messages(messages: &[Message]) -> Vec<SupportMessag
     messages.iter().filter_map(Message::support_public_message).collect()
 }
 
-fn support_message(
-    id: i64,
-    content: Option<&str>,
-    content_type: Option<&str>,
-    private: Option<bool>,
-    sender: SupportMessageSender,
-    status: SupportMessageStatus,
-    created_at: DateTime<Utc>,
-    attachments: &[Attachment],
-) -> Option<SupportMessage> {
+fn support_message(id: i64, content: Option<&str>, content_type: Option<&str>, private: Option<bool>, sender: SupportMessageSender, status: SupportMessageStatus, created_at: DateTime, attachments: &[Attachment]) -> Option<SupportMessage> {
     if private != Some(false) {
         return None;
     }
@@ -362,10 +352,6 @@ fn support_delivery_status(status: Option<&str>) -> SupportMessageStatus {
         Some(CHATWOOT_DELIVERY_STATUS_SENT) | Some(CHATWOOT_DELIVERY_STATUS_DELIVERED) | Some(CHATWOOT_DELIVERY_STATUS_READ) | None => SupportMessageStatus::Sent,
         Some(_) => SupportMessageStatus::Failed,
     }
-}
-
-fn datetime_from_unix_timestamp(value: i64) -> Option<DateTime<Utc>> {
-    DateTime::<Utc>::from_timestamp(value, 0)
 }
 
 #[cfg(test)]

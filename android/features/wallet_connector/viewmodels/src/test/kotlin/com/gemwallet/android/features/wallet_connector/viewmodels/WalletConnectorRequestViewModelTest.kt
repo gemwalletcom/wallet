@@ -75,9 +75,9 @@ class WalletConnectorRequestViewModelTest {
         },
     ).also { models.add(it) }
 
-    private fun TestScope.pending(requests: WalletConnectPendingRequests, signature: CompletableDeferred<String>? = null): Job = launch {
+    private fun TestScope.pending(requests: WalletConnectPendingRequests, signature: CompletableDeferred<String>? = null, sessionId: String = topic): Job = launch {
         runCatching {
-            requests.signMessage(mockGemWalletConnectMessageRequest(sessionId = topic, wallet = mockWallet(name = "Main Wallet").toGem(), session = mockWalletConnectionSession(sessionId = topic).toGem()))
+            requests.signMessage(mockGemWalletConnectMessageRequest(sessionId = sessionId, wallet = mockWallet(name = "Main Wallet").toGem(), session = mockWalletConnectionSession(sessionId = sessionId).toGem()))
         }.onSuccess { signature?.complete(it) }
     }
 
@@ -128,6 +128,25 @@ class WalletConnectorRequestViewModelTest {
         val state = model.awaitContent()
         assertTrue(state is WalletConnectorRequestUIState.SignMessage)
         assertEquals("Main Wallet", (state as WalletConnectorRequestUIState.SignMessage).request.wallet.name)
+
+        job.cancel()
+    }
+
+    @Test
+    fun `a pending request from another session is neither shown nor rejected`() = runTest(dispatcher) {
+        val requests = WalletConnectPendingRequests()
+        val model = viewModel(requests = requests)
+
+        model.onRequest(sessionRequest, onError = {})
+        val job = pending(requests, sessionId = "topic-2")
+        advanceUntilIdle()
+
+        assertEquals(WalletConnectorRequestUIState.Loading, model.uiState.value)
+
+        model.onReject()
+        advanceUntilIdle()
+
+        assertNotNull(requests.current.value)
 
         job.cancel()
     }

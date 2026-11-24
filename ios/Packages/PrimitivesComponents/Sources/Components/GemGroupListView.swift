@@ -161,7 +161,7 @@ extension GemListItem {
         case let .validator(row, _): row.validator.id
         case let .connection(connection): connection.connection.session.id
         case let .priceAlert(alert): alert.id
-        case let .recipient(row): row.recipient.id
+        case let .recipient(row): row.id
         case let .transactionDetail(item): item.id
         case let .node(row): row.node.url
         case let .explorer(row): row.name

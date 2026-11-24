@@ -8,7 +8,7 @@ use chain_providers::ChainProviders;
 use chain_traits::TransactionsRequest;
 use config_keys::ConfigParamKey;
 use gem_tracing::{error_with_fields, info_with_fields};
-use primitives::Chain;
+use primitives::{Chain, DateTime};
 use streamer::TransactionsPayload;
 use streamer::steam_producer_queue::StreamProducerQueue;
 
@@ -63,7 +63,7 @@ impl PerpetualPositionObserver {
     }
 
     async fn observe_address(&self, address: &str) -> Result<usize, Box<dyn Error + Send + Sync>> {
-        let now = chrono::Utc::now().timestamp() as u64;
+        let now = DateTime::now().timestamp() as u64;
         let from_timestamp = self.addresses.checkpoint(self.chain, address).await?.unwrap_or(now);
         let limit = self.config.get_param_usize(&ConfigParamKey::TransactionsRequestLimit(self.chain)).await?;
 

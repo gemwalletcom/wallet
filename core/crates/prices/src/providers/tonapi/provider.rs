@@ -2,7 +2,7 @@ use std::error::Error;
 use std::time::Duration;
 
 use async_trait::async_trait;
-use gem_client::{ReqwestClient, default_should_retry, retry};
+use gem_reqwest::{ReqwestClient, default_should_retry, retry};
 use gem_tracing::warn_with_fields;
 use primitives::AssetId;
 use tokio::time::sleep;

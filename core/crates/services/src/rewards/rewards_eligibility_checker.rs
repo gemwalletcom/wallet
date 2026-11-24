@@ -4,7 +4,7 @@ use std::sync::Arc;
 use crate::ConfigCacher;
 use config_keys::ConfigKey;
 use gem_tracing::{error_with_fields, info_with_fields};
-use primitives::{NaiveDateTimeExt, RewardStatus, now};
+use primitives::{DateTime, RewardStatus};
 use storage::RewardsEligibilityConfig;
 use streamer::{RewardsNotificationPayload, StreamProducerQueue};
 
@@ -25,7 +25,7 @@ impl RewardsEligibilityChecker {
         let promotion_limit = self.config.get_i64(ConfigKey::RewardsEligibilityPromotionLimit).await?;
         let active_duration = self.config.get_duration(ConfigKey::RewardsEligibilityActiveDuration).await?;
         let eligibility = RewardsEligibilityConfig {
-            activity_cutoff: now().ago(active_duration),
+            activity_cutoff: DateTime::now() - active_duration,
             transactions_required: self.config.get_i64(ConfigKey::RewardsEligibilityTransactionsCount).await?,
         };
 

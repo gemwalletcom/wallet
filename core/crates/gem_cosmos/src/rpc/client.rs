@@ -5,8 +5,8 @@ use crate::models::account::{Balance, Balances, Page};
 use crate::models::staking::{Delegation, Delegations, Rewards, UnbondingDelegation, UnbondingDelegations};
 use crate::models::{Account, AccountResponse, BroadcastRequest, BroadcastResponse, InjectiveAccount};
 use crate::models::{
-    AnnualProvisionsResponse, BaseFeeResponse, BlockResponse, FeemarketGasPriceResponse, InflationResponse, InjectiveBaseFeeResponse, OsmosisEpochProvisionsResponse, OsmosisMintParamsResponse, SmartQueryResponse, StakingPoolResponse,
-    SupplyResponse, TransactionResponse, TransactionsResponse, ValidatorsResponse,
+    AnnualProvisionsResponse, BaseFeeResponse, BlockResponse, FeemarketGasPriceResponse, InflationResponse, InjectiveBaseFeeResponse, OsmosisPoolManagerParamsResponse, SmartQueryResponse, StakingPoolResponse, SupplyResponse,
+    TransactionResponse, TransactionsResponse, ValidatorsResponse,
 };
 use crate::provider::state_mapper::map_transfer_fee;
 use crate::rpc::target::CosmosTarget;
@@ -59,11 +59,11 @@ impl<C: Client> CosmosClient<C> {
             CosmosChain::Thorchain | CosmosChain::Mayachain => return Ok(vec![]),
         };
 
-        let inbound_query = format!("message.sender='{address}'");
-        let outbound_query = format!("message.recipient='{address}'");
-        let (inbound, outbound) = futures::try_join!(self.get_transactions_by_query(key, &inbound_query, limit), self.get_transactions_by_query(key, &outbound_query, limit),)?;
-        let responses = inbound.tx_responses.into_iter().chain(outbound.tx_responses);
-        let txs = inbound.txs.into_iter().chain(outbound.txs).collect::<Vec<_>>();
+        let outbound_query = format!("message.sender='{address}'");
+        let inbound_query = format!("transfer.recipient='{address}'");
+        let (outbound, inbound) = futures::try_join!(self.get_transactions_by_query(key, &outbound_query, limit), self.get_transactions_by_query(key, &inbound_query, limit))?;
+        let responses = outbound.tx_responses.into_iter().chain(inbound.tx_responses);
+        let txs = outbound.txs.into_iter().chain(inbound.txs).collect::<Vec<_>>();
         Ok(responses.zip(txs).map(|(response, tx)| TransactionResponse { tx, tx_response: response }).collect::<Vec<_>>())
     }
 
@@ -95,12 +95,8 @@ impl<C: Client> CosmosClient<C> {
         Ok(self.client.get(CosmosTarget::GetSupply { denom: denom.to_string() }).await?)
     }
 
-    pub async fn get_osmosis_mint_params(&self) -> Result<OsmosisMintParamsResponse, Box<dyn Error + Send + Sync>> {
-        Ok(self.client.get(CosmosTarget::GetOsmosisMintParams).await?)
-    }
-
-    pub async fn get_osmosis_epoch_provisions(&self) -> Result<OsmosisEpochProvisionsResponse, Box<dyn Error + Send + Sync>> {
-        Ok(self.client.get(CosmosTarget::GetOsmosisEpochProvisions).await?)
+    pub async fn get_osmosis_pool_manager_params(&self) -> Result<OsmosisPoolManagerParamsResponse, Box<dyn Error + Send + Sync>> {
+        Ok(self.client.get(CosmosTarget::GetOsmosisPoolManagerParams).await?)
     }
 
     pub async fn get_balances(&self, address: &str) -> Result<Vec<Balance>, Box<dyn Error + Send + Sync>> {
@@ -205,7 +201,7 @@ mod tests {
             let address = "celestia1cvh8mpz04az0x7vht6h6ekksg8wd650rq0wm5l";
             let expected_path = match request_count_for_client.fetch_add(1, Ordering::SeqCst) {
                 0 => format!("/cosmos/tx/v1beta1/txs?query=message.sender='{address}'&pagination.limit=1&page=1"),
-                1 => format!("/cosmos/tx/v1beta1/txs?query=message.recipient='{address}'&pagination.limit=1&page=1"),
+                1 => format!("/cosmos/tx/v1beta1/txs?query=transfer.recipient='{address}'&pagination.limit=1&page=1"),
                 _ => panic!("unexpected request"),
             };
             assert_eq!(path, expected_path);

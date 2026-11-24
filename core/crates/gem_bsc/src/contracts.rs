@@ -40,6 +40,13 @@ sol! {
         function redelegate(address srcValidator, address dstValidator, uint256 shares, bool delegateVotePower) external;
         function claim(address operatorAddress, uint256 requestNumber) external;
         function claimBatch(address[] calldata operatorAddresses, uint256[] calldata requestNumbers) external;
-        function maxElectedValidators() external view returns (uint256);
+        function getValidatorConsensusAddress(address operatorAddress) external view returns (address consensusAddress);
+    }
+}
+
+sol! {
+    #[derive(Debug, PartialEq)]
+    interface IBSCValidatorSet {
+        function getLivingValidators() external view returns (address[] memory, bytes[] memory);
     }
 }

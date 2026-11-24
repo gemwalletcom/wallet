@@ -9,8 +9,8 @@ use gem_evm::transaction_params::TransactionParams;
 use num_bigint::BigInt;
 use primitives::{AssetBalance, AssetId, Chain, DelegationBase, DelegationValidator, StakeType};
 
-use crate::constants::{HUB_READER_ADDRESS, STAKE_HUB_ADDRESS, STAKING_VALIDATORS_LIMIT};
-use crate::encode::{decode_delegations, decode_max_elected_validators, decode_undelegations, decode_validators, encode_delegations_call, encode_max_elected_validators_call, encode_stake, encode_undelegations_call, encode_validators_call};
+use crate::constants::{HUB_READER_ADDRESS, STAKING_VALIDATORS_LIMIT};
+use crate::encode::{decode_delegations, decode_elected_validators, decode_undelegations, decode_validators, encode_delegations_call, encode_elected_validators_calls, encode_stake, encode_undelegations_call, encode_validators_call};
 use crate::mapper::{map_delegations, map_staking_balance, map_validators};
 use crate::model::{BscDelegation, BscUndelegation};
 use crate::parser::BscParser;
@@ -38,10 +38,6 @@ impl<C: Client + Clone> BscStakingClient<C> {
 
         Ok((decode_delegations(&hex::decode(&results[0])?)?, decode_undelegations(&hex::decode(&results[1])?)?))
     }
-
-    async fn get_max_elected_validators(&self) -> Result<u16, Box<dyn Error + Sync + Send>> {
-        decode_max_elected_validators(&self.client.eth_call(STAKE_HUB_ADDRESS, &encode_max_elected_validators_call()).await?)
-    }
 }
 
 #[async_trait]
@@ -57,9 +53,9 @@ impl<C: Client + Clone> EvmStakingClient for BscStakingClient<C> {
     }
 
     async fn get_staking_validators(&self, _apy: Option<f64>) -> Result<Vec<DelegationValidator>, Box<dyn Error + Sync + Send>> {
-        let limit = self.get_max_elected_validators().await?;
-        let validators = decode_validators(&self.client.eth_call(HUB_READER_ADDRESS, &encode_validators_call(0, limit)).await?)?;
-        Ok(map_validators(validators))
+        let validators = decode_validators(&self.client.eth_call(HUB_READER_ADDRESS, &encode_validators_call(0, STAKING_VALIDATORS_LIMIT)).await?)?;
+        let elected = decode_elected_validators(&validators, &self.client.multicall3(encode_elected_validators_calls(&validators)?).await?)?;
+        Ok(map_validators(validators, &elected))
     }
 
     async fn get_staking_delegations(&self, address: &str) -> Result<Vec<DelegationBase>, Box<dyn Error + Sync + Send>> {

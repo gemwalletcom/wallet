@@ -1,6 +1,5 @@
 use crate::services::collections::stale_by;
-use chrono::{DateTime, Utc};
-use primitives::{AddressName, AddressType, Chain, Contact, PaymentRequest, VerificationStatus};
+use primitives::{AddressName, AddressType, Chain, Contact, DateTime, PaymentRequest, VerificationStatus};
 use primitives::{OptionStringExt, contact::ContactAddress};
 
 use super::model::{GemContactAddressField, GemContactAddressSession, GemContactAvatarChoice, GemContactScannedAddress, GemContactSession};
@@ -42,7 +41,7 @@ pub fn new_address_session(contact_id: String, existing: Option<ContactAddress>)
     }
 }
 
-pub fn contact(existing: Option<&Contact>, id: String, name: String, description: String, image_url: Option<String>, now: DateTime<Utc>) -> Contact {
+pub fn contact(existing: Option<&Contact>, id: String, name: String, description: String, image_url: Option<String>, now: DateTime) -> Contact {
     Contact {
         id,
         name: name.trim().to_string(),
@@ -175,8 +174,8 @@ mod tests {
         assert!(!can_save_contact("Ada", true), "a save already running blocks another");
     }
     use super::*;
-    use chrono::Utc;
-    use primitives::{AssetId, Chain};
+    use primitives::{AssetId, Chain, DateTime, DurationExt};
+    use std::time::Duration;
 
     #[test]
     fn test_contact_rules() {
@@ -260,7 +259,7 @@ mod tests {
 
     #[test]
     fn test_contact_keeps_the_original_creation_time() {
-        let created_at = Utc::now() - chrono::Duration::days(2);
+        let created_at = DateTime::now() - Duration::days(2);
         let existing = Contact {
             description: Some("old".into()),
             image_url: Some("image".into()),
@@ -268,7 +267,7 @@ mod tests {
             updated_at: created_at,
             ..Contact::mock()
         };
-        let now = Utc::now();
+        let now = DateTime::now();
 
         let updated = contact(Some(&existing), "contact".into(), "  Bob  ".into(), "   ".into(), None, now);
 

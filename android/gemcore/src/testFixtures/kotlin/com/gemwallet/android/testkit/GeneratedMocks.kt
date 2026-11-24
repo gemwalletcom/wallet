@@ -1169,6 +1169,22 @@ fun mockGemAssetRowStyle(
     trailing = trailing,
 )
 
+fun mockGemAuthenticationPreview(
+    title: uniffi.gemstone.GemLocalizedText = mockGemLocalizedText(),
+    text: String = "",
+    primaryFields: List<uniffi.gemstone.GemListRow> = emptyList(),
+    secondaryFields: List<uniffi.gemstone.GemListRow> = emptyList(),
+    sections: List<uniffi.gemstone.GemGroup> = emptyList(),
+    message: uniffi.gemstone.SignMessage = mockSignMessage(),
+) = uniffi.gemstone.GemAuthenticationPreview(
+    title = title,
+    text = text,
+    primaryFields = primaryFields,
+    secondaryFields = secondaryFields,
+    sections = sections,
+    message = message,
+)
+
 fun mockGemChainRow(
     chain: String = com.wallet.core.primitives.Chain.Bitcoin.string,
     title: String = "",

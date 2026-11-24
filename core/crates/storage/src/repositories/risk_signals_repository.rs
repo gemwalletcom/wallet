@@ -1,13 +1,12 @@
 use std::collections::HashSet;
 
-use chrono::NaiveDateTime;
 use diesel::prelude::*;
 use primitives::rewards::RewardStatus as PrimitiveRewardStatus;
-use primitives::{NewRiskSignal, Platform as PrimitivePlatform, RiskSignal};
+use primitives::{DateTime, NewRiskSignal, Platform as PrimitivePlatform, RiskSignal};
 
 use crate::models::{NewRiskSignalRow, RiskSignalRow};
 use crate::repositories::rewards_repository::require_rewards;
-use crate::sql_types::{Platform, RewardStatus};
+use crate::sql_types::{DateTimeRow, Platform, RewardStatus};
 use crate::{DatabaseClient, DatabaseError, RewardsRepository};
 
 #[derive(Debug, Clone, Default)]
@@ -31,20 +30,20 @@ pub struct AbuseFacts {
 
 pub trait RiskSignalsRepository {
     fn add_risk_signal(&mut self, signal: NewRiskSignal) -> Result<i32, DatabaseError>;
-    fn get_fingerprint_exists_for_referrer(&mut self, fingerprint: &str, referrer_username: &str, since: NaiveDateTime) -> Result<bool, DatabaseError>;
-    fn get_matching_risk_signals(&mut self, fingerprint: &str, ip_address: &str, ip_isp: &str, device_model: &str, device_id: i32, since: NaiveDateTime) -> Result<Vec<RiskSignal>, DatabaseError>;
-    fn get_referrer_usernames_with_referrals(&mut self, since: NaiveDateTime, min_referrals: i64) -> Result<Vec<String>, DatabaseError>;
-    fn get_unique_referrers_count_for_fingerprint(&mut self, fingerprint: &str, since: NaiveDateTime) -> Result<i64, DatabaseError>;
-    fn get_unique_referrers_count_for_device_model_pattern(&mut self, device_model: &str, device_platform: PrimitivePlatform, device_locale: &str, since: NaiveDateTime) -> Result<i64, DatabaseError>;
-    fn get_abuse_facts(&mut self, username: &str, since: NaiveDateTime, velocity_window_secs: i64) -> Result<AbuseFacts, DatabaseError>;
-    fn get_disabled_users_count_by_ip(&mut self, ip_address: &str, since: NaiveDateTime) -> Result<i64, DatabaseError>;
-    fn get_disabled_users_count_by_device(&mut self, device_id: i32, since: NaiveDateTime) -> Result<i64, DatabaseError>;
-    fn get_unique_countries_count_for_referrer(&mut self, username: &str, since: NaiveDateTime) -> Result<i64, DatabaseError>;
-    fn get_unique_devices_count_for_referrer(&mut self, username: &str, since: NaiveDateTime) -> Result<i64, DatabaseError>;
+    fn get_fingerprint_exists_for_referrer(&mut self, fingerprint: &str, referrer_username: &str, since: DateTime) -> Result<bool, DatabaseError>;
+    fn get_matching_risk_signals(&mut self, fingerprint: &str, ip_address: &str, ip_isp: &str, device_model: &str, device_id: i32, since: DateTime) -> Result<Vec<RiskSignal>, DatabaseError>;
+    fn get_referrer_usernames_with_referrals(&mut self, since: DateTime, min_referrals: i64) -> Result<Vec<String>, DatabaseError>;
+    fn get_unique_referrers_count_for_fingerprint(&mut self, fingerprint: &str, since: DateTime) -> Result<i64, DatabaseError>;
+    fn get_unique_referrers_count_for_device_model_pattern(&mut self, device_model: &str, device_platform: PrimitivePlatform, device_locale: &str, since: DateTime) -> Result<i64, DatabaseError>;
+    fn get_abuse_facts(&mut self, username: &str, since: DateTime, velocity_window_secs: i64) -> Result<AbuseFacts, DatabaseError>;
+    fn get_disabled_users_count_by_ip(&mut self, ip_address: &str, since: DateTime) -> Result<i64, DatabaseError>;
+    fn get_disabled_users_count_by_device(&mut self, device_id: i32, since: DateTime) -> Result<i64, DatabaseError>;
+    fn get_unique_countries_count_for_referrer(&mut self, username: &str, since: DateTime) -> Result<i64, DatabaseError>;
+    fn get_unique_devices_count_for_referrer(&mut self, username: &str, since: DateTime) -> Result<i64, DatabaseError>;
 }
 
 impl RiskSignalsRepository for DatabaseClient {
-    fn get_abuse_facts(&mut self, username: &str, since: NaiveDateTime, velocity_window_secs: i64) -> Result<AbuseFacts, DatabaseError> {
+    fn get_abuse_facts(&mut self, username: &str, since: DateTime, velocity_window_secs: i64) -> Result<AbuseFacts, DatabaseError> {
         let status = *require_rewards(self, username)?.status;
         let referral_count = self.get_referrals_count_since(username, since)?;
         let attempt_count = attempts_count_for_referrer(self, username, since)?;
@@ -91,7 +90,7 @@ impl RiskSignalsRepository for DatabaseClient {
         Ok(diesel::insert_into(dsl::rewards_risk_signals).values(&signal).returning(dsl::id).get_result(&mut self.connection)?)
     }
 
-    fn get_fingerprint_exists_for_referrer(&mut self, fingerprint: &str, referrer_username: &str, since: NaiveDateTime) -> Result<bool, DatabaseError> {
+    fn get_fingerprint_exists_for_referrer(&mut self, fingerprint: &str, referrer_username: &str, since: DateTime) -> Result<bool, DatabaseError> {
         use crate::schema::rewards_risk_signals::dsl;
         use diesel::dsl::exists;
 
@@ -99,16 +98,16 @@ impl RiskSignalsRepository for DatabaseClient {
             dsl::rewards_risk_signals
                 .filter(dsl::fingerprint.eq(fingerprint))
                 .filter(dsl::referrer_username.eq(referrer_username))
-                .filter(dsl::created_at.ge(since)),
+                .filter(dsl::created_at.ge(DateTimeRow::from(since))),
         ))
         .get_result(&mut self.connection)?)
     }
 
-    fn get_matching_risk_signals(&mut self, fingerprint: &str, ip_address: &str, ip_isp: &str, device_model: &str, device_id: i32, since: NaiveDateTime) -> Result<Vec<RiskSignal>, DatabaseError> {
+    fn get_matching_risk_signals(&mut self, fingerprint: &str, ip_address: &str, ip_isp: &str, device_model: &str, device_id: i32, since: DateTime) -> Result<Vec<RiskSignal>, DatabaseError> {
         use crate::schema::rewards_risk_signals::dsl;
 
         let rows = dsl::rewards_risk_signals
-            .filter(dsl::created_at.ge(since))
+            .filter(dsl::created_at.ge(DateTimeRow::from(since)))
             .filter(
                 dsl::fingerprint
                     .eq(fingerprint)
@@ -130,12 +129,12 @@ impl RiskSignalsRepository for DatabaseClient {
                 device_model: row.device_model,
                 ip_address: row.ip_address,
                 ip_isp: row.ip_isp,
-                created_at: row.created_at,
+                created_at: row.created_at.into(),
             })
             .collect())
     }
 
-    fn get_referrer_usernames_with_referrals(&mut self, since: NaiveDateTime, min_referrals: i64) -> Result<Vec<String>, DatabaseError> {
+    fn get_referrer_usernames_with_referrals(&mut self, since: DateTime, min_referrals: i64) -> Result<Vec<String>, DatabaseError> {
         use crate::schema::{rewards, rewards_referrals};
         use diesel::dsl::count_star;
 
@@ -143,26 +142,26 @@ impl RiskSignalsRepository for DatabaseClient {
             .inner_join(rewards::table.on(rewards_referrals::referrer_username.eq(rewards::username)))
             .filter(rewards::status.ne(RewardStatus::Attribution))
             .filter(rewards::status.ne(RewardStatus::Disabled))
-            .filter(rewards_referrals::created_at.ge(since))
+            .filter(rewards_referrals::created_at.ge(DateTimeRow::from(since)))
             .group_by(rewards_referrals::referrer_username)
             .having(count_star().ge(min_referrals))
             .select(rewards_referrals::referrer_username)
             .load(&mut self.connection)?)
     }
 
-    fn get_unique_referrers_count_for_fingerprint(&mut self, fingerprint: &str, since: NaiveDateTime) -> Result<i64, DatabaseError> {
+    fn get_unique_referrers_count_for_fingerprint(&mut self, fingerprint: &str, since: DateTime) -> Result<i64, DatabaseError> {
         use crate::schema::rewards_risk_signals::dsl;
         use diesel::dsl::count;
         use diesel::expression_methods::AggregateExpressionMethods;
 
         Ok(dsl::rewards_risk_signals
             .filter(dsl::fingerprint.eq(fingerprint))
-            .filter(dsl::created_at.ge(since))
+            .filter(dsl::created_at.ge(DateTimeRow::from(since)))
             .select(count(dsl::referrer_username).aggregate_distinct())
             .first(&mut self.connection)?)
     }
 
-    fn get_unique_referrers_count_for_device_model_pattern(&mut self, device_model: &str, device_platform: PrimitivePlatform, device_locale: &str, since: NaiveDateTime) -> Result<i64, DatabaseError> {
+    fn get_unique_referrers_count_for_device_model_pattern(&mut self, device_model: &str, device_platform: PrimitivePlatform, device_locale: &str, since: DateTime) -> Result<i64, DatabaseError> {
         use crate::schema::rewards_risk_signals::dsl;
         use diesel::dsl::count;
         use diesel::expression_methods::AggregateExpressionMethods;
@@ -171,12 +170,12 @@ impl RiskSignalsRepository for DatabaseClient {
             .filter(dsl::device_model.eq(device_model))
             .filter(dsl::device_platform.eq(Platform::from(device_platform)))
             .filter(dsl::device_locale.eq(device_locale))
-            .filter(dsl::created_at.ge(since))
+            .filter(dsl::created_at.ge(DateTimeRow::from(since)))
             .select(count(dsl::referrer_username).aggregate_distinct())
             .first(&mut self.connection)?)
     }
 
-    fn get_disabled_users_count_by_ip(&mut self, ip_address: &str, since: NaiveDateTime) -> Result<i64, DatabaseError> {
+    fn get_disabled_users_count_by_ip(&mut self, ip_address: &str, since: DateTime) -> Result<i64, DatabaseError> {
         use crate::schema::{rewards, rewards_risk_signals};
         use diesel::dsl::count;
         use diesel::expression_methods::AggregateExpressionMethods;
@@ -184,13 +183,13 @@ impl RiskSignalsRepository for DatabaseClient {
         Ok(rewards_risk_signals::table
             .inner_join(rewards::table.on(rewards_risk_signals::referrer_username.eq(rewards::username)))
             .filter(rewards_risk_signals::ip_address.eq(ip_address))
-            .filter(rewards_risk_signals::created_at.ge(since))
+            .filter(rewards_risk_signals::created_at.ge(DateTimeRow::from(since)))
             .filter(rewards::status.eq(RewardStatus::Disabled))
             .select(count(rewards_risk_signals::referrer_username).aggregate_distinct())
             .first(&mut self.connection)?)
     }
 
-    fn get_disabled_users_count_by_device(&mut self, device_id: i32, since: NaiveDateTime) -> Result<i64, DatabaseError> {
+    fn get_disabled_users_count_by_device(&mut self, device_id: i32, since: DateTime) -> Result<i64, DatabaseError> {
         use crate::schema::{rewards, rewards_risk_signals};
         use diesel::dsl::count;
         use diesel::expression_methods::AggregateExpressionMethods;
@@ -198,102 +197,102 @@ impl RiskSignalsRepository for DatabaseClient {
         Ok(rewards_risk_signals::table
             .inner_join(rewards::table.on(rewards_risk_signals::referrer_username.eq(rewards::username)))
             .filter(rewards_risk_signals::device_id.eq(device_id))
-            .filter(rewards_risk_signals::created_at.ge(since))
+            .filter(rewards_risk_signals::created_at.ge(DateTimeRow::from(since)))
             .filter(rewards::status.eq(RewardStatus::Disabled))
             .select(count(rewards_risk_signals::referrer_username).aggregate_distinct())
             .first(&mut self.connection)?)
     }
 
-    fn get_unique_countries_count_for_referrer(&mut self, username: &str, since: NaiveDateTime) -> Result<i64, DatabaseError> {
+    fn get_unique_countries_count_for_referrer(&mut self, username: &str, since: DateTime) -> Result<i64, DatabaseError> {
         use crate::schema::rewards_risk_signals::dsl;
         use diesel::dsl::count;
         use diesel::expression_methods::AggregateExpressionMethods;
 
         Ok(dsl::rewards_risk_signals
             .filter(dsl::referrer_username.eq(username))
-            .filter(dsl::created_at.ge(since))
+            .filter(dsl::created_at.ge(DateTimeRow::from(since)))
             .select(count(dsl::ip_country_code).aggregate_distinct())
             .first(&mut self.connection)?)
     }
 
-    fn get_unique_devices_count_for_referrer(&mut self, username: &str, since: NaiveDateTime) -> Result<i64, DatabaseError> {
+    fn get_unique_devices_count_for_referrer(&mut self, username: &str, since: DateTime) -> Result<i64, DatabaseError> {
         use crate::schema::rewards_risk_signals::dsl;
         use diesel::dsl::count;
         use diesel::expression_methods::AggregateExpressionMethods;
 
         Ok(dsl::rewards_risk_signals
             .filter(dsl::referrer_username.eq(username))
-            .filter(dsl::created_at.ge(since))
+            .filter(dsl::created_at.ge(DateTimeRow::from(since)))
             .select(count(dsl::device_id).aggregate_distinct())
             .first(&mut self.connection)?)
     }
 }
 
-fn risk_scores_sum_for_referrer(client: &mut DatabaseClient, referrer_username: &str, since: NaiveDateTime) -> Result<i64, DatabaseError> {
+fn risk_scores_sum_for_referrer(client: &mut DatabaseClient, referrer_username: &str, since: DateTime) -> Result<i64, DatabaseError> {
     use crate::schema::rewards_risk_signals::dsl;
     use diesel::dsl::sum;
 
     Ok(dsl::rewards_risk_signals
         .filter(dsl::referrer_username.eq(referrer_username))
-        .filter(dsl::created_at.ge(since))
+        .filter(dsl::created_at.ge(DateTimeRow::from(since)))
         .select(sum(dsl::risk_score))
         .first::<Option<i64>>(&mut client.connection)
         .map(|s| s.unwrap_or(0))?)
 }
 
-fn attempts_count_for_referrer(client: &mut DatabaseClient, referrer_username: &str, since: NaiveDateTime) -> Result<i64, DatabaseError> {
+fn attempts_count_for_referrer(client: &mut DatabaseClient, referrer_username: &str, since: DateTime) -> Result<i64, DatabaseError> {
     use crate::schema::rewards_referral_attempts::dsl;
 
     Ok(dsl::rewards_referral_attempts
         .filter(dsl::referrer_username.eq(referrer_username))
-        .filter(dsl::created_at.ge(since))
+        .filter(dsl::created_at.ge(DateTimeRow::from(since)))
         .filter(dsl::risk_signal_id.is_not_null())
         .count()
         .get_result(&mut client.connection)?)
 }
 
-fn unique_countries_count_for_device(client: &mut DatabaseClient, device_id: i32, since: NaiveDateTime) -> Result<i64, DatabaseError> {
+fn unique_countries_count_for_device(client: &mut DatabaseClient, device_id: i32, since: DateTime) -> Result<i64, DatabaseError> {
     use crate::schema::rewards_risk_signals::dsl;
     use diesel::dsl::count;
     use diesel::expression_methods::AggregateExpressionMethods;
 
     Ok(dsl::rewards_risk_signals
         .filter(dsl::device_id.eq(device_id))
-        .filter(dsl::created_at.ge(since))
+        .filter(dsl::created_at.ge(DateTimeRow::from(since)))
         .select(count(dsl::ip_country_code).aggregate_distinct())
         .first(&mut client.connection)?)
 }
 
-fn unique_referrers_count_for_device(client: &mut DatabaseClient, device_id: i32, since: NaiveDateTime) -> Result<i64, DatabaseError> {
+fn unique_referrers_count_for_device(client: &mut DatabaseClient, device_id: i32, since: DateTime) -> Result<i64, DatabaseError> {
     use crate::schema::rewards_risk_signals::dsl;
     use diesel::dsl::count;
     use diesel::expression_methods::AggregateExpressionMethods;
 
     Ok(dsl::rewards_risk_signals
         .filter(dsl::device_id.eq(device_id))
-        .filter(dsl::created_at.ge(since))
+        .filter(dsl::created_at.ge(DateTimeRow::from(since)))
         .select(count(dsl::referrer_username).aggregate_distinct())
         .first(&mut client.connection)?)
 }
 
-fn unique_devices_count_for_ip(client: &mut DatabaseClient, ip_address: &str, since: NaiveDateTime) -> Result<i64, DatabaseError> {
+fn unique_devices_count_for_ip(client: &mut DatabaseClient, ip_address: &str, since: DateTime) -> Result<i64, DatabaseError> {
     use crate::schema::rewards_risk_signals::dsl;
     use diesel::dsl::count;
     use diesel::expression_methods::AggregateExpressionMethods;
 
     Ok(dsl::rewards_risk_signals
         .filter(dsl::ip_address.eq(ip_address))
-        .filter(dsl::created_at.ge(since))
+        .filter(dsl::created_at.ge(DateTimeRow::from(since)))
         .select(count(dsl::device_id).aggregate_distinct())
         .first(&mut client.connection)?)
 }
 
-fn abuse_patterns_for_referrer(client: &mut DatabaseClient, referrer_username: &str, since: NaiveDateTime, velocity_window_secs: i64) -> Result<AbusePatterns, DatabaseError> {
+fn abuse_patterns_for_referrer(client: &mut DatabaseClient, referrer_username: &str, since: DateTime, velocity_window_secs: i64) -> Result<AbusePatterns, DatabaseError> {
     use crate::schema::rewards_risk_signals::dsl;
 
     let signals: Vec<RiskSignalRow> = dsl::rewards_risk_signals
         .filter(dsl::referrer_username.eq(referrer_username))
-        .filter(dsl::created_at.ge(since))
+        .filter(dsl::created_at.ge(DateTimeRow::from(since)))
         .select(RiskSignalRow::as_select())
         .load(&mut client.connection)?;
 
@@ -344,14 +343,14 @@ fn calculate_max_signals_in_window(signals: &[RiskSignalRow], window_secs: i64) 
         return 0;
     }
 
-    let mut timestamps: Vec<_> = signals.iter().map(|s| s.created_at).collect();
+    let mut timestamps: Vec<_> = signals.iter().map(|s| *s.created_at).collect();
     timestamps.sort();
 
     let mut max_count: i64 = 1;
     let mut left = 0;
 
     for right in 0..timestamps.len() {
-        while timestamps[right].signed_duration_since(timestamps[left]).num_seconds() > window_secs {
+        while (timestamps[right] - timestamps[left]).as_secs() as i64 > window_secs {
             left += 1;
         }
         max_count = max_count.max((right - left + 1) as i64);

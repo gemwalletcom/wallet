@@ -10,6 +10,7 @@ pub enum NearRpc {
     GetAccountAccessKey { address: String, public_key: String },
     GetAccountAccessKeys { address: String },
     GetBlock { height: u64 },
+    GetChunk { chunk_hash: String },
     GetGasPrice,
     GetLatestBlock,
     GetProtocolConfig,
@@ -24,6 +25,7 @@ impl ToJsonRpcRequest for NearRpc {
             Self::CallFunction { .. } | Self::GetAccount { .. } | Self::GetAccountAccessKey { .. } | Self::GetAccountAccessKeys { .. } => method::QUERY,
             Self::GetGasPrice => method::GAS_PRICE,
             Self::GetBlock { .. } | Self::GetLatestBlock => method::BLOCK,
+            Self::GetChunk { .. } => method::CHUNK,
             Self::GetProtocolConfig => method::PROTOCOL_CONFIG,
             Self::GetStatus => method::STATUS,
             Self::GetTransactionStatus { .. } => method::TRANSACTION,
@@ -57,6 +59,7 @@ impl ToJsonRpcRequest for NearRpc {
                 "account_id": address
             }),
             Self::GetBlock { height } => json!({"block_id": height}),
+            Self::GetChunk { chunk_hash } => json!({"chunk_id": chunk_hash}),
             Self::GetGasPrice => json!([null]),
             Self::GetLatestBlock => json!({"finality": "final"}),
             Self::GetProtocolConfig => json!({"finality": "final"}),
@@ -146,6 +149,7 @@ mod tests {
     #[test]
     fn builds_block_request() {
         assert_request(NearRpc::GetBlock { height: 212520205 }, method::BLOCK, json!({"block_id": 212520205}));
+        assert_request(NearRpc::GetChunk { chunk_hash: "chunk".into() }, method::CHUNK, json!({"chunk_id": "chunk"}));
     }
 
     #[test]

@@ -1,10 +1,9 @@
 use alloy_primitives::{Address, U256};
 use chain_primitives::{BalanceDiff, SwapMapper};
-use chrono::{DateTime, Utc};
 use gem_evm::contracts::{IOkxDexRouter, ISunSwapReferralVault, OkxCommission};
 use num_bigint::{BigInt, BigUint};
 use primitives::{
-    Address as _, AssetId, SwapProvider, Transaction, TransactionResourceTypeMetadata, TransactionState, TransactionSwapMetadata, TransactionSwapReferralFee, TransactionType,
+    Address as _, AssetId, DateTime, SwapProvider, Transaction, TransactionResourceTypeMetadata, TransactionState, TransactionSwapMetadata, TransactionSwapReferralFee, TransactionType,
     chain::Chain,
     contract_constants::{EVM_NATIVE_TOKEN_ADDRESS, TRON_SUNSWAP_REFERRAL_VAULT_CONTRACT, TRON_SUNSWAP_UNIVERSAL_ROUTER_CONTRACT},
     hex::decode_hex_utf8,
@@ -151,11 +150,11 @@ struct TransactionContext {
     fee: BigUint,
     fee_asset_id: AssetId,
     memo: Option<String>,
-    created_at: DateTime<Utc>,
+    created_at: DateTime,
 }
 
 impl TransactionContext {
-    fn new(chain: Chain, hash: String, owner_address: Option<String>, contract_ret: &str, fee: Option<u64>, block_time_stamp: i64, data: Option<&str>) -> Option<Self> {
+    fn new(chain: Chain, hash: String, owner_address: Option<String>, contract_ret: &str, fee: Option<u64>, created_at: DateTime, data: Option<&str>) -> Option<Self> {
         Some(Self {
             chain,
             hash,
@@ -164,7 +163,7 @@ impl TransactionContext {
             fee: BigUint::from(fee.unwrap_or_default()),
             fee_asset_id: chain.as_asset_id(),
             memo: data.map(decode_hex_message),
-            created_at: DateTime::from_timestamp_millis(block_time_stamp)?,
+            created_at,
         })
     }
 
@@ -331,7 +330,7 @@ mod tests {
             id: "test_id".to_string(),
             fee: Some(1000),
             block_number: 12345,
-            block_time_stamp: 1758589896000,
+            block_time_stamp: DateTime::from_timestamp_millis(1758589896000),
             result: None,
             receipt: TransactionReceipt { result: Some("SUCCESS".to_string()) },
             log: None,
@@ -354,7 +353,7 @@ mod tests {
             id: "test_id".to_string(),
             fee: Some(1000),
             block_number: 12345,
-            block_time_stamp: 1760552376000,
+            block_time_stamp: DateTime::from_timestamp_millis(1760552376000),
             result: None,
             receipt: TransactionReceipt { result: Some("SUCCESS".to_string()) },
             log: None,
@@ -377,7 +376,7 @@ mod tests {
             id: "test_id".to_string(),
             fee: Some(1000),
             block_number: 12345,
-            block_time_stamp: 1758225849000,
+            block_time_stamp: DateTime::from_timestamp_millis(1758225849000),
             result: None,
             receipt: TransactionReceipt { result: Some("SUCCESS".to_string()) },
             log: None,
@@ -400,7 +399,7 @@ mod tests {
             id: "test_id".to_string(),
             fee: Some(1000),
             block_number: 12345,
-            block_time_stamp: 1758596982000,
+            block_time_stamp: DateTime::from_timestamp_millis(1758596982000),
             result: None,
             receipt: TransactionReceipt { result: Some("SUCCESS".to_string()) },
             log: None,
@@ -503,7 +502,7 @@ mod tests {
             id: "test_id".to_string(),
             fee: Some(1000),
             block_number: 12345,
-            block_time_stamp: 1727747910000,
+            block_time_stamp: DateTime::from_timestamp_millis(1727747910000),
             result: None,
             receipt: TransactionReceipt { result: Some("SUCCESS".to_string()) },
             log: Some(vec![TronLog::mock_transfer(
@@ -603,7 +602,7 @@ mod tests {
             id: "test_id".to_string(),
             fee: Some(1000),
             block_number: 12345,
-            block_time_stamp: 1758589896000,
+            block_time_stamp: DateTime::from_timestamp_millis(1758589896000),
             result: None,
             receipt: TransactionReceipt { result: Some("SUCCESS".to_string()) },
             log: swap_logs.logs,
@@ -691,7 +690,7 @@ mod tests {
             id: "test_id".to_string(),
             fee: Some(1000),
             block_number: 12345,
-            block_time_stamp: 1771951038000,
+            block_time_stamp: DateTime::from_timestamp_millis(1771951038000),
             result: None,
             receipt: TransactionReceipt { result: Some("SUCCESS".to_string()) },
             log: None,

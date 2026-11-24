@@ -7,11 +7,8 @@ use crate::services::collections::{stale, unique};
 use gem_crypto::random;
 use num_bigint::{BigInt, BigUint};
 use primitives::Platform;
-use primitives::{
-    AddressFormatStyle, AddressFormatter, AddressType, Asset, BlockExplorerLink, Chain, Currency, Delegation, DelegationBase, DelegationState, DelegationValidator, EarnType, RedelegateData, Resource, StakeChain, StakeProviderType,
-    StakeType, VerificationStatus, WalletType, YieldProvider,
-};
-use primitives::{AddressName, OptionStringExt};
+use primitives::{AddressFormatStyle, AddressFormatter, AddressType, Asset, BlockExplorerLink, Chain, Currency, Delegation, DelegationBase, DelegationState, DelegationValidator, EarnType, RedelegateData, Resource, StakeChain, StakeProviderType, StakeType, VerificationStatus, WalletType, YieldProvider};
+use primitives::{AddressName, DateTime, OptionStringExt};
 use std::str::FromStr;
 
 use super::model::{
@@ -33,7 +30,6 @@ use crate::services::balance::{GemAssetBalance, GemBalanceRow};
 use crate::services::empty_state::{GemEmptyStateKind, empty_state};
 use crate::services::localization::GemLocalizedText;
 use crate::services::transfer::rules as transfer_rules;
-use chrono::{DateTime, Utc};
 use number_formatter::{BigNumberFormatter, ValueStyle};
 
 use crate::config::chain::account_activation_fee_url;
@@ -89,7 +85,7 @@ fn requires_staking_feature(input: &GemStakeAmountInput) -> bool {
     }
 }
 
-fn delegation_action_target(action: GemDelegationAction, delegation: &DelegationBase, destination: GemDelegationDestination, unavailable_topic: Option<&GemInfoTopic>, now: DateTime<Utc>) -> GemDelegationActionTarget {
+fn delegation_action_target(action: GemDelegationAction, delegation: &DelegationBase, destination: GemDelegationDestination, unavailable_topic: Option<&GemInfoTopic>, now: DateTime) -> GemDelegationActionTarget {
     if action == GemDelegationAction::Unstake
         && let Some(remaining) = lockup_remaining(delegation, now)
     {
@@ -239,9 +235,9 @@ fn completion_title(delegation: &Delegation) -> Option<GemListRowTitle> {
     }
 }
 
-fn lockup_remaining(delegation: &DelegationBase, now: DateTime<Utc>) -> Option<Vec<GemDurationPart>> {
-    let remaining = (delegation.completion_date.filter(|_| delegation.state == DelegationState::Active)? - now).num_seconds();
-    (remaining > 0).then(|| countdown_parts(remaining))
+fn lockup_remaining(delegation: &DelegationBase, now: DateTime) -> Option<Vec<GemDurationPart>> {
+    let remaining = (delegation.completion_date.filter(|_| delegation.state == DelegationState::Active)? - now).as_secs();
+    (remaining > 0).then(|| countdown_parts(remaining as i64))
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -254,7 +250,7 @@ pub fn delegation_details(
     rows: Vec<GemListRow>,
     validators: &[DelegationValidator],
     unavailable_topic: Option<&GemInfoTopic>,
-    now: DateTime<Utc>,
+    now: DateTime,
 ) -> GemDelegationDetails {
     let amount = |value: &BigUint| GemFormattedNumber::asset_amount(&BigInt::from(value.clone()), asset, ValueStyle::Auto);
     let fiat = |value: &BigUint| crate::services::assets::rules::fiat_amount_of(asset, value, price, currency.clone(), GemCurrencyStyle::Currency);
@@ -413,7 +409,7 @@ fn stake_info_rows(asset: &Asset, staking_apr: Option<f64>) -> Vec<GemListRow> {
     .collect()
 }
 
-pub fn delegation_rows(delegation: &Delegation, now: DateTime<Utc>) -> Vec<GemListRow> {
+pub fn delegation_rows(delegation: &Delegation, now: DateTime) -> Vec<GemListRow> {
     let validator = &delegation.validator;
     let status = delegation_status(delegation);
     [
@@ -471,9 +467,9 @@ fn lock_time_parts(chain: Chain) -> Option<Vec<GemDurationPart>> {
     day_parts(lock_time_seconds(chain) as i64)
 }
 
-fn completion_countdown_parts(delegation: &Delegation, now: DateTime<Utc>) -> Option<Vec<GemDurationPart>> {
-    let remaining = (delegation.base.completion_date? - now).num_seconds();
-    (remaining > 0).then(|| countdown_parts(remaining))
+fn completion_countdown_parts(delegation: &Delegation, now: DateTime) -> Option<Vec<GemDurationPart>> {
+    let remaining = (delegation.base.completion_date? - now).as_secs();
+    (remaining > 0).then(|| countdown_parts(remaining as i64))
 }
 
 fn min_stake_amount(chain: Chain) -> BigInt {
@@ -888,8 +884,8 @@ mod tests {
     use super::*;
     use crate::duration_formatter::GemDurationUnit;
     use crate::services::transfer::GemTransferData;
-    use chrono::Duration;
-    use primitives::{AssetData, Balance, Resource};
+    use primitives::{AssetData, Balance, DurationExt, HOUR, MINUTE, Resource};
+    use std::time::Duration;
 
     #[test]
     fn test_delegation_details_title_follows_the_provider_and_the_header_keeps_its_precision() {
@@ -901,7 +897,7 @@ mod tests {
             delegation.base.rewards = BigUint::from(rewards);
             delegation.base.state = DelegationState::Active;
             delegation.base.asset_id = asset.id.clone();
-            delegation_details(WalletType::Multicoin, &delegation, &asset, Some(2.0), Currency::USD, vec![], &[], None, Utc::now())
+            delegation_details(WalletType::Multicoin, &delegation, &asset, Some(2.0), Currency::USD, vec![], &[], None, DateTime::now())
         };
 
         assert_eq!(
@@ -1148,7 +1144,7 @@ mod tests {
 
     #[test]
     fn test_a_delegation_shows_its_finished_rows() {
-        let now = Utc::now();
+        let now = DateTime::now();
         let active = Delegation::mock_with(Chain::Cosmos, StakeProviderType::Stake, DelegationState::Active, 100);
         assert_eq!(
             delegation_rows(&active, now),
@@ -1225,7 +1221,7 @@ mod tests {
         let mut delegation = Delegation::mock_with(Chain::Cosmos, StakeProviderType::Stake, DelegationState::Active, 100);
         delegation.validator = DelegationValidator::mock_cosmos(DelegationValidator::SYSTEM_ID);
 
-        assert!(matches!(delegation_rows(&delegation, Utc::now()).first(), Some(GemListRow::Provider { contract: None, .. })));
+        assert!(matches!(delegation_rows(&delegation, DateTime::now()).first(), Some(GemListRow::Provider { contract: None, .. })));
     }
 
     #[test]
@@ -1242,12 +1238,12 @@ mod tests {
 
     #[test]
     fn test_a_delegation_counts_down_to_its_completion_until_it_passes() {
-        let now = Utc::now();
+        let now = DateTime::now();
         let mut pending = Delegation::mock_with(Chain::Cosmos, StakeProviderType::Stake, DelegationState::Deactivating, 0);
         pending.base.completion_date = Some(now + Duration::days(2));
 
         assert_eq!(completion_countdown_parts(&pending, now).and_then(|parts| parts.first().map(|part| (part.value, part.unit))), Some((2, GemDurationUnit::Day)));
-        pending.base.completion_date = Some(now - Duration::hours(1));
+        pending.base.completion_date = Some(now - HOUR);
         assert_eq!(completion_countdown_parts(&pending, now), None);
         assert!(
             !delegation_rows(&pending, now).iter().any(|row| matches!(row, GemListRow::Duration { .. })),
@@ -1321,6 +1317,13 @@ mod tests {
         match destination {
             GemDelegationDestination::Confirm { transfer } => transfer,
             GemDelegationDestination::Details | GemDelegationDestination::Amount { .. } => panic!("expected a confirm transfer"),
+        }
+    }
+
+    fn stake_confirm_transfer(destination: Option<GemStakeDestination>) -> GemTransferData {
+        match destination {
+            Some(GemStakeDestination::Confirm { transfer }) => transfer,
+            Some(GemStakeDestination::Amount { .. }) | None => panic!("expected a confirm transfer"),
         }
     }
 
@@ -1408,7 +1411,7 @@ mod tests {
     fn test_the_delegation_screen_offers_only_actions_it_can_open() {
         let delegation = Delegation::mock_with(Chain::Cosmos, StakeProviderType::Stake, DelegationState::Active, 0);
         let actions = |validators: &[DelegationValidator]| {
-            delegation_details(WalletType::Multicoin, &delegation, &Asset::from_chain(Chain::Cosmos), None, Currency::USD, vec![], validators, None, Utc::now())
+            delegation_details(WalletType::Multicoin, &delegation, &Asset::from_chain(Chain::Cosmos), None, Currency::USD, vec![], validators, None, DateTime::now())
                 .actions
                 .into_iter()
                 .map(|item| item.action)
@@ -1424,7 +1427,7 @@ mod tests {
 
     #[test]
     fn test_unstake_in_the_lockup_explains_when_it_opens() {
-        let now = Utc::now();
+        let now = DateTime::now();
         let unstake_topic = |completion_date| {
             let mut delegation = Delegation::mock_with(Chain::HyperCore, StakeProviderType::Stake, DelegationState::Active, 100);
             delegation.base.completion_date = completion_date;
@@ -1439,10 +1442,10 @@ mod tests {
         };
 
         assert_eq!(
-            unstake_topic(Some(now + Duration::hours(23))),
+            unstake_topic(Some(now + Duration::from_hours(23))),
             vec![(GemDelegationAction::Unstake, Some(GemInfoTopic::StakeLockup { remaining: countdown_parts(23 * 3600) }))]
         );
-        assert_eq!(unstake_topic(Some(now - Duration::minutes(1))), vec![(GemDelegationAction::Unstake, None)], "the lockup is over");
+        assert_eq!(unstake_topic(Some(now - MINUTE)), vec![(GemDelegationAction::Unstake, None)], "the lockup is over");
         assert_eq!(unstake_topic(None), vec![(GemDelegationAction::Unstake, None)]);
     }
 
@@ -1459,7 +1462,7 @@ mod tests {
                 vec![],
                 &[DelegationValidator::mock_cosmos("other")],
                 unavailable_topic,
-                Utc::now(),
+                DateTime::now(),
             )
             .actions
             .into_iter()
@@ -1655,6 +1658,11 @@ mod tests {
             actions(Chain::Cosmos, true, GemAssetBalance::mock(), vec![Delegation::mock_with(Chain::Cosmos, StakeProviderType::Stake, DelegationState::Active, 5)]),
             vec![(Stake, true, false), (ClaimRewards, true, false)]
         );
+        assert_eq!(
+            actions(Chain::Sui, true, GemAssetBalance::mock(), vec![Delegation::mock_with(Chain::Sui, StakeProviderType::Stake, DelegationState::Active, 5)]),
+            vec![(Stake, true, false)],
+            "a chain whose rewards cannot be claimed offers no claim"
+        );
         let claim = stake_actions(
             WalletType::Multicoin,
             Chain::Cosmos,
@@ -1767,14 +1775,14 @@ mod tests {
         assert!(can_claim_all_rewards(Chain::Sui, 1));
         assert!(!can_claim_all_rewards(Chain::Bitcoin, 2));
 
-        let one = claim_destination(
+        let one = stake_confirm_transfer(claim_destination(
             Chain::Sui,
             vec![
                 Delegation::mock_with(Chain::Sui, StakeProviderType::Stake, DelegationState::Active, 0),
                 Delegation::mock_with(Chain::Sui, StakeProviderType::Stake, DelegationState::Active, 7),
             ],
-        );
-        assert!(matches!(one, Some(GemStakeDestination::Confirm { ref transfer }) if transfer.value == BigInt::from(7)));
+        ));
+        assert_eq!(one.value, BigInt::from(7));
         let several = claim_destination(
             Chain::Sui,
             vec![
@@ -1787,14 +1795,14 @@ mod tests {
             matches!(several, Some(GemStakeDestination::Amount { input: GemStakeAmountInput::Rewards { ref delegations, ref validator } }) if delegations.len() == 2 && *validator == delegations[0].validator),
             "claiming one of several starts from the first validator with rewards"
         );
-        let cosmos = claim_destination(
+        let cosmos = stake_confirm_transfer(claim_destination(
             Chain::Cosmos,
             vec![
                 Delegation::mock_with(Chain::Sui, StakeProviderType::Stake, DelegationState::Active, 3),
                 Delegation::mock_with(Chain::Sui, StakeProviderType::Stake, DelegationState::Active, 4),
             ],
-        );
-        assert!(matches!(cosmos, Some(GemStakeDestination::Confirm { .. })));
+        ));
+        assert_eq!(cosmos.value, BigInt::from(7), "claiming all claims the rewards of every validator");
         assert!(
             claim_destination(Chain::Cosmos, vec![Delegation::mock_with(Chain::Cosmos, StakeProviderType::Stake, DelegationState::Active, 0)]).is_none(),
             "nothing to claim opens nothing"
@@ -1859,13 +1867,13 @@ mod tests {
         let asset = Asset::from_chain(Chain::Cosmos);
         let delegation = Delegation::mock_with(Chain::Cosmos, StakeProviderType::Stake, DelegationState::Active, 10);
 
-        let owned = delegation_details(WalletType::Multicoin, &delegation, &asset, None, Currency::USD, vec![], &[], None, Utc::now());
+        let owned = delegation_details(WalletType::Multicoin, &delegation, &asset, None, Currency::USD, vec![], &[], None, DateTime::now());
         assert!(owned.claim.is_some());
         assert!(owned.rewards.is_some());
         assert_eq!(owned.actions.iter().map(|item| item.action).collect::<Vec<_>>(), vec![GemDelegationAction::Stake, GemDelegationAction::Unstake]);
         assert_eq!(owned.header, delegation_list_row(&delegation, &asset, None, Currency::USD));
 
-        let watched = delegation_details(WalletType::View, &delegation, &asset, None, Currency::USD, vec![], &[], None, Utc::now());
+        let watched = delegation_details(WalletType::View, &delegation, &asset, None, Currency::USD, vec![], &[], None, DateTime::now());
         assert!(watched.claim.is_none(), "a watch-only wallet sees its rewards but cannot claim them");
         assert!(watched.rewards.is_some());
     }

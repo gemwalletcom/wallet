@@ -1,14 +1,14 @@
 use std::collections::{HashMap, HashSet};
 use std::time::Duration;
 
-use chrono::NaiveDateTime;
 use diesel::prelude::*;
-use primitives::{AssetId, Device, DevicePriceAlert, PriceAlert, PriceAlerts, PriceData};
+use primitives::{AssetId, DateTime, Device, DevicePriceAlert, PriceAlert, PriceAlerts, PriceData};
 
 use crate::models::{DeviceRow, PriceAlertRow};
 use crate::repositories::devices_repository::device_row;
 use crate::repositories::prices_repository::PricesRepository;
 use crate::repositories::{Condition, QueryFilter, matching};
+use crate::sql_types::DateTimeRow;
 use crate::{DatabaseClient, DatabaseError, DieselResultExt};
 
 #[derive(Debug, Clone)]
@@ -18,7 +18,7 @@ pub enum PriceAlertFilter {
 
 #[derive(Debug, Clone)]
 pub enum PriceAlertUpdate {
-    LastNotifiedAt(NaiveDateTime),
+    LastNotifiedAt(DateTime),
 }
 
 impl QueryFilter<crate::schema::price_alerts::table> for PriceAlertFilter {
@@ -31,7 +31,7 @@ impl QueryFilter<crate::schema::price_alerts::table> for PriceAlertFilter {
 }
 
 pub trait PriceAlertsRepository {
-    fn get_price_alerts(&mut self, after_notified_at: NaiveDateTime, max_age: Duration) -> Result<Vec<(i32, PriceAlert, PriceData, Device)>, DatabaseError>;
+    fn get_price_alerts(&mut self, after_notified_at: DateTime, max_age: Duration) -> Result<Vec<(i32, PriceAlert, PriceData, Device)>, DatabaseError>;
     fn get_price_alerts_for_device_id(&mut self, device_id: &str, asset_id: Option<&AssetId>) -> Result<Vec<DevicePriceAlert>, DatabaseError>;
     fn get_price_alerts_count_for_device_id(&mut self, device_id: i32) -> Result<i64, DatabaseError>;
     fn add_price_alerts(&mut self, device_id: &str, price_alerts: PriceAlerts) -> Result<usize, DatabaseError>;
@@ -40,13 +40,13 @@ pub trait PriceAlertsRepository {
 }
 
 impl PriceAlertsRepository for DatabaseClient {
-    fn get_price_alerts(&mut self, after_notified_at: NaiveDateTime, max_age: Duration) -> Result<Vec<(i32, PriceAlert, PriceData, Device)>, DatabaseError> {
+    fn get_price_alerts(&mut self, after_notified_at: DateTime, max_age: Duration) -> Result<Vec<(i32, PriceAlert, PriceData, Device)>, DatabaseError> {
         let alerts: Vec<(i32, PriceAlertRow, DeviceRow)> = {
             use crate::schema::devices;
             use crate::schema::price_alerts::dsl::*;
 
             price_alerts
-                .filter((price_direction.is_not_null().and(last_notified_at.is_null())).or(price_direction.is_null().and(last_notified_at.lt(after_notified_at).or(last_notified_at.is_null()))))
+                .filter((price_direction.is_not_null().and(last_notified_at.is_null())).or(price_direction.is_null().and(last_notified_at.lt(DateTimeRow::from(after_notified_at)).or(last_notified_at.is_null()))))
                 .inner_join(devices::table.on(device_id.eq(devices::id)))
                 .filter(devices::is_push_enabled.eq(true).and(devices::is_price_alerts_enabled.eq(true)).and(devices::token.ne("")))
                 .select((id, PriceAlertRow::as_select(), DeviceRow::as_select()))
@@ -97,7 +97,7 @@ impl PriceAlertsRepository for DatabaseClient {
             .values(rows)
             .on_conflict((device_id, identifier))
             .do_update()
-            .set(last_notified_at.eq(Option::<NaiveDateTime>::None))
+            .set(last_notified_at.eq(Option::<DateTimeRow>::None))
             .execute(&mut self.connection)?)
     }
 
@@ -112,7 +112,7 @@ impl PriceAlertsRepository for DatabaseClient {
         Ok(updates.into_iter().try_fold(0, |total, update| {
             let target = price_alerts.filter(matching(filters.clone()));
             let updated = match update {
-                PriceAlertUpdate::LastNotifiedAt(value) => diesel::update(target).set(last_notified_at.eq(value)).execute(&mut self.connection)?,
+                PriceAlertUpdate::LastNotifiedAt(value) => diesel::update(target).set(last_notified_at.eq(DateTimeRow::from(value))).execute(&mut self.connection)?,
             };
             Ok::<_, diesel::result::Error>(total + updated)
         })?)

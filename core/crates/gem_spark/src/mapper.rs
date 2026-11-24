@@ -1,4 +1,6 @@
-use chrono::DateTime;
+use std::time::SystemTime;
+
+use date_time::DateTime;
 use spark_wallet::{SspUserRequest, TransferDirection, TransferStatus, TransferType, WalletTransfer};
 
 use crate::model::{LightningPayment, LightningPaymentDirection, LightningPaymentStatus};
@@ -23,9 +25,13 @@ pub fn map_transfer(transfer: &WalletTransfer) -> Option<LightningPayment> {
         status,
         amount_sats: transfer.total_value_sat.saturating_sub(fee_sats),
         fee_sats,
-        created_at: transfer.created_at.map(DateTime::from).unwrap_or_default(),
+        created_at: transfer.created_at.map(map_time).unwrap_or_default(),
         invoice,
     })
+}
+
+fn map_time(time: SystemTime) -> DateTime {
+    DateTime::UNIX_EPOCH + time.duration_since(SystemTime::UNIX_EPOCH).unwrap_or_default()
 }
 
 fn is_payment(transfer_type: TransferType) -> bool {

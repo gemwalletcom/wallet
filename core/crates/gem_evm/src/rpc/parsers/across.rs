@@ -66,7 +66,6 @@ mod tests {
 
     use alloy_primitives::{Address, U256};
     use alloy_sol_types::{SolCall, SolValue};
-    use chrono::DateTime;
     use num_bigint::BigUint;
 
     use crate::across::contracts::{
@@ -79,7 +78,7 @@ mod tests {
         parsers::ProtocolParsers,
     };
     use primitives::{
-        Chain, SwapProvider, TransactionState, TransactionSwapMetadata, TransactionSwapReferralFee, TransactionType,
+        Chain, DateTime, SwapProvider, TransactionState, TransactionSwapMetadata, TransactionSwapReferralFee, TransactionType,
         asset_constants::{BASE_USDC_ASSET_ID, BASE_USDC_TOKEN_ID, ETHEREUM_USDC_ASSET_ID, POLYGON_USDC_ASSET_ID, POLYGON_USDC_TOKEN_ID},
         contract_constants::POLYGON_ACROSS_SPOKE_POOL_CONTRACT,
         decode_hex,

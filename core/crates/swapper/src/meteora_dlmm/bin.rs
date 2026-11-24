@@ -1,5 +1,5 @@
 use alloy_primitives::U256;
-use borsh::BorshDeserialize;
+use gem_encoding::borsh::{BorshDeserialize, DecodeError, Reader};
 use gem_solana::{Pubkey, anchor::AnchorAccount, find_program_address, instructions::program_ids::meteora_dlmm_program};
 
 use crate::{SwapperError, clmm::divide};
@@ -11,33 +11,48 @@ const BASIS_POINT_MAX: u128 = 10_000;
 const MAX_EXPONENT: u32 = 0x80000;
 const LIMIT_ORDER_VERSION: u8 = 2;
 
-#[derive(Debug, Clone, PartialEq, BorshDeserialize)]
+#[derive(Debug, Clone, PartialEq)]
 pub(crate) struct BinArray {
     pub index: i64,
     version: u8,
-    _padding: [u8; 7],
     pub lb_pair: Pubkey,
     bins: [Bin; BINS_PER_ARRAY as usize],
 }
 
-#[derive(Debug, Clone, PartialEq, BorshDeserialize)]
+impl BorshDeserialize for BinArray {
+    fn deserialize_reader(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        Ok(Self {
+            index: reader.read()?,
+            version: reader.read()?,
+            lb_pair: reader.skip(7)?.read()?,
+            bins: reader.read()?,
+        })
+    }
+}
+
+#[derive(Debug, Default, Clone, PartialEq)]
 pub(crate) struct Bin {
     amount_x: u64,
     amount_y: u64,
     price: u128,
-    _liquidity_supply: u128,
-    _fulfilled_order_amount_x: u64,
-    _fulfilled_order_amount_y: u64,
-    _limit_order_fee_ask_side: u64,
-    _limit_order_fee_bid_side: u64,
-    _fee_amount_x_per_token_stored: u128,
-    _fee_amount_y_per_token_stored: u128,
     open_order_amount: u64,
-    _total_processing_order_amount: u64,
     processed_order_remaining_amount: u64,
-    _order_age: u32,
     limit_order_ask_side: u8,
-    _padding: [u8; 3],
+}
+
+impl BorshDeserialize for Bin {
+    fn deserialize_reader(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        let value = Self {
+            amount_x: reader.read()?,
+            amount_y: reader.read()?,
+            price: reader.read()?,
+            open_order_amount: reader.skip(80)?.read()?,
+            processed_order_remaining_amount: reader.skip(8)?.read()?,
+            limit_order_ask_side: reader.skip(4)?.read()?,
+        };
+        reader.skip(3)?;
+        Ok(value)
+    }
 }
 
 impl AnchorAccount for BinArray {

@@ -1,6 +1,6 @@
 use crate::ConfigCacher;
-use chrono::{NaiveDateTime, Utc};
 use config_keys::ConfigKey;
+use primitives::DateTime;
 use search_index::SearchIndexClient;
 use serde::Serialize;
 use std::error::Error;
@@ -49,7 +49,7 @@ impl SearchSyncClient {
             client: self,
             key: key.clone(),
             last_updated_at: self.config.get_datetime(key).await?,
-            now: Utc::now().naive_utc(),
+            now: DateTime::now(),
         })
     }
 }
@@ -57,8 +57,8 @@ impl SearchSyncClient {
 pub struct IndexSync<'a> {
     client: &'a SearchSyncClient,
     key: ConfigKey,
-    last_updated_at: NaiveDateTime,
-    now: NaiveDateTime,
+    last_updated_at: DateTime,
+    now: DateTime,
 }
 
 impl IndexSync<'_> {
@@ -67,10 +67,10 @@ impl IndexSync<'_> {
     }
 
     pub fn should_replace_index(&self) -> bool {
-        self.last_updated_at.and_utc().timestamp() == 0
+        self.last_updated_at.timestamp() == 0
     }
 
-    pub fn since(&self) -> Option<NaiveDateTime> {
+    pub fn since(&self) -> Option<DateTime> {
         if self.should_replace_index() { None } else { Some(self.last_updated_at) }
     }
 

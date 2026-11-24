@@ -172,7 +172,7 @@ where
         ))
         .await?;
 
-    append_client_swap_instructions(instructions, swap, &context.trader, &context.relayer, &route.from_token.contract, &route.effective_amount_in64)
+    append_client_swap_instructions(instructions, swap, &context.trader, &context.relayer, &context.state_account, &route.from_token.contract, &route.effective_amount_in64)
 }
 
 fn create_custom_payload_account(instructions: &mut Vec<Instruction>, relayer: &Pubkey, custom_payload: Option<&[u8]>) -> Result<Option<(Pubkey, u16)>, SwapperError> {

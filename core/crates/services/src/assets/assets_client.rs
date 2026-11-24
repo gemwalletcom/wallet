@@ -1,10 +1,9 @@
 use std::error::Error;
 use std::sync::Arc;
 
-use chrono::{DateTime, Utc};
 use config_keys::ConfigKey;
 use primitives::asset_score::AssetRank;
-use primitives::{Asset, AssetAddress, AssetBasic, AssetFull, AssetId};
+use primitives::{Asset, AssetAddress, AssetBasic, AssetFull, AssetId, DateTime};
 use storage::AssetFilter;
 
 use super::repository::Repository;
@@ -37,8 +36,7 @@ impl AssetsClient {
         Ok(self.repository.get_asset_full(asset_id.clone(), max_age).await?)
     }
 
-    pub async fn get_assets_by_wallet_id(&self, device_id: i32, wallet_id: i32, from_timestamp: Option<u64>) -> Result<Vec<AssetId>, Box<dyn Error + Send + Sync>> {
-        let since = from_timestamp.and_then(|ts| DateTime::<Utc>::from_timestamp(ts as i64, 0).map(|dt| dt.naive_utc()));
+    pub async fn get_assets_by_wallet_id(&self, device_id: i32, wallet_id: i32, since: Option<DateTime>) -> Result<Vec<AssetId>, Box<dyn Error + Send + Sync>> {
         let max_age = self.config.get_duration(ConfigKey::PricePrimaryMaxAge).await?;
         let filters = vec![AssetFilter::IsEnabled(true), AssetFilter::HasPrice(true), AssetFilter::RankGt(AssetRank::Trivial.threshold())];
         let assets = self.repository.get_wallet_assets_with_prices(device_id, wallet_id, since, filters, max_age).await?;

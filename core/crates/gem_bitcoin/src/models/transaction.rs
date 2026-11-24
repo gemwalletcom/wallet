@@ -1,4 +1,6 @@
+use date_time::deserialize_datetime_from_seconds;
 use num_bigint::BigUint;
+use primitives::DateTime;
 use serde::{Deserialize, Serialize};
 use serde_serializers::{deserialize_biguint_from_str, serialize_biguint};
 
@@ -50,7 +52,8 @@ pub struct Transaction {
     pub confirmations: Option<i64>,
     #[serde(rename = "confirmationETASeconds")]
     pub confirmation_eta_seconds: Option<i64>,
-    pub block_time: i64,
+    #[serde(deserialize_with = "deserialize_datetime_from_seconds")]
+    pub block_time: DateTime,
     pub block_height: i64,
     pub vin: Vec<Input>,
     pub vout: Vec<Output>,

@@ -1,7 +1,6 @@
 use std::cmp;
 use std::time::Duration;
 
-use chrono::Utc;
 use storage::ParserState;
 
 #[derive(Debug, Copy, Clone, Eq, PartialEq)]
@@ -29,9 +28,7 @@ pub fn timeout_for_state(state: &ParserState, min_check: Duration, max_check: Du
         return cmp::max(Duration::from_millis(state.timeout_latest_block as u64), min_check);
     }
 
-    let elapsed = Utc::now().naive_utc().signed_duration_since(state.updated_at).num_milliseconds().max(0) as u64;
-
-    let remaining = block_time.saturating_sub(Duration::from_millis(elapsed));
+    let remaining = block_time.saturating_sub(state.updated_at.elapsed());
     let upper = cmp::max(cmp::min(block_time, max_check), min_check);
     remaining.clamp(min_check, upper)
 }
@@ -68,7 +65,7 @@ pub fn plan_next_block(state: &ParserState, current_block: i64, latest_block: i6
 #[cfg(test)]
 mod tests {
     use super::{BlockPlan, BlockPlanKind, BlockRange, plan_next_block, should_reload_catchup, timeout_for_state};
-    use chrono::Utc;
+    use primitives::DateTime;
     use std::time::Duration;
     use storage::ParserState;
 
@@ -89,7 +86,7 @@ mod tests {
     fn test_timeout_for_state_uses_remaining_block_time() {
         let s = ParserState {
             block_time: 12_000,
-            updated_at: Utc::now().naive_utc() - chrono::Duration::seconds(4),
+            updated_at: DateTime::now() - Duration::from_secs(4),
             ..ParserState::mock()
         };
         let timeout = timeout_for_state(&s, MIN, MAX);
@@ -100,7 +97,7 @@ mod tests {
     fn test_timeout_for_state_caps_at_max() {
         let s = ParserState {
             block_time: 600_000,
-            updated_at: Utc::now().naive_utc(),
+            updated_at: DateTime::now(),
             ..ParserState::mock()
         };
         assert_eq!(timeout_for_state(&s, MIN, MAX), MAX);
@@ -110,7 +107,7 @@ mod tests {
     fn test_timeout_for_state_overdue_block() {
         let s = ParserState {
             block_time: 10_000,
-            updated_at: Utc::now().naive_utc() - chrono::Duration::seconds(15),
+            updated_at: DateTime::now() - Duration::from_secs(15),
             ..ParserState::mock()
         };
         assert_eq!(timeout_for_state(&s, MIN, MAX), MIN);

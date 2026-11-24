@@ -1,9 +1,9 @@
-use chrono::NaiveDateTime;
 use diesel::prelude::*;
-use primitives::{AssetId, NotificationData, NotificationType};
+use primitives::{AssetId, DateTime, NotificationData, NotificationType};
 
 use crate::models::{AssetRow, NewNotificationRow, NotificationRow};
 use crate::schema::{assets, devices, notifications, wallets, wallets_subscriptions};
+use crate::sql_types::DateTimeRow;
 use crate::{DatabaseClient, DatabaseError};
 
 type WalletIdsSubquery<'a> = diesel::dsl::Select<diesel::dsl::Filter<diesel::dsl::InnerJoin<wallets_subscriptions::table, devices::table>, diesel::dsl::Eq<devices::identifier, &'a str>>, wallets_subscriptions::wallet_id>;
@@ -21,13 +21,13 @@ pub struct NewNotification {
 }
 
 pub trait NotificationsRepository {
-    fn get_notifications_by_device_id(&mut self, device_id: &str, from_datetime: Option<NaiveDateTime>, limit: usize) -> Result<Vec<NotificationData>, DatabaseError>;
+    fn get_notifications_by_device_id(&mut self, device_id: &str, from_datetime: Option<DateTime>, limit: usize) -> Result<Vec<NotificationData>, DatabaseError>;
     fn add_notifications(&mut self, notifications: Vec<NewNotification>) -> Result<usize, DatabaseError>;
     fn set_notifications_read(&mut self, wallet_id: i32) -> Result<usize, DatabaseError>;
 }
 
 impl NotificationsRepository for DatabaseClient {
-    fn get_notifications_by_device_id(&mut self, device_id: &str, from_datetime: Option<NaiveDateTime>, limit: usize) -> Result<Vec<NotificationData>, DatabaseError> {
+    fn get_notifications_by_device_id(&mut self, device_id: &str, from_datetime: Option<DateTime>, limit: usize) -> Result<Vec<NotificationData>, DatabaseError> {
         let mut query = notifications::table
             .inner_join(wallets::table)
             .left_join(assets::table)
@@ -37,7 +37,7 @@ impl NotificationsRepository for DatabaseClient {
             .into_boxed();
 
         if let Some(datetime) = from_datetime {
-            query = query.filter(notifications::created_at.gt(datetime));
+            query = query.filter(notifications::created_at.gt(DateTimeRow::from(datetime)));
         }
 
         let rows: Vec<(NotificationRow, String, Option<AssetRow>)> = query.limit(limit as i64).load(&mut self.connection)?;

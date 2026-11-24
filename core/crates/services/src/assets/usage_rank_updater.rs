@@ -1,13 +1,13 @@
 use std::collections::HashMap;
 use std::error::Error;
 use std::sync::Arc;
+use std::time::Duration;
 
-use chrono::{Duration, NaiveDateTime, Utc};
-use primitives::AssetId;
+use primitives::{AssetId, DAY, DateTime, DurationExt, HOUR};
 
 use crate::assets::repository::Repository;
 
-const RETENTION_DAYS: i64 = 30;
+const RETENTION: Duration = DAY.saturating_mul(30);
 
 #[derive(Clone, Copy)]
 pub struct UsageRankUpdaterConfig {
@@ -25,14 +25,14 @@ impl UsageRankUpdater {
     }
 
     pub async fn update_usage_ranks(&self) -> Result<usize, Box<dyn Error + Send + Sync>> {
-        let now = Utc::now().naive_utc();
-        let retain_since = now - Duration::days(RETENTION_DAYS);
+        let now = DateTime::now();
+        let retain_since = now - RETENTION;
         Ok(self.repository.update_usage_ranks(usage_windows(now), retain_since, self.config.batch_size).await?)
     }
 }
 
-fn usage_windows(now: NaiveDateTime) -> Vec<(NaiveDateTime, i64)> {
-    vec![(now - Duration::hours(1), 250), (now - Duration::days(1), 100), (now - Duration::days(7), 10), (now - Duration::days(RETENTION_DAYS), 1)]
+fn usage_windows(now: DateTime) -> Vec<(DateTime, i64)> {
+    vec![(now - HOUR, 250), (now - DAY, 100), (now - Duration::days(7), 10), (now - RETENTION, 1)]
 }
 
 pub(crate) fn usage_ranks(weighted_counts: Vec<(Vec<(AssetId, i64)>, i64)>) -> Vec<(AssetId, i32)> {
@@ -48,7 +48,7 @@ pub(crate) fn usage_ranks(weighted_counts: Vec<(Vec<(AssetId, i64)>, i64)>) -> V
 #[cfg(test)]
 fn calculate_usage_ranks(counts_1h: &[(AssetId, i64)], counts_24h: &[(AssetId, i64)], counts_7d: &[(AssetId, i64)], counts_30d: &[(AssetId, i64)]) -> Vec<(AssetId, i32)> {
     let counts = [counts_1h, counts_24h, counts_7d, counts_30d].map(<[(AssetId, i64)]>::to_vec);
-    usage_ranks(counts.into_iter().zip(usage_windows(Utc::now().naive_utc())).map(|(counts, (_, weight))| (counts, weight)).collect())
+    usage_ranks(counts.into_iter().zip(usage_windows(DateTime::now())).map(|(counts, (_, weight))| (counts, weight)).collect())
 }
 
 fn usage_ranks_from_scores(raw_scores: HashMap<AssetId, i64>) -> Vec<(AssetId, i32)> {

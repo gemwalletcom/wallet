@@ -1,7 +1,6 @@
 use super::rules;
 use crate::formatted_number::GemFormattedNumber;
-use chrono::{DateTime, Utc};
-use primitives::{ChartDateValue, Currency};
+use primitives::{ChartDateValue, Currency, DateTime};
 
 #[derive(Debug, Clone, Copy, PartialEq, uniffi::Enum)]
 pub enum GemChartValueType {
@@ -39,15 +38,15 @@ pub struct GemChartData {
     pub header: Option<GemChartHeader>,
     pub bounds: GemChartBounds,
     pub date_style: GemChartDateStyle,
-    pub start: DateTime<Utc>,
-    pub end: DateTime<Utc>,
+    pub start: DateTime,
+    pub end: DateTime,
     pub is_zoomed: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemChartSelection {
     pub header: GemChartHeader,
-    pub date: DateTime<Utc>,
+    pub date: DateTime,
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]

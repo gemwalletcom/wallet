@@ -1,7 +1,7 @@
 #[cfg(feature = "wallet")]
 use std::sync::Mutex;
 
-use chrono::DateTime;
+use date_time::DateTime;
 
 #[cfg(feature = "wallet")]
 use crate::error::LightningError;
@@ -20,7 +20,7 @@ impl LightningPayment {
             status,
             amount_sats: 1_000,
             fee_sats: 3,
-            created_at: DateTime::from_timestamp(1_792_993_669, 0).unwrap(),
+            created_at: DateTime::from_timestamp(1_792_993_669),
             invoice: None,
         }
     }

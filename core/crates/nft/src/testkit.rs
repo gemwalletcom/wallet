@@ -4,12 +4,16 @@
 use std::collections::HashMap;
 
 #[cfg(feature = "nft_integration_tests")]
-use gem_client::{RemoteProviderConfig, ReqwestClient};
+use gem_client::RemoteProviderConfig;
 #[cfg(feature = "nft_integration_tests")]
-use primitives::{EVMChain, NFTChain};
+use gem_reqwest::ReqwestClient;
+#[cfg(feature = "nft_integration_tests")]
+use primitives::EVMChain;
 #[cfg(feature = "nft_integration_tests")]
 use settings::testkit::get_test_settings;
 
+#[cfg(feature = "nft_integration_tests")]
+use crate::NFTChain;
 #[cfg(feature = "nft_integration_tests")]
 use crate::factory::NFTProviderFactory;
 #[cfg(feature = "nft_integration_tests")]
@@ -32,9 +36,7 @@ pub const TEST_ARC_COLLECTION: &str = "0xB856127c2371B396f92993814d8F64c3204911d
 
 #[cfg(feature = "nft_integration_tests")]
 fn provider_client_with_header(config: RemoteProviderConfig, header: (&str, String)) -> ReqwestClient {
-    config
-        .configure_client(ReqwestClient::new(String::new(), gem_client::reqwest_client()))
-        .with_default_headers(HashMap::from([(header.0.to_string(), header.1)]))
+    ReqwestClient::new(config.url, gem_reqwest::reqwest_client()).with_default_headers(HashMap::from([(header.0.to_string(), header.1)]))
 }
 
 #[cfg(feature = "nft_integration_tests")]
@@ -59,13 +61,13 @@ pub fn create_magiceden_solana_test_client() -> MagicEdenSolanaClient<ReqwestCli
 pub fn create_alchemy_test_client() -> AlchemyProvider<ReqwestClient> {
     let settings = get_test_settings();
     let config = crate::NFTProviderConfig::from_settings(&settings);
-    NFTProviderFactory::alchemy_provider(&config.alchemy, &ReqwestClient::new(String::new(), gem_client::reqwest_client()), NFTChain::SmartChain)
+    NFTProviderFactory::alchemy_provider(&config.alchemy, &ReqwestClient::new(String::new(), gem_reqwest::reqwest_client()), NFTChain::SmartChain)
 }
 
 #[cfg(feature = "nft_integration_tests")]
 pub fn create_blockscout_test_client() -> BlockscoutProvider<ReqwestClient> {
     let settings = get_test_settings();
     let config = crate::NFTProviderConfig::from_settings(&settings);
-    let client = config.blockscout.configure_client(ReqwestClient::new(String::new(), gem_client::reqwest_client()));
+    let client = ReqwestClient::new(config.blockscout.url, gem_reqwest::reqwest_client());
     BlockscoutProvider::new(blockscout::Client::new(client, EVMChain::Arc.chain_id(), config.blockscout.key), NFTChain::Arc)
 }

@@ -1,8 +1,7 @@
 use crate::duration_formatter::countdown_parts;
 use crate::services::assets::icon::asset_icon;
-use chrono::{DateTime, Utc};
 use number_formatter::{BigNumberFormatter, ValueStyle};
-use primitives::{CoreEmoji, OptionStringExt, RewardRedemptionOption, RewardStatus, Rewards, Wallet, WalletId, WalletListItem};
+use primitives::{CoreEmoji, DateTime, OptionStringExt, RewardRedemptionOption, RewardStatus, Rewards, Wallet, WalletId, WalletListItem};
 
 use super::model::{GemIncomingCode, GemRewardsInviteAction, GemRewardsPendingReferral, GemRewardsRedemption, GemRewardsState, GemRewardsWallet};
 use crate::config::rewards::get_referral_url;
@@ -32,7 +31,7 @@ pub fn wallet(wallets: Vec<Wallet>, requested: Option<&WalletId>, current: Optio
     })
 }
 
-pub fn state(rewards: Option<&Rewards>, now: DateTime<Utc>) -> GemRewardsState {
+pub fn state(rewards: Option<&Rewards>, now: DateTime) -> GemRewardsState {
     let Some(rewards) = rewards else {
         return GemRewardsState {
             invite_description: invite_description(Rewards::default().invite_reward_points),
@@ -95,7 +94,7 @@ fn sections(shows_info: bool, info_rows: Vec<GemListRow>) -> Vec<GemGroup> {
     }
 }
 
-fn status_notice(is_unverified: bool, has_pending_referral: bool, can_activate: bool, rewards: &Rewards, now: DateTime<Utc>) -> Option<GemListRow> {
+fn status_notice(is_unverified: bool, has_pending_referral: bool, can_activate: bool, rewards: &Rewards, now: DateTime) -> Option<GemListRow> {
     let notice = |title: GemListRowTitle, message: GemLocalizedText| GemListRow::Notice {
         title,
         message: Some(message),
@@ -113,7 +112,7 @@ fn status_notice(is_unverified: bool, has_pending_referral: bool, can_activate: 
             countdown: rewards
                 .verify_after
                 .filter(|verify_after| *verify_after > now)
-                .map(|verify_after| countdown_parts((verify_after - now).num_seconds()))
+                .map(|verify_after| countdown_parts((verify_after - now).as_secs() as i64))
                 .unwrap_or_default(),
         },
     };
@@ -236,12 +235,12 @@ mod tests {
             code: Some("abc123".to_string()),
             ..Rewards::default()
         };
-        let with_code = super::state(Some(&rewards), Utc::now());
+        let with_code = super::state(Some(&rewards), DateTime::now());
         assert_eq!(with_code.referral_code.as_deref(), Some("abc123"));
         assert_eq!(with_code.referral_link, Some(get_referral_url("abc123")));
         assert_eq!(with_code.share_text, Some(GemLocalizedText::RewardsShareText { link: get_referral_url("abc123") }), "the invite shares the link");
 
-        let without_code = super::state(Some(&Rewards::default()), Utc::now());
+        let without_code = super::state(Some(&Rewards::default()), DateTime::now());
         assert_eq!(without_code.referral_code, None);
         assert_eq!(without_code.referral_link, None);
     }
@@ -254,12 +253,12 @@ mod tests {
     }
 
     use super::*;
-    use chrono::TimeDelta;
     use num_bigint::BigUint;
-    use primitives::Asset;
+    use primitives::{Asset, DAY, HOUR};
+    use std::time::Duration;
 
-    fn now() -> DateTime<Utc> {
-        DateTime::from_timestamp(1_767_694_414, 0).unwrap()
+    fn now() -> DateTime {
+        DateTime::from_timestamp(1_767_694_414)
     }
 
     #[test]
@@ -397,7 +396,7 @@ mod tests {
     #[test]
     fn test_state_offers_a_code_only_while_the_device_and_wallet_are_eligible() {
         let eligible = Rewards {
-            use_referral_code_until: Some(now() + TimeDelta::days(1)),
+            use_referral_code_until: Some(now() + DAY),
             ..Rewards::mock(Some(""), RewardStatus::Unverified)
         };
         assert!(state(Some(&eligible), now()).can_use_referral_code);
@@ -436,7 +435,7 @@ mod tests {
         let pending = Rewards {
             code: Some("gem".to_string()),
             status: RewardStatus::Unverified,
-            ..Rewards::mock_pending(now() + TimeDelta::hours(1))
+            ..Rewards::mock_pending(now() + HOUR)
         };
         let state = state(Some(&pending), now());
         assert_eq!(
@@ -453,7 +452,7 @@ mod tests {
 
     #[test]
     fn test_state_activates_a_pending_referral_once_verify_after_is_reached() {
-        let waiting = state(Some(&Rewards::mock_pending(now() + TimeDelta::hours(1))), now());
+        let waiting = state(Some(&Rewards::mock_pending(now() + HOUR)), now());
         assert_eq!(pending_activation(&waiting), Some(false), "the button waits in place while the countdown runs");
         assert_eq!(waiting.sections.iter().map(|section| section.title.clone()).collect::<Vec<_>>(), vec![Some(GemLocalizedText::SectionTitle { title: GemListSectionTitle::Info })]);
         assert!(!waiting.can_use_referral_code);
@@ -467,12 +466,12 @@ mod tests {
                 ..
             })
         ));
-        assert_eq!(pending_activation(&state(Some(&Rewards::mock_pending(now() - TimeDelta::seconds(1))), now())), Some(true));
+        assert_eq!(pending_activation(&state(Some(&Rewards::mock_pending(now() - Duration::from_secs(1))), now())), Some(true));
 
         let without_used_code = Rewards {
             code: Some("gem".to_string()),
             used_referral_code: None,
-            ..Rewards::mock_pending(now() - TimeDelta::hours(1))
+            ..Rewards::mock_pending(now() - HOUR)
         };
         assert_eq!(pending_activation(&state(Some(&without_used_code), now())), None);
     }

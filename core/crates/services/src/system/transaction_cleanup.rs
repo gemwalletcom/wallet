@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use std::error::Error;
 use std::time::Duration;
 
-use chrono::Utc;
+use primitives::DateTime;
 use std::sync::Arc;
 
 use super::repository::{Repository, TransactionCleanupResult};
@@ -26,7 +26,7 @@ impl TransactionCleanup {
     }
 
     pub async fn cleanup(&self) -> Result<HashMap<String, usize>, Box<dyn Error + Send + Sync>> {
-        let since = (Utc::now() - self.config.lookback).naive_utc();
+        let since = DateTime::now() - self.config.lookback;
         let address_max_count = self.config.address_max_count;
         let address_limit = self.config.address_limit as i64;
 

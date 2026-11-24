@@ -38,9 +38,8 @@ impl MonadParser {
 
 #[cfg(test)]
 mod tests {
-    use chrono::DateTime;
     use gem_evm::rpc::parsers::ProtocolParsers;
-    use primitives::{AssetId, Chain, TransactionState, TransactionType, testkit::json_rpc::load_json_rpc_result};
+    use primitives::{AssetId, Chain, DateTime, TransactionState, TransactionType, testkit::json_rpc::load_json_rpc_result};
 
     use super::MonadParser;
     use crate::constants::STAKING_CONTRACT;

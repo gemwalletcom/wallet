@@ -1,8 +1,9 @@
 use std::collections::HashMap;
 
-use crate::FiatWebhookRequest;
 use crate::model::FiatDeviceContext;
-use primitives::WalletType;
+use crate::providers::mercuryo::widget::MercuryoWidget;
+use crate::{FiatQuoteRequest, FiatWebhookRequest};
+use primitives::{AssetId, Chain, FiatQuoteType, WalletType};
 
 impl FiatWebhookRequest {
     pub fn mock(raw_body: &str) -> Self {
@@ -24,6 +25,22 @@ impl FiatDeviceContext {
     }
 }
 
+impl MercuryoWidget {
+    pub fn mock() -> Self {
+        Self::new(
+            "widget123".to_string(),
+            "secret".to_string(),
+            "tx123".to_string(),
+            "0x123".to_string(),
+            "127.0.0.1".to_string(),
+            "BTC".to_string(),
+            1000.0,
+            FiatQuoteType::Buy,
+            "BITCOIN".to_string(),
+        )
+    }
+}
+
 #[cfg(all(test, feature = "fiat_integration_tests"))]
 use crate::model::FiatMapping;
 #[cfg(all(test, feature = "fiat_integration_tests"))]
@@ -31,7 +48,7 @@ use crate::providers::{
     banxa::client::BanxaClient, fonbnk::client::FonbnkClient, mercuryo::client::MercuryoClient, moonpay::client::MoonPayClient, paybis::client::PaybisClient, topper::client::TopperClient, transak::client::TransakClient,
 };
 #[cfg(all(test, feature = "fiat_integration_tests"))]
-use gem_client::ReqwestClient;
+use gem_reqwest::ReqwestClient;
 #[cfg(all(test, feature = "fiat_integration_tests"))]
 use primitives::{AccessTokenCacher, CacheFuture};
 #[cfg(all(test, feature = "fiat_integration_tests"))]
@@ -147,6 +164,27 @@ impl FiatMapping {
             unsupported_countries: std::collections::HashMap::new(),
             buy_limits: vec![],
             sell_limits: vec![],
+        }
+    }
+}
+
+impl FiatQuoteRequest {
+    pub fn mock() -> Self {
+        FiatQuoteRequest {
+            asset_id: AssetId::from_chain(Chain::Bitcoin),
+            quote_type: FiatQuoteType::Buy,
+            currency: "USD".to_string(),
+            amount: 100.0,
+            provider_id: None,
+            ip_address: "192.168.1.1".to_string(),
+        }
+    }
+
+    pub fn mock_sell() -> Self {
+        FiatQuoteRequest {
+            quote_type: FiatQuoteType::Sell,
+            amount: 250.0,
+            ..Self::mock()
         }
     }
 }

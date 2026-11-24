@@ -1,25 +1,25 @@
-use chrono::NaiveDateTime;
 use diesel::prelude::*;
 use diesel::result::Error as DieselError;
 use diesel::sql_types::Text;
 use primitives::rewards::RewardStatus as PrimitiveRewardStatus;
-use primitives::{Chain, NaiveDateTimeExt, ReferralLeader, ReferralLeaderboard, RewardEvent, TransactionState as PrimitiveTransactionState, now};
+use primitives::{Chain, DAY, DateTime, DurationExt, ReferralLeader, ReferralLeaderboard, RewardEvent, TransactionState as PrimitiveTransactionState};
+use std::time::Duration;
 
 use crate::models::{NewRewardEventRow, NewRewardReferralRow, NewRewardsRow, NewUsernameRow, ReferralAttemptRow, RewardEventRow, RewardReferralRow, RewardsRow, UsernameRow};
 use crate::repositories::transactions_repository::{TransactionFilter, transactions_by_wallet_since};
 use crate::repositories::wallets_repository::{device_multicoin_wallet_ids, device_rows_by_wallet_id, first_subscription_date_by_wallet_id, wallet_row_by_id};
-use crate::sql_types::{RewardEventType, RewardStatus, UsernameStatus};
+use crate::sql_types::{DateTimeRow, RewardEventType, RewardStatus, UsernameStatus};
 use crate::{DatabaseClient, DatabaseError, DieselResultExt};
 
 #[derive(Debug, Clone)]
 enum ReferralUpdate {
-    VerifiedAt(NaiveDateTime),
+    VerifiedAt(DateTime),
 }
 
 #[derive(Debug, Clone)]
 enum RewardsUpdate {
     Status(RewardStatus),
-    VerifyAfter(NaiveDateTime),
+    VerifyAfter(DateTime),
     ClearVerifyAfter,
 }
 
@@ -77,7 +77,7 @@ fn update_referral(client: &mut DatabaseClient, referral_id: i32, update: Referr
     use crate::schema::rewards_referrals::dsl;
     match update {
         ReferralUpdate::VerifiedAt(timestamp) => diesel::update(dsl::rewards_referrals.find(referral_id).filter(dsl::verified_at.is_null()))
-            .set(dsl::verified_at.eq(timestamp))
+            .set(dsl::verified_at.eq(DateTimeRow::from(timestamp)))
             .execute(&mut client.connection),
     }
 }
@@ -88,11 +88,11 @@ fn add_referral_attempt(client: &mut DatabaseClient, attempt: ReferralAttemptRow
     Ok(())
 }
 
-fn count_referrals_since(client: &mut DatabaseClient, referrer_username: &str, since: NaiveDateTime) -> Result<i64, DieselError> {
+fn count_referrals_since(client: &mut DatabaseClient, referrer_username: &str, since: DateTime) -> Result<i64, DieselError> {
     use crate::schema::rewards_referrals::dsl;
     dsl::rewards_referrals
         .filter(dsl::referrer_username.eq(referrer_username))
-        .filter(dsl::created_at.ge(since))
+        .filter(dsl::created_at.ge(DateTimeRow::from(since)))
         .count()
         .get_result(&mut client.connection)
 }
@@ -146,8 +146,8 @@ fn update_rewards(client: &mut DatabaseClient, username: &str, update: RewardsUp
     let target = dsl::rewards.filter(dsl::username.eq(username));
     match update {
         RewardsUpdate::Status(status) => diesel::update(target).set(dsl::status.eq(status)).execute(&mut client.connection),
-        RewardsUpdate::VerifyAfter(dt) => diesel::update(target).set(dsl::verify_after.eq(dt)).execute(&mut client.connection),
-        RewardsUpdate::ClearVerifyAfter => diesel::update(target).set(dsl::verify_after.eq(None::<NaiveDateTime>)).execute(&mut client.connection),
+        RewardsUpdate::VerifyAfter(dt) => diesel::update(target).set(dsl::verify_after.eq(DateTimeRow::from(dt))).execute(&mut client.connection),
+        RewardsUpdate::ClearVerifyAfter => diesel::update(target).set(dsl::verify_after.eq(None::<DateTimeRow>)).execute(&mut client.connection),
     }
 }
 
@@ -185,7 +185,7 @@ fn get_events(client: &mut DatabaseClient, username: &str) -> Result<Vec<RewardE
         .load(&mut client.connection)
 }
 
-fn get_top_referrers_since(client: &mut DatabaseClient, event_types: &[RewardEventType], since: NaiveDateTime, limit: i64) -> Result<Vec<(String, i64)>, DieselError> {
+fn get_top_referrers_since(client: &mut DatabaseClient, event_types: &[RewardEventType], since: DateTime, limit: i64) -> Result<Vec<(String, i64)>, DieselError> {
     use crate::schema::{rewards, rewards_events};
     use diesel::dsl::count_star;
 
@@ -194,7 +194,7 @@ fn get_top_referrers_since(client: &mut DatabaseClient, event_types: &[RewardEve
         .filter(rewards::status.ne(RewardStatus::Attribution))
         .filter(rewards::status.ne(RewardStatus::Disabled))
         .filter(rewards_events::event_type.eq_any(event_types))
-        .filter(rewards_events::created_at.ge(since))
+        .filter(rewards_events::created_at.ge(DateTimeRow::from(since)))
         .group_by(rewards_events::username)
         .select((rewards_events::username, count_star()))
         .order_by(count_star().desc())
@@ -263,7 +263,7 @@ fn require_reward_event(client: &mut DatabaseClient, event_id: i32) -> Result<Re
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct RewardsEligibilityConfig {
-    pub activity_cutoff: NaiveDateTime,
+    pub activity_cutoff: DateTime,
     pub transactions_required: i64,
 }
 
@@ -280,7 +280,7 @@ pub struct ReferralRecord {
     pub referrer_username: String,
     pub referred_username: String,
     pub referred_device_id: i32,
-    pub verified_at: Option<NaiveDateTime>,
+    pub verified_at: Option<DateTime>,
 }
 
 impl From<RewardReferralRow> for ReferralRecord {
@@ -290,7 +290,7 @@ impl From<RewardReferralRow> for ReferralRecord {
             referrer_username: row.referrer_username,
             referred_username: row.referred_username,
             referred_device_id: row.referred_device_id,
-            verified_at: row.verified_at,
+            verified_at: row.verified_at.map(Into::into),
         }
     }
 }
@@ -298,15 +298,15 @@ impl From<RewardReferralRow> for ReferralRecord {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct RewardsVerification {
     pub status: PrimitiveRewardStatus,
-    pub verify_after: Option<NaiveDateTime>,
+    pub verify_after: Option<DateTime>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ReferralUseFactsRecord {
     pub referred_username: String,
     pub referred_status: Option<PrimitiveRewardStatus>,
-    pub wallet_first_subscription_at: Option<NaiveDateTime>,
-    pub device_wallets: Vec<(i32, Option<NaiveDateTime>)>,
+    pub wallet_first_subscription_at: Option<DateTime>,
+    pub device_wallets: Vec<(i32, Option<DateTime>)>,
     pub device_referral: Option<ReferralRecord>,
 }
 
@@ -323,8 +323,8 @@ pub struct RewardsRecord {
     pub referral_count: i32,
     pub referrer_username: Option<String>,
     pub disable_reason: Option<String>,
-    pub verify_after: Option<NaiveDateTime>,
-    pub created_at: NaiveDateTime,
+    pub verify_after: Option<DateTime>,
+    pub created_at: DateTime,
 }
 
 impl From<RewardsRow> for RewardsRecord {
@@ -335,8 +335,8 @@ impl From<RewardsRow> for RewardsRecord {
             referral_count: row.referral_count,
             referrer_username: row.referrer_username,
             disable_reason: row.disable_reason,
-            verify_after: row.verify_after,
-            created_at: row.created_at,
+            verify_after: row.verify_after.map(Into::into),
+            created_at: row.created_at.into(),
         }
     }
 }
@@ -432,7 +432,7 @@ fn add_referral_with_events(
     referred_username: &str,
     device_id: i32,
     risk_signal_id: Option<i32>,
-    verified_at: Option<NaiveDateTime>,
+    verified_at: Option<DateTime>,
     referrer_status: &PrimitiveRewardStatus,
 ) -> Result<Vec<RewardEvent>, DatabaseError> {
     add_referral(
@@ -442,7 +442,7 @@ fn add_referral_with_events(
             referred_username: referred_username.to_string(),
             referred_device_id: device_id,
             risk_signal_id,
-            verified_at,
+            verified_at: verified_at.map(Into::into),
         },
     )?;
 
@@ -462,7 +462,7 @@ fn complete_referral(client: &mut DatabaseClient, referred_username: &str) -> Re
         return Ok(vec![]);
     }
 
-    if update_referral(client, referral.id, ReferralUpdate::VerifiedAt(now()))? == 0 {
+    if update_referral(client, referral.id, ReferralUpdate::VerifiedAt(DateTime::now()))? == 0 {
         return Ok(vec![]);
     }
     let referrer_status = *require_rewards(client, &referral.referrer_username)?.status;
@@ -485,7 +485,7 @@ pub trait RewardsRepository {
     fn get_referral_use_facts(&mut self, wallet_id: i32, device_id: i32) -> Result<ReferralUseFactsRecord, DatabaseError>;
     fn get_referral_by_referred_username(&mut self, username: &str) -> Result<Option<ReferralRecord>, DatabaseError>;
     fn delete_rewards_verification_delay(&mut self, username: &str) -> Result<(), DatabaseError>;
-    fn set_rewards_verification_delay(&mut self, username: &str, verify_after: NaiveDateTime) -> Result<(), DatabaseError>;
+    fn set_rewards_verification_delay(&mut self, username: &str, verify_after: DateTime) -> Result<(), DatabaseError>;
     fn update_referral_verified(&mut self, referral_id: i32, referrer_username: &str, referrer_status: &PrimitiveRewardStatus, referred_username: &str) -> Result<Vec<RewardEvent>, DatabaseError>;
     fn add_referral(
         &mut self,
@@ -493,14 +493,14 @@ pub trait RewardsRepository {
         referred_username: &str,
         device_id: i32,
         risk_signal_id: Option<i32>,
-        verified_at: Option<NaiveDateTime>,
+        verified_at: Option<DateTime>,
         referrer_status: &PrimitiveRewardStatus,
     ) -> Result<Vec<RewardEvent>, DatabaseError>;
     fn add_referral_attempt(&mut self, referrer_username: &str, referred_wallet_id: i32, device_id: i32, risk_signal_id: Option<i32>, reason: &str) -> Result<(), DatabaseError>;
     fn get_wallet_id_by_username(&mut self, username: &str) -> Result<i32, DatabaseError>;
     fn get_referrer_username(&mut self, referred_username: &str) -> Result<Option<String>, DatabaseError>;
     fn get_address_by_username(&mut self, username: &str) -> Result<String, DatabaseError>;
-    fn get_referrals_count_since(&mut self, referrer_username: &str, since: NaiveDateTime) -> Result<i64, DatabaseError>;
+    fn get_referrals_count_since(&mut self, referrer_username: &str, since: DateTime) -> Result<i64, DatabaseError>;
     fn get_rewards_leaderboard(&mut self) -> Result<ReferralLeaderboard, DatabaseError>;
     fn set_rewards_disabled(&mut self, username: &str, reason: &str, comment: &str) -> Result<i32, DatabaseError>;
     fn get_usernames_by_filter(&mut self, filters: Vec<RewardsFilter>) -> Result<Vec<String>, DatabaseError>;
@@ -564,7 +564,7 @@ impl RewardsRepository for DatabaseClient {
         let rewards = require_rewards(self, username)?;
         Ok(RewardsVerification {
             status: *rewards.status,
-            verify_after: rewards.verify_after,
+            verify_after: rewards.verify_after.map(Into::into),
         })
     }
 
@@ -596,14 +596,14 @@ impl RewardsRepository for DatabaseClient {
         Ok(())
     }
 
-    fn set_rewards_verification_delay(&mut self, username: &str, verify_after: NaiveDateTime) -> Result<(), DatabaseError> {
+    fn set_rewards_verification_delay(&mut self, username: &str, verify_after: DateTime) -> Result<(), DatabaseError> {
         update_rewards(self, username, RewardsUpdate::VerifyAfter(verify_after))?;
         update_rewards(self, username, RewardsUpdate::Status(RewardStatus::Pending))?;
         Ok(())
     }
 
     fn update_referral_verified(&mut self, referral_id: i32, referrer_username: &str, referrer_status: &PrimitiveRewardStatus, referred_username: &str) -> Result<Vec<RewardEvent>, DatabaseError> {
-        if update_referral(self, referral_id, ReferralUpdate::VerifiedAt(now()))? == 0 {
+        if update_referral(self, referral_id, ReferralUpdate::VerifiedAt(DateTime::now()))? == 0 {
             return Ok(vec![]);
         }
         add_referral_verified_events(self, referrer_username, referrer_status, referred_username)
@@ -615,7 +615,7 @@ impl RewardsRepository for DatabaseClient {
         referred_username: &str,
         device_id: i32,
         risk_signal_id: Option<i32>,
-        verified_at: Option<NaiveDateTime>,
+        verified_at: Option<DateTime>,
         referrer_status: &PrimitiveRewardStatus,
     ) -> Result<Vec<RewardEvent>, DatabaseError> {
         add_referral_with_events(self, referrer_username, referred_username, device_id, risk_signal_id, verified_at, referrer_status)
@@ -651,12 +651,12 @@ impl RewardsRepository for DatabaseClient {
         Ok(wallet.wallet_id.address().to_string())
     }
 
-    fn get_referrals_count_since(&mut self, referrer_username: &str, since: NaiveDateTime) -> Result<i64, DatabaseError> {
+    fn get_referrals_count_since(&mut self, referrer_username: &str, since: DateTime) -> Result<i64, DatabaseError> {
         Ok(count_referrals_since(self, referrer_username, since)?)
     }
 
     fn get_rewards_leaderboard(&mut self) -> Result<ReferralLeaderboard, DatabaseError> {
-        let current = now();
+        let current = DateTime::now();
         let limit = 10;
         let invite_types = [RewardEventType::InviteNew];
         let points_per_referral = RewardEventType::InviteNew.points() as i64;
@@ -667,11 +667,11 @@ impl RewardsRepository for DatabaseClient {
             points: (referrals * points_per_referral) as i32,
         };
 
-        let daily = get_top_referrers_since(self, &invite_types, current.days_ago(1), limit)?.into_iter().map(map_entry).collect();
+        let daily = get_top_referrers_since(self, &invite_types, current - DAY, limit)?.into_iter().map(map_entry).collect();
 
-        let weekly = get_top_referrers_since(self, &invite_types, current.days_ago(7), limit)?.into_iter().map(map_entry).collect();
+        let weekly = get_top_referrers_since(self, &invite_types, current - Duration::days(7), limit)?.into_iter().map(map_entry).collect();
 
-        let monthly = get_top_referrers_since(self, &invite_types, current.days_ago(30), limit)?.into_iter().map(map_entry).collect();
+        let monthly = get_top_referrers_since(self, &invite_types, current - Duration::days(30), limit)?.into_iter().map(map_entry).collect();
 
         Ok(ReferralLeaderboard { daily, weekly, monthly })
     }
@@ -692,7 +692,7 @@ impl RewardsRepository for DatabaseClient {
             return Ok(None);
         }
 
-        if rewards.verify_after.is_some_and(|dt| dt > now()) {
+        if rewards.verify_after.is_some_and(|verify_after| *verify_after > DateTime::now()) {
             return Ok(None);
         }
 
@@ -708,7 +708,7 @@ impl RewardsRepository for DatabaseClient {
             return Ok(None);
         };
 
-        if latest_activity_at < eligibility.activity_cutoff {
+        if *latest_activity_at < eligibility.activity_cutoff {
             return Ok(None);
         }
 

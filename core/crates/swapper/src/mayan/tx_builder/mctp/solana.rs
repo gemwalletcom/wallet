@@ -172,7 +172,7 @@ where
         ))
         .await?;
 
-    let lookup_table_addresses = append_client_swap_instructions(instructions, swap, &context.user, &context.relayer, &route.from_token.contract, &route.effective_amount_in64)?;
+    let lookup_table_addresses = append_client_swap_instructions(instructions, swap, &context.user, &context.relayer, &context.ledger_account, &route.from_token.contract, &route.effective_amount_in64)?;
 
     add_ledger_instruction(route, context, fractional_amount(min_middle_amount, CCTP_TOKEN_DECIMALS)?, instructions)?;
 

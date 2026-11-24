@@ -13,6 +13,10 @@ updates:
       alloy:
         patterns:
           - "alloy-*"
+      uniffi:
+        patterns:
+          - "uniffi"
+          - "uniffi_bindgen"
     schedule:
       interval: "weekly"
     cooldown:
@@ -61,13 +65,17 @@ updates:
     directories:
       - "/core"
       - "/.oss-scanner"
+    groups:
+      docker:
+        patterns:
+          - "*"
     schedule:
       interval: "weekly"
     cooldown:
       default-days: 7
     ignore:
       # Server images must not build with a compiler CI doesn't test: hold rust to the rust-toolchain.toml line.
-      - dependency-name: "rust"
+      - dependency-name: "library/rust"
         update-types:
           - "version-update:semver-major"
           - "version-update:semver-minor"

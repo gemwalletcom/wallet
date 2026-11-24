@@ -26,7 +26,7 @@ impl MessageConsumer<TransactionId, usize> for StorePendingTransactionsConsumer 
 
     async fn consume(&self, payload: TransactionId) -> Result<usize, Box<dyn Error + Send + Sync>> {
         let transaction_id = payload.to_string();
-        let expires_at = unix_seconds()?.saturating_add(u64::from(chain_transaction_timeout(payload.chain)) / 1000) as f64;
+        let expires_at = unix_seconds()?.saturating_add(chain_transaction_timeout(payload.chain).as_secs()) as f64;
         self.pending.add_pending(payload.chain, payload.hash, expires_at).await?;
         info_with_fields!("pending added", transaction_id = transaction_id.as_str());
         Ok(1)

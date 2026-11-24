@@ -2,7 +2,7 @@ use std::error::Error;
 use std::future::Future;
 use std::sync::Arc;
 
-use primitives::{Device, Platform, SupportAction, SupportMessage, SupportMessageInput};
+use primitives::{DateTime, Device, Platform, SupportAction, SupportMessage, SupportMessageInput};
 use storage::DeviceRecord;
 
 use super::chatwoot::ChatwootClient;
@@ -20,9 +20,9 @@ impl SupportApiClient {
         Self { chatwoot_ios, chatwoot_android, repository }
     }
 
-    pub async fn messages(&self, device: &DeviceRecord, from_timestamp: Option<u64>) -> Result<Vec<SupportMessage>, Box<dyn Error + Send + Sync>> {
+    pub async fn messages(&self, device: &DeviceRecord, since: Option<DateTime>) -> Result<Vec<SupportMessage>, Box<dyn Error + Send + Sync>> {
         let chatwoot = self.chatwoot(device.device.platform);
-        self.with_session(device, |session| async move { chatwoot.messages(&session, from_timestamp).await }).await
+        self.with_session(device, |session| async move { chatwoot.messages(&session, since).await }).await
     }
 
     pub async fn send_message(&self, device: &DeviceRecord, input: SupportMessageInput) -> Result<SupportMessage, Box<dyn Error + Send + Sync>> {

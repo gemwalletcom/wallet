@@ -1,8 +1,7 @@
 use std::str::FromStr;
 
-use chrono::Utc;
-use number_formatter::BigNumberFormatter;
-use primitives::{Asset, AssetPrice, Currency, PerpetualProvider, SimulationResult, TransactionInputType};
+use number_formatter::{BigNumberFormatter, ValueStyle};
+use primitives::{Asset, AssetPrice, Currency, DateTime, PerpetualProvider, SimulationResult, TransactionInputType};
 
 use super::model::{GemConfirmLoad, GemConfirmPhase, GemConfirmScreen, GemSimulationValue, GemTransferAmountResult};
 use super::rules;
@@ -52,13 +51,13 @@ fn is_amountless_payment(transfer: &GemTransferData) -> bool {
 
 fn transaction_header(transfer: &GemTransferData, load: Option<&GemConfirmLoad>, currency: Currency) -> GemTransactionHeader {
     let prices = load.map(|load| load.metadata.prices.as_slice()).unwrap_or_default();
-    let amount = |shows_fiat: bool| GemTransactionHeader::amount(header_amount(amount(transfer, load, prices, &currency), &currency, shows_fiat));
+    let amount = |shows_fiat: bool| GemTransactionHeader::amount(header_amount(amount(transfer, load, prices, &currency), ValueStyle::Medium, &currency, shows_fiat));
     match transfer.header_kind() {
         GemTransactionHeaderKind::Amount { shows_fiat } => amount(shows_fiat),
         GemTransactionHeaderKind::Swap => match &transfer.input_type {
             TransactionInputType::Swap { from_asset, to_asset, swap_data } => GemTransactionHeader::Swap {
-                from: header_amount(leg(from_asset.clone(), sent_value(load).unwrap_or_else(|| swap_data.quote.from_value.clone()), prices), &currency, true),
-                to: header_amount(leg(to_asset.clone(), swap_data.quote.to_value.clone(), prices), &currency, true),
+                from: header_amount(leg(from_asset.clone(), sent_value(load).unwrap_or_else(|| swap_data.quote.from_value.clone()), prices), ValueStyle::Auto, &currency, true),
+                to: header_amount(leg(to_asset.clone(), swap_data.quote.to_value.clone(), prices), ValueStyle::Auto, &currency, true),
             },
             _ => amount(true),
         },
@@ -93,7 +92,7 @@ fn amount(transfer: &GemTransferData, load: Option<&GemConfirmLoad>, prices: &[A
         && value != GemBigUint::ZERO
     {
         return GemTransactionAmount {
-            price: Some(AssetPrice::new(asset.id.clone(), price.amount / BigNumberFormatter::f64_value(&value, asset.decimals), 0.0, Utc::now())),
+            price: Some(AssetPrice::new(asset.id.clone(), price.amount / BigNumberFormatter::f64_value(&value, asset.decimals), 0.0, DateTime::now())),
             asset,
             value,
             sign: GemAmountSign::None,
@@ -124,9 +123,9 @@ mod tests {
 
     use super::super::error::GemConfirmError;
     use super::super::model::GemApprovalValue;
-    use crate::formatted_number::GemFormattedNumber;
+    use crate::formatted_number::{GemFormattedNumber, GemNumberDisplay, GemNumberNotation, GemNumberRounding, GemNumberUnit, GemValueTone};
+    use crate::precision::GemPrecision;
     use crate::services::assets::model::{GemRowText, GemValueHeaderIcon};
-    use number_formatter::ValueStyle;
 
     use super::*;
 
@@ -262,7 +261,7 @@ mod tests {
         assert_eq!(
             amount_header(header(&request, Some(&simulation), None, Currency::USD, &ready())).title,
             GemLocalizedText::Number {
-                number: GemFormattedNumber::asset_amount(&150_000u32.into(), &asset, ValueStyle::Auto)
+                number: GemFormattedNumber::asset_amount(&150_000u32.into(), &asset, ValueStyle::Medium)
             },
             "an approval that also sends coins is reviewed by the coins it sends"
         );
@@ -278,9 +277,35 @@ mod tests {
         assert_eq!(
             amount_header(header(&sent, None, None, Currency::USD, &ready())).title,
             GemLocalizedText::Number {
-                number: GemFormattedNumber::asset_amount(&150_000u32.into(), &Asset::mock(), ValueStyle::Auto)
+                number: GemFormattedNumber::asset_amount(&150_000u32.into(), &Asset::mock(), ValueStyle::Medium)
             },
             "the head is not empty while the fee loads"
+        );
+    }
+
+    #[test]
+    fn test_the_head_shows_up_to_eight_decimals_of_the_amount_sent() {
+        let payment = GemTransferData {
+            value: 12_345_678u32.into(),
+            ..transfer(TransactionInputType::Transfer { asset: Asset::mock_ethereum_usdc() })
+        };
+
+        assert_eq!(
+            amount_header(header(&payment, None, None, Currency::USD, &ready())).title,
+            GemLocalizedText::Number {
+                number: GemFormattedNumber {
+                    value: 12.345678,
+                    unit: GemNumberUnit::Symbol { symbol: "USDC".to_string() },
+                    display: GemNumberDisplay::Number {
+                        precision: GemPrecision::Fraction { min: 0, max: 8 }
+                    },
+                    notation: GemNumberNotation::Plain,
+                    tone: GemValueTone::Plain,
+                    rounding: GemNumberRounding::TowardZero,
+                    exact: Some("12.345678".to_string()),
+                }
+            },
+            "every digit of a six-decimal amount, not two"
         );
     }
 

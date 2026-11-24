@@ -2,7 +2,6 @@ use crate::models::{BalanceChange, Digest, Event, EventStake, EventUnstake, GasU
 use crate::types::Address;
 use crate::{DEEPBOOK_ORDER_FILLED_EVENT, SUI_COIN_TYPE, SUI_STAKE_EVENT, SUI_UNSTAKE_EVENT, full_coin_type, sui_framework_package_address};
 use chain_primitives::{BalanceDiff, SwapMapper};
-use chrono::{TimeZone, Utc};
 use num_bigint::{BigUint, Sign};
 use primitives::{AssetId, SwapProvider, Transaction, TransactionSmartContractMetadata, TransactionState, TransactionSwapMetadata, TransactionSwapReferralFee, TransactionType, chain::Chain, swap::SUI_REFERRAL_ADDRESS};
 
@@ -26,7 +25,7 @@ pub fn map_transaction(transaction: Digest) -> Option<Transaction> {
     let effects = transaction.effects.clone();
     let hash = transaction.digest.clone();
     let fee = get_fee(effects.gas_used.clone());
-    let created_at = Utc.timestamp_millis_opt(transaction.timestamp_ms as i64).single()?;
+    let created_at = transaction.timestamp;
     let state = if effects.status.status == STATUS_SUCCESS { TransactionState::Confirmed } else { TransactionState::Failed };
     let owner = effects.gas_object.owner.get_address_owner();
 

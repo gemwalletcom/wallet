@@ -1,12 +1,8 @@
-use std::fmt;
 use std::time::Duration;
 
 use http_server::HttpMetrics;
-use metrics::{MetricsRegistry, prometheus_client};
+use metrics::{Family, Histogram, LabelEncoder, LabelSet, MetricsRegistry, exponential_buckets};
 use primitives::{ScanOutcome, ScanProvider, ScanType};
-use prometheus_client::encoding::{EncodeLabelSet, LabelSetEncoder};
-use prometheus_client::metrics::family::Family;
-use prometheus_client::metrics::histogram::{Histogram, exponential_buckets};
 use security::TransactionScanProviders;
 use services::security::ScanMetrics;
 
@@ -19,9 +15,11 @@ struct ScanLabels {
     outcome: &'static str,
 }
 
-impl EncodeLabelSet for ScanLabels {
-    fn encode(&self, encoder: &mut LabelSetEncoder) -> Result<(), fmt::Error> {
-        [("provider", self.provider.as_str()), ("kind", self.kind), ("outcome", self.outcome)].encode(encoder)
+impl LabelSet for ScanLabels {
+    fn encode(&self, encoder: &mut LabelEncoder<'_>) {
+        encoder.add("provider", &self.provider);
+        encoder.add("kind", self.kind);
+        encoder.add("outcome", self.outcome);
     }
 }
 
@@ -42,17 +40,17 @@ impl Metrics {
             .chain(providers.websites.iter().map(|provider| (provider.provider(), ScanType::Website)))
         {
             for outcome in ScanOutcome::all() {
-                drop(scan_latency.get_or_create(&ScanLabels {
+                scan_latency.get_or_create(&ScanLabels {
                     provider: provider.as_ref().to_string(),
                     kind: kind.into(),
                     outcome: outcome.into(),
-                }));
+                });
             }
         }
         let mut registry = MetricsRegistry::with_prefix(METRICS_PREFIX);
-        registry.registry_mut().register("security_scan_latency_milliseconds", "Security provider request latency", scan_latency.clone());
+        registry.register("security_scan_latency_milliseconds", "Security provider request latency", scan_latency.clone());
         let http = HttpMetrics::new();
-        http.register(registry.registry_mut());
+        http.register(&mut registry);
         Self { registry, scan_latency, http }
     }
 

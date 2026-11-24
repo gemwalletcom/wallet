@@ -1,6 +1,5 @@
-use chrono::NaiveDateTime;
 use diesel::prelude::*;
-use primitives::{AssetId, SwapProvider, TransactionId, swap::SwapStatus};
+use primitives::{AssetId, DateTime, SwapProvider, TransactionId, swap::SwapStatus};
 
 use crate::models::NewTransactionSwapRow;
 use crate::repositories::transactions_repository::transaction_row_id;
@@ -18,7 +17,7 @@ pub struct TransactionSwapRecord {
     pub to_amount_usd: Option<f64>,
     pub referral_fee_asset_id: AssetId,
     pub referral_fee_amount_usd: Option<f64>,
-    pub created_at: NaiveDateTime,
+    pub created_at: DateTime,
 }
 
 pub trait TransactionsSwapsRepository {
@@ -40,7 +39,7 @@ impl TransactionsSwapsRepository for DatabaseClient {
             to_amount_usd: record.to_amount_usd,
             referral_fee_asset_id: record.referral_fee_asset_id.into(),
             referral_fee_amount_usd: record.referral_fee_amount_usd,
-            created_at: record.created_at,
+            created_at: record.created_at.into(),
         };
         Ok(diesel::insert_into(transactions_swaps).values(&row).on_conflict(transaction_id).do_update().set(&row).execute(&mut self.connection)?)
     }

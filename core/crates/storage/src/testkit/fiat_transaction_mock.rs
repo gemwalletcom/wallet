@@ -1,6 +1,5 @@
 use crate::models::FiatTransactionRow;
-use chrono::DateTime;
-use primitives::{AssetId, Chain, FiatProviderName, FiatQuoteType, FiatTransactionStatus};
+use primitives::{AssetId, Chain, DateTime, FiatProviderName, FiatQuoteType, FiatTransactionStatus};
 
 impl FiatTransactionRow {
     pub fn mock() -> Self {
@@ -20,15 +19,15 @@ impl FiatTransactionRow {
             device_id: 1,
             wallet_id: 1,
             quote_id: "quote_123".to_string(),
-            updated_at: DateTime::UNIX_EPOCH.naive_utc(),
-            created_at: DateTime::UNIX_EPOCH.naive_utc(),
+            updated_at: DateTime::UNIX_EPOCH.into(),
+            created_at: DateTime::UNIX_EPOCH.into(),
         }
     }
 
-    pub fn mock_with_timestamps(created_at: DateTime<chrono::Utc>, updated_at: DateTime<chrono::Utc>) -> Self {
+    pub fn mock_with_timestamps(created_at: DateTime, updated_at: DateTime) -> Self {
         Self {
-            created_at: created_at.naive_utc(),
-            updated_at: updated_at.naive_utc(),
+            created_at: created_at.into(),
+            updated_at: updated_at.into(),
             ..Self::mock()
         }
     }

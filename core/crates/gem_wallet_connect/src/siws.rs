@@ -1,5 +1,5 @@
-use chrono::Utc;
 use gem_solana::siws::SiwsMessage;
+use primitives::DateTime;
 use url::Url;
 
 use crate::{SignDigestType, SignMessageValidation};
@@ -18,7 +18,7 @@ pub(crate) fn validate(input: &SignMessageValidation) -> Result<(), String> {
     let Some(message) = SiwsMessage::decode_base58(input.data)? else {
         return Ok(());
     };
-    message.validate(input.chain, Utc::now())?;
+    message.validate(input.chain, DateTime::now())?;
     validate_origin(&message, input.session_domain)
 }
 

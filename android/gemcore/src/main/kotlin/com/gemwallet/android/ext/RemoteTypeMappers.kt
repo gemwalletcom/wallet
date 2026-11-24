@@ -757,6 +757,7 @@ fun uniffi.gemstone.SwapProvider.toPrimitives(): com.wallet.core.primitives.Swap
     uniffi.gemstone.SwapProvider.CETUS_CLMM -> com.wallet.core.primitives.SwapProvider.CetusClmm
     uniffi.gemstone.SwapProvider.RELAY -> com.wallet.core.primitives.SwapProvider.Relay
     uniffi.gemstone.SwapProvider.HYPERLIQUID -> com.wallet.core.primitives.SwapProvider.Hyperliquid
+    uniffi.gemstone.SwapProvider.HYPERLIQUID_BRIDGE -> com.wallet.core.primitives.SwapProvider.HyperliquidBridge
     uniffi.gemstone.SwapProvider.ORCA -> com.wallet.core.primitives.SwapProvider.Orca
     uniffi.gemstone.SwapProvider.SQUID -> com.wallet.core.primitives.SwapProvider.Squid
     uniffi.gemstone.SwapProvider.MAYACHAIN -> com.wallet.core.primitives.SwapProvider.Mayachain
@@ -793,6 +794,7 @@ fun com.wallet.core.primitives.SwapProvider.toGem(): uniffi.gemstone.SwapProvide
     com.wallet.core.primitives.SwapProvider.CetusClmm -> uniffi.gemstone.SwapProvider.CETUS_CLMM
     com.wallet.core.primitives.SwapProvider.Relay -> uniffi.gemstone.SwapProvider.RELAY
     com.wallet.core.primitives.SwapProvider.Hyperliquid -> uniffi.gemstone.SwapProvider.HYPERLIQUID
+    com.wallet.core.primitives.SwapProvider.HyperliquidBridge -> uniffi.gemstone.SwapProvider.HYPERLIQUID_BRIDGE
     com.wallet.core.primitives.SwapProvider.Orca -> uniffi.gemstone.SwapProvider.ORCA
     com.wallet.core.primitives.SwapProvider.Squid -> uniffi.gemstone.SwapProvider.SQUID
     com.wallet.core.primitives.SwapProvider.Mayachain -> uniffi.gemstone.SwapProvider.MAYACHAIN

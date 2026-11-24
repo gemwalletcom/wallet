@@ -1,4 +1,4 @@
-use primitives::SolanaInstruction;
+use gem_solana::models::SolanaInstruction;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Deserialize, Serialize)]

@@ -7,7 +7,6 @@ edition = { workspace = true }
 default = ["types"]
 types = []
 client = ["dep:gem_client", "dep:async-trait", "dep:primitives", "dep:gem_encoding"]
-reqwest = ["client", "dep:reqwest", "gem_client/reqwest"]
 uniffi = ["client", "dep:uniffi"]
 
 [dependencies]
@@ -17,7 +16,6 @@ serde_json = { workspace = true }
 gem_client = { path = "../gem_client", optional = true }
 async-trait = { workspace = true, optional = true }
 primitives = { path = "../primitives", optional = true }
-reqwest = { workspace = true, optional = true }
 gem_encoding = { path = "../gem_encoding", default-features = false, optional = true }
 uniffi = { workspace = true, optional = true }
 

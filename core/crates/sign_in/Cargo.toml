@@ -1,0 +1,7 @@
+[package]
+name = "sign_in"
+edition = { workspace = true }
+version = { workspace = true }
+
+[dependencies]
+url = { workspace = true }

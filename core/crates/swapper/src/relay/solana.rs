@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use gem_solana::{HexInstructionData, instructions_from_primitives};
+use gem_solana::{HexInstructionData, decode_instructions};
 
 use super::model::SolanaStepData;
 use crate::{SwapperError, SwapperQuoteData, alien::RpcProvider, solana_dex::SolanaTransaction};
@@ -10,7 +10,7 @@ pub async fn build_quote_data(wallet_address: &str, step: &SolanaStepData, rpc_p
 }
 
 fn transaction(step: &SolanaStepData) -> Result<SolanaTransaction, SwapperError> {
-    let instructions = instructions_from_primitives::<HexInstructionData>(step.instructions.clone()).map_err(SwapperError::transaction_error)?;
+    let instructions = decode_instructions::<HexInstructionData>(step.instructions.clone()).map_err(SwapperError::transaction_error)?;
     Ok(SolanaTransaction::new(instructions, step.address_lookup_table_addresses.clone()))
 }
 
@@ -38,7 +38,7 @@ mod tests {
         assert_eq!(quote_data.value, BigUint::ZERO);
         assert!(quote_data.approval.is_none());
 
-        let instructions = instructions_from_primitives::<HexInstructionData>(step.instructions.clone()).unwrap();
+        let instructions = decode_instructions::<HexInstructionData>(step.instructions.clone()).unwrap();
         assert_eq!(instructions[0].program_id.to_base58(), SOLANA_RELAY_DEPOSITORY_PROGRAM_ID);
         assert_eq!(instructions[0].data, hex::decode("0d9e0ddf5fd51c0600e1f50500000000d8f6831d9a771a5b031cc86256987f54a9759e6107db24b07ec66eef4e555055").unwrap());
     }
@@ -48,7 +48,7 @@ mod tests {
         let response: RelayQuoteResponse = serde_json::from_str(include_str!("testdata/quote_cbbtc_to_base_usdc.json")).unwrap();
         let step = response.get_solana_step().unwrap();
         let mut accounts = Vec::new();
-        for account in instructions_from_primitives::<HexInstructionData>(step.instructions.clone()).unwrap().into_iter().flat_map(|instruction| instruction.accounts) {
+        for account in decode_instructions::<HexInstructionData>(step.instructions.clone()).unwrap().into_iter().flat_map(|instruction| instruction.accounts) {
             if !account.is_signer && !accounts.contains(&account.pubkey) {
                 accounts.push(account.pubkey);
             }

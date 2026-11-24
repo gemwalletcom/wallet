@@ -66,16 +66,15 @@ impl BscParser {
         }
 
         let operator_address = ethereum_address_from_topic(&log.topics[1])?;
-        make_staking_transaction(context, &operator_address, TransactionType::StakeRewards, ethereum_value_from_log_data(&log.data, 0, EVENT_WORD_SIZE)?)
+        make_staking_transaction(context, &operator_address, TransactionType::StakeWithdraw, ethereum_value_from_log_data(&log.data, 0, EVENT_WORD_SIZE)?)
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use chrono::DateTime;
     use gem_evm::rpc::model::Transaction;
     use gem_evm::rpc::parsers::ProtocolParsers;
-    use primitives::{AssetId, Chain, TransactionState, TransactionType, testkit::json_rpc::load_json_rpc_result};
+    use primitives::{AssetId, Chain, DateTime, TransactionState, TransactionType, testkit::json_rpc::load_json_rpc_result};
 
     use super::BscParser;
     use crate::constants::STAKE_HUB_ADDRESS;
@@ -108,12 +107,12 @@ mod tests {
                 "2370599727993109265",
             ),
             (
-                include_str!("../testdata/transaction_staking_claim_rewards.json"),
-                include_str!("../testdata/transaction_staking_claim_rewards_receipt.json"),
-                TransactionType::StakeRewards,
-                "0x47B47f2586089F68Ec17384a437F96800f499274",
-                "0xB12e8137eF499a1d81552DB11664a9E617fd350A",
-                "4001085336323661069",
+                include_str!("../testdata/transaction_staking_withdraw.json"),
+                include_str!("../testdata/transaction_staking_withdraw_receipt.json"),
+                TransactionType::StakeWithdraw,
+                "0x4Bc1e8CE5b5A0CeebB7693CE43d8CE103E9Fa740",
+                "0x4DC1Bf52da103452097df48505A6D01020fFB22b",
+                "7169603378226172497",
             ),
         ];
 

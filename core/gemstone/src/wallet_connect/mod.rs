@@ -1,7 +1,9 @@
+use gem_wallet_connect::WalletConnectRequest;
 use gem_wallet_connect::{
     SignDigestType, WalletConnectAction, WalletConnectRequestHandler, WalletConnectResponseHandler, WalletConnectResponseType, WalletConnectTransaction, WalletConnectTransactionType, config_session_properties, decode_sign_message,
 };
-use primitives::{Account, Chain, ChainAddress, WalletConnectCAIP2, WalletConnectLink, WalletConnectRequest};
+use links::WalletConnectLink;
+use primitives::{Account, Chain, ChainAddress, WalletConnectCAIP2};
 use std::collections::HashMap;
 
 use crate::{GemstoneError, message::sign_type::SignMessage};
@@ -80,7 +82,7 @@ impl WalletConnect {
 
 #[cfg(test)]
 mod tests {
-    use primitives::{Chain, ChainAddress, SimulationWarning, SimulationWarningType};
+    use primitives::{Chain, ChainAddress};
 
     #[test]
     fn parse_account_uses_shared_caip10_parser() {
@@ -93,21 +95,5 @@ mod tests {
         assert_eq!(wallet_connect.parse_account("eip155:8453:".to_string()), None);
         assert_eq!(wallet_connect.parse_account("eip155:8453:0x1:extra".to_string()), None);
         assert_eq!(wallet_connect.parse_account("eip155:99999:0x1".to_string()), None);
-    }
-
-    #[test]
-    fn permit2_sign_message_simulation_matches_permit_warning_behavior() {
-        let data = include_str!("../../../crates/gem_evm/testdata/uniswap_permit2.json").to_string();
-        let message = super::simulation::parse_eip712_message(&data).unwrap();
-        let result = simulation::evm::simulate_eip712_message(Chain::Ethereum, &message);
-
-        assert_eq!(result.warnings.len(), 1);
-        assert!(matches!(
-            result.warnings.first(),
-            Some(SimulationWarning {
-                warning: SimulationWarningType::PermitApproval(a),
-                ..
-            }) if a.value.is_none()
-        ));
     }
 }

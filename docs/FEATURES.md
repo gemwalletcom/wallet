@@ -263,9 +263,9 @@ These tables compare implemented coverage with provider-advertised support acros
 | --- | :---: | --- | --- | --- |
 | [Uniswap v3](../core/crates/swapper/src/uniswap/v3/provider.rs) | 16/58 | Ethereum, Optimism, Arbitrum, Polygon, Avalanche C-Chain, Base, BNB Chain, ZKsync, Celo, World Chain, Unichain, Monad, X Layer, Stable, Robinhood Chain, Arc | Missing: Tempo; Core-only relative to the current official list: Stable; 🪦 Blast | <sub>[code](../core/crates/gem_evm/src/uniswap/deployment/v3.rs) · [current deployments](https://developers.uniswap.org/docs/protocols/v3/deployments) · [Blast sunset](https://developers.uniswap.org/docs/changelog/active-notifications/sunset-of-blast-support) · [Stable deployment](https://swap.stable.xyz/deployments)</sub> |
 | [Uniswap v4](../core/crates/swapper/src/uniswap/v4/provider.rs) | 17/58 | Ethereum, Optimism, Arbitrum, Polygon, Avalanche C-Chain, Base, BNB Chain, Linea, World Chain, Unichain, Celo, Monad, Ink, X Layer, Robinhood Chain, Tempo, Arc | ➖; 🪦 Blast | <sub>[code](../core/crates/gem_evm/src/uniswap/deployment/v4.rs) · [deployments](https://github.com/Uniswap/contracts/blob/main/deployments/index.md)</sub> |
-| [PancakeSwap v3](../core/crates/swapper/src/uniswap/v3/provider.rs) | 9/58 | Ethereum, BNB Chain, opBNB, Arbitrum, Linea, Base, ZKsync, Monad, Robinhood Chain | ➖ | <sub>[code](../core/crates/gem_evm/src/uniswap/deployment/v3.rs) · [v3 router deployments](https://developer.pancakeswap.finance/contracts/universal-router/addresses)</sub> |
+| [Pancake v3](../core/crates/swapper/src/uniswap/v3/provider.rs) | 9/58 | Ethereum, BNB Chain, opBNB, Arbitrum, Linea, Base, ZKsync, Monad, Robinhood Chain | ➖ | <sub>[code](../core/crates/gem_evm/src/uniswap/deployment/v3.rs) · [v3 router deployments](https://developer.pancake.xyz/contracts/universal-router/addresses)</sub> |
 | [Uniswap v2](../core/crates/swapper/src/uniswap/v3/provider.rs) | 4/58 | Ethereum, Robinhood Chain, Base, Polygon | Missing: Unichain, Arbitrum, Avalanche C-Chain, BNB Chain, Optimism, World Chain, Monad, X Layer, Tempo, Hyperliquid; tokens that take a fee on transfer are not routed | <sub>[code](../core/crates/gem_evm/src/uniswap/deployment/v3.rs) · [v2 deployments](https://developers.uniswap.org/docs/protocols/v2/deployments)</sub> |
-| [PancakeSwap v2](../core/crates/swapper/src/uniswap/v3/provider.rs) | 1/58 | BNB Chain | Missing: Ethereum, ZKsync, Arbitrum, Linea, Base, opBNB, Monad, Robinhood Chain; tokens that take a fee on transfer are not routed | <sub>[code](../core/crates/gem_evm/src/uniswap/deployment/v3.rs) · [v2 addresses](https://developer.pancakeswap.finance/contracts/v2/addresses)</sub> |
+| [Pancake v2](../core/crates/swapper/src/uniswap/v3/provider.rs) | 1/58 | BNB Chain | Missing: Ethereum, ZKsync, Arbitrum, Linea, Base, opBNB, Monad, Robinhood Chain; tokens that take a fee on transfer are not routed | <sub>[code](../core/crates/gem_evm/src/uniswap/deployment/v3.rs) · [v2 addresses](https://developer.pancake.xyz/contracts/v2/addresses)</sub> |
 | [OKX DEX](../core/crates/swapper/src/okx/provider.rs) | 20/58 | Solana, Ethereum, BNB Chain, Polygon, Arbitrum, Optimism, Base, Avalanche C-Chain, Fantom, Manta, ZKsync, Linea, Mantle, Plasma, Hyperliquid, Sonic, Unichain, Monad, X Layer, Robinhood Chain | Missing: Sui, TON; Tron is served by SunSwap; 🪦 Blast | <sub>[code](../core/crates/swapper/src/okx/provider.rs) · [chains API](https://web3.okx.com/onchainos/dev-docs-v5/dex-api/dex-get-aggregator-supported-chains)</sub> |
 | [Oku](../core/crates/swapper/src/uniswap/v3/provider.rs) | 5/58 | Sonic, Mantle, Gnosis, Plasma, Sei EVM | Not assigned to Oku in Core: Ethereum, Optimism, Arbitrum, Polygon, ZKsync, Base, BNB Chain, Avalanche C-Chain, Blast, Linea, Celo, Manta, Unichain, World Chain, Monad | <sub>[code](../core/crates/gem_evm/src/uniswap/deployment/v3.rs) · [deployments](https://docs.oku.trade/home/extra-information/deployed-contracts)</sub> |
 | [Wagmi](../core/crates/swapper/src/uniswap/v3/provider.rs) | 1/58 | Sonic | Missing: Ethereum, BNB Chain, Avalanche C-Chain, Polygon, Fantom, Arbitrum, Optimism, Base | <sub>[code](../core/crates/gem_evm/src/uniswap/deployment/v3.rs) · [contracts](https://docs.wagmi.com/wagmi/contracts)</sub> |
@@ -302,7 +302,7 @@ These tables compare implemented coverage with provider-advertised support acros
 | [Chainflip](../core/crates/swapper/src/chainflip/provider.rs) | Omnichain | 7/58 | Bitcoin (destination only), Polkadot, Ethereum, Solana, Tron, Arbitrum, BNB Chain | Missing: Polkadot USDC and USDT (Gem has no Polkadot tokens) | <sub>[asset mapping](../core/crates/swapper/src/chainflip/client/model.rs) · [route support](../core/crates/swapper/src/chainflip/provider.rs) · [Broker quotes and assets](https://docs.chainflip.io/brokers/javascript-sdk/functions) · [supported chains](https://docs.chainflip.io/protocol/supported-chains-assets/chains-assets)</sub> |
 | [Swaps.xyz](../core/crates/swapper/src/swaps_xyz/provider.rs) | Cross-chain | 10/58 | Algorand, Stellar, Cardano, TON, Cosmos, Osmosis, Aptos, Sui, XRP, Tron | Native assets only | <sub>[code](../core/crates/swapper/src/swaps_xyz/provider.rs) · [API introduction](https://docs.swaps.xyz/)</sub> |
 | [Bridgers](../core/crates/swapper/src/bridgers/provider.rs) | Cross-chain | 22/58 | BNB Chain, Polygon, Arbitrum, Avalanche C-Chain, Optimism, Base, opBNB, Mantle, Linea, Celo, X Layer, Sonic, Robinhood Chain, Hyperliquid, Stable, TON, XRP Ledger, Ethereum (destination only), Solana (destination only), Bitcoin (destination only), Litecoin (destination only), Dogecoin (destination only) | Missing: Ethereum as source, Unichain (routers unverified), ZKsync (gas limits unverified), Tron, Sui, Aptos, Bitcoin Cash | <sub>[code](../core/crates/swapper/src/bridgers/asset.rs) · [live token API](https://api.bridgers.xyz/api/exchangeRecord/getToken)</sub> |
-| [Hyperliquid](../core/crates/swapper/src/hyperliquid/provider/hyperliquid.rs) | Omnichain | 2/58 | HyperCore, Hyperliquid | ➖ | <sub>[code](../core/crates/swapper/src/hyperliquid/provider/hyperliquid.rs) · [Core ↔ EVM transfers](https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/hyperevm/hypercore-less-than-greater-than-hyperevm-transfers)</sub> |
+| [Hyperliquid](../core/crates/swapper/src/hyperliquid/provider/bridge.rs) | Bridge | 2/58 | HyperCore, Hyperliquid | ➖ | <sub>[code](../core/crates/swapper/src/hyperliquid/provider/bridge.rs) · [Core ↔ EVM transfers](https://hyperliquid.gitbook.io/hyperliquid-docs/for-developers/hyperevm/hypercore-less-than-greater-than-hyperevm-transfers)</sub> |
 
 ### Provider behavior
 
@@ -310,9 +310,9 @@ These tables compare implemented coverage with provider-advertised support acros
 | --- | --- | --- | --- | :---: | :---: |
 | [Uniswap v3](../core/crates/swapper/src/uniswap/v3/provider.rs) | On-chain | Fixed | Exact | ➖ | ➖ |
 | [Uniswap v4](../core/crates/swapper/src/uniswap/v4/provider.rs) | On-chain | Fixed | Exact | ➖ | ➖ |
-| [PancakeSwap v3](../core/crates/swapper/src/uniswap/v3/provider.rs) | On-chain | Fixed | Exact | ➖ | ➖ |
+| [Pancake v3](../core/crates/swapper/src/uniswap/v3/provider.rs) | On-chain | Fixed | Exact | ➖ | ➖ |
 | [Uniswap v2](../core/crates/swapper/src/uniswap/v3/provider.rs) | On-chain | Fixed | Exact | ➖ | ➖ |
-| [PancakeSwap v2](../core/crates/swapper/src/uniswap/v3/provider.rs) | On-chain | Fixed | Exact | ➖ | ➖ |
+| [Pancake v2](../core/crates/swapper/src/uniswap/v3/provider.rs) | On-chain | Fixed | Exact | ➖ | ➖ |
 | [OKX DEX](../core/crates/swapper/src/okx/provider.rs) | On-chain | Flexible | Auto | ➖ | ➖ |
 | [Oku](../core/crates/swapper/src/uniswap/v3/provider.rs) | On-chain | Fixed | Exact | ➖ | ➖ |
 | [Wagmi](../core/crates/swapper/src/uniswap/v3/provider.rs) | On-chain | Fixed | Exact | ➖ | ➖ |
@@ -342,7 +342,7 @@ These tables compare implemented coverage with provider-advertised support acros
 | [Chainflip](../core/crates/swapper/src/chainflip/provider.rs) | Omnichain | Fixed | Exact | ✅ | ✅ |
 | [Swaps.xyz](../core/crates/swapper/src/swaps_xyz/provider.rs) | Cross-chain | Fixed | Exact | ✅ | ✅ (quoted address) |
 | [Bridgers](../core/crates/swapper/src/bridgers/provider.rs) | Cross-chain | Fixed | Exact | ✅ (sender records) | ✅ (router allowlist) |
-| [Hyperliquid](../core/crates/swapper/src/hyperliquid/provider/hyperliquid.rs) | Omnichain | Flexible | Exact | ➖ (assumed complete) | ➖ |
+| [Hyperliquid](../core/crates/swapper/src/hyperliquid/provider/bridge.rs) | Bridge | Flexible | Exact | ➖ (assumed complete) | ➖ |
 
 <sub>Sources: [provider modes and slippage](../core/crates/swapper/src/models.rs), [amount-mode implementations](../core/crates/swapper/src), and [active provider registry](../core/crates/swapper/src/swapper.rs).</sub>
 
@@ -387,7 +387,7 @@ NFT support includes wallet assets, collections, and individual asset details. A
 | [Alchemy NFT](../core/crates/nft/src/providers/alchemy/provider.rs) | ✅ | BNB Chain, Arc | ✅ | ✅ | ✅ |
 | [TON](../core/crates/nft/src/providers/ton/provider.rs) | ✅ | TON | ✅ | ✅ | ✅ |
 
-<sub>Reviewed 2026-09-27. Sources: [active provider factory](../core/crates/nft/src/factory.rs), [provider contract and fallback behavior](../core/crates/nft/src/provider.rs), [supported NFT chains](../core/crates/primitives/src/chain_nft.rs), and [NFT settings](../core/crates/settings/src/lib.rs).</sub>
+<sub>Reviewed 2026-09-27. Sources: [active provider factory](../core/crates/nft/src/factory.rs), [provider contract and fallback behavior](../core/crates/nft/src/provider.rs), [supported NFT chains](../core/crates/nft/src/chain_nft.rs), and [NFT settings](../core/crates/settings/src/lib.rs).</sub>
 
 ## Coverage gaps
 

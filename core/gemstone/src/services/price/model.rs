@@ -1,5 +1,4 @@
-use chrono::{DateTime, Utc};
-use primitives::AssetId;
+use primitives::{AssetId, DateTime};
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemPriceUpdate {
@@ -7,5 +6,5 @@ pub struct GemPriceUpdate {
     pub price: f64,
     pub price_usd: f64,
     pub price_change_percentage_24h: f64,
-    pub updated_at: DateTime<Utc>,
+    pub updated_at: DateTime,
 }

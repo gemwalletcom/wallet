@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod tests {
-    use gem_client::{ReqwestClient, reqwest_client};
+    use gem_reqwest::{ReqwestClient, reqwest_client};
     use name_resolver::providers::{
         alldomains::AllDomainsProvider,
         aptos::AptosProvider,
@@ -69,7 +69,7 @@ mod tests {
     #[tokio::test]
     async fn test_resolve_ens_imported_name() {
         let client = NameClient::new(vec![Box::new(ens_provider())]);
-        let record = client.resolve("farcaster.xyz", Chain::Ethereum).await.unwrap().unwrap();
+        let record = client.resolve("farcaster.xyz", Chain::Ethereum, 24).await.unwrap().unwrap();
         assert_eq!(record.address, "0xF12E89805E10d96c0CDf22da88aED361eD9329cA");
     }
 
@@ -83,7 +83,7 @@ mod tests {
     #[tokio::test]
     async fn test_resolve_sns() {
         let client = NameClient::new(vec![Box::new(SnsProvider::new(ReqwestClient::new(get_test_settings().name.sns.url, reqwest_client())))]);
-        let record = client.resolve("bonfida.sns", Chain::Solana).await.unwrap().unwrap();
+        let record = client.resolve("bonfida.sns", Chain::Solana, 24).await.unwrap().unwrap();
         assert_eq!(record.name, "bonfida.sns");
         assert_eq!(record.provider, NameProvider::Sns);
         assert_eq!(record.chain, Chain::Solana);
@@ -100,7 +100,7 @@ mod tests {
     #[tokio::test]
     async fn test_resolve_icns() {
         let client = NameClient::new(vec![Box::new(IcnsProvider::new(ReqwestClient::new(get_test_settings().name.icns.url, reqwest_client())))]);
-        let record = client.resolve("dogemos.osmo", Chain::Osmosis).await.unwrap().unwrap();
+        let record = client.resolve("dogemos.osmo", Chain::Osmosis, 24).await.unwrap().unwrap();
         assert_eq!(record.address, "osmo1z98eg2ztdp2glyla62629nrlvczg8s7f8sgpm5");
     }
 

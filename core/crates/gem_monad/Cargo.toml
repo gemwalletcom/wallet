@@ -5,9 +5,8 @@ edition = { workspace = true }
 
 [features]
 default = []
-rpc = ["dep:gem_evm", "gem_evm/rpc", "dep:async-trait", "dep:gem_client", "dep:chrono", "dep:alloy-sol-types", "dep:primitives", "dep:alloy-primitives", "dep:num-bigint", "dep:num-traits"]
-reqwest = ["rpc", "gem_evm/reqwest", "gem_client/reqwest"]
-chain_integration_tests = ["rpc", "reqwest"]
+rpc = ["dep:gem_evm", "gem_evm/rpc", "dep:async-trait", "dep:gem_client", "dep:alloy-sol-types", "dep:primitives", "dep:alloy-primitives", "dep:num-bigint", "dep:num-traits"]
+chain_integration_tests = ["rpc"]
 
 [dependencies]
 primitives = { path = "../primitives", optional = true }
@@ -15,13 +14,13 @@ gem_evm = { path = "../gem_evm", optional = true }
 
 gem_client = { path = "../gem_client", optional = true }
 async-trait = { workspace = true, optional = true }
-chrono = { workspace = true, optional = true }
 alloy-primitives = { workspace = true, optional = true }
 alloy-sol-types = { workspace = true, optional = true }
 num-bigint = { workspace = true, optional = true }
 num-traits = { workspace = true, optional = true }
 
 [dev-dependencies]
+gem_reqwest = { path = "../gem_reqwest" }
 gem_monad = { path = ".", features = ["rpc"] }
 gem_evm = { path = "../gem_evm", features = ["rpc"] }
 gem_jsonrpc = { path = "../gem_jsonrpc" }

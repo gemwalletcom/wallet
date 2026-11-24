@@ -18,11 +18,12 @@ zeroize = "1.9.0"
 
 gemstone = { path = "../gemstone" }
 primitives = { path = "../crates/primitives" }
+links = { path = "../crates/links" }
 payment = { path = "../crates/payment" }
 signer = { path = "../crates/signer" }
 gem_auth = { path = "../crates/gem_auth" }
 gem_client = { path = "../crates/gem_client" }
-gem_encoding = { path = "../crates/gem_encoding", features = ["protobuf"] }
+gem_encoding = { path = "../crates/gem_encoding", features = ["base58", "borsh", "protobuf"] }
 gem_evm = { path = "../crates/gem_evm" }
 gem_keystore = { path = "../crates/gem_keystore", features = ["v3"] }
 gem_solana = { path = "../crates/gem_solana" }
@@ -37,6 +38,14 @@ name_resolver = { path = "../crates/name_resolver" }
 [[bin]]
 name = "address"
 path = "fuzz_targets/address.rs"
+
+[[bin]]
+name = "base58"
+path = "fuzz_targets/base58.rs"
+
+[[bin]]
+name = "borsh"
+path = "fuzz_targets/borsh.rs"
 
 [[bin]]
 name = "device_signature"

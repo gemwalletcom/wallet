@@ -143,7 +143,7 @@ impl AssetLink {
 
 #[cfg(test)]
 mod tests {
-    use chrono::Utc;
+    use crate::DateTime;
 
     use super::*;
     use crate::{
@@ -175,7 +175,7 @@ mod tests {
     #[test]
     fn test_asset_basic_with_rate() {
         let asset = Asset::mock_btc();
-        let price = Price::new(100.0, 5.0, Utc::now(), PriceProvider::Coingecko);
+        let price = Price::new(100.0, 5.0, DateTime::now(), PriceProvider::Coingecko);
 
         let base = AssetPriceMetadata {
             asset: AssetBasic::new(asset.clone(), AssetProperties::default(asset.id.clone()), AssetScore::default()),
@@ -204,7 +204,7 @@ mod tests {
     #[test]
     fn test_asset_full_with_rate() {
         let association = AssetAssociation::mock();
-        let price = Price::new(100.0, 5.0, Utc::now(), PriceProvider::Coingecko);
+        let price = Price::new(100.0, 5.0, DateTime::now(), PriceProvider::Coingecko);
         let market = AssetMarket {
             all_time_high: Some(150.0),
             all_time_high_change_percentage: Some(-30.0),

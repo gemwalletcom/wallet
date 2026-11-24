@@ -175,8 +175,7 @@ fn timeframe_data(portfolio: &PerpetualPortfolio, period: ChartPeriod) -> Option
 
 #[cfg(test)]
 mod tests {
-    use chrono::Utc;
-    use primitives::{Asset, Balance, ChartDateValue, ChartValue, PerpetualAccountSummary};
+    use primitives::{Asset, Balance, ChartDateValue, ChartValue, DateTime, PerpetualAccountSummary};
 
     use super::*;
 
@@ -209,7 +208,7 @@ mod tests {
                     value: ChartValuePercentage {
                         value: 120.0,
                         percentage: -10.0,
-                        date: Utc::now(),
+                        date: DateTime::now(),
                     },
                 },
                 PortfolioStatistic::UnrealizedPnl { value: -5.0 },
@@ -332,7 +331,7 @@ mod tests {
 
     #[test]
     fn test_perpetual_value_chart_drops_the_leading_zero_balance() {
-        let date = Utc::now();
+        let date = DateTime::now();
         let mut portfolio = PerpetualPortfolio::mock();
         portfolio.day = Some(PerpetualPortfolioTimeframeData {
             account_value_history: vec![ChartDateValue { date, value: 0.0 }, ChartDateValue { date, value: 10.0 }, ChartDateValue { date, value: 0.0 }],

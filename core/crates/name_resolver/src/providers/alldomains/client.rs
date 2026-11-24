@@ -1,8 +1,8 @@
 use std::error::Error;
 
-use gem_client::ReqwestClient;
 use gem_encoding::decode_base64;
 use gem_jsonrpc::JsonRpcClient;
+use gem_reqwest::ReqwestClient;
 use gem_solana::models::{AccountData, ValueResult};
 use gem_solana::{Pubkey, SolanaAccountEncoding, SolanaRpc};
 

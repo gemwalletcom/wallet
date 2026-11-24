@@ -21,6 +21,7 @@ public enum SwapProvider: String, Codable, Equatable, Hashable, Sendable {
 	case cetusClmm = "cetus_clmm"
 	case relay
 	case hyperliquid
+	case hyperliquidBridge = "hyperliquid_bridge"
 	case orca
 	case squid
 	case mayachain

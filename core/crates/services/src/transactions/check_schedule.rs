@@ -4,8 +4,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use cacher::CheckScheduleCacher;
-use chrono::{DateTime, Utc};
-use primitives::{JobConfiguration, TransactionId};
+use primitives::{DateTime, JobConfiguration, TransactionId};
 
 use crate::transactions::TransactionQueue;
 
@@ -19,13 +18,13 @@ impl CheckSchedule {
         Self { cacher, queue }
     }
 
-    pub async fn due(&self, ids: &[TransactionId], now: DateTime<Utc>) -> Result<HashSet<TransactionId>, Box<dyn Error + Send + Sync>> {
+    pub async fn due(&self, ids: &[TransactionId], now: DateTime) -> Result<HashSet<TransactionId>, Box<dyn Error + Send + Sync>> {
         let members = ids.iter().map(ToString::to_string).collect::<Vec<_>>();
         let scores = self.cacher.next_checks(self.queue.into(), &members).await?;
         Ok(ids.iter().zip(scores).filter(|(_, next_check_at)| is_due(*next_check_at, now)).map(|(id, _)| id.clone()).collect())
     }
 
-    pub async fn schedule_next(&self, id: &TransactionId, configuration: &JobConfiguration, elapsed: Duration, now: DateTime<Utc>) -> Result<(), Box<dyn Error + Send + Sync>> {
+    pub async fn schedule_next(&self, id: &TransactionId, configuration: &JobConfiguration, elapsed: Duration, now: DateTime) -> Result<(), Box<dyn Error + Send + Sync>> {
         let next_check_at = now + configuration.next_check_interval(elapsed);
         self.cacher.set_next_check(self.queue.into(), id.to_string(), timestamp(next_check_at)).await
     }
@@ -35,11 +34,11 @@ impl CheckSchedule {
     }
 }
 
-fn is_due(next_check_at: Option<f64>, now: DateTime<Utc>) -> bool {
+fn is_due(next_check_at: Option<f64>, now: DateTime) -> bool {
     next_check_at.is_none_or(|next_check_at| next_check_at <= timestamp(now))
 }
 
-fn timestamp(time: DateTime<Utc>) -> f64 {
+fn timestamp(time: DateTime) -> f64 {
     time.timestamp_millis() as f64 / 1000.0
 }
 
@@ -49,7 +48,7 @@ mod tests {
 
     #[test]
     fn test_is_due() {
-        let now = Utc::now();
+        let now = DateTime::now();
 
         assert!(is_due(None, now));
         assert!(is_due(Some(timestamp(now)), now));

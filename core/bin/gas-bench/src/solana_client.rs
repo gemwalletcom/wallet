@@ -1,13 +1,13 @@
 use std::error::Error;
 use std::sync::Arc;
 
-use gem_jsonrpc::alien::RpcProvider;
+use gem_jsonrpc::alien::{RpcClient, RpcProvider};
 use gem_jsonrpc::client::JsonRpcClient;
+use gem_reqwest::NativeProvider;
 use gem_solana::models::jito::{FeeStats, calculate_fee_stats};
 use gem_solana::models::prioritization_fee::SolanaPrioritizationFee;
 use gem_solana::provider::preload_mapper::calculate_fee_rates;
 use gem_solana::{JUPITER_PROGRAM_ID, ORCA_WHIRLPOOL_PROGRAM_ID, SolanaRpc, SolanaRpcConfig, USDC_TOKEN_MINT};
-use gemstone::alien::{new_alien_client, reqwest_provider::NativeProvider};
 use primitives::{Asset, AssetId, AssetType, Chain, FeePriority, TransactionInputType};
 
 const MIN_NORMAL_FEE: u64 = 10_000;
@@ -64,7 +64,7 @@ impl SolanaGasClient {
 
     pub async fn get_fee_data(&self) -> Result<SolanaFeeData, Box<dyn Error + Send + Sync>> {
         let endpoint = self.native_provider.get_endpoint(Chain::Solana)?;
-        let alien_client = new_alien_client(endpoint, self.native_provider.clone());
+        let alien_client = RpcClient::new(endpoint, self.native_provider.clone());
         let client: JsonRpcClient<_> = JsonRpcClient::new(alien_client);
 
         let slot: u64 = client.request(SolanaRpc::GetSlot(SolanaRpcConfig::Default)).await?;

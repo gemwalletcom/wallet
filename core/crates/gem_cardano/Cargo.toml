@@ -10,7 +10,6 @@ rpc = [
     "dep:async-trait",
     "dep:bech32",
     "dep:chain_traits",
-    "dep:chrono",
     "dep:futures",
     "dep:gem_client",
     "dep:gem_hash",
@@ -25,8 +24,7 @@ signer = [
     "dep:sha2",
     "dep:zeroize",
 ]
-reqwest = ["dep:gem_client", "gem_client/reqwest"]
-chain_integration_tests = ["rpc", "reqwest"]
+chain_integration_tests = ["rpc"]
 
 [dependencies]
 primitives = { path = "../primitives" }
@@ -37,7 +35,6 @@ gem_hash = { path = "../gem_hash", optional = true }
 futures = { workspace = true, optional = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true, optional = true }
-chrono = { workspace = true, features = ["serde"], optional = true }
 async-trait = { workspace = true, optional = true }
 chain_traits = { path = "../chain_traits", optional = true }
 gem_client = { path = "../gem_client", optional = true }
@@ -47,6 +44,7 @@ sha2 = { workspace = true, optional = true }
 zeroize = { workspace = true, optional = true }
 
 [dev-dependencies]
+gem_reqwest = { path = "../gem_reqwest" }
 gem_cardano = { path = ".", features = ["rpc", "signer"] }
 gem_client = { path = "../gem_client" }
 tokio = { workspace = true, features = ["macros"] }

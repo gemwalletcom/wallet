@@ -2,30 +2,23 @@ use serde::{Deserialize, Serialize};
 use serde_serializers::deserialize_f64_from_str;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OsmosisMintParamsResponse {
-    pub params: OsmosisMintParams,
+pub struct OsmosisPoolManagerParamsResponse {
+    pub params: OsmosisPoolManagerParams,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OsmosisMintParams {
-    pub epoch_identifier: String,
-    pub distribution_proportions: OsmosisDistributionProportions,
+pub struct OsmosisPoolManagerParams {
+    pub taker_fee_params: OsmosisTakerFeeParams,
 }
 
-impl OsmosisMintParams {
-    pub fn epochs_per_year(&self) -> f64 {
-        if self.epoch_identifier == "day" { 365.0 } else { 52.0 }
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct OsmosisTakerFeeParams {
+    #[serde(deserialize_with = "deserialize_f64_from_str")]
+    pub daily_staking_rewards_smoothing_factor: f64,
+}
+
+impl OsmosisTakerFeeParams {
+    pub fn annual_staking_rewards(&self, staking_rewards_buffer: f64) -> f64 {
+        staking_rewards_buffer / self.daily_staking_rewards_smoothing_factor * 365.0
     }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OsmosisDistributionProportions {
-    #[serde(deserialize_with = "deserialize_f64_from_str")]
-    pub staking: f64,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct OsmosisEpochProvisionsResponse {
-    #[serde(deserialize_with = "deserialize_f64_from_str")]
-    pub epoch_provisions: f64,
 }

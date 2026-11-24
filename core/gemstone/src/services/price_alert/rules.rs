@@ -2,8 +2,7 @@ use crate::services::assets::icon::{GemAssetIcon, asset_icon};
 use std::cmp::Ordering;
 use std::collections::HashMap;
 
-use chrono::{DateTime, Utc};
-use primitives::{Asset, AssetId, Currency, Price, PriceAlert, PriceAlertData, PriceAlertDirection, PriceAlertNotificationType};
+use primitives::{Asset, AssetId, Currency, DateTime, Price, PriceAlert, PriceAlertData, PriceAlertDirection, PriceAlertNotificationType};
 
 use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 use crate::models::list::{GemGroup, GemGroupList, GemListItem, GemListSectionFooter, GemListSectionTitle};
@@ -176,7 +175,7 @@ pub struct PriceAlertSync {
 
 pub fn reconcile(local: Vec<PriceAlert>, remote: Vec<PriceAlert>) -> PriceAlertSync {
     let delete_ids = stale(local.iter().map(PriceAlert::id), remote.iter().map(PriceAlert::id));
-    let local_notified: HashMap<String, Option<DateTime<Utc>>> = local.iter().map(|alert| (alert.id(), alert.last_notified_at)).collect();
+    let local_notified: HashMap<String, Option<DateTime>> = local.iter().map(|alert| (alert.id(), alert.last_notified_at)).collect();
     let alerts = remote.into_iter().filter(|alert| local_notified.get(&alert.id()) != Some(&alert.last_notified_at)).collect();
     PriceAlertSync { delete_ids, alerts }
 }
@@ -438,7 +437,7 @@ mod tests {
         let solana = AssetId::from_chain(Chain::Solana);
         let bitcoin = AssetId::from_chain(Chain::Bitcoin);
         let notified = PriceAlert {
-            last_notified_at: Some(Utc::now()),
+            last_notified_at: Some(DateTime::now()),
             ..PriceAlert::new_price(bitcoin.clone(), Currency::USD, 90.0, PriceAlertDirection::Down)
         };
         let alerts = vec![
@@ -803,7 +802,7 @@ mod tests {
         let local = vec![
             PriceAlert::mock(Chain::Bitcoin, Some(1.0)),
             PriceAlert {
-                last_notified_at: DateTime::<Utc>::from_timestamp(10, 0),
+                last_notified_at: Some(DateTime::from_timestamp(10)),
                 ..PriceAlert::mock(Chain::Bitcoin, Some(2.0))
             },
             PriceAlert::mock(Chain::Bitcoin, Some(3.0)),
@@ -811,7 +810,7 @@ mod tests {
         let remote = vec![
             PriceAlert::mock(Chain::Bitcoin, Some(1.0)),
             PriceAlert {
-                last_notified_at: DateTime::<Utc>::from_timestamp(20, 0),
+                last_notified_at: Some(DateTime::from_timestamp(20)),
                 ..PriceAlert::mock(Chain::Bitcoin, Some(2.0))
             },
             PriceAlert::mock(Chain::Bitcoin, Some(4.0)),
@@ -832,9 +831,9 @@ mod tests {
         let percent = PriceAlert::new_price_percent(asset_id.clone(), Currency::USD, 5.0, PriceAlertDirection::Up);
         let auto = PriceAlert::new_auto(asset_id.clone(), Currency::USD);
         let mut notified = PriceAlert::new_price(asset_id, Currency::USD, 5000.0, PriceAlertDirection::Up);
-        notified.last_notified_at = DateTime::<Utc>::from_timestamp(10, 0);
+        notified.last_notified_at = Some(DateTime::from_timestamp(10));
         let mut notified_auto = PriceAlert::new_auto(AssetId::from_chain(Chain::Bitcoin), Currency::USD);
-        notified_auto.last_notified_at = DateTime::<Utc>::from_timestamp(10, 0);
+        notified_auto.last_notified_at = Some(DateTime::from_timestamp(10));
 
         let displayed = displayed_price_alert_ids(vec![percent.clone(), notified.clone(), low_down.clone(), auto.clone(), high.clone(), notified_auto.clone(), low_up.clone()]);
 

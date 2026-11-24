@@ -1,11 +1,11 @@
 use std::collections::HashMap;
 
-use gem_client::ReqwestClient;
+use gem_reqwest::ReqwestClient;
 
 use crate::{FiatWebhookRequest, hmac_signature::generate_hmac_signature_hex};
 
 use super::client::FlashnetClient;
-use super::model::{FlashnetRoute, FlashnetRouteAsset};
+use super::model::{FlashnetOrder, FlashnetRoute, FlashnetRouteAsset};
 
 const TEST_API_KEY: &str = "test_api_key";
 const TEST_WEBHOOK_SIGNING_KEY: &str = "test_webhook_key";
@@ -14,7 +14,7 @@ const TEST_AFFILIATE_ID: &str = "test_affiliate";
 impl FlashnetClient {
     pub fn mock() -> Self {
         Self::new(
-            ReqwestClient::new(String::new(), gem_client::reqwest_client()),
+            ReqwestClient::new(String::new(), gem_reqwest::reqwest_client()),
             TEST_API_KEY.to_string(),
             TEST_AFFILIATE_ID.to_string(),
             TEST_WEBHOOK_SIGNING_KEY.to_string(),
@@ -51,5 +51,12 @@ impl FlashnetRoute {
                 contract_address: contract_address.map(ToString::to_string),
             },
         }
+    }
+}
+
+impl FlashnetOrder {
+    pub fn mock_webhook(raw_body: &str) -> Self {
+        let payload: serde_json::Value = serde_json::from_str(raw_body).unwrap();
+        serde_json::from_value(payload["data"].clone()).unwrap()
     }
 }

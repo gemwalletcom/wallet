@@ -4,7 +4,8 @@ use std::time::Duration;
 
 use async_trait::async_trait;
 use coingecko::{CoinGeckoErrorResponse, CoinInfo, MAX_MARKETS_PER_PAGE, client::CoinGeckoClient, get_coingecko_market_id_for_chain, get_coingecko_platform_id_for_chain};
-use gem_client::{Client, RemoteProviderConfig, ReqwestClient};
+use gem_client::{Client, RemoteProviderConfig};
+use gem_reqwest::ReqwestClient;
 use gem_tracing::warn_with_fields;
 use primitives::{AssetId, Chain, ChartCandleStick, ChartPeriod, ChartValue, DurationExt, FiatRate, FiatRateProvider};
 
@@ -159,7 +160,7 @@ mod tests {
     use std::sync::{Arc, Mutex};
 
     use gem_client::{ClientError, testkit::MockClient};
-    use primitives::Chain;
+    use primitives::{Chain, DateTime};
 
     use super::*;
 
@@ -276,7 +277,7 @@ mod tests {
         assert_eq!(
             candles,
             vec![ChartCandleStick {
-                date: chrono::DateTime::from_timestamp(1_700_000_000, 0).unwrap(),
+                date: DateTime::from_timestamp(1_700_000_000),
                 open: 1.5,
                 high: 3.0,
                 low: 1.0,

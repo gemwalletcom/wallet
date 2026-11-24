@@ -1,7 +1,4 @@
 [package]
 name = "metrics"
 version = { workspace = true }
-edition = "2021"
-
-[dependencies]
-prometheus-client = { workspace = true }
+edition = { workspace = true }

@@ -1,12 +1,11 @@
 use crate::DatabaseError;
-use chrono::{NaiveDateTime, TimeZone, Utc};
 use diesel::prelude::*;
 use num_bigint::BigUint;
 use primitives::rewards::{RewardRedemption, RewardRedemptionOption};
 use primitives::{Asset, RewardEvent};
 use std::str::FromStr;
 
-use crate::sql_types::{AssetId, IpUsageType, Platform, PlatformStore, RedemptionStatus, RewardEventType, RewardRedemptionType, RewardStatus};
+use crate::sql_types::{AssetId, DateTimeRow, IpUsageType, Platform, PlatformStore, RedemptionStatus, RewardEventType, RewardRedemptionType, RewardStatus};
 
 #[derive(Debug, Queryable, Selectable, Clone)]
 #[diesel(table_name = crate::schema::rewards)]
@@ -18,8 +17,8 @@ pub(crate) struct RewardsRow {
     pub referrer_username: Option<String>,
     pub referral_count: i32,
     pub disable_reason: Option<String>,
-    pub verify_after: Option<NaiveDateTime>,
-    pub created_at: NaiveDateTime,
+    pub verify_after: Option<DateTimeRow>,
+    pub created_at: DateTimeRow,
 }
 
 #[derive(Debug, Insertable, Clone)]
@@ -33,7 +32,7 @@ pub(crate) struct NewRewardsRow {
     pub device_id: i32,
     pub comment: Option<String>,
     pub disable_reason: Option<String>,
-    pub verify_after: Option<NaiveDateTime>,
+    pub verify_after: Option<DateTimeRow>,
 }
 
 impl NewRewardsRow {
@@ -60,7 +59,7 @@ pub(crate) struct RewardReferralRow {
     pub referrer_username: String,
     pub referred_username: String,
     pub referred_device_id: i32,
-    pub verified_at: Option<NaiveDateTime>,
+    pub verified_at: Option<DateTimeRow>,
 }
 
 #[derive(Debug, Insertable, Clone)]
@@ -70,7 +69,7 @@ pub(crate) struct NewRewardReferralRow {
     pub referred_username: String,
     pub referred_device_id: i32,
     pub risk_signal_id: Option<i32>,
-    pub verified_at: Option<NaiveDateTime>,
+    pub verified_at: Option<DateTimeRow>,
 }
 
 #[derive(Debug, Queryable, Selectable, Clone)]
@@ -80,7 +79,7 @@ pub(crate) struct RewardEventRow {
     pub id: i32,
     pub username: String,
     pub event_type: RewardEventType,
-    pub created_at: NaiveDateTime,
+    pub created_at: DateTimeRow,
 }
 
 impl RewardEventRow {
@@ -90,7 +89,7 @@ impl RewardEventRow {
             username: self.username.clone(),
             points: event.points(),
             event,
-            created_at: Utc.from_utc_datetime(&self.created_at),
+            created_at: self.created_at.into(),
         }
     }
 }
@@ -112,7 +111,7 @@ pub(crate) struct RewardRedemptionRow {
     pub wallet_id: i32,
     pub transaction_hash: Option<String>,
     pub status: RedemptionStatus,
-    pub created_at: NaiveDateTime,
+    pub created_at: DateTimeRow,
 }
 
 impl RewardRedemptionRow {
@@ -122,7 +121,7 @@ impl RewardRedemptionRow {
             option,
             status: *self.status,
             transaction_id: self.transaction_hash.clone(),
-            created_at: Utc.from_utc_datetime(&self.created_at),
+            created_at: self.created_at.into(),
         }
     }
 }
@@ -147,8 +146,8 @@ pub(crate) struct RewardRedemptionOptionRow {
     pub asset_id: Option<AssetId>,
     pub value: String,
     pub remaining: Option<i32>,
-    pub updated_at: chrono::NaiveDateTime,
-    pub created_at: chrono::NaiveDateTime,
+    pub updated_at: DateTimeRow,
+    pub created_at: DateTimeRow,
 }
 
 impl RewardRedemptionOptionRow {
@@ -203,7 +202,7 @@ pub(crate) struct RiskSignalRow {
     pub device_model: String,
     pub ip_address: String,
     pub ip_isp: String,
-    pub created_at: NaiveDateTime,
+    pub created_at: DateTimeRow,
 }
 
 #[derive(Debug, Insertable, Clone)]

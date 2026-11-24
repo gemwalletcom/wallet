@@ -1,7 +1,6 @@
-use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
-use crate::{Price, PriceChangeCalculator, PriceId, PriceProvider};
+use crate::{DateTime, Price, PriceChangeCalculator, PriceId, PriceProvider};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PriceData {
@@ -11,9 +10,9 @@ pub struct PriceData {
     pub price: f64,
     pub price_change_percentage_24h: Option<f64>,
     pub all_time_high: f64,
-    pub all_time_high_date: Option<DateTime<Utc>>,
+    pub all_time_high_date: Option<DateTime>,
     pub all_time_low: f64,
-    pub all_time_low_date: Option<DateTime<Utc>>,
+    pub all_time_low_date: Option<DateTime>,
     pub market_cap: Option<f64>,
     pub market_cap_fdv: Option<f64>,
     pub market_cap_rank: Option<i32>,
@@ -21,7 +20,7 @@ pub struct PriceData {
     pub circulating_supply: Option<f64>,
     pub total_supply: Option<f64>,
     pub max_supply: Option<f64>,
-    pub last_updated_at: DateTime<Utc>,
+    pub last_updated_at: DateTime,
 }
 
 impl PriceData {

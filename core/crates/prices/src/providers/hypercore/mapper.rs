@@ -1,10 +1,9 @@
 use std::collections::HashMap;
 
-use chrono::Utc;
 use gem_hypercore::models::metadata::perpetual_coin;
 use gem_hypercore::models::spot::{SpotAssetContext, SpotMetaAndAssetContexts};
 use gem_hypercore::models::token::is_spot_token_id;
-use primitives::{AssetId, Chain, PerpetualData, PriceProvider, asset_constants::HYPERCORE_SPOT_USDC_ASSET_ID};
+use primitives::{AssetId, Chain, DateTime, PerpetualData, PriceProvider, asset_constants::HYPERCORE_SPOT_USDC_ASSET_ID};
 
 use crate::{AssetPriceFull, AssetPriceMapping};
 
@@ -44,7 +43,7 @@ pub fn map_perpetual_prices(data: Vec<PerpetualData>) -> Vec<AssetPriceFull> {
 }
 
 fn map_price(mapping: AssetPriceMapping, price: f64, price_change_percentage_24h: Option<f64>) -> Option<AssetPriceFull> {
-    (price > 0.0).then(|| AssetPriceFull::new(mapping, price, price_change_percentage_24h, Utc::now(), PriceProvider::Hypercore, None))
+    (price > 0.0).then(|| AssetPriceFull::new(mapping, price, price_change_percentage_24h, DateTime::now(), PriceProvider::Hypercore, None))
 }
 
 fn price_change_24h(price: f64, prev_day_price: f64) -> Option<f64> {

@@ -1,5 +1,4 @@
-use chrono::DateTime;
-use primitives::Chain;
+use primitives::{Chain, DateTime};
 
 use crate::ParserState;
 
@@ -14,7 +13,7 @@ impl ParserState {
             timeout_latest_block: 0,
             parallel_blocks: 1,
             is_enabled: true,
-            updated_at: DateTime::UNIX_EPOCH.naive_utc(),
+            updated_at: DateTime::UNIX_EPOCH,
             queue_behind_blocks: None,
             block_time: 0,
         }

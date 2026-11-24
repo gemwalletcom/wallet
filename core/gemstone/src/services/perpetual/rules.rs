@@ -1,8 +1,6 @@
 use crate::percentage::GemPercentageStyle;
 use crate::precision::GemCurrencyStyle;
-use chrono::Utc;
 use number_formatter::{BigNumberFormatter, NumberFormatterError};
-use primitives::PriceChangeCalculator;
 use primitives::chart::{ChartCandleStick, ChartCandleUpdate};
 use primitives::currency::Currency;
 use primitives::known_assets::HYPERCORE_PERPETUAL_USDC;
@@ -10,6 +8,7 @@ use primitives::perpetual::{PerpetualBalance, PerpetualData, PerpetualMarketData
 use primitives::{
     Asset, AssetBasic, AssetId, AssetPrice, AssetProperties, AssetScore, AssetType, Chain, ChartPeriod, Perpetual, PerpetualAccountMode, PerpetualDirection, PerpetualMarginType, PerpetualPosition, PerpetualProvider, WalletType,
 };
+use primitives::{DateTime, PriceChangeCalculator};
 use strum::IntoEnumIterator;
 
 use super::model::{
@@ -483,7 +482,7 @@ fn provider_chain(provider: &PerpetualProvider) -> Chain {
 }
 
 pub fn collateral_price(chain: Chain) -> Option<AssetPrice> {
-    collateral_asset_id(chain).map(|asset_id| AssetPrice::new(asset_id, 1.0, 0.0, Utc::now()))
+    collateral_asset_id(chain).map(|asset_id| AssetPrice::new(asset_id, 1.0, 0.0, DateTime::now()))
 }
 
 pub fn order(provider: PerpetualProvider, input: GemPerpetualOrderInput) -> PerpetualType {
@@ -1512,7 +1511,7 @@ mod tests {
     #[test]
     fn test_a_candle_tooltip_quotes_volume_in_the_close_price() {
         let candle = ChartCandleStick {
-            date: Utc::now(),
+            date: DateTime::now(),
             open: 100.0,
             high: 120.0,
             low: 90.0,

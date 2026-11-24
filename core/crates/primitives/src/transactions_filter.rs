@@ -1,8 +1,7 @@
-use chrono::{DateTime, Utc};
 use model_derive::Model;
 use serde::{Deserialize, Serialize};
 
-use crate::{AssetId, Chain, TransactionState, TransactionType};
+use crate::{AssetId, Chain, DateTime, TransactionState, TransactionType};
 
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Model)]
 #[model(swift = "Equatable, Hashable, Sendable")]
@@ -13,5 +12,5 @@ pub struct TransactionsFilter {
     pub transaction_types: Vec<TransactionType>,
     pub states: Vec<TransactionState>,
     pub asset_rank_greater_than: Option<i32>,
-    pub created_from: Option<DateTime<Utc>>,
+    pub created_from: Option<DateTime>,
 }

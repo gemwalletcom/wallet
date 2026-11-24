@@ -16,8 +16,8 @@ impl NameClient {
         Self { providers }
     }
 
-    pub async fn resolve(&self, name: &str, chain: Chain) -> Result<Option<NameRecord>, Box<dyn Error + Send + Sync>> {
-        if !is_name(name) {
+    pub async fn resolve(&self, name: &str, chain: Chain, max_label_length: usize) -> Result<Option<NameRecord>, Box<dyn Error + Send + Sync>> {
+        if !is_name(name) || name.split('.').any(|label| label.chars().count() > max_label_length) {
             return Ok(None);
         }
         let query = NameQuery::new(name);
@@ -87,8 +87,8 @@ mod tests {
             Box::new(MockNameResolver::new(NameProvider::Sns, vec!["sns"], vec![Chain::Solana], Ok("GvhwZwtV32kYUXUw965CUM3KGPdtBsDwPVpi92brY5R2"))),
         ]);
 
-        let ethereum = client.resolve("example.crypto", Chain::Ethereum).await.unwrap().unwrap();
-        let solana = client.resolve("example.sns", Chain::Solana).await.unwrap().unwrap();
+        let ethereum = client.resolve("example.crypto", Chain::Ethereum, 24).await.unwrap().unwrap();
+        let solana = client.resolve("example.sns", Chain::Solana, 24).await.unwrap().unwrap();
 
         assert_eq!(ethereum.address, "0x5615E8AB93b9d695b6d4d6545f7792aA59e1069a");
         assert_eq!(solana.address, "GvhwZwtV32kYUXUw965CUM3KGPdtBsDwPVpi92brY5R2");
@@ -101,7 +101,7 @@ mod tests {
             Box::new(MockNameResolver::new(NameProvider::Basenames, vec!["base.eth"], vec![Chain::Base], Ok("0x0000000000000000000000000000000000000002"))),
         ]);
 
-        let record = client.resolve("alice.base.eth", Chain::Base).await.unwrap().unwrap();
+        let record = client.resolve("alice.base.eth", Chain::Base, 24).await.unwrap().unwrap();
 
         assert_eq!(record.provider, NameProvider::Basenames);
         assert_eq!(record.address, "0x0000000000000000000000000000000000000002");
@@ -117,7 +117,7 @@ mod tests {
             let client = NameClient::new(vec![Box::new(SnsProvider::new(transport))]);
 
             assert_eq!(
-                client.resolve(name, Chain::Solana).await.unwrap(),
+                client.resolve(name, Chain::Solana, 24).await.unwrap(),
                 Some(NameRecord {
                     provider: NameProvider::Sns,
                     address: "GvhwZwtV32kYUXUw965CUM3KGPdtBsDwPVpi92brY5R2".to_string(),
@@ -130,9 +130,11 @@ mod tests {
 
     #[tokio::test]
     async fn test_resolve_skips_input_that_is_not_a_name() {
-        let client = NameClient::new(vec![Box::new(MockNameResolver::new(NameProvider::Ud, vec!["com"], vec![Chain::Tron], Err("must be valid domain or subdomain")))]);
+        let client = NameClient::new(vec![Box::new(MockNameResolver::new(NameProvider::Ud, vec!["com", "crypto"], vec![Chain::Tron], Err("must be valid domain or subdomain")))]);
 
-        assert_eq!(client.resolve("yyy@gmail.com", Chain::Tron).await.unwrap(), None);
+        assert_eq!(client.resolve("yyy@gmail.com", Chain::Tron, 24).await.unwrap(), None);
+        assert_eq!(client.resolve("rnBFvgZphmN39GWzUJeUitaP22Fr9be75H.crypto", Chain::Tron, 24).await.unwrap(), None);
+        assert!(client.resolve("rnBFvgZphmN39GWzUJeUitaP22Fr9be75H.crypto", Chain::Tron, 34).await.is_err());
     }
 
     #[tokio::test]
@@ -145,7 +147,7 @@ mod tests {
         });
         let client = NameClient::new(vec![Box::new(SnsProvider::new(transport))]);
 
-        assert_eq!(client.resolve("fatherstretchmyhandspt2.sns", Chain::Solana).await.unwrap(), None);
+        assert_eq!(client.resolve("fatherstretchmyhandspt2.sns", Chain::Solana, 24).await.unwrap(), None);
     }
 
     #[tokio::test]
@@ -153,7 +155,7 @@ mod tests {
         let transport = MockClient::new().with_get(|_| Err(ClientError::Http { status: 503, body: vec![] }));
         let client = NameClient::new(vec![Box::new(SnsProvider::new(transport))]);
 
-        assert!(client.resolve("bonfida.sns", Chain::Solana).await.is_err());
+        assert!(client.resolve("bonfida.sns", Chain::Solana, 24).await.is_err());
     }
 
     #[tokio::test]
@@ -164,7 +166,7 @@ mod tests {
         });
         let client = NameClient::new(vec![Box::new(SnsProvider::new(transport))]);
 
-        let error = client.resolve("fatherstretchmyhandspt2.sns", Chain::Solana).await.unwrap_err();
+        let error = client.resolve("fatherstretchmyhandspt2.sns", Chain::Solana, 24).await.unwrap_err();
 
         assert_eq!(error.to_string(), "SNS request failed with status: error");
     }
@@ -180,7 +182,7 @@ mod tests {
             let client = NameClient::new(vec![Box::new(SnsProvider::new(transport))]);
 
             assert_eq!(
-                client.resolve(name, Chain::SmartChain).await.unwrap(),
+                client.resolve(name, Chain::SmartChain, 24).await.unwrap(),
                 Some(NameRecord {
                     provider: NameProvider::Sns,
                     address: "0x5615E8AB93b9d695b6d4d6545f7792aA59e1069a".to_string(),
@@ -195,7 +197,7 @@ mod tests {
     async fn test_resolve_sns_rejects_paused_sol_names() {
         let client = NameClient::new(vec![Box::new(SnsProvider::new(MockClient::new()))]);
 
-        assert_eq!(client.resolve("bonfida.sol", Chain::Solana).await.unwrap(), None);
+        assert_eq!(client.resolve("bonfida.sol", Chain::Solana, 24).await.unwrap(), None);
     }
 
     #[tokio::test]
@@ -225,7 +227,7 @@ mod tests {
             let client = NameClient::new(vec![Box::new(MockNameResolver::new(provider.clone(), vec![suffix], vec![chain], Ok(address)))]);
 
             assert_eq!(
-                client.resolve(&name, chain).await.unwrap(),
+                client.resolve(&name, chain, 24).await.unwrap(),
                 Some(NameRecord {
                     provider: provider.clone(),
                     address: address.to_string(),
@@ -237,7 +239,7 @@ mod tests {
 
             let client = NameClient::new(vec![Box::new(MockNameResolver::new(provider, vec![suffix], vec![chain], Err("provider error")))]);
 
-            assert_eq!(client.resolve(&name, chain).await.unwrap_err().to_string(), "provider error", "{name}");
+            assert_eq!(client.resolve(&name, chain, 24).await.unwrap_err().to_string(), "provider error", "{name}");
         }
     }
 
@@ -245,9 +247,9 @@ mod tests {
     async fn test_resolve_unsupported_name_has_no_record() {
         let client = NameClient::new(vec![Box::new(MockNameResolver::new(NameProvider::Injective, vec!["inj"], vec![Chain::Injective], Err("provider called")))]);
 
-        assert_eq!(client.resolve("alice.unknown", Chain::Injective).await.unwrap(), None);
-        assert_eq!(client.resolve("abcdefghijklmnopqrstu.unknown", Chain::Injective).await.unwrap(), None);
-        assert_eq!(client.resolve("abcdefghijklmnopqrstu.inj", Chain::Ton).await.unwrap(), None);
+        assert_eq!(client.resolve("alice.unknown", Chain::Injective, 24).await.unwrap(), None);
+        assert_eq!(client.resolve("abcdefghijklmnopqrstu.unknown", Chain::Injective, 24).await.unwrap(), None);
+        assert_eq!(client.resolve("abcdefghijklmnopqrstu.inj", Chain::Ton, 24).await.unwrap(), None);
     }
 
     #[tokio::test]
@@ -257,7 +259,7 @@ mod tests {
             Box::new(MockNameResolver::new(NameProvider::Basenames, vec!["base.eth"], vec![Chain::Base], Err("failed"))),
         ]);
 
-        let error = client.resolve("alice.base.eth", Chain::Base).await.err().unwrap();
+        let error = client.resolve("alice.base.eth", Chain::Base, 24).await.err().unwrap();
 
         assert_eq!(error.to_string(), "failed");
     }

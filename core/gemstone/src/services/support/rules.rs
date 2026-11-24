@@ -1,6 +1,5 @@
 use super::model::{GemSupportBubbleSide, GemSupportChatGroup, GemSupportMessageOutcome, GemSupportMessageRow};
-use chrono::{DateTime, Utc};
-use primitives::hex;
+use primitives::{DateTime, hex};
 use primitives::{SupportMessage, SupportMessageImage, SupportMessageSender, SupportMessageStatus};
 use support::parse_support_message_display_content;
 
@@ -8,7 +7,7 @@ pub fn sync_from_timestamp(messages: Vec<SupportMessage>) -> u64 {
     messages.iter().rev().find(|message| !message.sender.is_user()).map(|message| message.created_at.timestamp().max(0) as u64).unwrap_or_default()
 }
 
-pub fn pending_message(id: String, content: String, images: Vec<SupportMessageImage>, now: DateTime<Utc>) -> SupportMessage {
+pub fn pending_message(id: String, content: String, images: Vec<SupportMessageImage>, now: DateTime) -> SupportMessage {
     SupportMessage {
         id,
         content,
@@ -188,7 +187,7 @@ mod tests {
     #[test]
     fn test_pending_message_lifecycle() {
         let image = pending_image("image".into(), "photo.png".into(), 3);
-        let message = pending_message("id".into(), "hello".into(), vec![image.clone()], Utc::now());
+        let message = pending_message("id".into(), "hello".into(), vec![image.clone()], DateTime::now());
 
         assert_eq!(message.status, SupportMessageStatus::Sending);
         assert_eq!(message.sender, SupportMessageSender::User);

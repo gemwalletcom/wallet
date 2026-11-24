@@ -1,6 +1,5 @@
 use async_trait::async_trait;
-use chrono::NaiveDateTime;
-use primitives::{Asset, AssetId, Chain, Device, FiatAsset, FiatProvider, FiatProviderCountry, FiatProviderName, FiatTransaction, FiatTransactionUpdate, WalletId};
+use primitives::{Asset, AssetId, Chain, DateTime, Device, FiatAsset, FiatProvider, FiatProviderCountry, FiatProviderName, FiatTransaction, FiatTransactionUpdate, WalletId};
 use storage::{AssetFilter, AssetUpdate, AssetsRepository, Database, DatabaseError, DevicesRepository, FiatAssetFilter, FiatRepository, FiatTransactionRecord, TagRepository, WalletAddress, WalletsRepository};
 
 pub(crate) struct QuoteContext {
@@ -26,7 +25,7 @@ pub(crate) trait Repository: Send + Sync {
     async fn get_asset_ids(&self, filters: Vec<AssetFilter>) -> Result<Vec<AssetId>, DatabaseError>;
     async fn get_fiat_asset_ids(&self, filters: Vec<FiatAssetFilter>) -> Result<Vec<AssetId>, DatabaseError>;
     async fn update_assets(&self, filters: Vec<AssetFilter>, updates: Vec<AssetUpdate>) -> Result<usize, DatabaseError>;
-    async fn set_popular_assets_tag(&self, tag: String, since: NaiveDateTime, limit: i64) -> Result<usize, DatabaseError>;
+    async fn set_popular_assets_tag(&self, tag: String, since: DateTime, limit: i64) -> Result<usize, DatabaseError>;
     async fn update_payment_methods(&self, provider: FiatProviderName, payment_methods: serde_json::Value) -> Result<usize, DatabaseError>;
     async fn set_fiat_assets(&self, provider: FiatProviderName, assets: Vec<FiatAsset>) -> Result<usize, DatabaseError>;
     async fn set_countries(&self, provider: FiatProviderName, countries: Vec<FiatProviderCountry>) -> Result<usize, DatabaseError>;
@@ -95,7 +94,7 @@ impl Repository for PostgresRepository {
         self.database.run(move |client| client.update_assets(filters, updates)).await
     }
 
-    async fn set_popular_assets_tag(&self, tag: String, since: NaiveDateTime, limit: i64) -> Result<usize, DatabaseError> {
+    async fn set_popular_assets_tag(&self, tag: String, since: DateTime, limit: i64) -> Result<usize, DatabaseError> {
         self.database
             .run(move |client| {
                 let asset_ids = client.get_fiat_assets_popular(since, limit)?;

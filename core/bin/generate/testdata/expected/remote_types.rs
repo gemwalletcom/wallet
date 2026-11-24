@@ -3,7 +3,7 @@
 
 use primitives::{Account, Chain, ConnectionState, GasPriceType, NFTImages, PriceAlert, StakeAction, StakeOwner, SwapPriceImpact, TransferDataExtra, Wallet};
 use std::str::FromStr;
-use crate::models::custom_types::GemBigInt;
+use crate::models::custom_types::{GemBigInt, DateTimeUtc};
 
 uniffi::custom_type!(Chain, String, {
     remote,
@@ -62,7 +62,7 @@ pub struct PriceAlert {
     pub identifier: String,
     pub price: Option<f64>,
     pub kind: String,
-    pub last_notified_at: Option<chrono::DateTime<chrono::Utc>>,
+    pub last_notified_at: Option<DateTimeUtc>,
 }
 
 #[uniffi::remote(Record)]

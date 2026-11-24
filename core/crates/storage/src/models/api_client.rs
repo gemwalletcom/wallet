@@ -1,4 +1,3 @@
-use chrono::NaiveDateTime;
 use diesel::deserialize::{self, FromSql, FromSqlRow};
 use diesel::expression::AsExpression;
 use diesel::pg::{Pg, PgValue};
@@ -9,6 +8,8 @@ use serde::{Deserialize, Serialize};
 use std::io::Write;
 use std::str::FromStr;
 use strum::{AsRefStr, EnumString};
+
+use crate::sql_types::DateTimeRow;
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, AsExpression, FromSqlRow, AsRefStr, EnumString, PartialEq, Eq, Hash)]
 #[serde(rename_all = "snake_case")]
@@ -59,8 +60,8 @@ pub(crate) struct ApiClientRow {
     pub name: String,
     pub secret: String,
     pub enabled: bool,
-    pub updated_at: NaiveDateTime,
-    pub created_at: NaiveDateTime,
+    pub updated_at: DateTimeRow,
+    pub created_at: DateTimeRow,
 }
 
 #[derive(Debug, Insertable, Clone)]

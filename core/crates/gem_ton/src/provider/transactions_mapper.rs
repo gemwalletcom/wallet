@@ -4,7 +4,6 @@ use crate::models::{
     BroadcastTransaction, JettonSwapDetails, JettonTransferDetails, NftTransferDetails, OutMessage, STONFI_PAY_VAULT_V2, StonfiPayVault, TRACE_ACTION_JETTON_SWAP, TRACE_ACTION_JETTON_TRANSFER, TRACE_ACTION_NFT_TRANSFER,
     TRACE_ACTION_TON_TRANSFER, TonTransferDetails, Trace, TraceAction, TransactionMessage,
 };
-use chrono::DateTime;
 use gem_encoding::decode_base64;
 use num_bigint::BigUint;
 use primitives::hex;
@@ -87,7 +86,7 @@ fn map_root_trace_transaction(trace: Trace) -> Option<Transaction> {
 fn build_transaction(message: &TransactionMessage, state: Option<TransactionState>, details: TransferDetails) -> Option<Transaction> {
     let fee_asset_id = Chain::Ton.as_asset_id();
     let state = state.unwrap_or_else(|| map_transaction_state(message));
-    let created_at = DateTime::from_timestamp(message.now, 0)?;
+    let created_at = message.now;
     let hash = base64_hash_to_hex(&message.hash)?;
 
     Some(

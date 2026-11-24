@@ -2,22 +2,32 @@ use primitives::unix_timestamp;
 use std::collections::HashMap;
 use std::sync::Mutex;
 
-use prometheus_client::encoding::EncodeLabelSet;
-use prometheus_client::metrics::family::Family;
-use prometheus_client::metrics::gauge::Gauge;
-use prometheus_client::registry::Registry;
+use metrics::{Family, Gauge, LabelEncoder, LabelSet, MetricsRegistry};
 
 use super::MetricsProvider;
 
-#[derive(Clone, Debug, Hash, PartialEq, Eq, EncodeLabelSet)]
+#[derive(Clone, Debug, Hash, PartialEq, Eq)]
 struct ParserLabels {
     chain: String,
 }
 
-#[derive(Clone, Debug, Hash, PartialEq, Eq, EncodeLabelSet)]
+impl LabelSet for ParserLabels {
+    fn encode(&self, encoder: &mut LabelEncoder<'_>) {
+        encoder.add("chain", &self.chain);
+    }
+}
+
+#[derive(Clone, Debug, Hash, PartialEq, Eq)]
 struct TransactionTypeLabels {
     chain: String,
     transaction_type: String,
+}
+
+impl LabelSet for TransactionTypeLabels {
+    fn encode(&self, encoder: &mut LabelEncoder<'_>) {
+        encoder.add("chain", &self.chain);
+        encoder.add("transaction_type", &self.transaction_type);
+    }
 }
 
 #[derive(Default)]
@@ -57,7 +67,7 @@ impl ParserMetrics {
 }
 
 impl MetricsProvider for ParserMetrics {
-    fn register(&self, registry: &mut Registry) {
+    fn register(&self, registry: &mut MetricsRegistry) {
         let latest_block = Family::<ParserLabels, Gauge>::default();
         let current_block = Family::<ParserLabels, Gauge>::default();
         let is_enabled = Family::<ParserLabels, Gauge>::default();

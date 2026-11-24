@@ -2,19 +2,32 @@ use num_bigint::BigUint;
 use primitives::{AssetId, Chain, Delegation, DelegationBase, DelegationState, DelegationValidator};
 
 #[cfg(feature = "chain_integration_tests")]
-use gem_client::ReqwestClient;
-#[cfg(feature = "chain_integration_tests")]
 use gem_evm::rpc::EthereumClient;
+#[cfg(feature = "chain_integration_tests")]
+use gem_jsonrpc::JsonRpcClient;
+#[cfg(feature = "chain_integration_tests")]
+use gem_reqwest::ReqwestClient;
 #[cfg(feature = "chain_integration_tests")]
 use primitives::EVMChain;
 #[cfg(feature = "chain_integration_tests")]
 use settings::testkit::get_test_settings;
 
-use crate::model::BscUndelegation;
+use crate::model::{BscUndelegation, BscValidator};
 #[cfg(feature = "chain_integration_tests")]
 use crate::staking::BscStakingClient;
 
 pub const TEST_SMARTCHAIN_STAKING_ADDRESS: &str = "0xBA4D1d35bCe0e8F28E5a3403e7a0b996c5d50AC4";
+
+impl BscValidator {
+    pub fn mock(operator_address: &str) -> Self {
+        Self {
+            operator_address: operator_address.to_string(),
+            moniker: "Kraken".to_string(),
+            commission: 1_000,
+            apy: 40,
+        }
+    }
+}
 
 pub fn mock_undelegation(unlock_time: Option<u64>) -> BscUndelegation {
     BscUndelegation {
@@ -45,5 +58,5 @@ pub fn mock_delegation(validator_id: &str, state: DelegationState, balance: u64,
 #[cfg(feature = "chain_integration_tests")]
 pub fn create_staking_client() -> BscStakingClient<ReqwestClient> {
     let settings = get_test_settings();
-    BscStakingClient::new(EthereumClient::mock_with_url(EVMChain::SmartChain, &settings.chains.smartchain.url))
+    BscStakingClient::new(EthereumClient::new(JsonRpcClient::new(ReqwestClient::new_test_client(settings.chains.smartchain.url)), EVMChain::SmartChain))
 }

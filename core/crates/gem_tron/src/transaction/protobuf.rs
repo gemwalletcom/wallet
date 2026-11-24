@@ -186,20 +186,13 @@ fn contract_value(contract: &TronContract) -> Vec<u8> {
             amount: (*amount > 0).then_some(*amount),
         }
         .encode(),
-        TronContract::TriggerSmart {
-            owner,
-            contract,
-            data,
-            call_value,
-            call_token_value,
-            token_id,
-        } => TriggerSmartContract {
-            owner_address: Some(owner.as_bytes().to_vec()),
-            contract_address: Some(contract.as_bytes().to_vec()),
-            call_value: call_value.filter(|value| *value > 0),
-            data: Some(data.clone()),
-            call_token_value: call_token_value.filter(|value| *value > 0),
-            token_id: token_id.filter(|value| *value > 0),
+        TronContract::TriggerSmart(call) => TriggerSmartContract {
+            owner_address: Some(call.owner.as_bytes().to_vec()),
+            contract_address: Some(call.contract.as_bytes().to_vec()),
+            call_value: call.call_value.filter(|value| *value > 0),
+            data: Some(call.data.clone()),
+            call_token_value: call.call_token_value.filter(|value| *value > 0),
+            token_id: call.token_id.filter(|value| *value > 0),
         }
         .encode(),
         TronContract::VoteWitness { owner, votes, support } => VoteWitnessContract {

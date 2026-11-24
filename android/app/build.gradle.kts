@@ -57,8 +57,8 @@ android {
         applicationId = "com.gemwallet.android"
         minSdk = 28
         targetSdk = 37
-        versionCode = 913
-        versionName = "2.114.100"
+        versionCode = 915
+        versionName = "2.114.102"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {

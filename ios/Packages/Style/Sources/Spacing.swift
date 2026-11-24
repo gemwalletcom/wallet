@@ -61,6 +61,7 @@ public extension Sizing {
         public static let minHeight: CGFloat = 84
         public static let accessory: CGFloat = 16
         public static let image: CGFloat = 22
+        public static let badge: CGFloat = 20
         public static let settings: CGFloat = 28
 
         public enum selected {

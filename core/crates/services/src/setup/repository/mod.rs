@@ -4,11 +4,10 @@ use std::collections::{HashMap, HashSet};
 use std::error::Error;
 
 use async_trait::async_trait;
-use chrono::Utc;
 use config_keys::{ConfigKey, ConfigParamKey};
 use gem_tracing::info_with_fields;
 use primitives::currency::Currency;
-use primitives::{AssetBasic, AssetTag, Chain, ChartTimeframe, FiatProviderName, FiatRate, FiatRateProvider, PriceProvider, Release, ScanAddress};
+use primitives::{AssetBasic, AssetTag, Chain, ChartTimeframe, DateTime, FiatProviderName, FiatRate, FiatRateProvider, PriceProvider, Release, ScanAddress};
 use storage::{
     ApiClientGrant, ApiClientsRepository, AssetFilter, AssetUpdate, AssetsRepository, ChainsRepository, ChartsRepository, ConfigRepository, Database, DatabaseError, DevicesRepository, FiatRepository, MigrationsRepository,
     NotificationsRepository, ParserStateRepository, PriceAlertsRepository, PricesProvidersRepository, PricesRepository, ReleasesRepository, ScanAddressesRepository, TagRepository, WalletsRepository,
@@ -188,7 +187,7 @@ impl Repository for PostgresRepository {
                 info_with_fields!("setup_dev", step = "fiat provider countries added", count = result);
 
                 info_with_fields!("setup_dev", step = "add prices and charts");
-                let series = dev_seed::price_series(Utc::now().naive_utc());
+                let series = dev_seed::price_series(DateTime::now());
                 let result = client.add_prices(series.prices)?;
                 info_with_fields!("setup_dev", step = "prices added", count = result);
                 let result = client.set_prices_assets(series.price_assets)?;

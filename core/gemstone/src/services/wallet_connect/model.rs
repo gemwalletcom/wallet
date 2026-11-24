@@ -213,10 +213,8 @@ pub fn connection_proposal(proposal: WalletConnectionSessionProposal, wallet_id:
     }
 }
 
-#[uniffi::export]
-pub fn authentication_sections(proposal: WalletConnectionSessionProposal, wallet_id: Option<WalletId>, chain: Option<Chain>, status: WalletConnectionVerificationStatus) -> Vec<GemGroup> {
-    let rows = [Some(review_wallet_row(&proposal, wallet_id)), chain.map(network_row), Some(verification_row(status))];
-    vec![GemGroup::untitled(rows.into_iter().flatten().collect())]
+pub(crate) fn authentication_sections(proposal: &WalletConnectionSessionProposal, wallet_id: WalletId, chain: Chain, status: WalletConnectionVerificationStatus) -> Vec<GemGroup> {
+    vec![GemGroup::untitled(vec![review_wallet_row(proposal, Some(wallet_id)), network_row(chain), verification_row(status)])]
 }
 
 #[derive(Debug, Clone, uniffi::Record)]
@@ -246,15 +244,6 @@ pub struct GemConnectionDetails {
 #[cfg(test)]
 mod verification_tests {
     use super::*;
-    use primitives::ApplicationMetadata;
-
-    fn proposal(wallets: Vec<Wallet>) -> WalletConnectionSessionProposal {
-        WalletConnectionSessionProposal {
-            default_wallet: Wallet::mock(),
-            wallets,
-            metadata: ApplicationMetadata::mock(),
-        }
-    }
 
     fn status_of(row: &GemListRow) -> Option<VerificationStatus> {
         match row {
@@ -286,7 +275,7 @@ mod verification_tests {
 
     #[test]
     fn test_a_proposal_shows_the_wallet_the_connection_and_its_status_and_asks_for_balance_and_approvals() {
-        let single = connection_proposal(proposal(vec![Wallet::mock()]), None, WalletConnectionVerificationStatus::Malicious);
+        let single = connection_proposal(WalletConnectionSessionProposal::mock_with_wallets(vec![Wallet::mock()]), None, WalletConnectionVerificationStatus::Malicious);
         let rows = single.sections[0].rows();
 
         assert_eq!(single.sections.len(), 1);
@@ -296,18 +285,24 @@ mod verification_tests {
         assert_eq!(status_of(&rows[2]), Some(VerificationStatus::Suspicious));
         assert_eq!(single.permissions, vec![GemConnectionPermission::ViewBalance, GemConnectionPermission::ApprovalRequests]);
 
-        let several = connection_proposal(proposal(vec![Wallet::mock(), Wallet::mock()]), Some(WalletId::mock()), WalletConnectionVerificationStatus::Verified);
+        let several = connection_proposal(
+            WalletConnectionSessionProposal::mock_with_wallets(vec![Wallet::mock(), Wallet::mock()]),
+            Some(WalletId::mock()),
+            WalletConnectionVerificationStatus::Verified,
+        );
         assert_eq!(several.sections[0].rows()[0].action(), Some(GemRowAction::SelectWallet));
     }
 
     #[test]
-    fn test_a_sign_in_shows_the_network_only_once_the_account_is_known() {
-        let wallets = vec![Wallet::mock(), Wallet::mock()];
-        let with_chain = authentication_sections(proposal(wallets.clone()), Some(WalletId::mock()), Some(Chain::Ethereum), WalletConnectionVerificationStatus::Unknown);
-        let without_chain = authentication_sections(proposal(wallets), None, None, WalletConnectionVerificationStatus::Unknown);
+    fn test_authentication_sections() {
+        let sections = authentication_sections(
+            &WalletConnectionSessionProposal::mock_with_wallets(vec![Wallet::mock(), Wallet::mock()]),
+            WalletId::mock(),
+            Chain::Ethereum,
+            WalletConnectionVerificationStatus::Unknown,
+        );
 
-        let rows = with_chain[0].rows();
-        let without = without_chain[0].rows();
+        let rows = sections[0].rows();
         assert_eq!(rows.len(), 3);
         assert_eq!(rows[0].action(), Some(GemRowAction::SelectWallet));
         assert!(match &rows[1] {
@@ -315,7 +310,5 @@ mod verification_tests {
             _ => false,
         });
         assert_eq!(status_of(&rows[2]), Some(VerificationStatus::Unverified));
-        assert_eq!(without.len(), 2);
-        assert_eq!(status_of(&without[1]), Some(VerificationStatus::Unverified));
     }
 }

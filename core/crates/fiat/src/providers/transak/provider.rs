@@ -3,6 +3,7 @@ use super::{
     mapper::map_order_from_response,
     models::{Data, TransakQuote},
 };
+use crate::FiatQuoteRequest;
 use crate::{
     FiatProvider, FiatWebhookRequest,
     error::FiatQuoteError,
@@ -10,7 +11,7 @@ use crate::{
     providers::transak::mapper::map_asset_with_limits,
 };
 use async_trait::async_trait;
-use primitives::{FiatProviderCountry, FiatProviderName, FiatQuoteRequest, FiatQuoteResponse, FiatQuoteType, FiatQuoteUrl, FiatQuoteUrlData, FiatWebhook};
+use primitives::{FiatProviderCountry, FiatProviderName, FiatQuoteResponse, FiatQuoteType, FiatQuoteUrl, FiatQuoteUrlData, FiatWebhook};
 use std::error::Error;
 
 #[async_trait]
@@ -86,9 +87,10 @@ impl FiatProvider for TransakClient {
 
 #[cfg(all(test, feature = "fiat_integration_tests"))]
 mod fiat_integration_tests {
+    use crate::FiatQuoteRequest;
     use crate::testkit::*;
     use crate::{FiatProvider, model::FiatMapping};
-    use primitives::{FiatProviderName, FiatQuoteRequest};
+    use primitives::FiatProviderName;
 
     #[tokio::test]
     async fn test_transak_get_buy_quote() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {

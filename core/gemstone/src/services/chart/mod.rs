@@ -8,9 +8,8 @@ pub mod zoom;
 
 use std::sync::Arc;
 
-use chrono::{DateTime, Utc};
 use primitives::currency::Currency;
-use primitives::{AssetId, ChartCandleStick, ChartDateValue, ChartPeriod};
+use primitives::{AssetId, ChartCandleStick, ChartDateValue, ChartPeriod, DateTime};
 
 use crate::api::{GemApiClient, GemApiError};
 use crate::models::state::GemLoadState;
@@ -42,7 +41,7 @@ pub struct GemChart {
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemChartCurrent {
-    pub date: DateTime<Utc>,
+    pub date: DateTime,
     pub value: f64,
     pub change_percentage: f64,
 }
@@ -176,7 +175,7 @@ impl GemChartService {
         let latest = self.price.prices(vec![asset_id]).await?.into_iter().next();
         let values = rules::converted_values(charts.prices, rate);
         let base_value = rules::base_value(&values);
-        let current = rules::current_value(&values, latest, Utc::now(), period, base_value);
+        let current = rules::current_value(&values, latest, DateTime::now(), period, base_value);
         Ok(GemChart { values, base_value, current })
     }
 
@@ -228,7 +227,7 @@ mod tests {
     fn input(price: Option<f64>) -> GemChartInput {
         GemChartInput {
             asset: Asset::mock_ethereum_usdc(),
-            price: price.map(|price| Price::new(price, 0.0, Utc::now(), PriceProvider::default())),
+            price: price.map(|price| Price::new(price, 0.0, DateTime::now(), PriceProvider::default())),
             market: Some(AssetMarket::mock()),
             price_alerts: vec![],
             links: vec![],

@@ -1,6 +1,7 @@
 use crate::big_number_formatter::{BigNumberFormatter, NumberFormatterError};
 use crate::currency::add_thousands_separator;
-use crate::decimal::Decimal;
+use crate::decimal::{Decimal, Rounding};
+use crate::precision;
 use std::fmt::Display;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -8,6 +9,7 @@ pub enum ValueStyle {
     Full,
     Short,
     Auto,
+    Medium,
 }
 
 pub struct ValueFormatter;
@@ -18,6 +20,7 @@ impl ValueFormatter {
         match style {
             ValueStyle::Full => Ok(format_full(&decimal)),
             ValueStyle::Short | ValueStyle::Auto => Ok(format_auto(&decimal)),
+            ValueStyle::Medium => Ok(format_medium(&decimal)),
         }
     }
 
@@ -26,6 +29,7 @@ impl ValueFormatter {
         match style {
             ValueStyle::Full => format_full(&decimal),
             ValueStyle::Short | ValueStyle::Auto => format_auto(&decimal),
+            ValueStyle::Medium => format_medium(&decimal),
         }
     }
 
@@ -44,6 +48,12 @@ impl ValueFormatter {
 
 fn format_full(decimal: &Decimal) -> String {
     with_thousands_separator(&decimal.to_plain_string())
+}
+
+fn format_medium(decimal: &Decimal) -> String {
+    let magnitude = decimal.to_f64().unwrap_or_default();
+    let places = precision::value(ValueStyle::Medium, magnitude).fraction_places(magnitude);
+    format_full(&decimal.with_scale_round(places as i64, Rounding::Down).normalized())
 }
 
 fn format_auto(decimal: &Decimal) -> String {
@@ -117,6 +127,19 @@ mod tests {
         assert_eq!(ValueFormatter::format(ValueStyle::Auto, "123456789012", 18).unwrap(), "0.0000001234");
         assert_eq!(ValueFormatter::format(ValueStyle::Auto, "1", 8).unwrap(), "0.00000001");
         assert_eq!(ValueFormatter::format(ValueStyle::Auto, "0", 0).unwrap(), "0");
+    }
+
+    #[test]
+    fn test_medium_style() {
+        assert_eq!(ValueFormatter::format(ValueStyle::Medium, "12345678", 6).unwrap(), "12.345678");
+        assert_eq!(ValueFormatter::format(ValueStyle::Medium, "1500000", 6).unwrap(), "1.5");
+        assert_eq!(ValueFormatter::format(ValueStyle::Medium, "1123456789", 9).unwrap(), "1.12345678");
+        assert_eq!(ValueFormatter::format(ValueStyle::Medium, "123456789012345678", 18).unwrap(), "0.12345678");
+        assert_eq!(ValueFormatter::format(ValueStyle::Medium, "1999999999999999999", 18).unwrap(), "1.99999999");
+        assert_eq!(ValueFormatter::format(ValueStyle::Medium, "1234567890123456789012345678", 18).unwrap(), "1,234,567,890.12345678");
+        assert_eq!(ValueFormatter::format(ValueStyle::Medium, "123456789", 18).unwrap(), "0.0000000001234");
+        assert_eq!(ValueFormatter::format(ValueStyle::Medium, "1000000", 0).unwrap(), "1,000,000");
+        assert_eq!(ValueFormatter::format(ValueStyle::Medium, "0", 18).unwrap(), "0");
     }
 
     #[test]

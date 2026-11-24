@@ -6,9 +6,8 @@ use crate::services::assets::model::{GemFeeAmount, GemFeeText, GemRowText, GemVa
 use crate::services::confirm::GemNetworkFeeScreen;
 use crate::services::localization::GemLocalizedText;
 use crate::services::swap::model::GemSwapRate;
-use chrono::{DateTime, Utc};
 use number_formatter::ValueStyle;
-use primitives::{Asset, AssetId, AssetPrice, Chain, NFTAssetId, PerpetualDirection, Resource, Transaction, TransactionDirection, TransactionId, TransactionListItem, TransactionState, TransactionType, TransactionsFilter};
+use primitives::{Asset, AssetId, AssetPrice, Chain, DateTime, NFTAssetId, PerpetualDirection, Resource, Transaction, TransactionDirection, TransactionId, TransactionListItem, TransactionState, TransactionType, TransactionsFilter};
 
 use super::rules;
 use primitives::BlockExplorerLink;
@@ -213,7 +212,7 @@ pub struct GemTransactionRow {
     pub transaction_type: TransactionType,
     pub direction: TransactionDirection,
     pub state: TransactionState,
-    pub created_at: DateTime<Utc>,
+    pub created_at: DateTime,
     pub status: GemTransactionStatus,
     pub title: GemTransactionTitle,
     pub subtitle: GemTransactionRowSubtitle,
@@ -301,7 +300,7 @@ pub struct GemTransactionDetailRows {
     pub transaction_type: TransactionType,
     pub direction: TransactionDirection,
     pub state: TransactionState,
-    pub created_at: DateTime<Utc>,
+    pub created_at: DateTime,
     pub status: GemTransactionStatus,
     pub title: GemTransactionTitle,
     pub header: GemTransactionHeader,

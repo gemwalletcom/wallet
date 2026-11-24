@@ -12,7 +12,7 @@
 
 <strong>Swap, Earn, and Trade</strong>
 <ul>
-    <li>Swap tokens on the same chain or across chains through integrated providers such as Uniswap, PancakeSwap, Jupiter, Orca, THORChain, Chainflip, Mayan, Relay, and STON.fi.</li>
+    <li>Swap tokens on the same chain or across chains through integrated providers such as Uniswap, Pancake, Jupiter, Orca, THORChain, Chainflip, Mayan, Relay, and STON.fi.</li>
     <li>Stake supported assets and track your rewards.</li>
     <li>Earn with yield-bearing stablecoins.</li>
     <li>Trade Hyperliquid perpetuals.</li>

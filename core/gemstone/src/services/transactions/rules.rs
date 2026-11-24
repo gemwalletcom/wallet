@@ -441,9 +441,9 @@ fn row_value(item: &TransactionListItem, value: GemTransactionValue) -> GemTrans
     }
 }
 
-pub fn header_amount(amount: GemTransactionAmount, currency: &Currency, shows_fiat: bool) -> GemHeaderAmount {
+pub fn header_amount(amount: GemTransactionAmount, style: ValueStyle, currency: &Currency, shows_fiat: bool) -> GemHeaderAmount {
     GemHeaderAmount {
-        amount: amount.sign.amount(&amount.value, &amount.asset, ValueStyle::Auto),
+        amount: amount.sign.amount(&amount.value, &amount.asset, style),
         fiat: fiat_amount_of(&amount.asset, &amount.value, amount.price.map(|price| price.price), currency.clone(), GemCurrencyStyle::Currency).filter(|_| shows_fiat),
         icon: asset_icon(&amount.asset.id),
         asset: amount.asset,
@@ -452,13 +452,13 @@ pub fn header_amount(amount: GemTransactionAmount, currency: &Currency, shows_fi
 
 fn header(extended: &TransactionExtended, currency: &Currency) -> GemTransactionHeader {
     let transaction = &extended.transaction;
-    let amount = |shows_fiat: bool| GemTransactionHeader::amount(header_amount(transaction_amount(extended, value_sign(transaction)), currency, shows_fiat));
+    let amount = |shows_fiat: bool| GemTransactionHeader::amount(header_amount(transaction_amount(extended, value_sign(transaction)), ValueStyle::Auto, currency, shows_fiat));
     match header_kind(transaction) {
         GemTransactionHeaderKind::Amount { shows_fiat } => amount(shows_fiat),
         GemTransactionHeaderKind::Swap => match (swap_leg(extended, SwapLeg::From, GemAmountSign::None), swap_leg(extended, SwapLeg::To, GemAmountSign::None)) {
             (Some(from), Some(to)) => GemTransactionHeader::Swap {
-                from: header_amount(from, currency, true),
-                to: header_amount(to, currency, true),
+                from: header_amount(from, ValueStyle::Auto, currency, true),
+                to: header_amount(to, ValueStyle::Auto, currency, true),
             },
             _ => amount(true),
         },
@@ -901,8 +901,7 @@ mod tests {
 
     use super::super::model::GemSwapProgressMarker;
     use super::*;
-    use chrono::Utc;
-    use primitives::{Chain, Resource, TransactionPerpetualMetadata};
+    use primitives::{Chain, DateTime, Resource, TransactionPerpetualMetadata};
 
     fn signing_details(extended: &TransactionExtended) -> GemTransactionDetails {
         details(extended, WalletType::Multicoin)
@@ -1392,7 +1391,7 @@ mod tests {
         assert_eq!(unnamed.fee_row.fee.fiat, None, "a fee with no price names no fiat value");
         assert_eq!(unnamed.fee_row.text.value, unnamed.fee_row.fee.amount, "a fee with no price shows its amount");
         let priced = TransactionExtended {
-            fee_price: Some(Price::new(4.0, 0.0, Utc::now(), primitives::PriceProvider::Coingecko)),
+            fee_price: Some(Price::new(4.0, 0.0, DateTime::now(), primitives::PriceProvider::Coingecko)),
             ..transfer.clone()
         };
         let priced_fee = detail_rows(&priced, WalletType::Multicoin, None, explorer.clone(), Currency::USD).fee_row;
@@ -1684,6 +1683,17 @@ mod tests {
         });
         assert!(on_chain.swap_progress.is_none());
         assert_eq!(on_chain.estimated_confirmation_seconds, Some(90));
+        assert!(
+            signing_details(&TransactionExtended::mock_transaction(Transaction::mock_swap_with_provider(TransactionState::Pending, Some("hyperliquid"))))
+                .swap_progress
+                .is_none(),
+            "a Hyperliquid spot order completes in its own action"
+        );
+        assert!(
+            signing_details(&TransactionExtended::mock_transaction(Transaction::mock_swap_with_provider(TransactionState::Pending, Some("hyperliquid_bridge"))))
+                .swap_progress
+                .is_some()
+        );
         assert_eq!(
             signing_details(&TransactionExtended::mock_transaction(Transaction::mock_swap_with_provider(TransactionState::Pending, Some("unknown"))))
                 .provider_name
@@ -1736,10 +1746,10 @@ mod tests {
         let mut transfer = TransactionExtended::mock();
         let amount_price = |extended: &TransactionExtended| transaction_amount(extended, GemAmountSign::None).price.map(|price| price.price);
 
-        transfer.price = Some(Price::new(0.0, 0.0, Utc::now(), Default::default()));
+        transfer.price = Some(Price::new(0.0, 0.0, DateTime::now(), Default::default()));
         assert_eq!(amount_price(&transfer), None);
 
-        transfer.price = Some(Price::new(12.0, 0.0, Utc::now(), Default::default()));
+        transfer.price = Some(Price::new(12.0, 0.0, DateTime::now(), Default::default()));
         assert_eq!(amount_price(&transfer), Some(12.0));
     }
 
@@ -1752,10 +1762,10 @@ mod tests {
         let ethereum = AssetId::from_chain(Chain::Ethereum);
         let leg_price = |extended: &TransactionExtended| swap_leg(extended, SwapLeg::From, GemAmountSign::Outgoing).and_then(|amount| amount.price).map(|price| price.price);
 
-        swap.prices = vec![AssetPrice::new(ethereum.clone(), 0.0, 0.0, Utc::now())];
+        swap.prices = vec![AssetPrice::new(ethereum.clone(), 0.0, 0.0, DateTime::now())];
         assert_eq!(leg_price(&swap), None);
 
-        swap.prices = vec![AssetPrice::new(ethereum, 12.0, 0.0, Utc::now())];
+        swap.prices = vec![AssetPrice::new(ethereum, 12.0, 0.0, DateTime::now())];
         assert_eq!(leg_price(&swap), Some(12.0));
     }
 

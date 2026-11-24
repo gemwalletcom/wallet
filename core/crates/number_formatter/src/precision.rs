@@ -21,6 +21,7 @@ impl Precision {
     }
 }
 
+pub const MEDIUM_PLACES: usize = 8;
 pub const ABBREVIATION_THRESHOLD: f64 = 100_000.0;
 pub const SMALL_AMOUNT_THRESHOLD: f64 = 0.1;
 pub const VALUE_DUST_THRESHOLD: f64 = 1e-4;
@@ -34,6 +35,10 @@ pub fn value(style: ValueStyle, magnitude: f64) -> Precision {
         ValueStyle::Short => Precision::UP_TO_FOUR_PLACES,
         ValueStyle::Auto if magnitude >= 1.0 => Precision::UP_TO_TWO_PLACES,
         ValueStyle::Auto => Precision::FOUR_SIGNIFICANT,
+        ValueStyle::Medium => Precision::Fraction {
+            min: 0,
+            max: MEDIUM_PLACES.max(Precision::FOUR_SIGNIFICANT.fraction_places(magnitude)),
+        },
     }
 }
 
@@ -109,6 +114,9 @@ mod tests {
         assert_eq!(value(ValueStyle::Short, 0.09), Precision::UP_TO_FOUR_PLACES);
         assert_eq!(value(ValueStyle::Auto, 1.0), Precision::UP_TO_TWO_PLACES);
         assert_eq!(value(ValueStyle::Auto, 0.99), Precision::FOUR_SIGNIFICANT);
+        assert_eq!(value(ValueStyle::Medium, 12.345678), Precision::Fraction { min: 0, max: 8 });
+        assert_eq!(value(ValueStyle::Medium, 0.00001234), Precision::Fraction { min: 0, max: 8 });
+        assert_eq!(value(ValueStyle::Medium, 0.000000000123), Precision::Fraction { min: 0, max: 13 });
     }
 
     #[test]

@@ -1,5 +1,4 @@
-use crate::{Asset, AssetId, FiatProviderName, FiatQuoteUrlData};
-use chrono::{DateTime, Utc};
+use crate::{Asset, AssetId, DateTime, FiatProviderName, FiatQuoteUrlData};
 use model_derive::Model;
 use num_bigint::BigUint;
 use serde::{Deserialize, Serialize};
@@ -27,14 +26,14 @@ pub struct FiatTransaction {
     #[model(skip)]
     #[serde(skip_serializing)]
     pub transaction_hash: Option<String>,
-    pub created_at: DateTime<Utc>,
-    pub updated_at: DateTime<Utc>,
+    pub created_at: DateTime,
+    pub updated_at: DateTime,
 }
 
 impl FiatTransaction {
     pub fn new_pending(data: &FiatQuoteUrlData, provider_transaction_id: Option<String>) -> Self {
         let quote = &data.quote;
-        let now = Utc::now();
+        let now = DateTime::now();
 
         Self {
             id: quote.id.clone(),
@@ -94,7 +93,7 @@ pub struct FiatTransactionAssetData {
     pub fiat_currency: String,
     #[serde(serialize_with = "serde_serializers::serialize_biguint", deserialize_with = "serde_serializers::deserialize_biguint_from_str")]
     pub value: BigUint,
-    pub created_at: DateTime<Utc>,
+    pub created_at: DateTime,
     pub details_url: Option<String>,
 }
 

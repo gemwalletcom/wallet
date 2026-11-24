@@ -12,7 +12,7 @@ pub mod siws;
 pub mod token_account;
 mod types;
 
-#[cfg(any(feature = "rpc", feature = "reqwest"))]
+#[cfg(feature = "rpc")]
 pub mod rpc;
 
 #[cfg(feature = "rpc")]
@@ -34,7 +34,7 @@ pub use error::SolanaError;
 pub use instructions::{anchor, associated_token, compute_budget, memo, system, token, wrapped_sol};
 pub use jsonrpc::{SolanaAccountEncoding, SolanaDataSlice, SolanaProgramAccountsFilter, SolanaRpc, SolanaRpcConfig, SolanaTokenAccountsFilter};
 pub use transaction::{
-    BLOCKHASH_SET_AT_SIGNING, Base64InstructionData, HexInstructionData, InstructionDataDecoder, SolanaTransfer, VersionedTransactionExt, decode_transaction, encode_v0_transaction, instruction_from_primitive, instructions_from_primitives,
+    BLOCKHASH_SET_AT_SIGNING, Base64InstructionData, HexInstructionData, InstructionDataDecoder, SolanaTransfer, VersionedTransactionExt, decode_instruction, decode_instructions, decode_transaction, encode_v0_transaction,
     try_decode_blockhash, try_decode_transaction,
 };
 pub use types::{
@@ -45,8 +45,6 @@ pub use types::{
 pub(crate) use error::Result;
 pub(crate) use short_vec::{decode_compact_u16_len, encode_length_to_compact_u16_bytes};
 
-#[cfg(all(feature = "reqwest", not(feature = "rpc")))]
-pub use rpc::client::SolanaClient;
 #[cfg(feature = "rpc")]
 pub use rpc::client::SolanaClient;
 

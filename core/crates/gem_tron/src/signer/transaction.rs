@@ -1,34 +1,46 @@
 use gem_hash::sha2::sha256;
-use num_traits::ToPrimitive;
 use primitives::hex;
-use primitives::{
-    SignerError, SignerInput, StakeType, TransactionLoadMetadata, TronStakeData, decode_hex,
-    swap::{ApprovalData, SwapQuoteData, SwapQuoteDataType},
-};
+use primitives::{SignerError, SignerInput, StakeType, TransactionLoadMetadata, TronStakeData, decode_hex, swap::SwapQuoteDataType};
 use signer::{SignatureScheme, Signer};
 
 use super::builder::{SignedTransactionJson, TronRawData};
 use super::wallet_connect::WalletConnectPayload;
 use crate::address::TronAddress;
-use crate::transaction::{TronContract, contract::TronResource};
-use crate::trc20;
+use crate::transaction::{TronContract, TronTriggerSmartContract, contract::TronResource};
 
 struct ContractPayload {
     contract: TronContract,
-    fee_limit: u64,
     data: Option<Vec<u8>>,
 }
 
+impl From<TronContract> for ContractPayload {
+    fn from(contract: TronContract) -> Self {
+        Self { contract, data: None }
+    }
+}
+
 pub(crate) fn sign_transfer(input: &SignerInput, private_key: &[u8]) -> Result<String, SignerError> {
-    sign_contract_payload(input, private_key, |owner| build_native_transfer(input, owner, &input.destination_address, input.value_as_u64()?))
+    sign_contract_payload(input, private_key, |owner| {
+        Ok(TronContract::Transfer {
+            owner,
+            to: TronAddress::parse(&input.destination_address)?,
+            amount: input.value_as_u64()?,
+        }
+        .into())
+    })
 }
 
 pub(crate) fn sign_token_transfer(input: &SignerInput, private_key: &[u8]) -> Result<String, SignerError> {
-    sign_contract_payload(input, private_key, |owner| build_token_transfer(input, owner, &input.destination_address))
+    sign_contract_payload(input, private_key, |owner| {
+        let call = TronTriggerSmartContract::token_transfer(owner, input.input_type.get_asset().id.get_token_id()?, &input.destination_address, &input.value)?;
+        Ok(TronContract::TriggerSmart(call).into())
+    })
 }
 
 pub(crate) fn sign_token_approval(input: &SignerInput, private_key: &[u8]) -> Result<String, SignerError> {
-    sign_contract_payload(input, private_key, |owner| build_token_approval(input, owner, input.input_type.get_approval_data()?))
+    sign_contract_payload(input, private_key, |owner| {
+        Ok(TronContract::TriggerSmart(TronTriggerSmartContract::token_approval(owner, input.input_type.get_approval_data()?)?).into())
+    })
 }
 
 pub(crate) fn sign_swap(input: &SignerInput, private_key: &[u8]) -> Result<Vec<String>, SignerError> {
@@ -37,96 +49,20 @@ pub(crate) fn sign_swap(input: &SignerInput, private_key: &[u8]) -> Result<Vec<S
     match swap_data.data_type {
         SwapQuoteDataType::Transfer => SignerError::invalid_input_err("unsupported Tron transfer swap"),
         SwapQuoteDataType::Contract => sign_contract_payloads(input, private_key, |owner| {
-            let swap_payload = build_contract_swap(input, owner, swap_data)?;
+            let swap_payload = ContractPayload {
+                contract: TronContract::contract_swap(owner, input.input_type.get_asset(), swap_data)?,
+                data: swap_data.memo.as_deref().map(decode_hex).transpose()?,
+            };
             match &swap_data.approval {
-                Some(approval) => Ok(vec![build_token_approval(input, owner, approval)?, swap_payload]),
+                Some(approval) => Ok(vec![TronContract::TriggerSmart(TronTriggerSmartContract::token_approval(owner, approval)?).into(), swap_payload]),
                 None => Ok(vec![swap_payload]),
             }
         }),
     }
 }
 
-fn build_native_transfer(input: &SignerInput, owner: TronAddress, destination: &str, value: u64) -> Result<ContractPayload, SignerError> {
-    let contract = TronContract::Transfer {
-        owner,
-        to: TronAddress::parse(destination)?,
-        amount: value,
-    };
-    let fee_limit = input.fee.fee()?;
-    Ok(ContractPayload { contract, fee_limit, data: None })
-}
-
-fn build_contract_swap(input: &SignerInput, owner: TronAddress, swap_data: &SwapQuoteData) -> Result<ContractPayload, SignerError> {
-    let from_asset = input.input_type.get_asset();
-    let call_data = if swap_data.data.is_empty() { Vec::new() } else { decode_hex(&swap_data.data)? };
-    let memo = swap_data.memo.as_deref().map(decode_hex).transpose()?;
-
-    if from_asset.id.is_token() || !call_data.is_empty() {
-        build_contract_call_swap(input, owner, swap_data, call_data, memo)
-    } else {
-        build_native_contract_transfer_swap(input, owner, swap_data, memo)
-    }
-}
-
-fn build_native_contract_transfer_swap(input: &SignerInput, owner: TronAddress, swap_data: &SwapQuoteData, memo: Option<Vec<u8>>) -> Result<ContractPayload, SignerError> {
-    let to = TronAddress::parse_hex_or_base58(&swap_data.to)?;
-    let amount = swap_data.value.to_u64().ok_or_else(|| SignerError::invalid_input("Tron swap value is too large"))?;
-    let contract = TronContract::Transfer { owner, to, amount };
-    let fee_limit = input.fee.fee()?;
-    Ok(ContractPayload { contract, fee_limit, data: memo })
-}
-
-fn build_contract_call_swap(input: &SignerInput, owner: TronAddress, swap_data: &SwapQuoteData, call_data: Vec<u8>, memo: Option<Vec<u8>>) -> Result<ContractPayload, SignerError> {
-    if call_data.is_empty() {
-        return SignerError::invalid_input_err("Tron contract swap calldata is required");
-    }
-    let contract_address = TronAddress::parse_hex_or_base58(&swap_data.to)?;
-    let call_value = swap_data.value.to_u64().ok_or_else(|| SignerError::invalid_input("Tron contract call value is too large"))?;
-    let contract = TronContract::TriggerSmart {
-        owner,
-        contract: contract_address,
-        data: call_data,
-        call_value: (call_value != 0).then_some(call_value),
-        call_token_value: None,
-        token_id: None,
-    };
-    let fee_limit = input.fee.gas_limit()?;
-    Ok(ContractPayload { contract, fee_limit, data: memo })
-}
-
-fn build_token_transfer(input: &SignerInput, owner: TronAddress, destination: &str) -> Result<ContractPayload, SignerError> {
-    let token_id = input.input_type.get_asset().id.get_token_id()?;
-    let destination = TronAddress::parse(destination)?;
-    let contract = TronContract::TriggerSmart {
-        owner,
-        contract: TronAddress::parse(token_id)?,
-        data: trc20::encode_transfer(&destination, &input.value.to_string()).map_err(SignerError::invalid_input)?,
-        call_value: None,
-        call_token_value: None,
-        token_id: None,
-    };
-    let fee_limit = input.fee.gas_limit()?;
-    Ok(ContractPayload { contract, fee_limit, data: None })
-}
-
-fn build_token_approval(input: &SignerInput, owner: TronAddress, approval: &ApprovalData) -> Result<ContractPayload, SignerError> {
-    let contract_address = TronAddress::parse_hex_or_base58(&approval.token)?;
-    let spender = TronAddress::parse_hex_or_base58(&approval.spender)?;
-    let contract = TronContract::TriggerSmart {
-        owner,
-        contract: contract_address,
-        data: trc20::encode_approval_max(&spender).map_err(SignerError::invalid_input)?,
-        call_value: None,
-        call_token_value: None,
-        token_id: None,
-    };
-    let fee_limit = input.fee.gas_limit()?;
-    Ok(ContractPayload { contract, fee_limit, data: None })
-}
-
 pub(crate) fn sign_stake(input: &SignerInput, private_key: &[u8]) -> Result<Vec<String>, SignerError> {
     let stake_type = input.input_type.get_stake_type().map_err(SignerError::invalid_input)?;
-    let fee_limit = input.fee.fee()?;
     let TransactionLoadMetadata::Tron { stake_data, .. } = &input.metadata else {
         return SignerError::invalid_input_err("Missing tron metadata");
     };
@@ -162,7 +98,7 @@ pub(crate) fn sign_stake(input: &SignerInput, private_key: &[u8]) -> Result<Vec<
             }],
         };
 
-        Ok(contracts.into_iter().map(|contract| ContractPayload { contract, fee_limit, data: None }).collect())
+        Ok(contracts.into_iter().map(ContractPayload::from).collect())
     })
 }
 
@@ -200,7 +136,11 @@ where
 }
 
 fn sign_built_contract_payload(input: &SignerInput, payload: ContractPayload, private_key: &[u8]) -> Result<String, SignerError> {
-    let raw_data = TronRawData::from_input_with_data(input, payload.contract, payload.fee_limit, payload.data)?;
+    let fee_limit = match payload.contract {
+        TronContract::TriggerSmart(_) => input.fee.gas_limit()?,
+        _ => input.fee.fee()?,
+    };
+    let raw_data = TronRawData::from_input_with_data(input, payload.contract, fee_limit, payload.data)?;
     sign_raw_data(raw_data, private_key)
 }
 

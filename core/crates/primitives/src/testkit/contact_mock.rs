@@ -1,6 +1,4 @@
-use chrono::Utc;
-
-use crate::{Chain, Contact, ContactAddress};
+use crate::{Chain, Contact, ContactAddress, DateTime};
 
 impl Contact {
     pub fn mock() -> Self {
@@ -9,8 +7,8 @@ impl Contact {
             name: "Alice".to_string(),
             description: None,
             image_url: None,
-            created_at: Utc::now(),
-            updated_at: Utc::now(),
+            created_at: DateTime::now(),
+            updated_at: DateTime::now(),
         }
     }
 }

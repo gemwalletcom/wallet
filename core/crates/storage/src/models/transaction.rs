@@ -1,4 +1,3 @@
-use chrono::NaiveDateTime;
 use diesel::prelude::*;
 use num_bigint::BigUint;
 use primitives::{Chain, OptionStringExt, Transaction, TransactionDirection, TransactionId, TransactionUtxoInput};
@@ -6,7 +5,7 @@ use serde::de::Error as _;
 use serde::{Deserialize, Serialize};
 use std::str::FromStr;
 
-use crate::sql_types::{AssetId, ChainRow, TransactionState, TransactionType};
+use crate::sql_types::{AssetId, ChainRow, DateTimeRow, TransactionState, TransactionType};
 
 #[derive(Debug, Queryable, Selectable, Serialize, Deserialize, Clone)]
 #[diesel(table_name = crate::schema::transactions)]
@@ -27,7 +26,7 @@ pub(crate) struct TransactionRow {
     pub utxo_outputs: Option<serde_json::Value>,
     pub fee_asset_id: AssetId,
     pub metadata: Option<serde_json::Value>,
-    pub created_at: NaiveDateTime,
+    pub created_at: DateTimeRow,
 }
 
 #[derive(Debug, Serialize, Deserialize, Insertable, AsChangeset, Clone)]
@@ -48,7 +47,7 @@ pub(crate) struct NewTransactionRow {
     pub utxo_outputs: Option<serde_json::Value>,
     pub fee_asset_id: AssetId,
     pub metadata: Option<serde_json::Value>,
-    pub created_at: NaiveDateTime,
+    pub created_at: DateTimeRow,
 }
 
 impl TransactionRow {
@@ -93,7 +92,7 @@ impl TransactionRow {
             utxo_outputs: outputs.unwrap_or_default().into(),
             metadata: self.metadata.clone(),
             data: None,
-            created_at: self.created_at.and_utc(),
+            created_at: self.created_at.into(),
         })
     }
 }
@@ -132,7 +131,7 @@ impl NewTransactionRow {
             utxo_inputs,
             utxo_outputs,
             metadata,
-            created_at: transaction.created_at.naive_utc(),
+            created_at: transaction.created_at.into(),
         }
     }
 }
@@ -141,7 +140,7 @@ impl NewTransactionRow {
 mod tests {
     use super::{NewTransactionRow, TransactionRow};
     use crate::sql_types::{TransactionState, TransactionType};
-    use primitives::{AssetId, Chain, Transaction, TransactionDirection};
+    use primitives::{AssetId, Chain, DateTime, Transaction, TransactionDirection};
 
     #[test]
     fn test_as_primitive() {
@@ -161,7 +160,7 @@ mod tests {
             utxo_outputs: None,
             fee_asset_id: AssetId::from_chain(Chain::Ethereum).into(),
             metadata: None,
-            created_at: chrono::Utc::now().naive_utc(),
+            created_at: DateTime::now().into(),
         };
         let user = "0x0d9dab1a248f63b0a48965ba8435e4de7497a3dc".to_string();
 

@@ -1,7 +1,7 @@
 use super::rules;
 use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 use crate::services::swap::GemAssetRate;
-use primitives::{FiatProviderName, FiatQuoteType, FiatTransactionAssetData};
+use primitives::{DateTime, FiatProviderName, FiatQuoteType, FiatTransactionAssetData};
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemFiatAmountCheck {
@@ -68,7 +68,7 @@ pub struct GemFiatTransactionStatus {
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemFiatTransactionRow {
     pub id: String,
-    pub created_at: chrono::DateTime<chrono::Utc>,
+    pub created_at: DateTime,
     pub quote_type: FiatQuoteType,
     pub provider: FiatProviderName,
     pub subtitle: String,

@@ -1,0 +1,8 @@
+[package]
+name = "links"
+edition = { workspace = true }
+version = { workspace = true }
+
+[dependencies]
+primitives = { path = "../primitives" }
+url = { workspace = true }

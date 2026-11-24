@@ -1,7 +1,7 @@
-use borsh::{BorshDeserialize, BorshSerialize};
+use gem_encoding::borsh::{BorshDeserialize, BorshSerialize};
 use sha2::{Digest, Sha256};
 
-use crate::{AccountMeta, Instruction, Pubkey, Result, SolanaError};
+use crate::{AccountMeta, Instruction, Pubkey, Result as SolanaResult, SolanaError};
 
 const DISCRIMINATOR_LEN: usize = 8;
 
@@ -21,7 +21,7 @@ pub fn global_discriminator(name: &str) -> [u8; 8] {
 }
 
 pub fn instruction_data(name: &str, args: &impl BorshSerialize) -> Vec<u8> {
-    [global_discriminator(name).to_vec(), borsh::to_vec(args).unwrap_or_default()].concat()
+    [global_discriminator(name).to_vec(), args.to_vec()].concat()
 }
 
 pub fn instruction(program_id: Pubkey, name: &str, args: &impl BorshSerialize, accounts: Vec<AccountMeta>) -> Instruction {
@@ -35,12 +35,12 @@ pub fn instruction(program_id: Pubkey, name: &str, args: &impl BorshSerialize, a
 pub trait AnchorAccount: BorshDeserialize {
     const NAME: &'static str;
 
-    fn decode(data: &[u8]) -> Result<Self> {
+    fn decode(data: &[u8]) -> SolanaResult<Self> {
         Self::deserialize(&mut account_body(data, Self::NAME)?).map_err(|error| SolanaError::invalid_input(format!("Invalid {} account: {error}", Self::NAME)))
     }
 }
 
-fn account_body<'a>(data: &'a [u8], name: &str) -> Result<&'a [u8]> {
+fn account_body<'a>(data: &'a [u8], name: &str) -> SolanaResult<&'a [u8]> {
     data.split_at_checked(DISCRIMINATOR_LEN)
         .filter(|(discriminator, _)| *discriminator == namespaced_discriminator("account", name))
         .map(|(_, body)| body)
@@ -52,6 +52,7 @@ mod tests {
     use primitives::hex;
 
     use super::*;
+    use gem_encoding::borsh::{DecodeError, Reader};
     use primitives::decode_hex_literal;
 
     #[test]
@@ -59,9 +60,15 @@ mod tests {
         assert_eq!(global_discriminator("init_order"), decode_hex_literal("204c290c27a284db"));
     }
 
-    #[derive(Debug, PartialEq, BorshDeserialize)]
+    #[derive(Debug, PartialEq)]
     struct Whirlpool {
         value: u16,
+    }
+
+    impl BorshDeserialize for Whirlpool {
+        fn deserialize_reader(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+            Ok(Self { value: reader.read()? })
+        }
     }
 
     impl AnchorAccount for Whirlpool {

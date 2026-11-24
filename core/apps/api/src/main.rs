@@ -17,6 +17,7 @@ use ::defi::{DefiProviderClient, DefiProviderConfig};
 use ::nft::{NFTProviderClient, NFTProviderConfig};
 use chain_providers::ProviderFactory;
 use config_keys::ConfigKey;
+use gem_reqwest::NativeProvider;
 use gem_tracing::info_with_fields;
 use http_server::{ServeConfig, ShutdownReceiver, serve, shutdown_channel, spawn_signal_handler};
 use model::APIService;
@@ -46,7 +47,7 @@ async fn api_clients(settings: &Settings) -> Result<Clients, Box<dyn Error + Sen
     let prices = services.prices(cacher_client.clone());
     let user_agent = settings::service_user_agent("api", None);
     let endpoints = ProviderFactory::get_chain_endpoints(settings);
-    let native_provider = Arc::new(swapper::NativeProvider::new_with_endpoints(endpoints));
+    let native_provider = Arc::new(NativeProvider::new_with_endpoints(endpoints));
     let stream_producer = services.stream_producer("api", services::no_shutdown()).await?;
     let providers = services.scan_providers(cacher_client.clone()).await?;
     let metrics = Arc::new(metrics::Metrics::new(&providers));
@@ -60,6 +61,7 @@ async fn api_clients(settings: &Settings) -> Result<Clients, Box<dyn Error + Sen
         fiat: Arc::new(services.fiat(stream_producer.clone()).await?),
         charts: Arc::new(services.charts(cacher_client.clone())),
         config: Arc::new(services.app_config().await?),
+        config_cacher: services.config(),
         names: Arc::new(NameClient::new(NameProviderFactory::new_providers(settings.name.clone()))),
         devices: Arc::new(services.devices()),
         search: Arc::new(services.search(cacher_client.clone()).await?),

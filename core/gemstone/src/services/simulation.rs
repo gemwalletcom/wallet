@@ -4,7 +4,6 @@ use std::sync::Arc;
 
 use ::simulation::evm::SimulationClient;
 use chain_traits::ChainSimulation;
-use chrono::{DateTime, Utc};
 use gem_evm::jsonrpc::TransactionObject;
 use gem_evm::rpc::{EthereumClient, EthereumProvider};
 use gem_jsonrpc::grpc::AlienGrpcTransport;
@@ -12,13 +11,15 @@ use gem_solana::rpc::{SolanaClient, SolanaProvider};
 use gem_sui::rpc::{SuiClient, SuiProvider};
 use gem_ton::rpc::client::TonClient;
 use gem_tron::rpc::{TronProvider, client::TronClient};
+use gem_wallet_connect::WCEthereumTransaction;
 use gem_wallet_connect::{EvmTransactionKind, SignDigestType, WalletConnectTransactionType};
 use primitives::{
-    AddressName, AssetBasic, BlockExplorerLink, Chain, ChainAddress, EVMChain, Resource, SimulationBalanceChange, SimulationInput, SimulationPayloadField, SimulationPayloadFieldKind, SimulationPayloadFieldType, SimulationResult,
-    SimulationSeverity, SimulationWarning, SimulationWarningType, TransactionType, ValueAccess, VerificationStatus, WCEthereumTransaction,
+    AddressName, AssetBasic, BlockExplorerLink, Chain, ChainAddress, DateTime, EVMChain, Resource, SimulationBalanceChange, SimulationInput, SimulationPayloadField, SimulationPayloadFieldKind, SimulationPayloadFieldType, SimulationResult,
+    SimulationSeverity, SimulationWarning, SimulationWarningType, TransactionType, ValueAccess, VerificationStatus,
 };
 
-use crate::duration_formatter::{GemDurationPart, countdown_parts};
+use crate::address_formatter::name_text;
+use crate::duration_formatter::countdown_parts;
 use crate::formatted_number::GemValueTone;
 use crate::models::copy::{GemCopy, address_copy};
 use crate::models::custom_types::GemBigInt;
@@ -269,7 +270,7 @@ fn stake_payload_row(field: &SimulationPayloadField) -> Option<GemListRow> {
         }),
         SimulationPayloadFieldKind::LockTime => field.value.parse::<i64>().ok().map(|seconds| GemListRow::Duration {
             title: GemListRowTitle::LockTime,
-            parts: lock_time_parts(seconds),
+            parts: countdown_parts(seconds),
             info: None,
             estimate: false,
         }),
@@ -308,12 +309,6 @@ fn stake_action_title(transaction_type: TransactionType) -> Option<GemListRowTit
     }
 }
 
-fn lock_time_parts(seconds: i64) -> Vec<GemDurationPart> {
-    let parts = countdown_parts(seconds);
-    let nonzero: Vec<GemDurationPart> = parts.iter().filter(|part| part.value != 0).cloned().collect();
-    if nonzero.is_empty() { parts } else { nonzero }
-}
-
 fn payload_title(field: &SimulationPayloadField) -> GemLocalizedText {
     let title = match field.kind {
         SimulationPayloadFieldKind::Contract => GemListRowTitle::Contract,
@@ -338,21 +333,21 @@ fn payload_title(field: &SimulationPayloadField) -> GemLocalizedText {
 fn address_value(copy: GemCopy, names: &[AddressName], explorer: BlockExplorerLink) -> GemListFieldValue {
     let name = names
         .iter()
-        .find(|name| name.address.eq_ignore_ascii_case(&copy.value) && !name.name.is_empty() && !name.name.eq_ignore_ascii_case(&copy.value))
+        .find(|name| name.address.eq_ignore_ascii_case(&copy.value) && !name.name.eq_ignore_ascii_case(&copy.value))
         .map(|name| name.name.clone());
     GemListFieldValue::Address {
-        name,
+        text: name_text(name, copy.display.clone(), false).unwrap_or_else(|| copy.display.clone()),
         menu: vec![GemRowMenuItem::Copy { copy: copy.clone() }, GemRowMenuItem::view_on(&explorer)],
         copy,
         explorer,
     }
 }
 
-fn timestamp(value: &str) -> Option<DateTime<Utc>> {
+fn timestamp(value: &str) -> Option<DateTime> {
     if let Ok(seconds) = value.parse::<f64>() {
-        return DateTime::from_timestamp_millis((seconds * 1000.0) as i64);
+        return DateTime::checked_from_timestamp_millis((seconds * 1000.0) as i64);
     }
-    DateTime::parse_from_rfc3339(value).ok().map(|date| date.with_timezone(&Utc))
+    DateTime::parse_rfc3339(value)
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -438,12 +433,15 @@ pub fn asset_status_rows(changes: &[SimulationBalanceChange], assets: &[AssetBas
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::duration_formatter::GemDurationUnit;
+    use crate::duration_formatter::{GemDurationPart, GemDurationUnit};
     use crate::services::assets::rules::default_asset_basic;
     use crate::services::node::GemNodeService;
     use crate::testkit::{TestAlienProvider, mock_wc_ethereum_transaction};
     use num_bigint::BigInt;
+    use primitives::testkit::signer_mock::TEST_EVM_SENDER;
     use primitives::{AddressType, Asset, AssetId, AssetProperties, AssetScore, AssetType, SimulationPayloadFieldDisplay, SimulationWarningApproval};
+
+    const CONTRACT_CODE_RESPONSE: &str = r#"{"jsonrpc":"2.0","id":1,"result":"0x1234"}"#;
 
     #[test]
     fn test_warning_rows_hide_bounded_approvals_and_keep_every_other_warning() {
@@ -622,14 +620,14 @@ mod tests {
 
         assert_ne!(copy.display, address, "the row shows the short address");
         let explorer = link(Chain::Ethereum, address.to_string());
-        let date = |unix_ms| DateTime::from_timestamp_millis(unix_ms).unwrap();
+        let date = DateTime::from_timestamp_millis;
         assert_eq!(
             rows,
             vec![
                 GemListRow::Field {
                     title: GemLocalizedText::RowTitle { title: GemListRowTitle::Spender },
                     value: GemListFieldValue::Address {
-                        name: None,
+                        text: copy.display.clone(),
                         menu: vec![GemRowMenuItem::Copy { copy: copy.clone() }, GemRowMenuItem::view_on(&explorer)],
                         copy,
                         explorer,
@@ -676,7 +674,7 @@ mod tests {
                 GemListRow::Field {
                     title: GemLocalizedText::RowTitle { title: GemListRowTitle::Recipient },
                     value: GemListFieldValue::Address {
-                        name: None,
+                        text: copy.display.clone(),
                         menu: vec![GemRowMenuItem::Copy { copy: copy.clone() }, GemRowMenuItem::view_on(&explorer)],
                         copy,
                         explorer,
@@ -700,7 +698,7 @@ mod tests {
     }
 
     #[test]
-    fn test_named_payload_rows_attach_the_name_as_its_own_part_skip_names_that_repeat_the_address_and_keep_the_short_address() {
+    fn test_named_payload_rows_show_a_known_name_with_the_short_address_on_one_line_and_skip_names_that_repeat_the_address() {
         let address = "0xBA4D1d35bCe0e8F28E5a3403e7a0b996c5d50AC4";
         let other = "0x0000000000000000000000000000000000000001";
         let rows = payload_rows(
@@ -722,23 +720,19 @@ mod tests {
 
         let named = named_payload_rows(rows, &[name(&address.to_lowercase(), "Hyperliquid"), name(other, other)]);
 
-        let parts = named
+        let texts = named
             .iter()
             .map(|row| match row {
                 GemListRow::Field {
-                    value: GemListFieldValue::Address { name, copy, .. },
+                    value: GemListFieldValue::Address { text, .. },
                     ..
-                } => Some((copy.display.clone(), name.clone())),
+                } => Some(text.clone()),
                 _ => None,
             })
             .collect::<Vec<_>>();
         let copy = address_copy(Chain::Ethereum, address.to_string());
         let other_copy = address_copy(Chain::Ethereum, other.to_string());
-        assert_eq!(
-            parts,
-            vec![Some((copy.display, Some("Hyperliquid".to_string()))), Some((other_copy.display, None))],
-            "the name is its own part and the display stays the short address"
-        );
+        assert_eq!(texts, vec![Some(format!("Hyperliquid ({})", copy.display)), Some(other_copy.display)]);
         assert_eq!(
             address_requests(&named, Chain::Ethereum),
             vec![ChainAddress::new(Chain::Ethereum, address.to_string()), ChainAddress::new(Chain::Ethereum, other.to_string())]
@@ -817,6 +811,45 @@ mod tests {
             futures::executor::block_on(service.simulate_send_transaction(Chain::Sui, transaction_type, data.to_string(), session_account)).unwrap();
 
             assert!(!provider.requested_paths().is_empty(), "{data}");
+        }
+    }
+
+    #[test]
+    fn test_wallet_connect_permit2_sign_message_warns_about_an_unlimited_permit() {
+        futures::executor::block_on(async {
+            let provider = Arc::new(TestAlienProvider::with_json(200, CONTRACT_CODE_RESPONSE));
+            let service = GemSimulationService::new(provider, Arc::new(GemNodeService::mock()));
+            let data = include_str!("../../../crates/gem_evm/testdata/uniswap_permit2.json").to_string();
+
+            let result = service.simulate_sign_message(Chain::Ethereum, SignDigestType::Eip712, data, "https://app.uniswap.org".to_string()).await.unwrap();
+
+            assert_eq!(
+                result.warnings.into_iter().map(|warning| warning.warning).collect::<Vec<_>>(),
+                vec![SimulationWarningType::PermitApproval(SimulationWarningApproval {
+                    asset_id: AssetId::from_token(Chain::Ethereum, "0xdAC17F958D2ee523a2206206994597C13D831ec7"),
+                    value: None,
+                })]
+            );
+        });
+    }
+
+    #[test]
+    fn test_wallet_connect_set_approval_for_all_warns_with_either_prefix_case() {
+        let collection = "0xBC4CA0EdA7647A8aB7C2061c2E118A18a936f13D";
+        let calldata = "a22cb46500000000000000000000000011111111111111111111111111111111111111110000000000000000000000000000000000000000000000000000000000000001";
+
+        for prefix in ["0x", "0X"] {
+            let provider = Arc::new(TestAlienProvider::with_json(200, CONTRACT_CODE_RESPONSE));
+            let service = GemSimulationService::new(provider, Arc::new(GemNodeService::mock()));
+            let data = format!(r#"{{"from":"{TEST_EVM_SENDER}","to":"{collection}","data":"{prefix}{calldata}"}}"#);
+
+            let result = futures::executor::block_on(service.simulate_send_transaction(Chain::Ethereum, WalletConnectTransactionType::Ethereum, data, TEST_EVM_SENDER)).unwrap();
+
+            assert_eq!(
+                result.warnings.into_iter().map(|warning| warning.warning).collect::<Vec<_>>(),
+                vec![SimulationWarningType::NftCollectionApproval(AssetId::from_token(Chain::Ethereum, collection))],
+                "{prefix}"
+            );
         }
     }
 }

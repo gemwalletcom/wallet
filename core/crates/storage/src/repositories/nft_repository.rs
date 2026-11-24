@@ -1,17 +1,17 @@
-use chrono::NaiveDateTime;
 use diesel::prelude::*;
 use std::collections::{HashMap, HashSet};
 
-use primitives::{AssetLink, Chain, Diff, NFTAsset, NFTAssetId, NFTCollection, NFTCollectionId};
+use primitives::{AssetLink, Chain, DateTime, NFTAsset, NFTAssetId, NFTCollection, NFTCollectionId};
 
+use crate::diff;
 use crate::models::{NewNftAssetAssociationRow, NewNftAssetRow, NewNftCollectionRow, NftAssetRow, NftCollectionRow, nft_link::NftLinkRow, nft_report::NewNftReportRow};
 use crate::repositories::devices_repository::device_row;
-use crate::sql_types::{ChainRow, NftAssetIdRow, NftCollectionIdRow};
+use crate::sql_types::{ChainRow, DateTimeRow, NftAssetIdRow, NftCollectionIdRow};
 use crate::{DatabaseClient, DatabaseError, DieselResultExt};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum NftCollectionFilter {
-    UpdatedSince(NaiveDateTime),
+    UpdatedSince(DateTime),
     Identifiers(Vec<String>),
 }
 
@@ -48,7 +48,7 @@ fn nft_collection_rows(client: &mut DatabaseClient, filters: Vec<NftCollectionFi
     let mut query = nft_collections.into_boxed();
     for filter in filters {
         match filter {
-            NftCollectionFilter::UpdatedSince(value) => query = query.filter(updated_at.gt(value)),
+            NftCollectionFilter::UpdatedSince(value) => query = query.filter(updated_at.gt(DateTimeRow::from(value))),
             NftCollectionFilter::Identifiers(values) => query = query.filter(identifier.eq_any(values)),
         }
     }
@@ -254,7 +254,7 @@ impl NftRepository for DatabaseClient {
         };
         let asset_ids = nft_asset_pks(self, asset_ids.iter().map(ToString::to_string).collect())?;
         let existing = get_nft_asset_association_ids_by_filter(self, vec![NftAssetAssociationFilter::AddressId(address_id), NftAssetAssociationFilter::Chains(chains)])?;
-        let diff = Diff::compare(asset_ids, existing);
+        let diff = diff::compare(asset_ids, existing);
         let to_insert: Vec<NewNftAssetAssociationRow> = diff.different.into_iter().map(|asset_id| NewNftAssetAssociationRow { address_id, nft_asset_id: asset_id }).collect();
         if !to_insert.is_empty() {
             add_nft_asset_associations(self, to_insert)?;

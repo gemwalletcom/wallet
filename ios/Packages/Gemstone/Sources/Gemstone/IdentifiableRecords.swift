@@ -10,6 +10,7 @@ extension GemNotificationRow: Identifiable {}
 extension GemPerpetualConfirmDetails: Identifiable {}
 extension GemPerpetualPositionRow: Identifiable {}
 extension GemPriceAlertItem: Identifiable {}
+extension GemRecipientRow: Identifiable {}
 extension GemRewardsRedemption: Identifiable {}
 extension GemRewardsWallet: Identifiable {}
 extension GemStakeDelegationItem: Identifiable {}

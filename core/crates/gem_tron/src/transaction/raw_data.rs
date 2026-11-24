@@ -1,15 +1,13 @@
 use gem_encoding::protobuf::MessageEncode;
 use primitives::{Address as _, SignerError};
-#[cfg(feature = "rpc")]
-use primitives::hex;
 use serde::Deserialize;
 use serde_json::Value;
 use serde_serializers::hex_bytes;
 
-use super::{TransactionApproval, TronContract, WalletConnectContract, WalletConnectToken, protobuf, sends_coins};
-use crate::models::TronContractType;
+use super::{TransactionApproval, TronContract, TronTriggerSmartContract, WalletConnectContract, WalletConnectToken, protobuf, sends_coins};
 #[cfg(feature = "rpc")]
 use crate::models::TriggerSmartContractData;
+use crate::models::TronContractType;
 
 #[derive(Deserialize)]
 pub(crate) struct RawDataJson {
@@ -35,16 +33,10 @@ impl RawDataJson {
 
     #[cfg(feature = "rpc")]
     pub(crate) fn trigger_smart_contract_data(&self) -> Result<Option<TriggerSmartContractData>, SignerError> {
-        let Some(TronContract::TriggerSmart { owner, contract, data, call_value, .. }) = self.single_contract()? else {
+        let Some(TronContract::TriggerSmart(call)) = self.single_contract()? else {
             return Ok(None);
         };
-        Ok(Some(TriggerSmartContractData {
-            contract_address: contract.encode(),
-            data: hex::encode(data),
-            owner_address: owner.encode(),
-            fee_limit: self.fee_limit,
-            call_value,
-        }))
+        Ok(Some(call.trigger_smart_contract_data(self.fee_limit)))
     }
 
     pub(crate) fn wallet_connect_contract(&self) -> Result<Option<WalletConnectContract>, SignerError> {
@@ -58,14 +50,14 @@ impl RawDataJson {
                 token: None,
                 approval: None,
             })),
-            TronContract::TriggerSmart {
+            TronContract::TriggerSmart(TronTriggerSmartContract {
                 contract,
                 data,
                 call_value,
                 call_token_value,
                 token_id,
                 ..
-            } => {
+            }) => {
                 let to = contract.encode();
                 let approval = TransactionApproval::decode(contract, &data)?;
                 if approval.is_some() && sends_coins(call_value, call_token_value) {

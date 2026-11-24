@@ -10,10 +10,9 @@ use crate::services::chart::model::{GemChartDateStyle, GemChartHeader, GemChartS
 use crate::services::chart::rules as chart_rules;
 use crate::services::failures::StepFailure;
 use crate::services::localization::GemLocalizedText;
-use chrono::{DateTime, Utc};
 use primitives::chart::{ChartCandleStick, ChartCandleUpdate};
 use primitives::perpetual::{PerpetualBalance, PerpetualData, PerpetualPositionData};
-use primitives::{Asset, AssetId, Currency, PerpetualDirection, PerpetualId, PerpetualMarginType, PerpetualPosition, PerpetualProvider, PerpetualType, WalletType};
+use primitives::{Asset, AssetId, Currency, DateTime, PerpetualDirection, PerpetualId, PerpetualMarginType, PerpetualPosition, PerpetualProvider, PerpetualType, WalletType};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, PartialEq)]
@@ -270,7 +269,7 @@ pub enum GemCandleTickFormat {
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemCandleTick {
-    pub date: DateTime<Utc>,
+    pub date: DateTime,
     pub format: GemCandleTickFormat,
 }
 
@@ -283,8 +282,8 @@ pub struct GemCandleChart {
     pub base: f64,
     pub price_decimals: usize,
     pub currency: Currency,
-    pub start: DateTime<Utc>,
-    pub end: DateTime<Utc>,
+    pub start: DateTime,
+    pub end: DateTime,
     pub body_width: f64,
     pub x_ticks: Vec<GemCandleTick>,
     pub is_zoomed: bool,
@@ -293,7 +292,7 @@ pub struct GemCandleChart {
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemCandleMarker {
-    pub date: DateTime<Utc>,
+    pub date: DateTime,
     pub price: f64,
     pub direction: PerpetualDirection,
     pub level: usize,

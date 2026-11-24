@@ -1,4 +1,4 @@
-use borsh::BorshSerialize;
+use gem_encoding::borsh::BorshSerialize;
 use gem_solana::{
     AccountMeta, Instruction, Pubkey, anchor,
     instructions::program_ids::{memo_program, raydium_clmm_program, token_2022_program, token_program},
@@ -16,7 +16,6 @@ use crate::{
 const SWAP_V2: &str = "swap_v2";
 const SWAP_ROUTER_BASE_IN: &str = "swap_router_base_in";
 
-#[derive(BorshSerialize)]
 struct SwapV2Args {
     amount: u64,
     other_amount_threshold: u64,
@@ -24,10 +23,13 @@ struct SwapV2Args {
     is_base_input: bool,
 }
 
-#[derive(BorshSerialize)]
-struct SwapRouterBaseInArgs {
-    amount_in: u64,
-    amount_out_minimum: u64,
+impl BorshSerialize for SwapV2Args {
+    fn serialize(&self, writer: &mut Vec<u8>) {
+        self.amount.serialize(writer);
+        self.other_amount_threshold.serialize(writer);
+        self.sqrt_price_limit_x64.serialize(writer);
+        self.is_base_input.serialize(writer);
+    }
 }
 
 pub(super) fn swap_v2_instruction(address: &Pubkey, pool: &PoolState, swap: &PoolSwap) -> Result<Instruction, SwapperError> {
@@ -61,10 +63,6 @@ pub(super) fn swap_v2_instruction(address: &Pubkey, pool: &PoolState, swap: &Poo
 }
 
 pub(super) fn swap_router_base_in_instruction(first: &(Pubkey, PoolState), second: &(Pubkey, PoolState), swap: &PoolSwap, intermediate: &SwapToken) -> Result<Instruction, SwapperError> {
-    let args = SwapRouterBaseInArgs {
-        amount_in: swap.amount,
-        amount_out_minimum: swap.minimum_out,
-    };
     let hops = [(first, swap.input, intermediate), (second, intermediate, swap.output)]
         .into_iter()
         .map(|((address, pool), input, output)| router_hop_accounts(address, pool, swap.authority, input, output))
@@ -80,7 +78,7 @@ pub(super) fn swap_router_base_in_instruction(first: &(Pubkey, PoolState), secon
     .into_iter()
     .chain(hops.into_iter().flatten())
     .collect();
-    Ok(anchor::instruction(raydium_clmm_program(), SWAP_ROUTER_BASE_IN, &args, accounts))
+    Ok(anchor::instruction(raydium_clmm_program(), SWAP_ROUTER_BASE_IN, &swap.amounts(), accounts))
 }
 
 fn router_hop_accounts(address: &Pubkey, pool: &PoolState, authority: Pubkey, input: &SwapToken, output: &SwapToken) -> Result<Vec<AccountMeta>, SwapperError> {
@@ -113,6 +111,7 @@ fn swap_tick_arrays(address: &Pubkey, pool: &PoolState, zero_for_one: bool) -> R
 mod tests {
     use super::*;
     use crate::raydium_clmm::testkit::{TEST_EXTENSION_POOL, TEST_LIMIT_ORDER_POOL, mock_pool_snapshot};
+    use crate::solana_dex::SwapAmounts;
     use primitives::hex;
 
     #[test]
@@ -123,9 +122,9 @@ mod tests {
             sqrt_price_limit_x64: 0,
             is_base_input: true,
         };
-        let router = SwapRouterBaseInArgs {
+        let router = SwapAmounts {
             amount_in: 99_500_000,
-            amount_out_minimum: 2_800_000_000,
+            minimum_out: 2_800_000_000,
         };
 
         assert_eq!(

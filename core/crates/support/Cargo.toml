@@ -6,10 +6,10 @@ version = { workspace = true }
 [features]
 
 [dependencies]
-chrono = { workspace = true }
 hmac = { workspace = true }
 sha2 = { workspace = true }
 url = { workspace = true }
 primitives = { path = "../primitives" }
+links = { path = "../links" }
 
 [dev-dependencies]

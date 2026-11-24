@@ -1,4 +1,3 @@
-use chrono::TimeDelta;
 use primitives::{Asset, AssetLink, AssetMarket, AssetPrice, ChartCandleStick, ChartPeriod, Currency, Price, PriceAlert};
 
 use super::GemChart;
@@ -172,18 +171,9 @@ impl GemChartSession {
 
     fn candles_phase(&self, price: Option<AssetPrice>, utc_offset_seconds: i32) -> GemChartPhase {
         let candles = rules::candles_with_price(&self.candles, price);
-        let chart = candles.last().and_then(|last| {
-            candle_chart(
-                &candles,
-                self.period,
-                rules::candle_price_decimals(last.close),
-                self.currency.clone(),
-                None,
-                &[],
-                self.zoom,
-                TimeDelta::seconds(i64::from(utc_offset_seconds)),
-            )
-        });
+        let chart = candles
+            .last()
+            .and_then(|last| candle_chart(&candles, self.period, rules::candle_price_decimals(last.close), self.currency.clone(), None, &[], self.zoom, utc_offset_seconds));
         match (chart, &self.candles_error) {
             (Some(chart), _) => GemChartPhase::Candles { chart },
             (None, _) if self.needs_candles => GemChartPhase::Loading,
@@ -343,7 +333,7 @@ impl GemChartSession {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use primitives::ChartDateValue;
+    use primitives::{ChartDateValue, DateTime};
 
     fn rate_result(currency: Currency) -> GemChartResult {
         GemChartResult {
@@ -503,10 +493,10 @@ mod tests {
             asset_id: primitives::AssetId::from_chain(primitives::Chain::Bitcoin),
             price: 3.0,
             price_change_percentage_24h: 50.0,
-            updated_at: chrono::DateTime::from_timestamp(2_000, 0).expect("timestamp"),
+            updated_at: DateTime::from_timestamp(2_000),
         };
         let older = AssetPrice {
-            updated_at: chrono::DateTime::from_timestamp(0, 0).expect("timestamp"),
+            updated_at: DateTime::from_timestamp(0),
             ..newer.clone()
         };
         let header = |price| match loaded.phase(price, 0) {
@@ -602,7 +592,7 @@ mod tests {
 
     fn candle(hour: u32, close: f64) -> ChartCandleStick {
         ChartCandleStick {
-            date: chrono::DateTime::from_timestamp(i64::from(hour) * 3_600, 0).unwrap(),
+            date: DateTime::from_timestamp(i64::from(hour) * 3_600),
             open: close,
             high: close,
             low: close,

@@ -6,8 +6,8 @@ use std::sync::{Arc, RwLock};
 use std::time::{Duration, Instant};
 
 use async_trait::async_trait;
-use chrono::{DateTime, NaiveDateTime};
 use config_keys::{ConfigKey, ConfigParamKey, RateLimit, RateLimitKey, RateLimitWindow};
+use primitives::DateTime;
 use serde::de::DeserializeOwned;
 use storage::DatabaseError;
 
@@ -123,13 +123,12 @@ impl ConfigCacher {
         Ok(self.get_param_usize(&ConfigParamKey::RateLimit(key, window)).await? as i64)
     }
 
-    pub async fn get_datetime(&self, key: ConfigKey) -> Result<NaiveDateTime, DatabaseError> {
-        let ts = self.get_i64(key).await?;
-        DateTime::from_timestamp(ts, 0).map(|dt| dt.naive_utc()).ok_or_else(|| DatabaseError::Error(format!("Invalid timestamp: {}", ts)))
+    pub async fn get_datetime(&self, key: ConfigKey) -> Result<DateTime, DatabaseError> {
+        Ok(DateTime::from_timestamp(self.get_i64(key).await?))
     }
 
-    pub async fn set_datetime(&self, key: ConfigKey, time: NaiveDateTime) -> Result<usize, DatabaseError> {
-        let ts = time.and_utc().timestamp();
+    pub async fn set_datetime(&self, key: ConfigKey, time: DateTime) -> Result<usize, DatabaseError> {
+        let ts = time.timestamp();
         self.set(key, &ts.to_string()).await
     }
 

@@ -16,6 +16,7 @@ mod tests {
     use super::*;
     use crate::models::{Effect, GasObject, GasUsed, Owner, Status};
     use num_bigint::BigUint;
+    use primitives::DateTime;
 
     #[test]
     fn test_map_transaction_status() {
@@ -34,7 +35,7 @@ mod tests {
             move_call_packages: Vec::new(),
             balance_changes: None,
             events: vec![],
-            timestamp_ms: 1234567890,
+            timestamp: DateTime::from_timestamp_millis(1_234_567_890),
         };
 
         let update = map_transaction_status(digest);

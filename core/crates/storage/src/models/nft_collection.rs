@@ -1,9 +1,8 @@
-use chrono::NaiveDateTime;
 use diesel::prelude::*;
 use primitives::{AssetLink, NFTCollection, NFTImages, NFTResource, VerificationStatus};
 use serde::{Deserialize, Serialize};
 
-use crate::sql_types::{ChainRow, NftCollectionIdRow};
+use crate::sql_types::{ChainRow, DateTimeRow, NftCollectionIdRow};
 
 #[derive(Debug, Queryable, Selectable, Serialize, Deserialize, Clone)]
 #[diesel(table_name = crate::schema::nft_collections)]
@@ -20,7 +19,7 @@ pub(crate) struct NftCollectionRow {
     pub image_preview_mime_type: String,
     pub is_verified: bool,
     pub is_enabled: bool,
-    pub updated_at: NaiveDateTime,
+    pub updated_at: DateTimeRow,
 }
 
 #[derive(Debug, Insertable, AsChangeset, Clone)]

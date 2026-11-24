@@ -84,7 +84,7 @@ impl GemFormattedNumber {
     pub fn asset_amount(value: &num_bigint::BigInt, asset: &primitives::Asset, style: ValueStyle) -> Self {
         Self {
             exact: match style {
-                ValueStyle::Full => number_formatter::BigNumberFormatter::plain_value(value.magnitude(), asset.decimals).ok(),
+                ValueStyle::Full | ValueStyle::Medium => number_formatter::BigNumberFormatter::plain_value(value.magnitude(), asset.decimals).ok(),
                 ValueStyle::Short | ValueStyle::Auto => None,
             },
             ..Self::amount(number_formatter::BigNumberFormatter::f64_value(value, asset.decimals), Some(asset.symbol.clone()), style)

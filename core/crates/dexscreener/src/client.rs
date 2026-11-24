@@ -1,4 +1,5 @@
-use gem_client::{Client, ClientError, ClientExt, ReqwestClient};
+use gem_client::{Client, ClientError, ClientExt};
+use gem_reqwest::ReqwestClient;
 
 use crate::{
     model::{Meta, MetaDetails, Pair},

@@ -1,5 +1,6 @@
 use gem_encoding::decode_base64;
 use num_bigint::{BigInt, BigUint};
+use primitives::DateTime;
 use serde::{Deserialize, Serialize};
 use serde_serializers::{deserialize_bigint_from_str, serialize_bigint};
 use std::str;
@@ -62,7 +63,7 @@ pub struct TransactionResponseData {
     pub code: i64,
     pub txhash: String,
     pub events: Vec<TransactionEvent>,
-    pub timestamp: String,
+    pub timestamp: DateTime,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -1,8 +1,4 @@
-use std::{
-    collections::{HashMap, hash_map::DefaultHasher},
-    hash::{Hash, Hasher},
-    sync::Arc,
-};
+use std::{collections::HashMap, iter, sync::Arc};
 
 use bytes::Bytes;
 use chain_providers::BroadcastProviders;
@@ -124,7 +120,7 @@ impl NodeService {
         let Some(route) = route else {
             return Self::request_not_allowed_response(request);
         };
-        let Some(urls) = self.request_urls(chain_config, request).await else {
+        let Some(urls) = self.request_urls(chain_config).await else {
             return self.node_not_found_response(request);
         };
         let upstreams = Upstream::plan(request, chain_config, &urls, &self.retry_config);
@@ -269,7 +265,7 @@ impl NodeService {
         self.chains.get(&request.chain).ok_or(NodeServiceError::ChainNotConfigured(request.chain))
     }
 
-    async fn request_urls(&self, chain_config: &ChainConfig, request: &ProxyRequest) -> Option<Vec<Url>> {
+    async fn request_urls(&self, chain_config: &ChainConfig) -> Option<Vec<Url>> {
         if chain_config.urls.is_empty() {
             return None;
         }
@@ -278,7 +274,7 @@ impl NodeService {
         }
 
         let current_node = self.nodes.read().await.get(&chain_config.chain).cloned()?;
-        Some(Self::get_ordered_urls(&chain_config.urls, &current_node, request.id.as_str()))
+        Some(Self::get_ordered_urls(&chain_config.urls, &current_node))
     }
 
     fn node_not_found_response(&self, request: &ProxyRequest) -> Result<ProxyResponse, BoxError> {
@@ -304,28 +300,8 @@ impl NodeService {
         Ok(ProxyResponse::with_content_type(status.as_u16(), body, JSON_CONTENT_TYPE).with_proxy_headers(request.id.as_str(), request.elapsed(), CacheStatus::Miss))
     }
 
-    fn get_ordered_urls(urls: &[Url], current: &Url, request_id: &str) -> Vec<Url> {
-        let mut ordered_urls = urls.to_vec();
-        if let Some(current_index) = ordered_urls.iter().position(|url| *url == *current) {
-            ordered_urls.swap(0, current_index);
-        }
-
-        Self::rotate_fallback_urls(&mut ordered_urls, request_id);
-        ordered_urls
-    }
-
-    fn rotate_fallback_urls(urls: &mut [Url], request_id: &str) {
-        if urls.len() <= 2 {
-            return;
-        }
-
-        let mut hasher = DefaultHasher::new();
-        request_id.hash(&mut hasher);
-        let tail_len = urls.len() - 1;
-        let offset = (hasher.finish() as usize) % tail_len;
-        if offset > 0 {
-            urls[1..].rotate_left(offset);
-        }
+    fn get_ordered_urls(urls: &[Url], current: &Url) -> Vec<Url> {
+        iter::once(current.clone()).chain(urls.iter().filter(|url| *url != current).cloned()).collect()
     }
 
     fn error_message(body: &Value) -> Option<&str> {
@@ -393,6 +369,14 @@ mod tests {
     use super::*;
     use crate::config::{AllowlistConfig, ErrorMatcherConfig, Override, RPC_ROUTE};
     use crate::testkit::server_mock::spawn_node;
+
+    #[test]
+    fn test_ordered_urls_retry_in_list_order_after_current() {
+        let urls = ["https://a", "https://b", "https://c", "https://d"].map(Url::mock);
+
+        assert_eq!(NodeService::get_ordered_urls(&urls, &Url::mock("https://c")), ["https://c", "https://a", "https://b", "https://d"].map(Url::mock));
+        assert_eq!(NodeService::get_ordered_urls(&urls, &Url::mock("https://a")), urls);
+    }
 
     #[tokio::test]
     async fn test_broadcast_metrics_count_final_response_without_webhook() {

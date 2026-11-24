@@ -83,7 +83,8 @@ impl GemSwapper {
             ),
             Some(Box::new(okx::OkxProvider::new(rpc_provider.clone()))),
             Some(Box::new(across::Across::new(rpc_provider.clone()))),
-            Some(Box::new(hyperliquid::Hyperliquid::new(rpc_provider.clone()))),
+            Some(Box::new(hyperliquid::HyperCoreSpot::new(rpc_provider.clone()))),
+            Some(Box::new(hyperliquid::HyperCoreBridge::new())),
             Some(uniswap::default::boxed_oku(rpc_provider.clone())),
             Some(uniswap::default::boxed_wagmi(rpc_provider.clone())),
             stonfi::Stonfi::new(rpc_provider.clone()).map(Self::boxed),
@@ -218,7 +219,7 @@ impl GemSwapper {
     }
 }
 
-#[cfg(all(test, feature = "reqwest_provider"))]
+#[cfg(test)]
 mod tests {
     use num_bigint::BigUint;
 
@@ -233,10 +234,10 @@ mod tests {
     use super::*;
     use crate::{
         Options, SwapperProvider, SwapperQuoteAsset,
-        alien::reqwest_provider::NativeProvider,
         testkit::{MockSwapper, mock_quote},
         uniswap::universal_router::{new_pancakeswap, new_uniswap_v3},
     };
+    use gem_reqwest::NativeProvider;
 
     #[test]
     fn test_filter_by_provider_type() {
@@ -451,7 +452,8 @@ mod swap_integration_tests {
     };
 
     use super::*;
-    use crate::{QuoteRequest, SwapperQuoteAsset, alien::reqwest_provider::NativeProvider, config::API_BASE_URL, models::Options, testkit::mock_quote};
+    use crate::{QuoteRequest, SwapperQuoteAsset, config::API_BASE_URL, models::Options, testkit::mock_quote};
+    use gem_reqwest::NativeProvider;
 
     const CONTRACT_CHECK_AMOUNT_USD: f64 = 50.0;
     const CONTRACT_CHECK_CONCURRENCY: usize = 4;

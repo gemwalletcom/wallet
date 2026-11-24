@@ -1,7 +1,7 @@
 #[cfg(all(test, feature = "chain_integration_tests"))]
 use crate::rpc::client::CardanoClient;
 #[cfg(all(test, feature = "chain_integration_tests"))]
-use gem_client::ReqwestClient;
+use gem_reqwest::ReqwestClient;
 #[cfg(all(test, feature = "chain_integration_tests"))]
 use settings::testkit::get_test_settings;
 
@@ -16,6 +16,6 @@ pub fn create_test_client() -> CardanoClient<ReqwestClient> {
     } else {
         settings.chains.cardano.url
     };
-    let reqwest_client = ReqwestClient::new(url, gem_client::builder().timeout(std::time::Duration::from_secs(30)).build().unwrap());
+    let reqwest_client = ReqwestClient::new(url, gem_reqwest::builder().timeout(std::time::Duration::from_secs(30)).build().unwrap());
     CardanoClient::new(reqwest_client)
 }

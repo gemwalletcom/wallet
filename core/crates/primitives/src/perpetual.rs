@@ -1,17 +1,16 @@
 use std::iter::Sum;
 
-use chrono::{DateTime, Utc};
 use model_derive::Model;
 use serde::{Deserialize, Serialize};
 use strum::{AsRefStr, EnumString};
 
-use crate::{Asset, AssetId, PerpetualId, PerpetualMarginType, PerpetualPosition, PerpetualProvider};
+use crate::{Asset, AssetId, DateTime, PerpetualId, PerpetualMarginType, PerpetualPosition, PerpetualProvider};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct PerpetualAddress {
     pub provider: PerpetualProvider,
     pub address: String,
-    pub referred_at: DateTime<Utc>,
+    pub referred_at: DateTime,
     pub cumulative_volume_usd: f64,
     pub cumulative_referral_earned_usd: f64,
 }

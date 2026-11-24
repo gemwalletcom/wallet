@@ -83,7 +83,8 @@ impl Swapper for Deepbook {
 mod swap_integration_tests {
     use super::super::constants::DEEP_COIN_TYPE;
     use super::*;
-    use crate::{SwapperQuoteAsset, alien::reqwest_provider::NativeProvider, cetus_clmm::CetusClmm, models::Options, rank_quotes, testkit::TEST_SUI_WALLET};
+    use crate::{SwapperQuoteAsset, cetus_clmm::CetusClmm, models::Options, rank_quotes, testkit::TEST_SUI_WALLET};
+    use gem_reqwest::NativeProvider;
     use gem_sui::coin_type_matches;
     use num_bigint::Sign;
     use primitives::{

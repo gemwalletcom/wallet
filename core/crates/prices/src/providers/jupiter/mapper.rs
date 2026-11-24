@@ -1,5 +1,5 @@
 use ::jupiter::Token;
-use primitives::{AssetId, AssetMarket, Chain, PriceProvider, contract_constants::SOLANA_WRAPPED_SOL_TOKEN_ADDRESS};
+use primitives::{AssetId, AssetMarket, Chain, DateTime, PriceProvider, contract_constants::SOLANA_WRAPPED_SOL_TOKEN_ADDRESS};
 
 use crate::{AssetPriceFull, AssetPriceMapping, PriceProviderAsset};
 
@@ -24,7 +24,7 @@ pub fn map_token_asset(token: Token) -> PriceProviderAsset {
 }
 
 pub fn map_token_price(mapping: AssetPriceMapping, token: &Token) -> AssetPriceFull {
-    AssetPriceFull::new(mapping, token.usd_price, token.stats24h.price_change, chrono::Utc::now(), PriceProvider::Jupiter, Some(map_token_market(token)))
+    AssetPriceFull::new(mapping, token.usd_price, token.stats24h.price_change, DateTime::now(), PriceProvider::Jupiter, Some(map_token_market(token)))
 }
 
 fn map_token_market(token: &Token) -> AssetMarket {

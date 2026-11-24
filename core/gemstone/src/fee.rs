@@ -183,19 +183,22 @@ impl GemCustomFeeSession {
         let rows = &self.rows;
         let maximum = rows.normal.as_ref().map(GasPriceType::total_fee).unwrap_or_default() * config.max_multiplier;
         let rate = self.read(&self.rate, config.minimum_custom_fee_rate.unwrap_or_default(), maximum.clone(), rows.normal.as_ref().map(rate_of));
+        let normal_base_fee = rows.normal.as_ref().and_then(GasPriceType::base_fee);
         let base_fee = self
             .base_fee
             .as_ref()
-            .zip(rows.base_fee.as_ref())
+            .zip(normal_base_fee.as_ref())
             .map(|(field, normal_base_fee)| self.read(field, normal_base_fee.clone(), maximum, Some(normal_base_fee.clone())));
-        let base = base_fee.as_ref().map(|base_fee| base_fee.value.clone()).or(rows.base_fee.clone());
+        let base = base_fee.as_ref().map(|base_fee| base_fee.value.clone()).or(normal_base_fee);
         let gas_price = match &base {
             Some(base) => GasPriceType::eip1559(base.clone(), rate.value.clone()),
             None => GasPriceType::regular(rate.value.clone()),
         };
         let valid = rate.valid && base_fee.as_ref().is_none_or(|base_fee| base_fee.valid);
         let loaded_fee = self.loaded_fee.clone().unwrap_or_default();
-        let fee_value = custom_fee_value(&loaded_fee, &rows.selected.as_ref().map(GasPriceType::total_fee).unwrap_or_default(), &gas_price.total_fee());
+        let loaded_price = rows.selected.as_ref().map(GasPriceType::total_fee).unwrap_or_default();
+        let fee_value = custom_fee_value(&loaded_fee, &loaded_price, &gas_price.total_fee());
+        let expected_fee = custom_fee_value(&loaded_fee, &loaded_price, &gas_price.expected_price(rows.base_fee.as_ref()));
         GemCustomFeeEstimate {
             selection: valid.then(|| GemConfirmFeeSelection::Custom {
                 base_fee: base_fee.as_ref().and_then(|base_fee| base_fee.typed.clone()),
@@ -203,7 +206,7 @@ impl GemCustomFeeSession {
             }),
             base_fee: base_fee.map(|base_fee| base_fee.state),
             rate: rate.state,
-            fee: self.loaded_fee.as_ref().map(|_| fee_amount(&self.fee_asset, &fee_value, self.price, self.currency.clone())),
+            fee: self.loaded_fee.as_ref().map(|_| fee_amount(&self.fee_asset, &expected_fee, self.price, self.currency.clone())),
             fee_value,
         }
     }

@@ -1,3 +1,5 @@
+use date_time::deserialize_option_datetime_from_millis;
+use primitives::DateTime;
 #[cfg(feature = "rpc")]
 use primitives::Resource;
 use serde::{Deserialize, Serialize};
@@ -46,7 +48,7 @@ pub struct TronAccountOwnerPermission {
     pub keys: Option<Vec<TronAccountPermissionKey>>,
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct TronAccountUsage {
     #[serde(default)]
@@ -96,7 +98,8 @@ impl TronFrozen {
 pub struct TronUnfrozen {
     #[serde(default)]
     pub unfreeze_amount: u64,
-    pub unfreeze_expire_time: Option<u64>,
+    #[serde(default, deserialize_with = "deserialize_option_datetime_from_millis")]
+    pub unfreeze_expire_time: Option<DateTime>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

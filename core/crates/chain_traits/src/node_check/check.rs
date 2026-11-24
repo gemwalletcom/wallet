@@ -22,10 +22,11 @@ where
     if recorder.has_failed() {
         return recorder.finish();
     }
+    let probe = request.wallet();
+    let recorder = record_wallet(state, &probe.address, probe.transaction_id.as_deref(), recorder).await;
     let recorder = match request {
-        NodeCheckRequest::Basic => recorder,
-        NodeCheckRequest::Wallet { address, transaction_id } => record_wallet(state, address, transaction_id.as_deref(), recorder).await,
-        NodeCheckRequest::Parser => record_parser_blocks(state, recorder).await,
+        NodeCheckRequest::Parser(_) => record_parser_blocks(state, recorder).await,
+        NodeCheckRequest::Wallet(_) => recorder,
     };
     recorder.finish()
 }
@@ -129,10 +130,11 @@ pub trait ChainNodeStatus: ChainBlockTransactions + ChainState {
             return recorder.finish();
         };
 
+        let probe = request.wallet();
+        let recorder = self.get_node_wallet_status(&probe.address, probe.transaction_id.as_deref(), block_number, recorder).await;
         let recorder = match request {
-            NodeCheckRequest::Basic => recorder,
-            NodeCheckRequest::Wallet { address, transaction_id } => self.get_node_wallet_status(address, transaction_id.as_deref(), block_number, recorder).await,
-            NodeCheckRequest::Parser => record_parser_blocks(self, recorder).await,
+            NodeCheckRequest::Parser(_) => record_parser_blocks(self, recorder).await,
+            NodeCheckRequest::Wallet(_) => recorder,
         };
         recorder.finish()
     }
@@ -221,6 +223,7 @@ mod tests {
     use primitives::{AssetBalance, Chain, Transaction};
 
     use super::*;
+    use crate::node_check::WalletProbe;
     use crate::{ChainBalances, ChainBlockTransactions, ChainProvider, ChainTransaction};
 
     #[derive(Default)]
@@ -274,15 +277,25 @@ mod tests {
         }
     }
 
-    #[test]
-    fn test_parser_profile_checks_block_transactions() {
-        let state = TestState::default();
-        let report = futures::executor::block_on(check_node(&state, &NodeCheckRequest::Parser, &NodeSyncStatus::in_sync(), Duration::ZERO));
+    fn probe(transaction_id: Option<&str>) -> WalletProbe {
+        WalletProbe {
+            address: "address".to_string(),
+            transaction_id: transaction_id.map(str::to_string),
+        }
+    }
 
+    #[test]
+    fn test_parser_profile_checks_wallet_and_block_transactions() {
+        let state = TestState::default();
+        let report = futures::executor::block_on(check_node(&state, &NodeCheckRequest::Parser(probe(Some("transaction"))), &NodeSyncStatus::in_sync(), Duration::ZERO));
+
+        assert_eq!(report.get("balance").map(|result| &result.status), Some(&NodeCheckStatus::Failed { error: "balance unavailable".to_string() }));
         assert_eq!(report.get("block_transactions").map(|result| &result.status), Some(&NodeCheckStatus::Passed { result: "0".to_string() }));
         assert_eq!(report.get("block_transactions_latest").map(|result| &result.status), Some(&NodeCheckStatus::Passed { result: "0".to_string() }));
-        assert_eq!(report.checks.len(), 4);
+        assert_eq!(report.checks.len(), 6);
         assert_eq!(state.latest_block_calls.load(Ordering::Relaxed), 1);
+        assert_eq!(state.balance_calls.load(Ordering::Relaxed), 1);
+        assert_eq!(state.transaction_calls.load(Ordering::Relaxed), 1);
         assert_eq!(state.block_transaction_calls.load(Ordering::Relaxed), 2);
     }
 
@@ -290,7 +303,7 @@ mod tests {
     fn records_node_status_latency() {
         let state = TestState::default();
         let status_latency = Duration::from_millis(42);
-        let report = futures::executor::block_on(check_node(&state, &NodeCheckRequest::Basic, &NodeSyncStatus::synced(100), status_latency));
+        let report = futures::executor::block_on(check_node(&state, &NodeCheckRequest::Wallet(probe(None)), &NodeSyncStatus::synced(100), status_latency));
 
         assert_eq!(report.get("latest_block_number").unwrap().latency_ms, 42);
         assert_eq!(state.latest_block_calls.load(Ordering::Relaxed), 0);
@@ -299,10 +312,7 @@ mod tests {
     #[test]
     fn test_wallet_profile_runs_configured_checks() {
         let state = TestState::default();
-        let request = NodeCheckRequest::Wallet {
-            address: "address".to_string(),
-            transaction_id: Some("transaction".to_string()),
-        };
+        let request = NodeCheckRequest::Wallet(probe(Some("transaction")));
         let report = futures::executor::block_on(check_node(&state, &request, &NodeSyncStatus::in_sync(), Duration::ZERO));
 
         assert_eq!(report.get("balance").map(|result| &result.status), Some(&NodeCheckStatus::Failed { error: "balance unavailable".to_string() }));
@@ -314,10 +324,7 @@ mod tests {
     #[test]
     fn test_wallet_profile_without_transaction_checks_balance() {
         let state = TestState::default();
-        let request = NodeCheckRequest::Wallet {
-            address: "address".to_string(),
-            transaction_id: None,
-        };
+        let request = NodeCheckRequest::Wallet(probe(None));
         let report = futures::executor::block_on(check_node(&state, &request, &NodeSyncStatus::in_sync(), Duration::ZERO));
 
         assert!(!report.is_healthy());

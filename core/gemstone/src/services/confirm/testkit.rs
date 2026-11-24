@@ -225,6 +225,7 @@ impl GemConfirmData {
             selected_priority: FeePriority::Normal,
             fee_selection: GemConfirmFeeSelection::Priority { priority: FeePriority::Normal },
             fee_rates: vec![],
+            base_fee: None,
             metadata: TransactionLoadMetadata::None,
             simulation: None,
         }

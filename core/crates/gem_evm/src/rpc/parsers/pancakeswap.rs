@@ -86,11 +86,10 @@ mod tests {
     use super::*;
     use crate::rpc::model::{Transaction, TransactionReceipt};
     use crate::rpc::parsers::ProtocolParsers;
-    use chrono::DateTime;
-    use primitives::{Chain, SwapProvider, TransactionState, TransactionType, testkit::json_rpc::load_json_rpc_result};
+    use primitives::{Chain, DateTime, SwapProvider, TransactionState, TransactionType, testkit::json_rpc::load_json_rpc_result};
 
     fn map_transaction(chain: &Chain, transaction: &Transaction, receipt: &TransactionReceipt) -> PrimitivesTransaction {
-        ProtocolParsers::map_transaction(chain, transaction, receipt, DateTime::from_timestamp(1744602456, 0).unwrap()).unwrap()
+        ProtocolParsers::map_transaction(chain, transaction, receipt, DateTime::from_timestamp(1744602456)).unwrap()
     }
 
     #[test]

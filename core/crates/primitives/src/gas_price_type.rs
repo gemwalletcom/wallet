@@ -69,6 +69,27 @@ impl GasPriceType {
     pub fn total_fee(&self) -> BigInt {
         self.gas_price() + self.priority_fee()
     }
+
+    pub fn base_fee(&self) -> Option<BigInt> {
+        match self {
+            GasPriceType::Eip1559 { gas_price, .. } => Some(gas_price.clone()),
+            GasPriceType::Regular { .. } | GasPriceType::Solana { .. } => None,
+        }
+    }
+
+    pub fn with_base_fee_increase(&self, percent: u32) -> Self {
+        match self {
+            GasPriceType::Eip1559 { gas_price, priority_fee } => GasPriceType::eip1559(gas_price * (100 + percent) / 100u32, priority_fee.clone()),
+            GasPriceType::Regular { .. } | GasPriceType::Solana { .. } => self.clone(),
+        }
+    }
+
+    pub fn expected_price(&self, base_fee: Option<&BigInt>) -> BigInt {
+        match self {
+            GasPriceType::Eip1559 { gas_price, priority_fee } => base_fee.map_or_else(|| self.total_fee(), |base_fee| gas_price.min(base_fee) + priority_fee),
+            GasPriceType::Regular { .. } | GasPriceType::Solana { .. } => self.total_fee(),
+        }
+    }
 }
 
 #[cfg(test)]
@@ -131,5 +152,21 @@ mod tests {
 
         let solana = GasPriceType::solana(BigInt::from(5000u64), BigInt::from(1000u64), BigInt::from(200u64));
         assert_eq!(solana.total_fee(), BigInt::from(6000u64));
+    }
+
+    #[test]
+    fn test_a_base_fee_increase_raises_only_the_eip1559_base_fee() {
+        assert_eq!(GasPriceType::eip1559(100u64, 5u64).with_base_fee_increase(100), GasPriceType::eip1559(200u64, 5u64));
+        assert_eq!(GasPriceType::eip1559(100u64, 5u64).with_base_fee_increase(0), GasPriceType::eip1559(100u64, 5u64));
+        assert_eq!(GasPriceType::regular(100u64).with_base_fee_increase(100), GasPriceType::regular(100u64));
+    }
+
+    #[test]
+    fn test_the_network_charges_its_base_fee_up_to_the_signed_one_plus_the_tip() {
+        let signed = GasPriceType::eip1559(200u64, 5u64);
+        assert_eq!(signed.expected_price(Some(&BigInt::from(100u64))), BigInt::from(105u64), "headroom above the base fee is never charged");
+        assert_eq!(signed.expected_price(Some(&BigInt::from(300u64))), BigInt::from(205u64), "a base fee above the signed one charges at most what was signed");
+        assert_eq!(signed.expected_price(None), BigInt::from(205u64), "without a base fee the signed price is what is charged");
+        assert_eq!(GasPriceType::regular(100u64).expected_price(Some(&BigInt::from(1u64))), BigInt::from(100u64), "a regular price is charged as signed");
     }
 }

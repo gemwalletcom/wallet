@@ -1,13 +1,15 @@
 use std::error::Error;
 use std::sync::Arc;
+use std::time::Duration;
 
 use cacher::{GLOBAL_RATE_LIMIT_SCOPE, RateLimitCacher};
 use config_keys::{ConfigKey, RateLimitKey, RateLimitWindow};
 use gem_tracing::error_with_fields;
 use localizer::LanguageLocalizer;
 use primitives::rewards::{RewardRedemptionOption, RewardStatus};
-use primitives::{Localize, NaiveDateTimeExt, Platform, ReferralLeaderboard, RewardEvent, Rewards, now};
+use primitives::{DateTime, Platform, ReferralLeaderboard, RewardEvent, Rewards};
 use pusher::PushProvider;
+use rewards::Localize;
 use rewards::{ReferralError, ReferralValidationError, RewardsError, RiskScoringInput, UsernameError, UsernameRules};
 use storage::{DatabaseError, DeviceRecord, WalletRecord};
 use streamer::{RewardsNotificationPayload, StreamProducerQueue};
@@ -62,8 +64,8 @@ impl RewardsClient {
 
     pub async fn get_rewards_by_wallet_id(&self, device: &DeviceRecord, wallet_id: i32, locale: &str) -> Result<Rewards, Box<dyn Error + Send + Sync>> {
         let rules = username_rules(&self.config).await?;
-        let eligibility_days = self.referral_eligibility_days().await?;
-        match self.wallet_rewards(device, wallet_id, rules, eligibility_days).await {
+        let eligibility = self.config.get_duration(ConfigKey::ReferralEligibility).await?;
+        match self.wallet_rewards(device, wallet_id, rules, eligibility).await {
             Ok(rewards) => Ok(Rewards {
                 disable_reason: rewards.disable_reason.map(|_| LanguageLocalizer::new_with_language(locale).notification_rewards_disabled_description()),
                 ..rewards
@@ -73,11 +75,11 @@ impl RewardsClient {
         }
     }
 
-    async fn wallet_rewards(&self, device: &DeviceRecord, wallet_id: i32, rules: UsernameRules, eligibility_days: i64) -> Result<Rewards, DatabaseError> {
+    async fn wallet_rewards(&self, device: &DeviceRecord, wallet_id: i32, rules: UsernameRules, eligibility: Duration) -> Result<Rewards, DatabaseError> {
         let rewards = self.repository.get_rewards(wallet_id, rules).await?;
         let facts = self.repository.get_referral_use_facts(wallet_id, device.id).await?;
         Ok(Rewards {
-            use_referral_code_until: Some(facts.eligibility_ends_at(device.created_at, eligibility_days).and_utc()),
+            use_referral_code_until: Some(facts.eligibility_ends_at(device.created_at, eligibility)),
             ..rewards
         })
     }
@@ -97,11 +99,13 @@ impl RewardsClient {
     pub async fn create_username(&self, address: &str, code: &str, device_id: i32, ip_address: &str, locale: &str) -> Result<Rewards, RewardsServiceError> {
         let wallet = self.multicoin_wallet(address).await?;
 
-        self.consume_username_creation_limits(ip_address, device_id).await.map_err(|error| self.map_username_error(error, locale))?;
+        self.consume_username_creation_limits(username_creation_limits(&device_id.to_string(), ip_address))
+            .await
+            .map_err(|error| self.map_username_error(error, locale))?;
 
         let ip_result = self.ip_security_client.check_ip(ip_address).await?;
 
-        self.consume_username_creation_limit(RateLimitKey::UsernameCreationPerCountryLimit, &ip_result.country_code)
+        self.consume_username_creation_limits([(RateLimitKey::UsernameCreationPerCountryLimit, ip_result.country_code.as_str())])
             .await
             .map_err(|error| self.map_username_error(error, locale))?;
 
@@ -121,22 +125,10 @@ impl RewardsClient {
         self.repository.get_or_add_multicoin_wallet(address.to_string()).await
     }
 
-    async fn consume_username_creation_limits(&self, ip_address: &str, device_id: i32) -> Result<(), UsernameError> {
-        let device_id = device_id.to_string();
-        for (key, scope) in [
-            (RateLimitKey::UsernameCreationGlobalLimit, GLOBAL_RATE_LIMIT_SCOPE),
-            (RateLimitKey::UsernameCreationPerIpLimit, ip_address),
-            (RateLimitKey::UsernameCreationPerDeviceLimit, device_id.as_str()),
-        ] {
-            self.consume_username_creation_limit(key, scope).await?;
-        }
-        Ok(())
-    }
-
-    async fn consume_username_creation_limit(&self, key: RateLimitKey, scope: &str) -> Result<(), UsernameError> {
-        match self.consume_rate_limit(key, scope).await {
-            Ok(true) => Ok(()),
-            Ok(false) => Err(UsernameError::LimitReached(key)),
+    async fn consume_username_creation_limits<'a>(&self, limits: impl IntoIterator<Item = (RateLimitKey, &'a str)>) -> Result<(), UsernameError> {
+        match first_limit_reached(&self.config, self.rate_limiter.as_ref(), limits).await {
+            Ok(None) => Ok(()),
+            Ok(Some(key)) => Err(UsernameError::LimitReached(key)),
             Err(error) => Err(UsernameError::internal(error)),
         }
     }
@@ -189,10 +181,6 @@ impl RewardsClient {
         }
     }
 
-    async fn referral_eligibility_days(&self) -> Result<i64, DatabaseError> {
-        Ok((self.config.get_duration(ConfigKey::ReferralEligibility).await?.as_secs() / 86400) as i64)
-    }
-
     async fn validate_and_score_referral(&self, device: &DeviceRecord, wallet_id: i32, referrer_username: &str, ip_address: &str, user_agent: &str) -> ReferralProcessResult {
         match self.validate_and_score_referral_inner(device, wallet_id, referrer_username, ip_address, user_agent).await {
             Ok(result) => result,
@@ -201,13 +189,7 @@ impl RewardsClient {
     }
 
     async fn validate_and_score_referral_inner(&self, device: &DeviceRecord, wallet_id: i32, referrer_username: &str, ip_address: &str, user_agent: &str) -> Result<ReferralProcessResult, ReferralError> {
-        let device_id = device.id.to_string();
-        self.consume_referral_limits([
-            (RateLimitKey::ReferralGlobalLimit, GLOBAL_RATE_LIMIT_SCOPE),
-            (RateLimitKey::ReferralPerDeviceLimit, device_id.as_str()),
-            (RateLimitKey::ReferralPerIpLimit, ip_address),
-        ])
-        .await?;
+        self.consume_referral_limits(referral_limits(&device.id.to_string(), ip_address)).await?;
 
         let referrer_info = self.repository.get_referrer_info(referrer_username.to_string()).await.map_err(ReferralError::internal)?;
         if !referrer_info.status.is_verified() {
@@ -215,10 +197,10 @@ impl RewardsClient {
         }
 
         let multiplier = referrer_multiplier(&self.config, &referrer_info.status).await.map_err(ReferralError::internal)?;
-        let current = now();
+        let current = DateTime::now();
         let cooldown = self.config.get_duration(ConfigKey::ReferralCooldown).await.map_err(ReferralError::internal)?;
         let limits = self.config.get_rate_limit(RateLimitKey::ReferralPerUserLimit).await.map_err(ReferralError::internal)?;
-        let eligibility_days = self.referral_eligibility_days().await.map_err(ReferralError::internal)?;
+        let eligibility = self.config.get_duration(ConfigKey::ReferralEligibility).await.map_err(ReferralError::internal)?;
 
         let check = ReferralUseCheck {
             referrer_username: referrer_username.to_string(),
@@ -226,9 +208,9 @@ impl RewardsClient {
             wallet_id,
             device_id: device.id,
             device_created_at: device.created_at,
-            window_limits: RateLimitWindow::ALL.iter().map(|window| (current.ago(window.duration()), limits.get(*window) * multiplier)).collect(),
-            cooldown_since: current.ago(cooldown),
-            eligibility_days,
+            window_limits: RateLimitWindow::ALL.iter().map(|window| (current - window.duration(), limits.get(*window) * multiplier)).collect(),
+            cooldown_since: current - cooldown,
+            eligibility,
         };
         self.repository.get_referral_use_check(check).await.map_err(ReferralError::internal)??;
 
@@ -251,7 +233,7 @@ impl RewardsClient {
         self.consume_referral_limits([(RateLimitKey::ReferralPerCountryLimit, ip_result.country_code.as_str())]).await?;
 
         let risk_score_config = risk_score_config(&self.config).await.map_err(ReferralError::internal)?;
-        let since = now().ago(risk_score_config.lookback);
+        let since = DateTime::now() - risk_score_config.lookback;
 
         let scoring_input = RiskScoringInput {
             username: referrer_username.to_string(),
@@ -277,22 +259,72 @@ impl RewardsClient {
     }
 
     async fn consume_referral_limits<'a>(&self, limits: impl IntoIterator<Item = (RateLimitKey, &'a str)>) -> Result<(), ReferralError> {
-        let mut allowed = true;
-        for (key, scope) in limits {
-            allowed &= self.consume_rate_limit(key, scope).await?;
+        match first_limit_reached(&self.config, self.rate_limiter.as_ref(), limits).await? {
+            Some(_) => Err(ReferralError::LimitReached),
+            None => Ok(()),
         }
-        if !allowed {
-            return Err(ReferralError::LimitReached);
-        }
-        Ok(())
-    }
-
-    async fn consume_rate_limit(&self, key: RateLimitKey, scope: &str) -> Result<bool, Box<dyn Error + Send + Sync>> {
-        self.rate_limiter.consume(key, scope, self.config.get_rate_limit(key).await?).await
     }
 
     async fn publish_events(&self, event_ids: Vec<i32>) -> Result<(), Box<dyn Error + Send + Sync>> {
         self.stream_producer.publish_rewards_events(event_ids.into_iter().map(RewardsNotificationPayload::new).collect()).await?;
         Ok(())
+    }
+}
+
+fn username_creation_limits<'a>(device_id: &'a str, ip_address: &'a str) -> [(RateLimitKey, &'a str); 3] {
+    [
+        (RateLimitKey::UsernameCreationPerDeviceLimit, device_id),
+        (RateLimitKey::UsernameCreationPerIpLimit, ip_address),
+        (RateLimitKey::UsernameCreationGlobalLimit, GLOBAL_RATE_LIMIT_SCOPE),
+    ]
+}
+
+fn referral_limits<'a>(device_id: &'a str, ip_address: &'a str) -> [(RateLimitKey, &'a str); 3] {
+    [
+        (RateLimitKey::ReferralPerDeviceLimit, device_id),
+        (RateLimitKey::ReferralPerIpLimit, ip_address),
+        (RateLimitKey::ReferralGlobalLimit, GLOBAL_RATE_LIMIT_SCOPE),
+    ]
+}
+
+async fn first_limit_reached<'a>(config: &ConfigCacher, rate_limiter: &dyn RateLimitCacher, limits: impl IntoIterator<Item = (RateLimitKey, &'a str)>) -> Result<Option<RateLimitKey>, Box<dyn Error + Send + Sync>> {
+    for (key, scope) in limits {
+        if !rate_limiter.consume(key, scope, config.get_rate_limit(key).await?).await? {
+            return Ok(Some(key));
+        }
+    }
+    Ok(None)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::testkit::{MemoryConfigRepository, MemoryRateLimiter};
+
+    type Limits = for<'a> fn(&'a str, &'a str) -> [(RateLimitKey, &'a str); 3];
+
+    const IP: &str = "203.0.113.7";
+
+    #[tokio::test]
+    async fn test_a_refused_device_or_address_spends_no_shared_limit() {
+        let config = ConfigCacher::new(Arc::new(MemoryConfigRepository::new()));
+        for (limits, device_key, ip_key) in [
+            (username_creation_limits as Limits, RateLimitKey::UsernameCreationPerDeviceLimit, RateLimitKey::UsernameCreationPerIpLimit),
+            (referral_limits as Limits, RateLimitKey::ReferralPerDeviceLimit, RateLimitKey::ReferralPerIpLimit),
+        ] {
+            let rate_limiter = MemoryRateLimiter::default();
+            let device_limit = config.get_rate_limit(device_key).await.unwrap().get(RateLimitWindow::Minute);
+            let ip_limit = config.get_rate_limit(ip_key).await.unwrap().get(RateLimitWindow::Minute);
+
+            for _ in 0..device_limit * 3 {
+                first_limit_reached(&config, &rate_limiter, limits("device", IP)).await.unwrap();
+            }
+            assert_eq!(rate_limiter.consumed(GLOBAL_RATE_LIMIT_SCOPE), device_limit, "a device over {} spends no shared limit", device_key.as_ref());
+
+            for device in 0..ip_limit * 3 {
+                first_limit_reached(&config, &rate_limiter, limits(&device.to_string(), IP)).await.unwrap();
+            }
+            assert_eq!(rate_limiter.consumed(GLOBAL_RATE_LIMIT_SCOPE), ip_limit, "an address over {} spends no shared limit", ip_key.as_ref());
+        }
     }
 }

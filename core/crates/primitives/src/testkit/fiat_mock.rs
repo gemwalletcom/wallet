@@ -1,30 +1,8 @@
 use crate::currency::Currency;
 use crate::fiat_assets::{FiatAsset, FiatAssetLimits};
-use crate::{Asset, AssetId, Chain, FiatProvider, FiatProviderName, FiatQuote, FiatQuoteRequest, FiatQuoteType, FiatTransaction, FiatTransactionStatus, PaymentType};
-use chrono::{DateTime, Utc};
+use crate::{Asset, AssetId, Chain, DateTime, FiatAssetSymbol, FiatProvider, FiatProviderName, FiatQuote, FiatQuoteType, FiatQuoteUrlData, FiatTransaction, FiatTransactionStatus, FiatTransactionUpdate, PaymentType};
 use num_bigint::BigUint;
 use std::collections::HashMap;
-
-impl FiatQuoteRequest {
-    pub fn mock() -> Self {
-        FiatQuoteRequest {
-            asset_id: AssetId::from_chain(Chain::Bitcoin),
-            quote_type: FiatQuoteType::Buy,
-            currency: "USD".to_string(),
-            amount: 100.0,
-            provider_id: None,
-            ip_address: "192.168.1.1".to_string(),
-        }
-    }
-
-    pub fn mock_sell() -> Self {
-        FiatQuoteRequest {
-            quote_type: FiatQuoteType::Sell,
-            amount: 250.0,
-            ..Self::mock()
-        }
-    }
-}
 
 impl FiatProvider {
     pub fn mock(id: FiatProviderName) -> Self {
@@ -67,6 +45,35 @@ impl FiatQuote {
     }
 }
 
+impl FiatQuoteUrlData {
+    pub fn mock(quote: FiatQuote) -> Self {
+        FiatQuoteUrlData {
+            quote,
+            asset_symbol: FiatAssetSymbol {
+                symbol: "BTC".to_string(),
+                network: Some("bitcoin".to_string()),
+            },
+            wallet_address: "0x123".to_string(),
+            ip_address: "127.0.0.1".to_string(),
+            country_code: "US".to_string(),
+            locale: "en".to_string(),
+        }
+    }
+}
+
+impl FiatTransactionUpdate {
+    pub fn mock(transaction_id: &str, status: FiatTransactionStatus, transaction_hash: Option<&str>) -> Self {
+        FiatTransactionUpdate {
+            transaction_id: transaction_id.to_string(),
+            provider_transaction_id: None,
+            status,
+            transaction_hash: transaction_hash.map(str::to_string),
+            fiat_amount: None,
+            fiat_currency: Some(Currency::USD.to_string()),
+        }
+    }
+}
+
 impl FiatTransaction {
     pub fn mock() -> Self {
         FiatTransaction {
@@ -81,8 +88,8 @@ impl FiatTransaction {
             fiat_currency: "USD".to_string(),
             value: BigUint::from(100_000u64),
             transaction_hash: None,
-            created_at: DateTime::<Utc>::UNIX_EPOCH,
-            updated_at: DateTime::<Utc>::UNIX_EPOCH,
+            created_at: DateTime::UNIX_EPOCH,
+            updated_at: DateTime::UNIX_EPOCH,
         }
     }
 }

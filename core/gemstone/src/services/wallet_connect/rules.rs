@@ -6,17 +6,17 @@ use std::str::FromStr;
 use crate::application::url_host;
 use crate::services::collections::{stale, unique};
 
-use chrono::{DateTime, Utc};
 use gem_solana::{Pubkey, SolanaTransfer, VersionedTransaction, VersionedTransactionExt};
 use gem_sui::tx_builder::validate_wallet_connect_sender;
 use gem_ton::models::decode_wallet_connect_transfer;
 use gem_tron::{decode_wallet_connect_contract, decode_wallet_connect_owners};
-use primitives::WalletConnectionVerificationStatus;
+use links::{GEM_HOST, GEM_URL_SCHEME, HTTP_URL_SCHEME, HTTPS_URL_SCHEME, WALLET_CONNECT_URL_SCHEME, WalletConnectLink};
+use primitives::ChainType;
 use primitives::{
     Account, ApplicationMetadata, ApplicationMetadataSource, Chain, Platform, Wallet, WalletConnectCAIP2, WalletConnection, WalletConnectionEvents, WalletConnectionMethods, WalletConnectionSession, WalletConnectionState, WalletId,
     WalletType,
 };
-use primitives::{ChainType, GEM_HOST, GEM_URL_SCHEME, HTTP_URL_SCHEME, HTTPS_URL_SCHEME, WALLET_CONNECT_URL_SCHEME, WalletConnectLink};
+use primitives::{DateTime, WalletConnectionVerificationStatus};
 use url::Url;
 
 use crate::models::list::{GemListRow, GemListRowTitle};
@@ -246,13 +246,13 @@ pub fn application_metadata(name: String, description: String, url: String, icon
     }
 }
 
-pub fn session(topic: String, chains: Vec<Chain>, expire_at: DateTime<Utc>, metadata: ApplicationMetadata) -> WalletConnectionSession {
+pub fn session(topic: String, chains: Vec<Chain>, expire_at: DateTime, metadata: ApplicationMetadata) -> WalletConnectionSession {
     WalletConnectionSession {
         id: topic.clone(),
         session_id: topic,
         state: WalletConnectionState::Active,
         chains,
-        created_at: Utc::now(),
+        created_at: DateTime::now(),
         expire_at,
         metadata,
     }
@@ -342,7 +342,7 @@ pub fn request_expired_error() -> GemWalletConnectRpcError {
     }
 }
 
-pub fn is_expired(expiry: Option<u64>, now: DateTime<Utc>) -> bool {
+pub fn is_expired(expiry: Option<u64>, now: DateTime) -> bool {
     expiry.is_some_and(|expiry| now.timestamp() >= expiry as i64)
 }
 
@@ -546,9 +546,11 @@ mod tests {
     }
 
     use super::*;
+    use gem_wallet_connect::WCEthereumTransaction;
     use gem_wallet_connect::WCSuiTransactionData;
     use num_bigint::BigUint;
-    use primitives::{Account, WCEthereumTransaction};
+    use primitives::{Account, DAY};
+    use std::time::Duration;
 
     use crate::testkit::mock_wc_ethereum_transaction;
 
@@ -570,7 +572,7 @@ mod tests {
                 .into_iter()
                 .map(|(wallet, id, minutes)| WalletConnection {
                     session: WalletConnectionSession {
-                        created_at: Utc::now() - chrono::Duration::minutes(minutes),
+                        created_at: DateTime::now() - Duration::from_mins(minutes),
                         ..WalletConnectionSession::mock(id, &[Chain::Ethereum])
                     },
                     wallet: wallet.clone(),
@@ -689,11 +691,11 @@ mod tests {
         ];
         let chains = WalletConnectionSession::mock("chains", &[Chain::Ethereum, Chain::Solana]);
         let mut expiry = WalletConnectionSession::mock("expiry", &[Chain::Ethereum]);
-        expiry.expire_at += chrono::Duration::days(1);
+        expiry.expire_at += DAY;
         let mut metadata = WalletConnectionSession::mock("metadata", &[Chain::Ethereum]);
         metadata.metadata.name = "renamed".to_string();
         let mut reconnected = WalletConnectionSession::mock("reconnected", &[Chain::Ethereum]);
-        reconnected.created_at += chrono::Duration::days(1);
+        reconnected.created_at += DAY;
         let state = WalletConnectionSession::mock("state", &[Chain::Ethereum]);
         let remote = vec![
             WalletConnectionSession::mock("unchanged", &[Chain::Ethereum]),

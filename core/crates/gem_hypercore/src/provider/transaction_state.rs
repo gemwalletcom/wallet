@@ -70,9 +70,8 @@ impl<C: Client> HyperCoreClient<C> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use chrono::{TimeZone, Utc};
     use gem_client::testkit::MockClient;
-    use primitives::{TransactionChange, TransactionState, TransactionStateRequest};
+    use primitives::{DateTime, TransactionChange, TransactionState, TransactionStateRequest};
 
     #[tokio::test]
     async fn test_transaction_state_uses_delegator_history_for_c_withdraw() {
@@ -90,7 +89,7 @@ mod tests {
             .transaction_state(TransactionStateRequest {
                 id: request_id.clone(),
                 sender_address: "0x9EdcF9Ff72088DB8130C2512E5B4D3b5F34cEaF4".to_string(),
-                created_at: Utc.timestamp_millis_opt(1780078264489).unwrap(),
+                created_at: DateTime::from_timestamp_millis(1780078264489),
                 block_number: 0,
             })
             .await

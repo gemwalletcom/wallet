@@ -1,13 +1,18 @@
-use borsh::BorshDeserialize;
+use gem_encoding::borsh::{BorshDeserialize, DecodeError, Reader};
 
-use crate::{SolanaDataSlice, SolanaError, error::Result};
+use crate::{SolanaDataSlice, SolanaError, error::Result as SolanaResult};
 
 const AMOUNT_OFFSET: usize = 64;
 
-#[derive(Debug, Clone, Copy, PartialEq, BorshDeserialize)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct TokenAccount {
-    _mint_and_owner: [u8; AMOUNT_OFFSET],
     pub amount: u64,
+}
+
+impl BorshDeserialize for TokenAccount {
+    fn deserialize_reader(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
+        Ok(Self { amount: reader.skip(AMOUNT_OFFSET)?.read()? })
+    }
 }
 
 impl TokenAccount {
@@ -16,11 +21,11 @@ impl TokenAccount {
         length: size_of::<u64>(),
     };
 
-    pub fn decode(data: &[u8]) -> Result<Self> {
+    pub fn decode(data: &[u8]) -> SolanaResult<Self> {
         Self::deserialize(&mut &data[..]).map_err(|_| SolanaError::invalid_input("Invalid token account"))
     }
 
-    pub fn decode_amount(slice: &[u8]) -> Result<u64> {
+    pub fn decode_amount(slice: &[u8]) -> SolanaResult<u64> {
         u64::try_from_slice(slice).map_err(|_| SolanaError::invalid_input("Invalid token amount"))
     }
 }

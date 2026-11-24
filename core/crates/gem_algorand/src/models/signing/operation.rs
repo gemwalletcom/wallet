@@ -1,7 +1,5 @@
 use crate::address::AlgorandAddress;
-
-const TX_TYPE_PAYMENT: &str = "pay";
-const TX_TYPE_ASSET_TRANSFER: &str = "axfer";
+use crate::constants::{TRANSACTION_TYPE_ASSET_TRANSFER, TRANSACTION_TYPE_PAY};
 
 // Canonical msgpack field counts per operation type.
 const PAYMENT_FIELDS: u8 = 9;
@@ -18,8 +16,8 @@ pub enum Operation {
 impl Operation {
     pub fn tx_type(&self) -> &'static str {
         match self {
-            Self::Payment { .. } => TX_TYPE_PAYMENT,
-            Self::AssetTransfer { .. } | Self::AssetOptIn { .. } => TX_TYPE_ASSET_TRANSFER,
+            Self::Payment { .. } => TRANSACTION_TYPE_PAY,
+            Self::AssetTransfer { .. } | Self::AssetOptIn { .. } => TRANSACTION_TYPE_ASSET_TRANSFER,
         }
     }
 

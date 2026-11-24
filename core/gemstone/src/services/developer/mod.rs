@@ -3,7 +3,8 @@ pub mod store;
 
 use std::sync::Arc;
 
-use primitives::{BannerState, Deeplink, PlatformStore, WalletId};
+use links::Deeplink;
+use primitives::{BannerState, PlatformStore, WalletId};
 
 use crate::services::device::GemDevicePlatform;
 use crate::services::error::GemServiceError;

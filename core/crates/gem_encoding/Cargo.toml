@@ -6,14 +6,14 @@ edition = { workspace = true }
 [features]
 default = ["base64"]
 base32 = ["dep:zeroize"]
-base58 = ["dep:bs58", "dep:gem_hash"]
+base58 = ["dep:gem_hash", "dep:zeroize"]
 base64 = []
+borsh = []
 protobuf = []
 
 [dependencies]
-bs58 = { workspace = true, optional = true }
 gem_hash = { path = "../gem_hash", optional = true }
 zeroize = { workspace = true, optional = true }
 
 [dev-dependencies]
-gem_encoding = { path = ".", features = ["base32", "base58", "base64", "protobuf"] }
+gem_encoding = { path = ".", features = ["base32", "base58", "base64", "borsh", "protobuf"] }

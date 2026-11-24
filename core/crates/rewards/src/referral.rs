@@ -1,7 +1,7 @@
 use std::time::Duration;
 
-use chrono::{NaiveDateTime, TimeDelta};
 use primitives::rewards::RewardStatus;
+use primitives::{DateTime, DurationExt};
 
 use crate::error::{ReferralConfirmationError, ReferralValidationError};
 
@@ -35,14 +35,14 @@ impl Referral {
 #[derive(Debug, Clone, PartialEq)]
 pub struct DeviceWallet {
     pub wallet_id: i32,
-    pub first_subscription_at: Option<NaiveDateTime>,
+    pub first_subscription_at: Option<DateTime>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ReferralUseFacts {
     pub referred_username: String,
     pub referred_status: Option<RewardStatus>,
-    pub wallet_first_subscription_at: Option<NaiveDateTime>,
+    pub wallet_first_subscription_at: Option<DateTime>,
     pub device_wallets: Vec<DeviceWallet>,
     pub device_referral: Option<Referral>,
 }
@@ -52,18 +52,18 @@ impl ReferralUseFacts {
         self.referred_status == Some(RewardStatus::Pending) && self.device_referral.as_ref().is_some_and(|referral| referral.is_pending_confirmation(referrer_username, &self.referred_username))
     }
 
-    pub fn eligibility_ends_at(&self, device_created_at: NaiveDateTime, days: i64) -> NaiveDateTime {
+    pub fn eligibility_ends_at(&self, device_created_at: DateTime, eligibility: Duration) -> DateTime {
         self.device_wallets
             .iter()
             .filter_map(|wallet| wallet.first_subscription_at)
             .chain(self.wallet_first_subscription_at)
-            .fold(device_created_at, NaiveDateTime::min)
-            + TimeDelta::days(days)
+            .fold(device_created_at, DateTime::min)
+            + eligibility
     }
 
-    pub fn validate_use(&self, referrer_username: &str, referrer_wallet_id: i32, device_created_at: NaiveDateTime, eligibility_days: Option<i64>, now: NaiveDateTime) -> Result<(), ReferralValidationError> {
-        if let Some(days) = eligibility_days.filter(|days| now >= self.eligibility_ends_at(device_created_at, *days)) {
-            return Err(ReferralValidationError::EligibilityExpired(days));
+    pub fn validate_use(&self, referrer_username: &str, referrer_wallet_id: i32, device_created_at: DateTime, eligibility: Option<Duration>, now: DateTime) -> Result<(), ReferralValidationError> {
+        if let Some(eligibility) = eligibility.filter(|eligibility| now >= self.eligibility_ends_at(device_created_at, *eligibility)) {
+            return Err(ReferralValidationError::EligibilityExpired(eligibility.as_days_ceil()));
         }
 
         if self.device_wallets.iter().any(|wallet| wallet.wallet_id == referrer_wallet_id) {
@@ -81,15 +81,15 @@ impl ReferralUseFacts {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ReferredRewards {
     pub status: RewardStatus,
-    pub verify_after: Option<NaiveDateTime>,
+    pub verify_after: Option<DateTime>,
 }
 
 impl ReferredRewards {
-    pub fn can_verify_referral(&self, now: NaiveDateTime) -> bool {
+    pub fn can_verify_referral(&self, now: DateTime) -> bool {
         self.status.is_verified() || self.verify_after.is_some_and(|verify_after| verify_after <= now)
     }
 
-    pub fn clears_verification_delay(&self, now: NaiveDateTime) -> bool {
+    pub fn clears_verification_delay(&self, now: DateTime) -> bool {
         self.can_verify_referral(now) && !self.status.is_verified()
     }
 }
@@ -97,7 +97,7 @@ impl ReferredRewards {
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum NewReferralVerification {
     Verified,
-    Delayed { verify_after: NaiveDateTime },
+    Delayed { verify_after: DateTime },
 }
 
 pub fn referral_verification_delay(base_delay: Duration, verified_multiplier: i64, referrer_status: RewardStatus) -> Option<Duration> {
@@ -108,18 +108,16 @@ pub fn referral_verification_delay(base_delay: Duration, verified_multiplier: i6
     Some(Duration::from_secs(base_delay.as_secs() / multiplier as u64))
 }
 
-pub fn new_referral_verification(can_verify: bool, delay: Option<Duration>, now: NaiveDateTime) -> NewReferralVerification {
+pub fn new_referral_verification(can_verify: bool, delay: Option<Duration>, now: DateTime) -> NewReferralVerification {
     match delay {
-        Some(delay) if !can_verify => NewReferralVerification::Delayed {
-            verify_after: now + TimeDelta::seconds(delay.as_secs() as i64),
-        },
+        Some(delay) if !can_verify => NewReferralVerification::Delayed { verify_after: now + delay },
         _ => NewReferralVerification::Verified,
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use primitives::{DAY, HOUR, now};
+    use primitives::{DAY, DateTime, HOUR};
 
     use super::*;
 
@@ -160,20 +158,20 @@ mod tests {
 
     #[test]
     fn test_validate_use() {
-        let now = now();
-        let recent = now - TimeDelta::days(1);
-        let old = now - TimeDelta::days(60);
+        let now = DateTime::now();
+        let recent = now - DAY;
+        let old = now - Duration::days(60);
         let facts = ReferralUseFacts::mock();
 
-        assert_eq!(facts.validate_use("alice", 1, recent, Some(30), now), Ok(()));
-        assert_eq!(facts.validate_use("alice", 1, old, Some(30), now), Err(ReferralValidationError::EligibilityExpired(30)));
+        assert_eq!(facts.validate_use("alice", 1, recent, Some(Duration::days(30)), now), Ok(()));
+        assert_eq!(facts.validate_use("alice", 1, old, Some(Duration::days(30)), now), Err(ReferralValidationError::EligibilityExpired(30)));
         assert_eq!(facts.validate_use("alice", 1, old, None, now), Ok(()));
         assert_eq!(
             ReferralUseFacts {
                 wallet_first_subscription_at: Some(old),
                 ..facts.clone()
             }
-            .validate_use("alice", 1, recent, Some(30), now),
+            .validate_use("alice", 1, recent, Some(Duration::days(30)), now),
             Err(ReferralValidationError::EligibilityExpired(30))
         );
 
@@ -188,7 +186,7 @@ mod tests {
             },
         ];
         let shared_device = ReferralUseFacts { device_wallets, ..facts.clone() };
-        assert_eq!(shared_device.validate_use("alice", 1, recent, Some(30), now), Err(ReferralValidationError::EligibilityExpired(30)));
+        assert_eq!(shared_device.validate_use("alice", 1, recent, Some(Duration::days(30)), now), Err(ReferralValidationError::EligibilityExpired(30)));
         assert_eq!(shared_device.validate_use("alice", 1, recent, None, now), Err(ReferralValidationError::CannotReferSelf));
         assert_eq!(shared_device.validate_use("alice", 3, recent, None, now), Ok(()));
 
@@ -196,34 +194,34 @@ mod tests {
             device_referral: Some(Referral::mock()),
             ..facts
         };
-        assert_eq!(used_device.validate_use("alice", 1, recent, Some(30), now), Ok(()));
-        assert_eq!(used_device.validate_use("charlie", 1, recent, Some(30), now), Err(ReferralValidationError::DeviceAlreadyUsed));
+        assert_eq!(used_device.validate_use("alice", 1, recent, Some(Duration::days(30)), now), Ok(()));
+        assert_eq!(used_device.validate_use("charlie", 1, recent, Some(Duration::days(30)), now), Err(ReferralValidationError::DeviceAlreadyUsed));
         assert_eq!(
             ReferralUseFacts {
                 device_referral: Some(Referral { is_verified: true, ..Referral::mock() }),
                 ..used_device
             }
-            .validate_use("alice", 1, recent, Some(30), now),
+            .validate_use("alice", 1, recent, Some(Duration::days(30)), now),
             Err(ReferralValidationError::DeviceAlreadyUsed)
         );
     }
 
     #[test]
     fn test_eligibility_ends_at_counts_from_the_oldest_device_or_wallet() {
-        let now = now();
+        let now = DateTime::now();
         let facts = ReferralUseFacts::mock();
-        assert_eq!(facts.eligibility_ends_at(now, 30), now + TimeDelta::days(30));
+        assert_eq!(facts.eligibility_ends_at(now, Duration::days(30)), now + Duration::days(30));
 
         let device_wallets = vec![DeviceWallet {
             wallet_id: 2,
-            first_subscription_at: Some(now - TimeDelta::days(10)),
+            first_subscription_at: Some(now - Duration::days(10)),
         }];
         let shared_device = ReferralUseFacts {
-            wallet_first_subscription_at: Some(now - TimeDelta::days(5)),
+            wallet_first_subscription_at: Some(now - Duration::days(5)),
             device_wallets,
             ..facts
         };
-        assert_eq!(shared_device.eligibility_ends_at(now - TimeDelta::days(1), 30), now + TimeDelta::days(20));
+        assert_eq!(shared_device.eligibility_ends_at(now - DAY, Duration::days(30)), now + Duration::days(20));
     }
 
     #[test]
@@ -238,9 +236,9 @@ mod tests {
 
     #[test]
     fn test_can_verify_referral() {
-        let now = now();
-        let past = Some(now - TimeDelta::hours(1));
-        let future = Some(now + TimeDelta::hours(1));
+        let now = DateTime::now();
+        let past = Some(now - HOUR);
+        let future = Some(now + HOUR);
 
         assert!(
             ReferredRewards {
@@ -316,8 +314,8 @@ mod tests {
 
     #[test]
     fn test_clears_verification_delay() {
-        let now = now();
-        let past = Some(now - TimeDelta::hours(1));
+        let now = DateTime::now();
+        let past = Some(now - HOUR);
 
         assert!(
             ReferredRewards {
@@ -353,10 +351,10 @@ mod tests {
 
     #[test]
     fn test_new_referral_verification() {
-        let now = now();
+        let now = DateTime::now();
 
         assert_eq!(new_referral_verification(true, Some(HOUR), now), NewReferralVerification::Verified);
         assert_eq!(new_referral_verification(false, None, now), NewReferralVerification::Verified);
-        assert_eq!(new_referral_verification(false, Some(HOUR), now), NewReferralVerification::Delayed { verify_after: now + TimeDelta::hours(1) });
+        assert_eq!(new_referral_verification(false, Some(HOUR), now), NewReferralVerification::Delayed { verify_after: now + HOUR });
     }
 }

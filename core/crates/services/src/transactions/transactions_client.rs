@@ -1,8 +1,7 @@
 use std::error::Error;
 use std::sync::Arc;
 
-use chrono::{DateTime, Utc};
-use primitives::{AssetId, Transaction, TransactionId, TransactionsResponse};
+use primitives::{AssetId, DateTime, Transaction, TransactionId, TransactionsResponse};
 
 use super::repository::{Repository, WalletTransactionsQuery};
 
@@ -21,11 +20,10 @@ impl TransactionsClient {
         device_row_id: i32,
         wallet_id: i32,
         asset_id: Option<AssetId>,
-        from_timestamp: Option<u64>,
+        since: Option<DateTime>,
         limit: usize,
         offset: usize,
     ) -> Result<TransactionsResponse, Box<dyn Error + Send + Sync>> {
-        let since = from_timestamp.and_then(|timestamp| DateTime::<Utc>::from_timestamp(timestamp as i64, 0).map(|datetime| datetime.naive_utc()));
         let query = WalletTransactionsQuery {
             device_id: device_id.to_string(),
             device_row_id,

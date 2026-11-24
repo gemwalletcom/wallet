@@ -368,7 +368,8 @@ mod tests {
 mod swap_integration_tests {
     use super::*;
     use crate::testkit::mock_quote;
-    use crate::{SwapperQuoteAsset, alien::reqwest_provider::NativeProvider, models::Options};
+    use crate::{SwapperQuoteAsset, models::Options};
+    use gem_reqwest::NativeProvider;
     use primitives::Chain;
     use primitives::{
         AssetId,

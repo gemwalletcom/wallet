@@ -69,7 +69,7 @@ mod tests {
     const TEST_FUNGIBLE_TRANSFER_ABI: &[&str] = &["address", "address", "u64"];
     const TEST_DELEGATION_POOL_ABI: &[&str] = &["address", "u64"];
 
-    async fn assert_signs_simulated_payload(input_type: TransactionInputType, abi: &[&str]) {
+    async fn assert_signs_simulated_payload(input_type: TransactionInputType, abi: &[&str], max_gas_amount: u64) {
         let simulated = Arc::new(Mutex::new(None));
         let client = AptosClient::new(MockClient::new().with_post({
             let simulated = simulated.clone();
@@ -98,6 +98,7 @@ mod tests {
         let simulated = serde_json::from_value::<EntryFunctionPayload>(simulated).unwrap().to_entry_function(Some(abi)).unwrap();
 
         assert_eq!(signed.raw_tx.payload, TransactionPayloadBCS::EntryFunction(simulated));
+        assert_eq!(signed.raw_tx.max_gas_amount, max_gas_amount);
     }
 
     #[tokio::test]
@@ -105,14 +106,15 @@ mod tests {
         let pool = DelegationValidator::stake(Chain::Aptos, KNOWN_VALIDATOR_POOL.to_string(), String::new(), true, 0.0, 0.0);
         let asset = Asset::from_chain(Chain::Aptos);
 
-        assert_signs_simulated_payload(TransactionInputType::Transfer { asset: asset.clone() }, TEST_TRANSFER_ABI).await;
-        assert_signs_simulated_payload(TransactionLoadInput::mock_aptos_token_transfer(TEST_TOKEN_ID).input_type, TEST_FUNGIBLE_TRANSFER_ABI).await;
+        assert_signs_simulated_payload(TransactionInputType::Transfer { asset: asset.clone() }, TEST_TRANSFER_ABI, 5075).await;
+        assert_signs_simulated_payload(TransactionLoadInput::mock_aptos_token_transfer(TEST_TOKEN_ID).input_type, TEST_FUNGIBLE_TRANSFER_ABI, 5075).await;
         assert_signs_simulated_payload(
             TransactionInputType::Stake {
                 asset: asset.clone(),
                 stake_type: StakeType::Stake(pool.clone()),
             },
             TEST_DELEGATION_POOL_ABI,
+            6090,
         )
         .await;
         assert_signs_simulated_payload(
@@ -121,6 +123,7 @@ mod tests {
                 stake_type: StakeType::Unstake(Delegation::mock_with_validator(pool.clone())),
             },
             TEST_DELEGATION_POOL_ABI,
+            6090,
         )
         .await;
         assert_signs_simulated_payload(
@@ -129,6 +132,7 @@ mod tests {
                 stake_type: StakeType::Withdraw(Delegation::mock_with_validator(pool)),
             },
             TEST_DELEGATION_POOL_ABI,
+            6090,
         )
         .await;
     }
