@@ -5,7 +5,7 @@ mod provider;
 #[cfg(feature = "signer")]
 mod signer;
 
-#[cfg(all(test, feature = "chain_integration_tests"))]
+#[cfg(test)]
 mod testkit;
 
 #[cfg(feature = "rpc")]

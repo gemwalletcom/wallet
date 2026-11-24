@@ -13,6 +13,14 @@ pub(crate) fn map_transactions(transactions: Vec<BitcoinTransaction>) -> Vec<Tra
     transactions.iter().filter_map(map_transaction).collect()
 }
 
+pub(crate) fn has_transparent_transfer(transaction: &BitcoinTransaction) -> bool {
+    if transaction.vin.is_empty() {
+        transaction.vout.iter().any(|output| output.is_address)
+    } else {
+        transaction.vin.iter().any(|input| input.is_address)
+    }
+}
+
 pub(crate) fn map_transaction(transaction: &BitcoinTransaction) -> Option<Transaction> {
     let Some(value_balance) = transaction.hex.as_deref().and_then(ValueBalanceReader::read) else {
         return map_transparent_transaction(Chain::Zcash, transaction);
@@ -49,13 +57,14 @@ mod tests {
     use primitives::TransactionDirection;
 
     use super::*;
+    use crate::testkit::TEST_RECEIVER_ADDRESS;
 
     #[test]
     fn test_map_transaction() {
         let transaction = |json: &str| serde_json::from_str::<BitcoinTransaction>(json).unwrap();
         let receive = transaction(include_str!("../../testdata/transaction_shielded_receive.json"));
-        let mapped = map_transaction(&receive).unwrap().finalize(vec!["t1SXEuGoJQco68tbdW6guj5w2CjGunQD347".to_string()]);
-        assert_eq!((mapped.direction, mapped.from.as_str(), mapped.to.as_str()), (TransactionDirection::Incoming, "", "t1SXEuGoJQco68tbdW6guj5w2CjGunQD347"));
+        let mapped = map_transaction(&receive).unwrap().finalize(vec![TEST_RECEIVER_ADDRESS.to_string()]);
+        assert_eq!((mapped.direction, mapped.from.as_str(), mapped.to.as_str()), (TransactionDirection::Incoming, "", TEST_RECEIVER_ADDRESS));
         assert_eq!((mapped.value, mapped.fee), (BigUint::from(2_000_000u64), BigUint::from(15_000u64)));
 
         let joinsplit = transaction(include_str!("../../testdata/transaction_joinsplit.json"));

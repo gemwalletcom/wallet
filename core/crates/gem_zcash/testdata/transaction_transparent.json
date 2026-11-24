@@ -1,0 +1,29 @@
+{
+  "txid": "592dfdfa7d053f06defb813cf5f65cd87fc64eba1ae1973b3273d8a836b37866",
+  "value": "80000",
+  "valueIn": "90000",
+  "fees": "10000",
+  "blockTime": 1790662825,
+  "blockHeight": 3500000,
+  "vin": [
+    {
+      "isAddress": true,
+      "addresses": [
+        "t1JKiq1Zvi3ZcR25eSHekhantaPUK9dT6yc"
+      ],
+      "value": "90000",
+      "n": 0
+    }
+  ],
+  "vout": [
+    {
+      "isAddress": true,
+      "addresses": [
+        "t1YQV51DKzKP63xJcynXuRfryMjfmgTJ7Jc"
+      ],
+      "value": "80000",
+      "n": 0
+    }
+  ],
+  "hex": "0400008085202f8901de5938dcaee53563015efa6d91cf62e34d5d77ef2bb8401a202761e8782495a7000000006b483045022100deeddf30c19cd1655aac075811a0635ae496aa948ae3460f18e88fff9991a1cb022057a0a2f34a35a7403af43e1260d23d138ab767df3ef81a4cabff98097ea79d99012102fb933573c0762fd1c7e56f0ba3c3035a6a9f0c80abc17caa71bd941b614eb55dffffffff0180380100000000001976a9149f68dd83709ae1bc8bc91d7068f1d4d6418470b688ac00000000000000000000000000000000000000"
+}

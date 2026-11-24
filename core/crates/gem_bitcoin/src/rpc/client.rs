@@ -28,6 +28,19 @@ impl<C: Client> BitcoinClient<C> {
         Ok(self.client.get(BlockbookTarget::GetBlock { height: block_number, page }).await?)
     }
 
+    pub async fn get_block_transactions(&self, block_number: u64) -> Result<Vec<Transaction>, Box<dyn Error + Send + Sync>> {
+        let mut transactions = Vec::new();
+        let mut page = 1;
+        loop {
+            let block = self.get_block(block_number, page).await?;
+            transactions.extend(block.txs);
+            if block.total_pages == block.page {
+                return Ok(transactions);
+            }
+            page += 1;
+        }
+    }
+
     pub async fn get_address_details(&self, address: &str, limit: usize) -> Result<AddressDetails, Box<dyn Error + Send + Sync>> {
         Ok(self
             .client

@@ -2,19 +2,31 @@ use std::error::Error;
 
 use async_trait::async_trait;
 use chain_traits::{ChainBlockTransactions, ChainProvider, ChainTransaction, ChainTransactions, TransactionIdRequest, TransactionsRequest, TransactionsResult};
+use futures::{StreamExt, TryStreamExt, stream};
 use gem_bitcoin::models::Address;
 use gem_client::Client;
 use primitives::{DateTime, Transaction};
 
 use super::{
     ZcashProvider,
-    transactions_mapper::{map_transaction, map_transactions},
+    transactions_mapper::{has_transparent_transfer, map_transaction, map_transactions},
 };
+
+const BLOCK_REQUEST_CONCURRENCY: usize = 5;
 
 #[async_trait]
 impl<C: Client> ChainBlockTransactions for ZcashProvider<C> {
     async fn get_transactions_by_block(&self, block: u64) -> Result<Vec<Transaction>, Box<dyn Error + Sync + Send>> {
-        self.client.get_transactions_by_block(block).await
+        let block_transactions = self.client.get_block_transactions(block).await?;
+        let transactions = stream::iter(block_transactions.into_iter().filter(has_transparent_transfer))
+            .map(|transaction| async move {
+                let txid = transaction.txid;
+                self.client.get_transaction(&txid).await?.ok_or_else(|| Box::<dyn Error + Send + Sync>::from(format!("transaction {txid} not found")))
+            })
+            .buffered(BLOCK_REQUEST_CONCURRENCY)
+            .try_collect()
+            .await?;
+        Ok(map_transactions(transactions))
     }
 }
 
@@ -46,26 +58,42 @@ impl<C: Client> ChainTransactions for ZcashProvider<C> {
 mod tests {
     use gem_bitcoin::BitcoinClient;
     use gem_client::testkit::MockClient;
-    use primitives::BitcoinChain;
-    use serde_json::{Value, from_str, json, to_vec};
+    use primitives::{BitcoinChain, TransactionDirection};
 
     use super::*;
+    use crate::testkit::{TEST_RECEIVER_ADDRESS, TEST_SHIELDED_RECEIVE_ID, TEST_TRANSPARENT_RECIPIENT_ADDRESS, TEST_TRANSPARENT_SENDER_ADDRESS, TEST_TRANSPARENT_TRANSFER_ID, mock_shielded_receive, mock_transparent_transfer};
 
     #[tokio::test]
-    async fn test_get_transactions_by_block_fetches_block_only() {
-        let mut transparent: Value = from_str(include_str!("../../testdata/transaction_shielded_receive.json")).unwrap();
-        let spend: Value = from_str(include_str!("../../testdata/transaction_joinsplit.json")).unwrap();
-        transparent["vin"] = spend["vin"].clone();
-        let block = json!({ "page": 1, "totalPages": 1, "txs": [transparent] });
-        let client = MockClient::new().with_get(move |path| match path {
-            "/api/v2/block/1?page=1" => Ok(to_vec(&block).unwrap()),
+    async fn test_get_transactions_by_block() {
+        let client = MockClient::new().with_get(|path| match path {
+            "/api/v2/block/3500000?page=1" => Ok(include_bytes!("../../testdata/block_3500000.json").to_vec()),
+            "/api/v2/block/3500001?page=1" => Ok(include_bytes!("../../testdata/block_3500001.json").to_vec()),
+            path if path == format!("/api/v2/tx/{TEST_TRANSPARENT_TRANSFER_ID}") => Ok(include_bytes!("../../testdata/transaction_transparent.json").to_vec()),
+            path if path == format!("/api/v2/tx/{TEST_SHIELDED_RECEIVE_ID}") => Ok(include_bytes!("../../testdata/transaction_shielded_receive.json").to_vec()),
             path => panic!("unexpected path: {path}"),
         });
         let provider = ZcashProvider::new(BitcoinClient::new(client, BitcoinChain::Zcash));
+        let wallet = vec![TEST_TRANSPARENT_SENDER_ADDRESS.to_string(), TEST_RECEIVER_ADDRESS.to_string()];
 
-        let transactions = provider.get_transactions_by_block(1).await.unwrap();
+        let transactions = provider.get_transactions_by_block(3_500_000).await.unwrap();
 
-        assert_eq!(transactions.len(), 1);
+        assert_eq!(
+            transactions.iter().map(|transaction| transaction.finalize(wallet.clone())).collect::<Vec<_>>(),
+            vec![
+                Transaction {
+                    from: TEST_TRANSPARENT_SENDER_ADDRESS.to_string(),
+                    to: TEST_TRANSPARENT_RECIPIENT_ADDRESS.to_string(),
+                    direction: TransactionDirection::Outgoing,
+                    ..mock_transparent_transfer()
+                },
+                Transaction {
+                    to: TEST_RECEIVER_ADDRESS.to_string(),
+                    direction: TransactionDirection::Incoming,
+                    ..mock_shielded_receive()
+                },
+            ]
+        );
+        assert_eq!(provider.get_transactions_by_block(3_500_001).await.unwrap(), vec![]);
     }
 }
 

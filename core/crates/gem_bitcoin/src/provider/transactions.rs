@@ -14,22 +14,7 @@ use crate::{
 #[async_trait]
 impl<C: Client> ChainBlockTransactions for BitcoinClient<C> {
     async fn get_transactions_by_block(&self, block: u64) -> Result<Vec<Transaction>, Box<dyn Error + Sync + Send>> {
-        let mut transactions = Vec::new();
-        let mut page = 1;
-
-        loop {
-            let block = self.get_block(block, page).await?;
-
-            transactions.extend(map_transactions(self.get_chain(), block.txs));
-
-            if block.total_pages == block.page {
-                break;
-            }
-
-            page += 1;
-        }
-
-        Ok(transactions)
+        Ok(map_transactions(self.get_chain(), self.get_block_transactions(block).await?))
     }
 }
 
