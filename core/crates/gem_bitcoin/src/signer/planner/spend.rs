@@ -73,8 +73,7 @@ impl UtxoPlanner {
         memo_output: Option<PlanOutput>,
         mut spendable_inputs: Vec<PlanInput>,
     ) -> Result<SpendPlan, SignerError> {
-        // Smallest-first so Exact selects the fewest inputs; Max spends all, so sorting just keeps it deterministic.
-        spendable_inputs.sort_by(|left, right| left.value.to_sat().cmp(&right.value.to_sat()).then_with(|| left.previous_output.cmp(&right.previous_output)));
+        spendable_inputs.sort_by(|left, right| right.value.cmp(&left.value).then_with(|| left.previous_output.cmp(&right.previous_output)));
 
         let input_count = spendable_inputs.len();
         let total: u128 = spendable_inputs.iter().map(|input| input.value.to_sat() as u128).sum();
@@ -124,27 +123,24 @@ impl UtxoPlanner {
         selected_amount: u64,
     ) -> Result<Option<SpendPlan>, SignerError> {
         let mut outputs = spend_outputs(value, payment_script.clone(), memo_output.clone());
+        let remainder_after = |fee: u64| selected_amount.checked_sub(value).and_then(|remaining| remaining.checked_sub(fee));
 
-        let mut outputs_with_change = outputs.clone();
-        outputs_with_change.push(PlanOutput::new(0, change_script.clone()));
-
-        let fee_with_change = fee.estimate_fee(selected, &outputs_with_change);
-        let Some(remainder) = selected_amount.checked_sub(value).and_then(|remaining| remaining.checked_sub(fee_with_change)) else {
+        let fee_without_change = fee.estimate_fee(selected, &outputs);
+        let Some(remainder) = remainder_after(fee_without_change) else {
             return Ok(None);
         };
 
-        if remainder >= dust_threshold(chain, change_script) {
-            outputs.push(PlanOutput::new(remainder, change_script.clone()));
+        let mut outputs_with_change = outputs.clone();
+        outputs_with_change.push(PlanOutput::new(0, change_script.clone()));
+        let fee_with_change = fee.estimate_fee(selected, &outputs_with_change);
+        if let Some(change) = remainder_after(fee_with_change).filter(|change| *change >= dust_threshold(chain, change_script)) {
+            outputs.push(PlanOutput::new(change, change_script.clone()));
             return Ok(Some(SpendPlan {
                 inputs: selected.to_vec(),
                 outputs,
                 fee: fee_with_change,
             }));
         }
-        let fee_without_change = fee.estimate_fee(selected, &outputs);
-        let Some(remainder) = selected_amount.checked_sub(value).and_then(|remaining| remaining.checked_sub(fee_without_change)) else {
-            return Ok(None);
-        };
         Ok(Some(SpendPlan {
             inputs: selected.to_vec(),
             outputs,
@@ -158,7 +154,7 @@ mod tests {
     use super::*;
     use crate::testkit::{
         address_mock::{TEST_BITCOIN_P2WPKH_ADDRESS, mock_destination_address, mock_sender_address},
-        planner_mock::{mock_signer_input, mock_signer_input_with, mock_spend_utxos, sum_inputs},
+        planner_mock::{mock_dust_and_large_utxos, mock_signer_input, mock_signer_input_with, mock_spend_utxos, sum_inputs},
         signer_mock::{TEST_UTXO_TXID, mock_funded_transfer_input, mock_transfer_input_with_utxos, mock_utxo_with},
     };
     use num_bigint::BigInt;
@@ -188,22 +184,22 @@ mod tests {
 
     #[test]
     fn test_plan_transfer() {
-        let plan = UtxoPlanner::transfer(BitcoinChain::Bitcoin, &mock_signer_input("12000", false)).unwrap();
+        let plan = UtxoPlanner::transfer(BitcoinChain::Bitcoin, &mock_signer_input("22000", false)).unwrap();
         assert_eq!(plan.inputs.len(), 2);
         assert_eq!(plan.outputs.len(), 3);
-        assert_eq!(plan.outputs[0].value.to_sat(), 12_000);
+        assert_eq!(plan.outputs[0].value.to_sat(), 22_000);
         assert_eq!(plan.outputs[1].value.to_sat(), 0);
         assert!(plan.outputs[1].script_pubkey.is_op_return());
         assert_eq!(sum_inputs(&plan.inputs).unwrap(), plan.outputs.iter().map(|output| output.value.to_sat()).sum::<u64>() + plan.fee);
         assert_eq!(plan.fee, 454);
 
         // Leftover is below P2WPKH change dust (~294), so it is absorbed into the fee.
-        let plan = UtxoPlanner::transfer(BitcoinChain::Bitcoin, &mock_signer_input("9600", false)).unwrap();
+        let plan = UtxoPlanner::transfer(BitcoinChain::Bitcoin, &mock_signer_input("19600", false)).unwrap();
         assert_eq!(plan.inputs.len(), 1);
         assert_eq!(plan.outputs.len(), 2);
-        assert_eq!(plan.outputs[0].value.to_sat(), 9_600);
+        assert_eq!(plan.outputs[0].value.to_sat(), 19_600);
         assert!(plan.outputs[1].script_pubkey.is_op_return());
-        assert_eq!(sum_inputs(&plan.inputs).unwrap(), 9_600 + plan.outputs[1].value.to_sat() + plan.fee);
+        assert_eq!(sum_inputs(&plan.inputs).unwrap(), 19_600 + plan.outputs[1].value.to_sat() + plan.fee);
         assert_eq!(plan.outputs[1].value.to_sat(), 0);
 
         assert_eq!(UtxoPlanner::transfer(BitcoinChain::Bitcoin, &mock_signer_input("50000", false)).unwrap_err(), SignerError::InsufficientFunds);
@@ -235,6 +231,20 @@ mod tests {
     }
 
     #[test]
+    fn test_plan_spends_largest_coins_first() {
+        let fee = VirtualSizeFee::new(200);
+        for (value, outputs, expected_fee) in [("90000", 2, 2_880), ("60000", 2, 2_880), ("97739", 1, 2_261)] {
+            let request = SpendRequest::transfer(BitcoinChain::Bitcoin, &mock_signer_input_with(value, false, None, mock_dust_and_large_utxos())).unwrap();
+            let plan = UtxoPlanner::plan(request.clone(), &fee).unwrap();
+
+            assert_eq!(plan.inputs.iter().map(|input| input.value.to_sat()).collect::<Vec<_>>(), vec![100_000]);
+            assert_eq!(plan.outputs.len(), outputs);
+            assert_eq!(plan.fee, expected_fee);
+            assert_eq!(UtxoPlanner::fee(request, &fee).unwrap(), expected_fee);
+        }
+    }
+
+    #[test]
     fn test_fee_without_utxos_prices_a_single_input_send() {
         for chain in [BitcoinChain::Bitcoin, BitcoinChain::Doge] {
             let input = mock_funded_transfer_input(chain);
@@ -257,13 +267,13 @@ mod tests {
 
     #[test]
     fn test_plan_absorbs_sub_dust_change_into_fee() {
-        let input = mock_signer_input("9600", false);
+        let input = mock_signer_input("19600", false);
         let change_script = script_for_address(BitcoinChain::Bitcoin, &input.sender_address).unwrap().script_pubkey;
         let plan = UtxoPlanner::transfer(BitcoinChain::Bitcoin, &input).unwrap();
         let fee = VirtualSizeFee::for_input(BitcoinChain::Bitcoin, &input).unwrap();
 
         assert_eq!(plan.outputs.len(), 2);
-        assert_eq!(plan.outputs[0].value.to_sat(), 9_600);
+        assert_eq!(plan.outputs[0].value.to_sat(), 19_600);
         assert!(plan.outputs[1].script_pubkey.is_op_return());
 
         let selected_amount = sum_inputs(&plan.inputs).unwrap();
