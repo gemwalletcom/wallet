@@ -10,7 +10,7 @@ use super::PlanOutput;
 const MAX_OP_RETURN_BYTES: usize = 80;
 
 // OP_RETURN is placed at output index 1 (after the destination): required by Chainflip's
-// vault-swap scanner, accepted by Thorchain which scans all outputs.
+// vault-swap scanner, accepted by THORChain which scans all outputs.
 pub(super) fn spend_outputs(amount: u64, payment_script: ScriptBuf, memo_output: Option<PlanOutput>) -> Vec<PlanOutput> {
     let mut outputs = vec![PlanOutput::new(amount, payment_script)];
     if let Some(output) = memo_output {

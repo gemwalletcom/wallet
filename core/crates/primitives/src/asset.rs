@@ -36,7 +36,7 @@ impl ChainAsset {
             Chain::Polygon => ChainAsset::new(chain, "Polygon", "POL", 18),
             Chain::AvalancheC => ChainAsset::new(chain, "Avalanche", "AVAX", 18),
             Chain::Solana => ChainAsset::new(chain, "Solana", "SOL", 9),
-            Chain::Thorchain => ChainAsset::new(chain, "Thorchain", "RUNE", 8),
+            Chain::Thorchain => ChainAsset::new(chain, "THORChain", "RUNE", 8),
             Chain::Mayachain => ChainAsset::new(chain, "Maya", "CACAO", 10),
             Chain::Cosmos => ChainAsset::new(chain, "Cosmos", "ATOM", 6),
             Chain::Osmosis => ChainAsset::new(chain, "Osmosis", "OSMO", 6),
