@@ -20,6 +20,8 @@ Use when writing or changing any Core test, fixture, or integration test gate.
 
 A response body a test feeds in (Gem API, RPC, WebSocket), and any other JSON longer than about 20 lines, lives in the owning crate's `testdata/` and loads with `include_str!`, never as an inline string const; never embed request, response, or transaction JSON with `serde_json::json!` in test files. Only a body built with `format!` from test values, or a one-line stub of a field or two such as `{"balance":"1000"}`, stays at the call site. A file read in one place is `include_str!` at that call; a `const` holds it only when it is read in several places. Per-crate layout is `src/`, `tests/`, `testdata/`.
 
+A live response saved as a fixture keeps only the fields the model deserializes (required ones included) and the code reads, with their real values; drop logs, rewards, headers and other unread fields, even when sibling fixtures keep the raw response. Rerun the tests to prove the trimmed file still decodes and maps the same.
+
 ## Testkit Mocks
 
 A mock exists once, beside its type, so every test reuses it instead of rebuilding the value.

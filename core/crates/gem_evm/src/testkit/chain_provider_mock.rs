@@ -6,7 +6,7 @@ use primitives::{AssetBalance, AssetId, Chain, Transaction, TransactionFee, Tran
 
 use crate::rpc::parsers::{ParseContext, ProtocolParser, TransactionParser};
 use crate::rpc::{EvmFeeCalculator, EvmStakingClient};
-use crate::transaction_params::TransactionParams;
+use crate::transaction_params::TransactionCalls;
 
 pub struct MockChainProvider;
 
@@ -39,7 +39,7 @@ impl EvmStakingClient for MockChainProvider {
 
 #[async_trait]
 impl EvmFeeCalculator for MockChainProvider {
-    async fn calculate_fee(&self, _input: &TransactionLoadInput, _params: &TransactionParams, _gas_limit: &BigInt) -> Result<TransactionFee, Box<dyn Error + Sync + Send>> {
+    async fn calculate_fee(&self, _input: &TransactionLoadInput, _calls: &TransactionCalls, _gas_limit: &BigInt) -> Result<TransactionFee, Box<dyn Error + Sync + Send>> {
         Err("MockChainProvider does not calculate fees".into())
     }
 }

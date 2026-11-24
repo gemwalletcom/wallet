@@ -24,7 +24,16 @@
           "recipient",
           "11111111111111111111111111111111"
         ],
-        "instructions": []
+        "instructions": [
+          {
+            "programIdIndex": 2,
+            "accounts": [
+              0,
+              1
+            ],
+            "data": "3Bxs4ffTu9T19DNF"
+          }
+        ]
       },
       "signatures": [
         "signature"

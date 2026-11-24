@@ -68,7 +68,7 @@ impl Swapper for Deepbook {
             .map_err(SwapperError::transaction_error)?;
         let referral_fee = quote.request.on_chain_referral_fee();
 
-        sui_swap::build_quote_data(&self.sui_client, |gas_budget| {
+        sui_swap::build_quote_data(&self.sui_client, transaction.gas_coin_total, |gas_budget| {
             tx_builder::build_swap_transaction(quote, &route, &referral_fee, &transaction.with_gas_budget(gas_budget), &input_coins)
         })
         .await

@@ -1,0 +1,53 @@
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "blockTime": 1795291875,
+    "slot": 472268161,
+    "meta": {
+      "err": null,
+      "fee": 5000,
+      "preBalances": [
+        97480000,
+        692108,
+        1,
+        0
+      ],
+      "postBalances": [
+        96975000,
+        1192108,
+        1,
+        0
+      ],
+      "preTokenBalances": [],
+      "postTokenBalances": [],
+      "loadedAddresses": {
+        "readonly": [],
+        "writable": []
+      }
+    },
+    "transaction": {
+      "signatures": [
+        "4rfMPzroYf5KFvoPUGmHPsSQPAG117YivLSs7snwTHahyZzS87RFeV6kxevBsMWJUdVyjK8Lh14TK1fe1CP4fZuW"
+      ],
+      "message": {
+        "accountKeys": [
+          "4dkNBGW4TSyUhZCQcTQ8ti3fzvvmbtkEZAQx4vHAKwLu",
+          "ADuUkR4vqLUMWXxW9gh6D6L8pMSawimctcNZ5pGwDcEt",
+          "11111111111111111111111111111111",
+          "5shpsaS5Rfe8yKqZPP3kXh4sNgopuGDM6yRJabaSu1aw"
+        ],
+        "instructions": [
+          {
+            "programIdIndex": 2,
+            "accounts": [
+              0,
+              1
+            ],
+            "data": "3Bxs46KChmhFZqno"
+          }
+        ]
+      }
+    }
+  }
+}

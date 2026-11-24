@@ -57,11 +57,11 @@ impl TransactionParser<ParseContext<'_>, Transaction> for RelayParser {
 }
 
 fn is_relay_instruction(context: &ParseContext<'_>, instruction: &Instruction) -> bool {
-    context.transaction.account_key(instruction.program_id_index).is_some_and(|key| RELAY_PROGRAMS.contains(&key.as_str()))
+    context.transaction.instruction_program(instruction).is_some_and(|program| RELAY_PROGRAMS.contains(&program))
 }
 
 fn decode_instruction(context: &ParseContext<'_>, instruction: &Instruction) -> Option<DecodedDeposit> {
-    match context.transaction.account_key(instruction.program_id_index)?.as_str() {
+    match context.transaction.instruction_program(instruction)? {
         RELAY_DEPOSITORY_PROGRAM_ID => decode_deposit(context, instruction),
         RELAY_FORWARDER_PROGRAM_ID => decode_forward(context, instruction),
         _ => None,
@@ -72,7 +72,7 @@ fn decode_deposit(context: &ParseContext<'_>, instruction: &Instruction) -> Opti
     let data = decode_base58(&instruction.data).ok()?;
     let discriminator = data.get(..DEPOSIT_NATIVE_DISCRIMINATOR.len())?;
     let arguments = DepositArguments::try_from_slice(data.get(DEPOSIT_NATIVE_DISCRIMINATOR.len()..)?).ok()?;
-    let account = |position: usize| context.transaction.account_key(*instruction.accounts.get(position)? as usize).cloned();
+    let account = |position: usize| context.transaction.instruction_account(instruction, position).cloned();
     let sender = account(SENDER_ACCOUNT_INDEX)?;
     let asset_id = if discriminator == DEPOSIT_NATIVE_DISCRIMINATOR {
         Chain::Solana.as_asset_id()
@@ -98,7 +98,7 @@ fn decode_forward(context: &ParseContext<'_>, instruction: &Instruction) -> Opti
     if *discriminator != FORWARD_TOKEN_DISCRIMINATOR || id.len() != 32 {
         return None;
     }
-    let sender = context.transaction.account_key(*instruction.accounts.get(FORWARDER_SENDER_ACCOUNT_INDEX)? as usize)?.clone();
+    let sender = context.transaction.instruction_account(instruction, FORWARDER_SENDER_ACCOUNT_INDEX)?.clone();
     let spent = spent_balance_change(context.transaction, &sender)?;
 
     Some(DecodedDeposit {

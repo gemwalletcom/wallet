@@ -2,7 +2,6 @@ use std::error::Error;
 
 use job_runner::{JobHandle, ShutdownReceiver};
 use prices::{FiatRatesProviderConfig, build_fiat_rates_providers};
-use primitives::FiatProviderName;
 
 use crate::model::WorkerService;
 use crate::worker::context::WorkerContext;
@@ -13,6 +12,7 @@ pub async fn jobs(context: WorkerContext, shutdown: ShutdownReceiver) -> Result<
     let settings = services.settings();
     let config = services.config();
     let fiat = services.fiat_jobs().await?;
+    let fiat_providers = fiat.enabled_providers().to_vec();
     let providers = build_fiat_rates_providers(&FiatRatesProviderConfig {
         coingecko: settings.coingecko.remote_provider_config(),
         coinmarketcap: settings.coinmarketcap.remote_provider_config(),
@@ -28,14 +28,14 @@ pub async fn jobs(context: WorkerContext, shutdown: ShutdownReceiver) -> Result<
                 async move { updater.update().await }
             }
         })
-        .jobs(WorkerJob::UpdateFiatAssets, FiatProviderName::all(), |provider, _| {
+        .jobs(WorkerJob::UpdateFiatAssets, fiat_providers.clone(), |provider, _| {
             let fiat = fiat.clone();
             move |_| {
                 let updater = fiat.assets_updater();
                 async move { updater.update_fiat_assets_for(provider).await }
             }
         })
-        .jobs(WorkerJob::UpdateFiatProviderCountries, FiatProviderName::all(), |provider, _| {
+        .jobs(WorkerJob::UpdateFiatProviderCountries, fiat_providers, |provider, _| {
             let fiat = fiat.clone();
             move |_| {
                 let updater = fiat.assets_updater();

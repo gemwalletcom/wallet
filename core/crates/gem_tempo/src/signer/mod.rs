@@ -5,7 +5,7 @@ use std::str::FromStr;
 
 use alloy_primitives::Address;
 use gem_evm::encode::{encode_erc20_approve_max_value, encode_erc20_transfer};
-use gem_evm::signer::{EvmChainSigner, TransactionParams};
+use gem_evm::signer::EvmChainSigner;
 use num_bigint::BigUint;
 use primitives::{Chain, ChainSigner, SignerError, SignerInput, decode_hex, swap::SwapQuoteDataType};
 
@@ -63,13 +63,12 @@ impl ChainSigner for TempoSigner {
 }
 
 fn sign_calls(input: &SignerInput, calls: Vec<TransactionCall>, gas_limit: u64, private_key: &[u8]) -> Result<String, SignerError> {
-    let params = TransactionParams::from_input(input)?;
     let transaction = TempoTransaction {
-        chain_id: params.chain_id,
-        max_priority_fee_per_gas: params.max_priority_fee_per_gas,
-        max_fee_per_gas: params.max_fee_per_gas,
+        chain_id: input.metadata.get_chain_id_u64()?,
+        max_priority_fee_per_gas: input.fee.priority_fee_u64()?.into(),
+        max_fee_per_gas: input.fee.gas_price_u64()?.into(),
         gas_limit,
-        nonce: params.nonce,
+        nonce: input.metadata.get_sequence()?,
         fee_token: get_fee_token(input)?,
         calls,
     };

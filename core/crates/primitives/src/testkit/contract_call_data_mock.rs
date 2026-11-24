@@ -1,5 +1,6 @@
 use super::signer_mock::TEST_EVM_RECIPIENT;
 use crate::contract_call_data::ContractCallData;
+use crate::{Asset, DelegationValidator, EarnType, TransactionInputType};
 
 impl ContractCallData {
     pub fn mock() -> Self {
@@ -15,6 +16,16 @@ impl ContractCallData {
         ContractCallData {
             call_data: call_data.to_string(),
             ..Self::mock()
+        }
+    }
+}
+
+impl TransactionInputType {
+    pub fn mock_earn(data: ContractCallData) -> Self {
+        Self::Earn {
+            asset: Asset::mock_erc20(),
+            earn_type: EarnType::Deposit(DelegationValidator::mock()),
+            data,
         }
     }
 }

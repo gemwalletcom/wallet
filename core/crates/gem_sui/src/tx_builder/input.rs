@@ -14,6 +14,7 @@ pub struct TransactionBuilderInput {
     pub gas_budget: u64,
     pub gas_objects: Vec<ObjectInput>,
     pub address_balance: u64,
+    pub gas_coin_total: Option<u64>,
 }
 
 impl TransactionBuilderInput {
@@ -24,6 +25,7 @@ impl TransactionBuilderInput {
             gas_budget,
             gas_objects,
             address_balance: 0,
+            gas_coin_total: None,
         }
     }
 
@@ -50,6 +52,7 @@ impl TransactionBuilderInput {
 
         Ok(Self {
             address_balance: gas_coins.address_balance,
+            gas_coin_total: Some(gas_coins.coin_total()),
             ..Self::new(sender, gas_price, gas_budget, gas_objects)
         })
     }

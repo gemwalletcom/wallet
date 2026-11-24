@@ -11,7 +11,6 @@ use super::{
 use crate::{
     ESTIMATION_GAS_BUDGET, SuiClient, SuiError,
     address::SuiAddress,
-    gas_budget::GAS_BUDGET_MULTIPLIER,
     models::{Coin, TxOutput},
     tx_builder::{TransactionBuilderInput, decode_transaction, finish_transaction},
     types::{Address, ObjectInput, Transaction},
@@ -24,9 +23,12 @@ pub async fn finish_transaction_json(client: &SuiClient, transaction_json: &str,
 
     let gas_data = transaction.gas_data.clone().unwrap_or_default();
     let replay = prepare_replay(client, transaction).await?;
-    let (gas_price, gas_objects) = try_join!(gas_price(client, &gas_data), gas_objects(client, &replay, &gas_data, sender))?;
+    let (gas_price, (gas_objects, gas_coin_total)) = try_join!(gas_price(client, &gas_data), gas_payment(client, &replay, &gas_data, sender))?;
 
-    let builder_input = TransactionBuilderInput::new(sender, gas_price, ESTIMATION_GAS_BUDGET, gas_objects);
+    let builder_input = TransactionBuilderInput {
+        gas_coin_total,
+        ..TransactionBuilderInput::new(sender, gas_price, ESTIMATION_GAS_BUDGET, gas_objects)
+    };
     let budget = match gas_data.budget {
         Some(budget) => budget,
         None => estimate_gas_budget(client, &replay, &builder_input).await?,
@@ -71,20 +73,20 @@ async fn gas_price(client: &SuiClient, gas_data: &GasData) -> Result<u64, SuiErr
     }
 }
 
-async fn gas_objects(client: &SuiClient, replay: &TransactionJsonReplay, gas_data: &GasData, sender: &str) -> Result<Vec<ObjectInput>, SuiError> {
+async fn gas_payment(client: &SuiClient, replay: &TransactionJsonReplay, gas_data: &GasData, sender: &str) -> Result<(Vec<ObjectInput>, Option<u64>), SuiError> {
     if let Some(payment) = gas_data.payment.as_deref()
         && !payment.is_empty()
     {
-        return payment.iter().map(payment_object).collect();
+        return Ok((payment.iter().map(payment_object).collect::<Result<_, _>>()?, None));
     }
 
-    let coins = client.get_gas_coins(sender).await.map_err(SuiError::from_display)?;
+    let mut coins = client.get_gas_coins(sender).await.map_err(SuiError::from_display)?;
     let input_objects = input_object_ids(&replay.transaction.inputs)?;
-    let gas_objects = coins.coins.iter().filter(|coin| !input_objects.contains(&coin.object.object_id)).map(Coin::to_input).collect::<Vec<_>>();
-    if gas_objects.is_empty() {
+    coins.coins.retain(|coin| !input_objects.contains(&coin.object.object_id));
+    if coins.coins.is_empty() {
         return Err(SuiError::NoGasCoins);
     }
-    Ok(gas_objects)
+    Ok((coins.coins.iter().map(Coin::to_input).collect(), Some(coins.coin_total())))
 }
 
 fn payment_object(object: &ObjectRef) -> Result<ObjectInput, SuiError> {
@@ -106,9 +108,11 @@ fn input_object_ids(inputs: &[TransactionInput]) -> Result<HashSet<Address>, Sui
 
 async fn estimate_gas_budget(client: &SuiClient, replay: &TransactionJsonReplay, builder_input: &TransactionBuilderInput) -> Result<u64, SuiError> {
     let estimate = finish_transaction(replay.replay()?.txb, builder_input.clone())?;
-    let dry_run = client.dry_run(estimate.base64_encoded()).await.map_err(|err| SuiError::invalid_input(format!("Sui gas estimation failed: {err}")))?;
-    let fee = dry_run.effects.gas_used.calculate_gas_budget().map_err(SuiError::from_display)?;
-    Ok(fee * GAS_BUDGET_MULTIPLIER / 100)
+    let gas = client
+        .estimate_gas(&estimate.base64_encoded(), builder_input.gas_coin_total)
+        .await
+        .map_err(|err| SuiError::invalid_input(format!("Sui gas estimation failed: {err}")))?;
+    Ok(gas.budget)
 }
 
 #[cfg(test)]
@@ -142,17 +146,24 @@ mod tests {
 #[cfg(all(test, feature = "chain_integration_tests"))]
 mod chain_integration_tests {
     use super::*;
-    use crate::provider::testkit::{TEST_ADDRESS, create_sui_test_client};
+    use crate::provider::testkit::{TEST_ADDRESS, TEST_ADDRESS_SMALL_GAS_BALANCE, create_sui_test_client};
     use gem_encoding::encode_base64;
     use std::str::FromStr;
 
     #[tokio::test]
     async fn test_finish_transaction_json() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+        for sender in [TEST_ADDRESS, TEST_ADDRESS_SMALL_GAS_BALANCE] {
+            assert_finish_transaction_json(sender).await?;
+        }
+        Ok(())
+    }
+
+    async fn assert_finish_transaction_json(sender: &str) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let client = create_sui_test_client();
-        let recipient = encode_base64(&bcs::to_bytes(&Address::from_str(TEST_ADDRESS)?)?);
+        let recipient = encode_base64(&bcs::to_bytes(&Address::from_str(sender)?)?);
         let transaction_json = serde_json::json!({
             "version": 2,
-            "sender": TEST_ADDRESS,
+            "sender": sender,
             "expiration": null,
             "gasData": { "budget": null, "price": null, "owner": null, "payment": null },
             "inputs": [
@@ -168,10 +179,10 @@ mod chain_integration_tests {
         })
         .to_string();
 
-        let output = finish_transaction_json(&client, &transaction_json, TEST_ADDRESS).await?;
+        let output = finish_transaction_json(&client, &transaction_json, sender).await?;
 
         let transaction: Transaction = bcs::from_bytes(&output.tx_data)?;
-        assert_eq!(transaction.sender.to_string(), TEST_ADDRESS);
+        assert_eq!(transaction.sender.to_string(), sender);
         assert!(!transaction.gas_payment.objects.is_empty());
         assert!(transaction.gas_payment.budget > 0);
         assert!(transaction.gas_payment.price > 0);

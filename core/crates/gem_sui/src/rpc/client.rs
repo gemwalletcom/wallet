@@ -14,11 +14,12 @@ use super::proto::{
     GetServiceInfoRequest, GetServiceInfoResponse, GetTransactionRequest, GetTransactionResponse, ListBalancesRequest, ListBalancesResponse, ListOwnedObjectsRequest, ListOwnedObjectsResponse, SimulateTransactionRequest,
     SimulateTransactionResponse, Transaction as GrpcTransaction, TransactionChecks, UserSignature as GrpcUserSignature, WithMut,
 };
-use crate::models::transaction::{SuiBroadcastTransaction, SuiTransaction};
+use crate::models::transaction::{GasEstimate, SuiBroadcastTransaction, SuiTransaction};
 use crate::models::{Balance, Checkpoint, Coin, Digest, InspectResult, Object, OwnedCoins, SuiCoinMetadata, SuiObject, TransactionBlocks};
 use crate::types::{Address, Digest as SuiDigest, GasPayment, Transaction, TransactionKind, UserSignature};
 use crate::{
-    SUI_COIN_TYPE, SUI_COIN_TYPE_FULL,
+    ESTIMATION_GAS_BUDGET, SUI_COIN_TYPE, SUI_COIN_TYPE_FULL,
+    gas_budget::GAS_BUDGET_MULTIPLIER,
     tx_builder::gas::{GasReservationContext, requires_address_balance_reservation, reserve_address_balance},
 };
 
@@ -246,6 +247,19 @@ impl SuiClient {
 
     pub async fn dry_run(&self, tx_data: String) -> Result<SuiTransaction, Box<dyn Error + Send + Sync>> {
         self.simulate_gas(decode_transaction_base64(&tx_data)?).await
+    }
+
+    pub async fn estimate_gas(&self, tx_data: &str, gas_coin_total: Option<u64>) -> Result<GasEstimate, Box<dyn Error + Send + Sync>> {
+        let simulation = match gas_coin_total {
+            Some(total) if total < ESTIMATION_GAS_BUDGET => self.dry_run_without_gas_coins(tx_data).await?,
+            _ => self.dry_run(tx_data.to_string()).await?,
+        };
+        let fee = simulation.effects.gas_used.calculate_gas_budget()?;
+        Ok(GasEstimate {
+            fee,
+            budget: fee * GAS_BUDGET_MULTIPLIER / 100,
+            status: simulation.effects.status,
+        })
     }
 
     pub(crate) async fn dry_run_without_gas_coins(&self, tx_data: &str) -> Result<SuiTransaction, Box<dyn Error + Send + Sync>> {

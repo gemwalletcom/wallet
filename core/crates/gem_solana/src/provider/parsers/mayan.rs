@@ -22,7 +22,7 @@ impl TransactionParser<ParseContext<'_>, Transaction> for MayanParser {
 
     fn parse(&self, context: &ParseContext<'_>) -> Option<Transaction> {
         let instruction = context.transaction.transaction.message.instructions.iter().find(|instruction| is_init_order(context, instruction))?;
-        let trader = instruction.accounts.get(TRADER_ACCOUNT_INDEX).and_then(|index| context.transaction.account_key(*index as usize))?.clone();
+        let trader = context.transaction.instruction_account(instruction, TRADER_ACCOUNT_INDEX)?.clone();
         let (asset_id, value) = source_debit(context, instruction, &trader)?;
 
         context.make_swap_transaction(trader, MAYAN_CPI_PROXY_PROGRAM_ID, asset_id, value)
@@ -30,10 +30,10 @@ impl TransactionParser<ParseContext<'_>, Transaction> for MayanParser {
 }
 
 fn is_init_order(context: &ParseContext<'_>, instruction: &Instruction) -> bool {
-    if context.transaction.account_key(instruction.program_id_index).map(String::as_str) != Some(MAYAN_CPI_PROXY_PROGRAM_ID) {
+    if context.transaction.instruction_program(instruction) != Some(MAYAN_CPI_PROXY_PROGRAM_ID) {
         return false;
     }
-    if instruction.accounts.get(SWIFT_PROGRAM_ACCOUNT_INDEX).and_then(|index| context.transaction.account_key(*index as usize)).map(String::as_str) != Some(MAYAN_SWIFT_V2_PROGRAM_ID) {
+    if context.transaction.instruction_account(instruction, SWIFT_PROGRAM_ACCOUNT_INDEX).map(String::as_str) != Some(MAYAN_SWIFT_V2_PROGRAM_ID) {
         return false;
     }
 

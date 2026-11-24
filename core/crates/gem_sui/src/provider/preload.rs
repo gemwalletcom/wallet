@@ -10,7 +10,6 @@ use primitives::{AssetId, Chain, FeeRate, GasPriceType, StakeType, TransactionFe
 
 use crate::{
     constants::{ESTIMATION_GAS_BUDGET, SWAP_GAS_UNITS, TOKEN_TRANSFER_GAS_UNITS, TRANSFER_GAS_UNITS},
-    gas_budget::GAS_BUDGET_MULTIPLIER,
     models::{Coin, OwnedCoins, SuiObject},
 };
 use crate::{
@@ -127,18 +126,13 @@ impl SuiClient {
 
     async fn estimate_fee(&self, tx_data: &str, gas_price: &GasPriceType, gas_coins: &OwnedCoins<Coin>) -> Result<TransactionFee, Box<dyn Error + Send + Sync>> {
         let tx_data_only = tx_data.split('_').next().unwrap_or(tx_data);
-        let result = if gas_coins.coins.is_empty() || gas_coins.coin_total() >= ESTIMATION_GAS_BUDGET {
-            self.dry_run(tx_data_only.to_string()).await?
-        } else {
-            self.dry_run_without_gas_coins(tx_data_only).await?
-        };
-        let fee = result.effects.gas_used.calculate_gas_budget()?;
-        let gas_limit = fee * GAS_BUDGET_MULTIPLIER / 100;
+        let gas_coin_total = (!gas_coins.coins.is_empty()).then(|| gas_coins.coin_total());
+        let estimate = self.estimate_gas(tx_data_only, gas_coin_total).await?;
 
         Ok(TransactionFee {
-            fee: BigInt::from(fee),
+            fee: BigInt::from(estimate.fee),
             gas_price_type: gas_price.clone(),
-            gas_limit: BigInt::from(gas_limit),
+            gas_limit: BigInt::from(estimate.budget),
             options: HashMap::new(),
             fee_asset: AssetId::from_chain(Chain::Sui),
         })
