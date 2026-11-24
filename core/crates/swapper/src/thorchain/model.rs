@@ -79,18 +79,11 @@ pub struct TransactionCoin {
 
 impl TransactionCoin {
     pub fn native_value(&self) -> Option<BigUint> {
-        let decimals = self.decimals.or_else(|| self.asset_decimals())?;
+        let decimals = match self.decimals {
+            Some(decimals) => decimals,
+            None => THORChainAsset::from_id(&self.asset_id()?)?.decimals,
+        };
         Some(value_to(&self.amount, decimals).magnitude().clone())
-    }
-
-    fn asset_decimals(&self) -> Option<u32> {
-        let asset_id = self.asset_id()?;
-        if asset_id.token_id.is_none() {
-            return Some(Asset::from_chain(asset_id.chain).decimals);
-        }
-        let (chain_symbol, _) = self.asset.split_once('.')?;
-        let chain_name = ChainName::from_symbol(chain_symbol)?;
-        chain_name.token_assets().into_iter().find(|asset| asset.id == asset_id).map(|asset| asset.decimals)
     }
 
     pub fn asset_id(&self) -> Option<AssetId> {
