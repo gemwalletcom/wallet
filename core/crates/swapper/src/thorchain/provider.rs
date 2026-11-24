@@ -196,7 +196,7 @@ where
             }
         };
 
-        quote_data_mapper::map_quote_data(&from_asset, &route_data, quote.request.from_asset.asset_id().token_id, value, memo, approval)
+        quote_data_mapper::map_quote_data(&from_asset, &route_data, value, memo, approval)
     }
 
     async fn get_swap_result(&self, request: &SwapResultRequest) -> Result<SwapResult, SwapperError> {

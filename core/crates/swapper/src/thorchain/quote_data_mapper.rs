@@ -13,14 +13,14 @@ use crate::{SwapperError, SwapperQuoteData, approval::get_swap_gas_limit_with_ap
 
 const EXPIRY_SECONDS: u64 = 86400;
 
-pub fn map_quote_data(from_asset: &THORChainAsset, route_data: &RouteData, token_id: Option<String>, value: BigUint, memo: String, approval: Option<ApprovalData>) -> Result<SwapperQuoteData, SwapperError> {
+pub fn map_quote_data(from_asset: &THORChainAsset, route_data: &RouteData, value: BigUint, memo: String, approval: Option<ApprovalData>) -> Result<SwapperQuoteData, SwapperError> {
     let gas_limit = get_swap_gas_limit_with_approval(&approval, None, deposit_gas_limit(&memo));
 
     if from_asset.use_evm_router() {
-        let router_address = route_data.router_address.clone().unwrap_or_default();
+        let router_address = route_data.router_address.clone().ok_or(SwapperError::InvalidRoute)?;
         let inbound_address = Address::from_str(&route_data.inbound_address).map_err(|_| SwapperError::InvalidRoute)?;
-        let token_id = token_id.ok_or(SwapperError::NotSupportedAsset)?;
-        let token_address = Address::from_str(&token_id).map_err(|_| SwapperError::NotSupportedAsset)?;
+        let token_id = from_asset.token_id.as_deref().ok_or(SwapperError::NotSupportedAsset)?;
+        let token_address = Address::from_str(token_id).map_err(|_| SwapperError::NotSupportedAsset)?;
         let amount = U256::from_str(&value.to_string()).map_err(SwapperError::transaction_error)?;
         let timestamp = SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or_default().as_secs() + EXPIRY_SECONDS;
         let expiry = U256::from(timestamp);
@@ -62,7 +62,6 @@ mod tests {
                 router_address: Some("0xD37BbE5744D730a1d98d8DC97c42F0Ca46aD7146".to_string()),
                 inbound_address: inbound_address.to_string(),
             },
-            Some(usdc_eth.clone()),
             BigUint::from(1234567u64),
             memo.to_string(),
             None,
@@ -85,6 +84,20 @@ mod tests {
     }
 
     #[test]
+    fn evm_router_requires_router_address() {
+        let usdc = THORChainAsset {
+            token_id: Some(ETHEREUM_USDC_TOKEN_ID.to_string()),
+            ..THORChainAsset::mock(Chain::Ethereum)
+        };
+        let route_data = RouteData {
+            router_address: None,
+            inbound_address: "0x1234567890123456789012345678901234567890".to_string(),
+        };
+
+        assert_eq!(map_quote_data(&usdc, &route_data, BigUint::from(1000u64), "memo".to_string(), None).unwrap_err(), SwapperError::InvalidRoute);
+    }
+
+    #[test]
     fn evm_native() {
         let result = map_quote_data(
             &THORChainAsset::mock(Chain::Ethereum),
@@ -92,7 +105,6 @@ mod tests {
                 router_address: Some("0xrouter".to_string()),
                 inbound_address: "0xinbound".to_string(),
             },
-            None,
             BigUint::from(1000u64),
             "memo".to_string(),
             None,
@@ -114,7 +126,6 @@ mod tests {
                 router_address: None,
                 inbound_address: "bc1q".to_string(),
             },
-            None,
             BigUint::from(1_000u64),
             "memo".to_string(),
             None,
@@ -136,7 +147,6 @@ mod tests {
                 router_address: None,
                 inbound_address: "t1Ku2KLyndDPsR32jwnrTMd3yvi9tfFP8ML".to_string(),
             },
-            None,
             BigUint::from(10000000u64),
             "=:b:bc1qdestination:0/1/0:g1:50".to_string(),
             None,
@@ -164,7 +174,6 @@ mod tests {
                 router_address: Some("0xD37BbE5744D730a1d98d8DC97c42F0Ca46aD7146".to_string()),
                 inbound_address: "0x1234567890123456789012345678901234567890".to_string(),
             },
-            Some(usdc_eth),
             BigUint::from(1000000u64),
             "memo".to_string(),
             approval.clone(),
@@ -195,7 +204,6 @@ mod tests {
                 router_address: Some("0xrouter".to_string()),
                 inbound_address: "0xinbound".to_string(),
             },
-            None,
             BigUint::from(1000u64),
             "memo".to_string(),
             None,
