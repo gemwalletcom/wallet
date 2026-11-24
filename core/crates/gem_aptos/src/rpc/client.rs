@@ -1,7 +1,6 @@
 use primitives::unix_timestamp;
 use std::error::Error;
 use std::str::FromStr;
-use std::sync::Mutex;
 
 use gem_client::{Client, ClientExt};
 use num_bigint::BigUint;
@@ -15,26 +14,21 @@ use crate::models::{
     ViewRequest,
 };
 use crate::provider::payload_builder::build_swap_transaction_payload;
+use crate::provider::transactions_mapper::map_block_range_transactions;
 use crate::rpc::target::AptosTarget;
 use crate::signer::{build_delegation_pool_transaction_payload, build_token_transfer_transaction_payload, build_transfer_transaction_payload};
-use crate::{BLOCK_METADATA_TRANSACTION_TYPE, DEFAULT_MAX_GAS_AMOUNT, DEFAULT_SWAP_MAX_GAS_AMOUNT, GAS_LIMIT_MULTIPLIER, SIMULATION_MAX_GAS_AMOUNT, TRANSACTIONS_PAGE_LIMIT};
+use crate::{DEFAULT_MAX_GAS_AMOUNT, DEFAULT_SWAP_MAX_GAS_AMOUNT, GAS_LIMIT_MULTIPLIER, SIMULATION_MAX_GAS_AMOUNT, TRANSACTIONS_PAGE_LIMIT};
 
 #[derive(Debug)]
 pub struct AptosClient<C: Client> {
     client: C,
     pub chain: Chain,
     archive: Option<C>,
-    next_block_version: Mutex<Option<(u64, u64)>>,
 }
 
 impl<C: Client> AptosClient<C> {
     pub fn new(client: C) -> Self {
-        Self {
-            client,
-            chain: Chain::Aptos,
-            archive: None,
-            next_block_version: Mutex::new(None),
-        }
+        Self { client, chain: Chain::Aptos, archive: None }
     }
 
     pub fn with_archive(self, archive: C) -> Self {
@@ -66,47 +60,14 @@ impl<C: Client> AptosClient<C> {
     }
 
     pub async fn get_block_range_transactions(&self, first_block: u64, last_block: u64) -> Result<Vec<Vec<Transaction>>, Box<dyn Error + Send + Sync>> {
-        let result = self.fetch_block_range_transactions(first_block, last_block).await;
-        *self.next_block_version.lock().unwrap() = result.as_ref().ok().map(|(_, next_version)| (last_block + 1, *next_version));
-        result.map(|(blocks, _)| blocks)
-    }
-
-    async fn fetch_block_range_transactions(&self, first_block: u64, last_block: u64) -> Result<(Vec<Vec<Transaction>>, u64), Box<dyn Error + Send + Sync>> {
-        let cached_version = self.next_block_version.lock().unwrap().filter(|(block, _)| *block == first_block).map(|(_, version)| version);
-        let (first_version, last_version, first_page) = match cached_version {
-            Some(first_version) => {
-                let (last_header, page) = futures::try_join!(self.get_block_header(last_block), self.get_transactions(first_version, TRANSACTIONS_PAGE_LIMIT))?;
-                (first_version, last_header.last_version, page)
-            }
-            None => {
-                let (first_header, last_header) = futures::try_join!(self.get_block_header(first_block), self.get_block_header(last_block))?;
-                (first_header.first_version, last_header.last_version, Vec::new())
-            }
-        };
-        let next_start = first_version + first_page.len() as u64;
+        let (first, last) = futures::try_join!(self.get_block_header(first_block), self.get_block_header(last_block))?;
         let pages = futures::future::try_join_all(
-            (next_start..=last_version)
+            (first.first_version..=last.last_version)
                 .step_by(TRANSACTIONS_PAGE_LIMIT as usize)
-                .map(|start| self.get_transactions(start, TRANSACTIONS_PAGE_LIMIT.min(last_version - start + 1))),
+                .map(|start| self.get_transactions(start, TRANSACTIONS_PAGE_LIMIT.min(last.last_version + 1 - start))),
         )
         .await?;
-        let transactions = first_page.into_iter().chain(pages.into_iter().flatten()).take((last_version + 1 - first_version) as usize).collect::<Vec<_>>();
-        if transactions.len() as u64 != last_version + 1 - first_version || !transactions.iter().zip(first_version..).all(|(transaction, version)| transaction.version == Some(version)) {
-            return Err(format!("Aptos versions {first_version}..={last_version} returned out of order or incomplete").into());
-        }
-
-        let mut blocks: Vec<Vec<Transaction>> = Vec::new();
-        for transaction in transactions {
-            if transaction.transaction_type.as_deref() == Some(BLOCK_METADATA_TRANSACTION_TYPE) {
-                blocks.push(Vec::new());
-            }
-            blocks.last_mut().ok_or("Aptos block range does not start with block metadata")?.push(transaction);
-        }
-        let expected = last_block + 1 - first_block;
-        if blocks.len() as u64 != expected {
-            return Err(format!("Aptos versions {first_version}..={last_version} hold {} blocks, expected {expected}", blocks.len()).into());
-        }
-        Ok((blocks, last_version + 1))
+        map_block_range_transactions(pages.into_iter().flatten().collect(), last.last_version + 1 - first.first_version, last_block + 1 - first_block)
     }
 
     pub async fn get_transactions_by_address(&self, address: String) -> Result<Vec<Transaction>, Box<dyn Error + Send + Sync>> {
@@ -262,127 +223,11 @@ mod chain_trait_impls {
 
 #[cfg(test)]
 mod tests {
-    use std::collections::HashMap;
-    use std::sync::Arc;
-
-    use chain_traits::ChainBlockTransactions;
     use gem_client::testkit::MockClient;
     use gem_client::{CONTENT_TYPE, ContentType};
     use serde_json::{Value, json};
 
     use super::*;
-
-    const BLOCK_RANGE_VERSIONS: [(u64, &str); 12] = [
-        (100, "block_metadata_transaction"),
-        (101, "user_transaction"),
-        (102, "block_epilogue_transaction"),
-        (103, "block_metadata_transaction"),
-        (104, "block_epilogue_transaction"),
-        (105, "block_metadata_transaction"),
-        (106, "user_transaction"),
-        (107, "block_epilogue_transaction"),
-        (108, "block_metadata_transaction"),
-        (109, "block_epilogue_transaction"),
-        (110, "block_metadata_transaction"),
-        (111, "block_epilogue_transaction"),
-    ];
-
-    fn versions(first: u64, last: u64) -> Value {
-        Value::Array(
-            BLOCK_RANGE_VERSIONS
-                .iter()
-                .filter(|(version, _)| (first..=last).contains(version))
-                .map(|(version, transaction_type)| json!({"version": version.to_string(), "type": transaction_type, "success": true}))
-                .collect(),
-        )
-    }
-
-    fn block_range_client(requests: Arc<Mutex<Vec<String>>>, headers: HashMap<u64, (u64, u64)>) -> AptosClient<MockClient> {
-        AptosClient::new(MockClient::new().with_get(move |path| {
-            requests.lock().unwrap().push(path.to_string());
-            let body = if let Some(block) = path.strip_prefix("/v1/blocks/by_height/") {
-                let (height, with_transactions) = block.split_once('?').map_or((block, false), |(height, _)| (height, true));
-                let (first, last) = headers[&height.parse::<u64>().unwrap()];
-                if with_transactions {
-                    json!({"block_height": height, "transactions": versions(first, last)})
-                } else {
-                    json!({"first_version": first.to_string(), "last_version": last.to_string()})
-                }
-            } else {
-                let query: HashMap<&str, u64> = path
-                    .strip_prefix("/v1/transactions?")
-                    .unwrap()
-                    .split('&')
-                    .map(|pair| pair.split_once('=').map(|(key, value)| (key, value.parse().unwrap())).unwrap())
-                    .collect();
-                versions(query["start"], query["start"] + query["limit"] - 1)
-            };
-            Ok(serde_json::to_vec(&body).unwrap())
-        }))
-    }
-
-    fn block_headers() -> HashMap<u64, (u64, u64)> {
-        HashMap::from([(10, (100, 102)), (11, (103, 104)), (12, (105, 107)), (13, (108, 109)), (14, (110, 111))])
-    }
-
-    fn take_requests(requests: &Arc<Mutex<Vec<String>>>) -> Vec<String> {
-        let mut requests = std::mem::take(&mut *requests.lock().unwrap());
-        requests.sort();
-        requests
-    }
-
-    #[tokio::test]
-    async fn test_get_block_range_transactions_reuses_next_version() {
-        let requests = Arc::new(Mutex::new(Vec::new()));
-        let client = block_range_client(requests.clone(), block_headers());
-
-        let blocks = client.get_block_range_transactions(10, 12).await.unwrap();
-
-        assert_eq!(blocks.iter().map(Vec::len).collect::<Vec<_>>(), vec![3, 2, 3]);
-        assert_eq!(take_requests(&requests), vec!["/v1/blocks/by_height/10", "/v1/blocks/by_height/12", "/v1/transactions?start=100&limit=8"]);
-        assert_eq!(*client.next_block_version.lock().unwrap(), Some((13, 108)));
-
-        let blocks = client.get_block_range_transactions(13, 14).await.unwrap();
-
-        assert_eq!(blocks.iter().map(Vec::len).collect::<Vec<_>>(), vec![2, 2]);
-        assert_eq!(take_requests(&requests), vec!["/v1/blocks/by_height/14", "/v1/transactions?start=108&limit=100"]);
-        assert_eq!(*client.next_block_version.lock().unwrap(), Some((15, 112)));
-    }
-
-    #[tokio::test]
-    async fn test_get_block_range_transactions_rejects_range_without_block_metadata() {
-        let mut headers = block_headers();
-        headers.insert(11, (104, 104));
-        let client = block_range_client(Arc::default(), headers);
-        *client.next_block_version.lock().unwrap() = Some((10, 100));
-
-        let error = client.get_block_range_transactions(11, 12).await.unwrap_err();
-
-        assert_eq!(error.to_string(), "Aptos block range does not start with block metadata");
-        assert_eq!(*client.next_block_version.lock().unwrap(), None);
-    }
-
-    #[tokio::test]
-    async fn test_get_transactions_in_blocks_reads_scattered_blocks_one_by_one() {
-        let requests = Arc::new(Mutex::new(Vec::new()));
-        let client = block_range_client(requests.clone(), block_headers());
-
-        let results = client.get_transactions_in_blocks(vec![10, 12]).await;
-
-        assert_eq!(results.iter().map(|(block, result)| (*block, result.is_ok())).collect::<Vec<_>>(), vec![(10, true), (12, true)]);
-        assert_eq!(take_requests(&requests), vec!["/v1/blocks/by_height/10?with_transactions=true", "/v1/blocks/by_height/12?with_transactions=true"]);
-    }
-
-    #[tokio::test]
-    async fn test_get_transactions_in_blocks_reads_consecutive_blocks_as_range() {
-        let requests = Arc::new(Mutex::new(Vec::new()));
-        let client = block_range_client(requests.clone(), block_headers());
-
-        let results = client.get_transactions_in_blocks(vec![10, 11, 12]).await;
-
-        assert_eq!(results.iter().map(|(block, result)| (*block, result.is_ok())).collect::<Vec<_>>(), vec![(10, true), (11, true), (12, true)]);
-        assert_eq!(take_requests(&requests), vec!["/v1/blocks/by_height/10", "/v1/blocks/by_height/12", "/v1/transactions?start=100&limit=8"]);
-    }
 
     #[tokio::test]
     async fn test_get_transaction_by_hash_falls_back_to_archive() {

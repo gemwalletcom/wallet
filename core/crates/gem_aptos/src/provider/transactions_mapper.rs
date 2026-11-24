@@ -1,7 +1,7 @@
 use crate::models::{DelegationPoolAddStakeData, DelegationPoolUnlockStakeData, Event, Transaction, TransactionResponse, fungible_store_change};
 use crate::{
-    APTOS_NATIVE_COIN, APTOS_NATIVE_METADATA_ADDRESS, AccountAddress, DELEGATION_POOL_ADD_STAKE_EVENT, DELEGATION_POOL_UNLOCK_STAKE_EVENT, FUNGIBLE_ASSET_DEPOSIT_EVENT, FUNGIBLE_ASSET_WITHDRAW_EVENT, FUNGIBLE_TRANSFER_FUNCTION,
-    HYPERION_CONTRACT, STAKE_DEPOSIT_EVENT,
+    APTOS_NATIVE_COIN, APTOS_NATIVE_METADATA_ADDRESS, AccountAddress, BLOCK_METADATA_TRANSACTION_TYPE, DELEGATION_POOL_ADD_STAKE_EVENT, DELEGATION_POOL_UNLOCK_STAKE_EVENT, FUNGIBLE_ASSET_DEPOSIT_EVENT, FUNGIBLE_ASSET_WITHDRAW_EVENT,
+    FUNGIBLE_TRANSFER_FUNCTION, HYPERION_CONTRACT, STAKE_DEPOSIT_EVENT,
 };
 use chain_primitives::{BalanceDiff, SwapMapper};
 use num_bigint::{BigInt, BigUint};
@@ -60,6 +60,20 @@ pub fn map_transaction_broadcast(response: &TransactionResponse) -> Result<Strin
     }
 
     response.hash.clone().ok_or_else(|| "Transaction response missing hash".into())
+}
+
+pub fn map_block_range_transactions(transactions: Vec<Transaction>, versions: u64, blocks: u64) -> Result<Vec<Vec<Transaction>>, Box<dyn Error + Sync + Send>> {
+    if transactions.len() as u64 != versions {
+        return Err(format!("Aptos returned {} of {versions} versions", transactions.len()).into());
+    }
+    let range = transactions
+        .chunk_by(|_, next| next.transaction_type.as_deref() != Some(BLOCK_METADATA_TRANSACTION_TYPE))
+        .map(<[Transaction]>::to_vec)
+        .collect::<Vec<_>>();
+    if range.len() as u64 != blocks {
+        return Err(format!("Aptos returned {} of {blocks} blocks", range.len()).into());
+    }
+    Ok(range)
 }
 
 pub fn map_transactions(transactions: Vec<Transaction>) -> Vec<PrimitivesTransaction> {
@@ -258,6 +272,19 @@ mod tests {
     use crate::models::TransactionResponse;
     use crate::provider::testkit::TEST_TRANSACTION_ID;
     use primitives::asset_constants::APTOS_USDT_TOKEN_ID;
+
+    #[test]
+    fn test_map_block_range_transactions() {
+        let transactions = ["block_metadata_transaction", "user_transaction", "block_epilogue_transaction", "block_metadata_transaction", "block_epilogue_transaction"]
+            .map(|transaction_type| serde_json::from_value::<Transaction>(serde_json::json!({"type": transaction_type, "success": true})).unwrap())
+            .to_vec();
+
+        let blocks = map_block_range_transactions(transactions.clone(), 5, 2).unwrap();
+
+        assert_eq!(blocks.iter().map(Vec::len).collect::<Vec<_>>(), vec![3, 2]);
+        assert_eq!(map_block_range_transactions(transactions.clone(), 6, 2).unwrap_err().to_string(), "Aptos returned 5 of 6 versions");
+        assert_eq!(map_block_range_transactions(transactions, 5, 3).unwrap_err().to_string(), "Aptos returned 2 of 3 blocks");
+    }
 
     #[test]
     fn test_map_transaction_broadcast() {

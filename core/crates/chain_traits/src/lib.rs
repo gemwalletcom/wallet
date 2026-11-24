@@ -175,12 +175,8 @@ pub trait ChainBlockTransactions: Send + Sync {
     }
 
     async fn get_transactions_in_blocks(&self, blocks: Vec<u64>) -> Vec<BlockTransactionsResult> {
-        get_transactions_by_each_block(self, blocks).await
+        futures::future::join_all(blocks.into_iter().map(|block| async move { (block, self.get_transactions_by_block(block).await) })).await
     }
-}
-
-pub async fn get_transactions_by_each_block<T: ChainBlockTransactions + ?Sized>(provider: &T, blocks: Vec<u64>) -> Vec<BlockTransactionsResult> {
-    futures::future::join_all(blocks.into_iter().map(|block| async move { (block, provider.get_transactions_by_block(block).await) })).await
 }
 
 #[async_trait]

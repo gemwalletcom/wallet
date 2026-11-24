@@ -12,8 +12,6 @@ use serde_serializers::{deserialize_biguint_from_str, deserialize_option_biguint
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Transaction {
-    #[serde(default, deserialize_with = "deserialize_option_u64_from_str")]
-    pub version: Option<u64>,
     pub hash: Option<String>,
     pub sender: Option<String>,
     pub success: bool,

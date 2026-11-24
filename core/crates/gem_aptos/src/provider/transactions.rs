@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use chain_traits::{BlockTransactionsResult, ChainBlockTransactions, ChainTransaction, ChainTransactions, TransactionIdRequest, TransactionsRequest, TransactionsResult, get_transactions_by_each_block};
+use chain_traits::{BlockTransactionsResult, ChainBlockTransactions, ChainTransaction, ChainTransactions, TransactionIdRequest, TransactionsRequest, TransactionsResult};
 use std::error::Error;
 
 use gem_client::Client;
@@ -17,11 +17,18 @@ impl<C: Client> ChainBlockTransactions for AptosClient<C> {
     }
 
     async fn get_transactions_in_blocks(&self, blocks: Vec<u64>) -> Vec<BlockTransactionsResult> {
-        if blocks.len() < 2 || !blocks.windows(2).all(|pair| pair[1] == pair[0] + 1) {
-            return get_transactions_by_each_block(self, blocks).await;
+        let (Some(&first), Some(&last)) = (blocks.iter().min(), blocks.iter().max()) else {
+            return vec![];
+        };
+        if first == last {
+            return vec![(first, self.get_transactions_by_block(first).await)];
         }
-        match self.get_block_range_transactions(blocks[0], blocks[blocks.len() - 1]).await {
-            Ok(transactions) => blocks.into_iter().zip(transactions).map(|(block, transactions)| (block, Ok(map_transactions(transactions)))).collect(),
+        match self.get_block_range_transactions(first, last).await {
+            Ok(range) => (first..=last)
+                .zip(range)
+                .filter(|(block, _)| blocks.contains(block))
+                .map(|(block, transactions)| (block, Ok(map_transactions(transactions))))
+                .collect(),
             Err(error) => {
                 let message = error.to_string();
                 blocks.into_iter().map(|block| (block, Err(message.clone().into()))).collect()
@@ -67,13 +74,10 @@ mod chain_integration_tests {
         let (first, last) = (latest_block - 120, latest_block - 101);
 
         let range = client.get_block_range_transactions(first, last).await?;
-        let mut single = Vec::new();
-        for block in first..=last {
-            single.push(client.get_block_transactions(block).await?.transactions);
-        }
+        let single = futures::future::try_join_all((first..=last).map(|block| client.get_block_transactions(block))).await?;
 
-        let hashes = |blocks: &[Vec<crate::models::Transaction>]| blocks.iter().map(|block| block.iter().map(|transaction| transaction.hash.clone()).collect::<Vec<_>>()).collect::<Vec<_>>();
-        assert_eq!(hashes(&range), hashes(&single));
+        let hashes = |blocks: Vec<Vec<crate::models::Transaction>>| blocks.into_iter().map(|block| block.into_iter().map(|transaction| transaction.hash).collect::<Vec<_>>()).collect::<Vec<_>>();
+        assert_eq!(hashes(range), hashes(single.into_iter().map(|block| block.transactions).collect()));
         Ok(())
     }
 
