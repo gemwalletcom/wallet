@@ -375,7 +375,7 @@ iOS draws the sync state as an emoji in the value column and Android as a tinted
 
 Two things still map per platform, and only two: the localized label for each case, and the glyph or colour for each named outcome. Anything else in a row model — a formatter, a placeholder, a ternary over a flag — is a decision that belongs in the record.
 
-The same holds for a value sent on the wire. Rejecting a WalletConnect proposal is one Core answer: `session_rejection` returns the finished rejection — the named reason, the CAIP-25 code, the message the dApp receives and whether the session is deleted — and each app maps only its own error type onto the named reason, which is the one thing Core cannot see.
+The same holds for a value sent on the wire. Rejecting a WalletConnect proposal is one Core answer: `reject_session` takes the named reason and Core sends the protocol crate's `Reason` for it — the CAIP-25 code and the message the dApp receives, written once beside every other WalletConnect error code — and each app maps only its own error type onto the named reason, which is the one thing Core cannot see.
 
 ```swift
 try await client.rejectSession(proposalId: proposal.id, reason: GemWalletConnectRejectionReason(from: error))
