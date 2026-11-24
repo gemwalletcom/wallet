@@ -21,6 +21,20 @@ pub fn map_asset(response: &NftItemsResponse, asset_id: NFTAssetId) -> Option<NF
     map_indexed_asset(response, item, asset_id)
 }
 
+pub(super) fn map_uncollected_collection(asset: NFTAsset) -> NFTCollection {
+    NFTCollection {
+        id: asset.collection_id.clone(),
+        name: asset.name,
+        symbol: None,
+        description: asset.description,
+        chain: asset.chain,
+        contract_address: asset.collection_id.contract_address,
+        images: asset.images,
+        status: VerificationStatus::Unverified,
+        links: vec![],
+    }
+}
+
 pub fn map_offchain_asset(metadata: NftOffchainMetadata, asset_id: NFTAssetId) -> Option<NFTAsset> {
     if metadata.name.is_empty() {
         return None;
@@ -39,7 +53,7 @@ pub(super) fn map_indexed_asset(response: &NftItemsResponse, item: &NftItem, ass
 }
 
 pub(super) fn asset_id_from_item(item: &NftItem) -> Option<NFTAssetId> {
-    let collection = Address::try_parse_hex(item.collection_address.as_deref()?)?;
+    let collection = Address::try_parse_hex(item.collection_address.as_deref().unwrap_or(&item.address))?;
     let token = Address::try_parse_hex(&item.address)?;
     Some(NFTAssetId::new(Chain::Ton, &collection.encode(), &token.encode()))
 }
@@ -95,6 +109,8 @@ mod tests {
     const NUMBERS_COLLECTION: &str = "EQAOQdwdw8kGftJCSFgOErM1mBjYPe4DBPq8-AhF6vr9si5N";
     const UNVERIFIED_COLLECTION: &str = "EQBBhhF6O-jfi1TEF1rs6pEaynEjhFrcjUCC2DfUwzJ4pRXR";
     const GETGEMS_COLLECTION: &str = "EQCwbUhN1REI4q-N8EV2ordMxXognDW2y0teRiBP0RjgCc6T";
+    const UNCOLLECTED_ITEM: &str = "EQAPyXTlqyiyEJpp18uPKLq7OIBvGsAVuzxp8NDJCrlQzcjU";
+    const SECOND_UNCOLLECTED_ITEM: &str = "EQC3F8UvdWI2vnFw_z23lhAZLC_QyVqqH3eo3myHRFXeO45k";
 
     #[test]
     fn test_map_assets() {
@@ -107,6 +123,38 @@ mod tests {
         assert_eq!(first.contract_address, VERIFIED_COLLECTION);
         assert_eq!(first.token_id, ITEM);
         assert_eq!(first.to_string(), format!("ton_{VERIFIED_COLLECTION}::{ITEM}"));
+    }
+
+    #[test]
+    fn test_map_assets_without_collection() {
+        let response: NftItemsResponse = serde_json::from_str(include_str!("../../../testdata/ton/items_uncollected.json")).unwrap();
+
+        assert_eq!(
+            map_assets(&response),
+            vec![NFTAssetId::new(Chain::Ton, UNCOLLECTED_ITEM, UNCOLLECTED_ITEM), NFTAssetId::new(Chain::Ton, SECOND_UNCOLLECTED_ITEM, SECOND_UNCOLLECTED_ITEM),]
+        );
+    }
+
+    #[test]
+    fn test_map_uncollected_collection() {
+        let response: NftItemsResponse = serde_json::from_str(include_str!("../../../testdata/ton/item_uncollected.json")).unwrap();
+        let asset = map_asset(&response, NFTAssetId::new(Chain::Ton, UNCOLLECTED_ITEM, UNCOLLECTED_ITEM)).unwrap();
+        let image = "https://s.getgems.io/nft/s/6700/67006d5d913772911d6baf3e/nft/1155795.jpg";
+
+        assert_eq!(
+            map_uncollected_collection(asset),
+            NFTCollection {
+                id: NFTCollectionId::new(Chain::Ton, UNCOLLECTED_ITEM),
+                name: "my daughter's frown".to_string(),
+                symbol: None,
+                description: Some("One of my twin daughters. Ugh, I was scared by her frown".to_string()),
+                chain: Chain::Ton,
+                contract_address: UNCOLLECTED_ITEM.to_string(),
+                images: NFTImages { preview: NFTResource::from_url(image) },
+                status: VerificationStatus::Unverified,
+                links: vec![],
+            }
+        );
     }
 
     #[test]

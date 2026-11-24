@@ -71,3 +71,13 @@ pub fn create_blockscout_test_client() -> BlockscoutProvider<ReqwestClient> {
     let client = ReqwestClient::new(config.blockscout.url, gem_reqwest::reqwest_client());
     BlockscoutProvider::new(blockscout::Client::new(client, EVMChain::Arc.chain_id(), config.blockscout.key), NFTChain::Arc)
 }
+
+impl crate::config::OffchainClientConfig {
+    pub(crate) fn mock() -> Self {
+        Self {
+            timeout: 5,
+            concurrency: 8,
+            limit: 1_048_576,
+        }
+    }
+}
