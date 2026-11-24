@@ -17,6 +17,7 @@ flowchart LR
 | When | Expected | Why |
 |---|---|---|
 | A collection is not verified | it is gathered under the "Unverified" row | spam never mixes with the wallet's real NFTs |
+| An NFT belongs to no collection, on Solana or TON | it is its own collection, named after the NFT, under "Unverified" | a standalone NFT is still the user's, but most of them are airdropped spam |
 | The user opens Receive for an NFT | it asks which network first; each network shows its own logo, never the coin it pays fees in | Arc pays fees in USDC, but the user is choosing a network, as on Import Wallet |
 | The user comes back to Collections from a collection or an NFT | it does not refresh again; a pull still does | an offline user sees one failed-refresh toast, not one per return |
 | A refresh fails | the list stays on screen, an Unverified row alone included, and a toast says so | |
