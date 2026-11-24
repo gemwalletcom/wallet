@@ -126,10 +126,12 @@ mod tests {
         let address = signer.address().encode();
 
         let asset = Asset::new(AssetId::from_token(Chain::Ton, TON_USDT_TOKEN_ID), String::new(), String::new(), 8, AssetType::TOKEN);
-        let input = SignerInput::mock_with_input_type(TransactionInputType::Transfer { asset }, &address, &address, "10000", TransactionLoadMetadata::mock_ton_jetton(1, SENDER_TOKEN_ADDRESS));
+        let mut input = SignerInput::mock_with_input_type(TransactionInputType::Transfer { asset }, &address, &address, "10000", TransactionLoadMetadata::mock_ton_jetton(1, SENDER_TOKEN_ADDRESS));
+        input.fee = TransactionFee::new_from_fee_with_option(BigInt::from(0), FeeOption::TokenAccountCreation, BigInt::from(200_000_000), AssetId::from_chain(Chain::Ton));
+
         assert_eq!(
             signer.sign_token_transfer(&input, Some(1_000_000_000)).unwrap(),
-            "te6cckEBBAEA/wABRYgBkF1w67cBLG0e0D7j0y2ShzflCe2JrlAjS4pC8UHg85AMAQGcbaO6bjRLkbewbUrj8cYUocJI7vJDeXH4uoZqtTZzf5CRVBRw8rjMKMNg4MEafTwywe6wo2+BhefXkhOtdEakCympoxc7msoAAAAAAQADAgFgYgASwA6bnRklOr1y4MxDEh82TpZnlC7Kl8tiVkz/uVEgGgAAAAAAAAAAAAAAAAABAwCmD4p+pQAAAAAAAAAAInEIAZBdcOu3ASxtHtA+49Mtkoc35Qntia5QI0uKQvFB4PORADILrh124CWNo9oH3HplslDm/KE9sTXKBGlxSF4oPB5yAgKLD74O"
+            "te6cckECBAEAAQMAAUWIAZBdcOu3ASxtHtA+49Mtkoc35Qntia5QI0uKQvFB4POQDAEBnPWDEorxIDNizf9qxNR98qsBgzUW5tm/FnP5nzvnLn5ioh1Vh5i+KQFppwoZzAxJWVeFIjuUNZZAFYTjEpbwbQ8pqaMXO5rKAAAAAAEAAwIBaGIAEsAOm50ZJTq9cuDMQxIfNk6WZ5QuypfLYlZM/7lRIBogX14QAAAAAAAAAAAAAAAAAAEDAKYPin6lAAAAAAAAAAAicQgBkF1w67cBLG0e0D7j0y2ShzflCe2JrlAjS4pC8UHg85EAMguuHXbgJY2j2gfcemWyUOb8oT2xNcoEaXFIXig8HnICApt/D9g="
         );
     }
 
