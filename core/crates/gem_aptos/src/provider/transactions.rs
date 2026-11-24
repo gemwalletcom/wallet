@@ -17,18 +17,8 @@ impl<C: Client> ChainBlockTransactions for AptosClient<C> {
     }
 
     async fn get_transactions_in_blocks(&self, blocks: Vec<u64>) -> Vec<BlockTransactionsResult> {
-        let (Some(&first), Some(&last)) = (blocks.iter().min(), blocks.iter().max()) else {
-            return vec![];
-        };
-        if first == last {
-            return vec![(first, self.get_transactions_by_block(first).await)];
-        }
-        match self.get_block_range_transactions(first, last).await {
-            Ok(range) => (first..=last)
-                .zip(range)
-                .filter(|(block, _)| blocks.contains(block))
-                .map(|(block, transactions)| (block, Ok(map_transactions(transactions))))
-                .collect(),
+        match self.get_block_range_transactions(&blocks).await {
+            Ok(range) => blocks.into_iter().zip(range).map(|(block, transactions)| (block, Ok(map_transactions(transactions)))).collect(),
             Err(error) => {
                 let message = error.to_string();
                 blocks.into_iter().map(|block| (block, Err(message.clone().into()))).collect()
@@ -73,7 +63,7 @@ mod chain_integration_tests {
         let latest_block = client.get_block_latest_number().await?;
         let (first, last) = (latest_block - 120, latest_block - 101);
 
-        let range = client.get_block_range_transactions(first, last).await?;
+        let range = client.get_block_range_transactions(&(first..=last).collect::<Vec<_>>()).await?;
         let single = futures::future::try_join_all((first..=last).map(|block| client.get_block_transactions(block))).await?;
 
         let hashes = |blocks: Vec<Vec<crate::models::Transaction>>| blocks.into_iter().map(|block| block.into_iter().map(|transaction| transaction.hash).collect::<Vec<_>>()).collect::<Vec<_>>();
