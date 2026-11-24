@@ -77,13 +77,13 @@ impl<C: Client + 'static> PriceAssetsProvider for CoinGeckoPricesProvider<C> {
     }
 
     async fn get_mappings_for_asset_id(&self, asset_id: &AssetId) -> Result<Vec<AssetPriceMapping>, Box<dyn Error + Send + Sync>> {
-        let Some(token_id) = asset_id.token_id.as_deref() else {
+        if asset_id.is_native() {
             return Ok(get_coingecko_market_id_for_chain(asset_id.chain).map(|id| AssetPriceMapping::new(asset_id.clone(), id.to_string())).into_iter().collect());
-        };
-        let Some(platform_id) = get_coingecko_platform_id_for_chain(asset_id.chain) else {
+        }
+        let (Some(platform_id), Some(contract)) = (get_coingecko_platform_id_for_chain(asset_id.chain), coingecko_contract(asset_id)) else {
             return Ok(vec![]);
         };
-        let Some(coin_info) = optional_coin(self.client.get_coin_by_contract(platform_id, token_id).await)? else {
+        let Some(coin_info) = optional_coin(self.client.get_coin_by_contract(platform_id, &contract).await)? else {
             return Ok(vec![]);
         };
         Ok(vec![AssetPriceMapping::new(asset_id.clone(), coin_info.id)])
@@ -144,6 +144,13 @@ impl<C: Client + 'static> PriceAssetsProvider for CoinGeckoPricesProvider<C> {
 
     async fn get_candles(&self, provider_price_id: &str, period: ChartPeriod) -> Result<Vec<ChartCandleStick>, Box<dyn Error + Send + Sync>> {
         Ok(map_ohlc(self.client.get_ohlc(provider_price_id, ohlc_days(period)).await?))
+    }
+}
+
+fn coingecko_contract(asset_id: &AssetId) -> Option<String> {
+    match asset_id.chain {
+        Chain::Stellar => asset_id.split_sub_token_parts().map(|(issuer, code)| format!("{code}-{issuer}")),
+        _ => asset_id.token_id.clone(),
     }
 }
 
@@ -260,6 +267,23 @@ mod tests {
         let mappings = provider.get_mappings_for_asset_id(&asset_id).await.unwrap();
 
         assert!(mappings.is_empty());
+    }
+
+    #[tokio::test]
+    async fn test_get_mappings_for_stellar_asset_id_asks_for_coingecko_contract() {
+        let client = MockClient::new().with_get(|path| {
+            assert_eq!(path, "/api/v3/coins/stellar/contract/EURC-GDHU6WRG4IEQXM5NZ4BMPKOXHW76MZM4Y2IEMFDVXBSDP6SJY4ITNPP2");
+            Err(ClientError::Http {
+                status: 404,
+                body: br#"{"error":"coin not found"}"#.to_vec(),
+            })
+        });
+        let provider = CoinGeckoPricesProvider {
+            client: CoinGeckoClient::new_with_client(client),
+        };
+        let asset_id = AssetId::from_token(Chain::Stellar, "GDHU6WRG4IEQXM5NZ4BMPKOXHW76MZM4Y2IEMFDVXBSDP6SJY4ITNPP2::EURC");
+
+        assert!(provider.get_mappings_for_asset_id(&asset_id).await.unwrap().is_empty());
     }
 
     #[tokio::test]

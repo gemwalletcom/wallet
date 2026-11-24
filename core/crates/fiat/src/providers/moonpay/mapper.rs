@@ -129,7 +129,7 @@ fn map_status(status: &str) -> FiatTransactionStatus {
 mod tests {
     use super::*;
     use crate::providers::moonpay::client::MoonPayClient;
-    use primitives::asset_constants::{HYPERCORE_SPOT_USDC_ASSET_ID, HYPEREVM_USDC_ASSET_ID, PLASMA_USDT_ASSET_ID, ROBINHOOD_USDG_ASSET_ID, TEMPO_BRIDGED_USDC_ASSET_ID, TEMPO_PATHUSD_ASSET_ID, TEMPO_USDT0_ASSET_ID};
+    use primitives::asset_constants::{HYPERCORE_SPOT_USDC_ASSET_ID, HYPEREVM_USDC_ASSET_ID, PLASMA_USDT_ASSET_ID, ROBINHOOD_USDG_ASSET_ID, STELLAR_USDC_ASSET_ID, TEMPO_BRIDGED_USDC_ASSET_ID, TEMPO_PATHUSD_ASSET_ID, TEMPO_USDT0_ASSET_ID};
     use primitives::{AssetId, FiatTransactionStatus, FiatTransactionUpdate};
 
     #[test]
@@ -294,5 +294,16 @@ mod tests {
     fn test_skip_token_without_contract() {
         assert!(MoonPayClient::map_asset(Asset::mock("sweat_near", "near", None, false), &[], &[]).is_none());
         assert!(MoonPayClient::map_asset(Asset::mock("near", "near", None, true), &[], &[]).is_some());
+    }
+
+    #[test]
+    fn test_map_stellar_and_xrp_token_ids() {
+        let asset_id = |code: &str, network_code: &str, contract_address: &str| MoonPayClient::map_asset(Asset::mock(code, network_code, Some(contract_address), false), &[], &[]).and_then(|asset| asset.asset_id());
+
+        assert_eq!(asset_id("usdc_xlm", "stellar", "USDC-GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"), Some(STELLAR_USDC_ASSET_ID.clone()));
+        assert_eq!(
+            asset_id("rlusd_xrp", "ripple", "524C555344000000000000000000000000000000.rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De"),
+            Some(AssetId::from_token(Chain::Xrp, "rMxCKbEDwqr76QuheSUMdEGf4B9xJ8m5De"))
+        );
     }
 }
