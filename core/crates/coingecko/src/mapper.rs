@@ -163,6 +163,14 @@ mod tests {
             get_asset_ids_for_coin("unit-bitcoin", &HashMap::from([("hyperliquid".to_string(), Some("0x8f254b963e8468305d409b33aa137c67".to_string()))])),
             vec![HYPERCORE_SPOT_UBTC_ASSET_ID.clone()]
         );
+        assert_eq!(
+            get_asset_ids_for_coin("euro-coin", &HashMap::from([("stellar".to_string(), Some("EURC-GDHU6WRG4IEQXM5NZ4BMPKOXHW76MZM4Y2IEMFDVXBSDP6SJY4ITNPP2".to_string()))])),
+            vec![AssetId::from(Chain::Stellar, Some("GDHU6WRG4IEQXM5NZ4BMPKOXHW76MZM4Y2IEMFDVXBSDP6SJY4ITNPP2::EURC".to_string()))]
+        );
+        assert_eq!(
+            get_asset_ids_for_coin("allunity-eur", &HashMap::from([("stellar".to_string(), Some("CB44W727WSLHPXJ47A6DHF5D34RKWSOZAMEDXO3CF5TEEEQ2ZX4V3VRI".to_string()))])),
+            vec![]
+        );
         assert_eq!(get_asset_ids_for_coin("unknown", &HashMap::from([("hyperliquid".to_string(), Some("0xfeb2eb8f7d9a2b0f3e2c1f41d2a4c4d3".to_string()))])), vec![]);
     }
 }
