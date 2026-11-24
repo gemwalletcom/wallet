@@ -123,12 +123,15 @@ impl UtxoPlanner {
         selected_amount: u64,
     ) -> Result<Option<SpendPlan>, SignerError> {
         let mut outputs = spend_outputs(value, payment_script.clone(), memo_output.clone());
+        let remainder_after = |fee: u64| selected_amount.checked_sub(value).and_then(|remaining| remaining.checked_sub(fee));
+
+        let fee_without_change = fee.estimate_fee(selected, &outputs);
+        let Some(remainder) = remainder_after(fee_without_change) else {
+            return Ok(None);
+        };
 
         let mut outputs_with_change = outputs.clone();
         outputs_with_change.push(PlanOutput::new(0, change_script.clone()));
-
-        let remainder_after = |fee: u64| selected_amount.checked_sub(value).and_then(|remaining| remaining.checked_sub(fee));
-
         let fee_with_change = fee.estimate_fee(selected, &outputs_with_change);
         if let Some(change) = remainder_after(fee_with_change).filter(|change| *change >= dust_threshold(chain, change_script)) {
             outputs.push(PlanOutput::new(change, change_script.clone()));
@@ -138,10 +141,6 @@ impl UtxoPlanner {
                 fee: fee_with_change,
             }));
         }
-        let fee_without_change = fee.estimate_fee(selected, &outputs);
-        let Some(remainder) = remainder_after(fee_without_change) else {
-            return Ok(None);
-        };
         Ok(Some(SpendPlan {
             inputs: selected.to_vec(),
             outputs,
