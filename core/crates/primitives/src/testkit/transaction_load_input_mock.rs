@@ -243,6 +243,21 @@ impl TransactionLoadInput {
         }
     }
 
+    pub fn mock_cardano_with_utxo(sender: &str, value: &str, utxo_value: u64) -> Self {
+        TransactionLoadInput {
+            metadata: TransactionLoadMetadata::Cardano {
+                block_number: 189_992_800,
+                utxos: vec![UTXO {
+                    transaction_id: "f074134aabbfb13b8aec7cf5465b1e5a862bde5cb88532cc7e64619179b3e767".to_string(),
+                    vout: 1,
+                    value: BigUint::from(utxo_value),
+                    address: sender.to_string(),
+                }],
+            },
+            ..Self::mock_cardano(sender, value)
+        }
+    }
+
     pub fn mock_sign_data(chain: Chain, data: &str, output_type: TransferDataOutputType) -> Self {
         Self::mock_sign_data_with_input_type(TransactionInputType::mock_generic(Asset::from_chain(chain), Self::sign_data_extra(data, output_type)))
     }

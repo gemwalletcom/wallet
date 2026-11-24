@@ -337,6 +337,7 @@ pub fn validate(asset: &Asset, value: &BigInt, available: &BigInt, minimum: &Big
 fn minimum_value(amount_type: &GemAmountType, asset: &Asset) -> BigInt {
     let stake_config = asset.chain().stake_config();
     match amount_type {
+        GemAmountType::Transfer if asset.id.is_native() => asset.chain().minimum_transfer_amount().map(BigInt::from).unwrap_or_default(),
         GemAmountType::Transfer | GemAmountType::Earn { .. } => BigInt::from(0),
         GemAmountType::Deposit if asset.id == GemPerpetual::new(PerpetualProvider::Hypercore).deposit_asset().id => BigInt::from(MIN_DEPOSIT_AMOUNT),
         GemAmountType::Deposit => BigInt::from(0),
@@ -1083,6 +1084,17 @@ mod tests {
                 minimum: BigInt::from(1_000_000_000_000_000_000u64)
             })
         );
+
+        let ada = Asset::from_chain(Chain::Cardano);
+        let input = GemAmountType::Transfer.input(&ada, &GemAssetBalance::mock_with_available(17_800_000));
+        assert_eq!(
+            GemAmountType::Transfer.entry(&ada, &input, Some(1.0), GemAmountInputType::Asset, "0.5".to_string(), Currency::USD).error,
+            Some(GemAmountError::BelowMinimum {
+                asset: ada.clone(),
+                minimum: BigInt::from(Chain::Cardano.minimum_transfer_amount().unwrap())
+            })
+        );
+        assert_eq!(GemAmountType::Transfer.entry(&ada, &input, Some(1.0), GemAmountInputType::Asset, "0.97".to_string(), Currency::USD).error, None);
     }
 
     #[test]

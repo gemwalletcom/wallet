@@ -145,6 +145,13 @@ impl Chain {
         self.config().minimum_account_balance
     }
 
+    pub fn minimum_transfer_amount(&self) -> Option<u64> {
+        match self.chain_type() {
+            ChainType::Cardano => Some(970_000),
+            _ => None,
+        }
+    }
+
     pub fn is_swap_supported(&self) -> bool {
         self.config().is_swap_supported
     }

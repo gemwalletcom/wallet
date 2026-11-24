@@ -206,6 +206,7 @@ Some networks require a balance to keep an account open, a minimum payment to ac
 | Stellar | Base reserve, kept twice for the account and once for each trustline, offer, signer, data entry or entry it sponsors, less each entry another account sponsors for it | 0.5 XLM |
 | Algorand | New account activation | 0.1 ALGO |
 | Tron | New account creation charge | Network's current charges and the sender's bandwidth |
+| Cardano | Minimum amount per send | 0.97 ADA |
 
 | When | Expected | Why |
 |---|---|---|

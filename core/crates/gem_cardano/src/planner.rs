@@ -45,6 +45,13 @@ pub(crate) fn plan_transfer(input: &TransactionLoadInput) -> Result<TransactionP
     } else {
         requested_amount
     };
+    let output = TransactionOutput {
+        address: ShelleyAddress::parse(transaction_destination_address(input))?.as_bytes().to_vec(),
+        amount,
+    };
+    if amount < output.min_amount() {
+        return Err(SignerError::DustThreshold);
+    }
 
     let spent = amount.checked_add(fee).ok_or_else(|| SignerError::invalid_input("Cardano amount overflow"))?;
     if spent > available_amount {
@@ -211,13 +218,6 @@ mod tests {
         assert_eq!(plan.utxos[0].value, BigUint::from(6500000u64));
         assert_eq!(plan.utxos[1].value, BigUint::from(1500000u64));
 
-        let plan = plan_transfer(&TransactionLoadInput::mock_cardano(OWN_ADDRESS_1, "1")).unwrap();
-        assert_eq!(plan.utxos.len(), 1);
-        assert_eq!(sum_amounts(&plan.utxos).unwrap(), 6_500_000);
-        assert_eq!(plan.amount, 1);
-        assert_eq!(plan.fee, 168_479);
-        assert_eq!(plan.change, 6_331_520);
-
         let plan = plan_transfer(&TransactionLoadInput::mock_cardano(OWN_ADDRESS_1, "2000000")).unwrap();
         assert_eq!(plan.utxos.len(), 1);
         assert_eq!(sum_amounts(&plan.utxos).unwrap(), 6_500_000);
@@ -240,19 +240,28 @@ mod tests {
     }
 
     #[test]
-    fn test_unaffordable_send_is_insufficient_balance() {
-        let input = TransactionLoadInput {
-            metadata: TransactionLoadMetadata::Cardano {
-                block_number: TEST_BLOCK_NUMBER,
-                utxos: vec![UTXO {
-                    transaction_id: "f074134aabbfb13b8aec7cf5465b1e5a862bde5cb88532cc7e64619179b3e767".to_string(),
-                    vout: 1,
-                    value: BigUint::from(12_220_000u64),
-                    address: OWN_ADDRESS_1.to_string(),
-                }],
-            },
-            ..TransactionLoadInput::mock_cardano(OWN_ADDRESS_1, "12200000")
+    fn test_plan_transfer_below_min_output() {
+        assert_eq!(transfer_fee(&TransactionLoadInput::mock_cardano(OWN_ADDRESS_1, "969749")), Err(SignerError::DustThreshold));
+        assert_eq!(plan_transfer(&TransactionLoadInput::mock_cardano(OWN_ADDRESS_1, "969750")).unwrap().amount, 969_750);
+        let minimum = Chain::Cardano.minimum_transfer_amount().unwrap();
+        assert_eq!(plan_transfer(&TransactionLoadInput::mock_cardano(OWN_ADDRESS_1, &minimum.to_string())).unwrap().amount, minimum);
+
+        let enterprise = TransactionLoadInput {
+            destination_address: "addr1v8wfpcg4qfhmnzprzysj6j9c53u5j56j8rvhyjp08s53s6g07rfjm".to_string(),
+            ..TransactionLoadInput::mock_cardano(OWN_ADDRESS_1, "849070")
         };
+        assert_eq!(plan_transfer(&enterprise).unwrap().amount, 849_070);
+
+        let max = TransactionLoadInput {
+            is_max_value: true,
+            ..TransactionLoadInput::mock_cardano_with_utxo(OWN_ADDRESS_1, "1100000", 1_100_000)
+        };
+        assert_eq!(transfer_fee(&max), Err(SignerError::DustThreshold));
+    }
+
+    #[test]
+    fn test_unaffordable_send_is_insufficient_balance() {
+        let input = TransactionLoadInput::mock_cardano_with_utxo(OWN_ADDRESS_1, "12200000", 12_220_000);
         assert_eq!(plan_transfer(&input).err(), Some(SignerError::InsufficientFunds));
 
         let fee = transfer_fee(&input).unwrap();
@@ -295,12 +304,12 @@ mod tests {
                     vout: 1,
                 }],
             },
-            ..TransactionLoadInput::mock_cardano(address, "10000")
+            ..TransactionLoadInput::mock_cardano(address, "1000000")
         };
 
         let plan = plan_transfer(&input).unwrap();
-        assert_eq!(plan.fee, 168_567);
-        assert_eq!(plan.change, 7_767_408);
+        assert_eq!(plan.fee, 168_655);
+        assert_eq!(plan.change, 6_777_320);
     }
 
     #[test]
@@ -371,7 +380,7 @@ mod tests {
 
     #[test]
     fn test_transaction_expiration_block_number() {
-        let input = TransactionLoadInput::mock_cardano(OWN_ADDRESS_1, "1");
+        let input = TransactionLoadInput::mock_cardano(OWN_ADDRESS_1, "2000000");
         let plan = plan_transfer(&input).unwrap();
         let transaction = transaction_from_plan(&input, &plan).unwrap();
         assert_eq!(transaction.expiration_block_number, TEST_EXPIRATION_BLOCK_NUMBER);

@@ -6,6 +6,8 @@ use crate::cbor::CborEncoder;
 const AUXILIARY_DATA_TAG: u64 = 259;
 const MAYA_PROTOCOL_AUXILIARY_KEY: u64 = 6676;
 const MEMO_SEGMENT_SIZE: usize = 64;
+const UTXO_ENTRY_OVERHEAD_BYTES: u64 = 160;
+const COINS_PER_UTXO_BYTE: u64 = 4_310;
 
 #[derive(Debug)]
 pub(crate) struct TransactionInput {
@@ -17,6 +19,20 @@ pub(crate) struct TransactionInput {
 pub(crate) struct TransactionOutput {
     pub(crate) address: Vec<u8>,
     pub(crate) amount: u64,
+}
+
+impl TransactionOutput {
+    pub(crate) fn min_amount(&self) -> u64 {
+        let mut encoder = CborEncoder::new();
+        self.encode(&mut encoder);
+        (UTXO_ENTRY_OVERHEAD_BYTES + encoder.into_bytes().len() as u64) * COINS_PER_UTXO_BYTE
+    }
+
+    fn encode(&self, encoder: &mut CborEncoder) {
+        encoder.array(2);
+        encoder.bytes(&self.address);
+        encoder.unsigned(self.amount);
+    }
 }
 
 #[derive(Debug)]
@@ -66,9 +82,7 @@ impl Transaction {
         encoder.unsigned(1);
         encoder.array(self.outputs.len());
         for output in &self.outputs {
-            encoder.array(2);
-            encoder.bytes(&output.address);
-            encoder.unsigned(output.amount);
+            output.encode(&mut encoder);
         }
 
         encoder.unsigned(2);
