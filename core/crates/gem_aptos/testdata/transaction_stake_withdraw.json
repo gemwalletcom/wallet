@@ -1,0 +1,63 @@
+{
+    "hash": "0x4603c296ee77e4972351d5c9262fe884f011767a6046562c94e18802704e43da",
+    "sender": "0x7393c1f923d4e8ce6af21dbc697f84e648d56b9cb8c69939040dc20888e3221d",
+    "success": true,
+    "gas_used": "314",
+    "gas_unit_price": "150",
+    "timestamp": "1795246058086814",
+    "type": "user_transaction",
+    "events": [
+        {
+            "guid": {
+                "account_address": "0xdb5247f859ce63dbe8940cf8773be722a60dcc594a8be9aca4b76abceb251b8e"
+            },
+            "type": "0x1::delegation_pool::DistributeCommissionEvent"
+        },
+        {
+            "guid": {
+                "account_address": "0x0"
+            },
+            "type": "0x1::delegation_pool::DistributeCommission"
+        },
+        {
+            "guid": {
+                "account_address": "0x0"
+            },
+            "type": "0x1::stake::WithdrawStake"
+        },
+        {
+            "guid": {
+                "account_address": "0x0"
+            },
+            "type": "0x1::fungible_asset::Deposit"
+        },
+        {
+            "guid": {
+                "account_address": "0x0"
+            },
+            "type": "0x1::fungible_asset::Withdraw"
+        },
+        {
+            "guid": {
+                "account_address": "0x0"
+            },
+            "type": "0x1::fungible_asset::Deposit"
+        },
+        {
+            "guid": {
+                "account_address": "0x0"
+            },
+            "type": "0x1::delegation_pool::WithdrawStake",
+            "data": {
+                "pool_address": "0xdb5247f859ce63dbe8940cf8773be722a60dcc594a8be9aca4b76abceb251b8e",
+                "amount_withdrawn": "1255419289"
+            }
+        },
+        {
+            "guid": {
+                "account_address": "0x0"
+            },
+            "type": "0x1::transaction_fee::FeeStatement"
+        }
+    ]
+}

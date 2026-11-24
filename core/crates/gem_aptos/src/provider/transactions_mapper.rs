@@ -1,7 +1,7 @@
-use crate::models::{DelegationPoolAddStakeData, DelegationPoolUnlockStakeData, Event, Transaction, TransactionResponse, fungible_store_change};
+use crate::models::{DelegationPoolAddStakeData, DelegationPoolUnlockStakeData, DelegationPoolWithdrawStakeData, Event, Transaction, TransactionResponse, fungible_store_change};
 use crate::{
-    APTOS_NATIVE_COIN, APTOS_NATIVE_METADATA_ADDRESS, AccountAddress, BLOCK_METADATA_TRANSACTION_TYPE, DELEGATION_POOL_ADD_STAKE_EVENT, DELEGATION_POOL_UNLOCK_STAKE_EVENT, FUNGIBLE_ASSET_DEPOSIT_EVENT, FUNGIBLE_ASSET_WITHDRAW_EVENT,
-    FUNGIBLE_TRANSFER_FUNCTION, HYPERION_CONTRACT, STAKE_DEPOSIT_EVENT,
+    APTOS_NATIVE_COIN, APTOS_NATIVE_METADATA_ADDRESS, AccountAddress, BLOCK_METADATA_TRANSACTION_TYPE, DELEGATION_POOL_ADD_STAKE_EVENT, DELEGATION_POOL_UNLOCK_STAKE_EVENT, DELEGATION_POOL_WITHDRAW_STAKE_EVENT, FUNGIBLE_ASSET_DEPOSIT_EVENT,
+    FUNGIBLE_ASSET_WITHDRAW_EVENT, FUNGIBLE_TRANSFER_FUNCTION, HYPERION_CONTRACT, STAKE_DEPOSIT_EVENT,
 };
 use chain_primitives::{BalanceDiff, SwapMapper};
 use num_bigint::{BigInt, BigUint};
@@ -241,6 +241,10 @@ pub fn map_transaction(transaction: Transaction) -> Option<PrimitivesTransaction
             DELEGATION_POOL_UNLOCK_STAKE_EVENT => {
                 let data: DelegationPoolUnlockStakeData = serde_json::from_value(event.data.clone()?).ok()?;
                 return Some(build_transaction(meta, asset_id.clone(), asset_id, data.pool_address, data.amount_unlocked, TransactionType::StakeUndelegate, None));
+            }
+            DELEGATION_POOL_WITHDRAW_STAKE_EVENT => {
+                let data: DelegationPoolWithdrawStakeData = serde_json::from_value(event.data.clone()?).ok()?;
+                return Some(build_transaction(meta, asset_id.clone(), asset_id, data.pool_address, data.amount_withdrawn, TransactionType::StakeWithdraw, None));
             }
             _ => {}
         }
@@ -486,5 +490,29 @@ mod tests {
         assert_eq!(mapped.state, TransactionState::Confirmed);
         assert_eq!(mapped.transaction_type, TransactionType::StakeUndelegate);
         assert_eq!(mapped.fee, BigUint::from(88400u64));
+    }
+
+    #[test]
+    fn test_map_transaction_stake_withdraw() {
+        let transaction: Transaction = serde_json::from_str(include_str!("../../testdata/transaction_stake_withdraw.json")).unwrap();
+
+        assert_eq!(
+            map_transaction(transaction),
+            Some(PrimitivesTransaction::new(
+                "0x4603c296ee77e4972351d5c9262fe884f011767a6046562c94e18802704e43da".to_string(),
+                Chain::Aptos.as_asset_id(),
+                "0x7393c1f923d4e8ce6af21dbc697f84e648d56b9cb8c69939040dc20888e3221d".to_string(),
+                "0xdb5247f859ce63dbe8940cf8773be722a60dcc594a8be9aca4b76abceb251b8e".to_string(),
+                None,
+                TransactionType::StakeWithdraw,
+                TransactionState::Confirmed,
+                BigUint::from(47_100u32),
+                Chain::Aptos.as_asset_id(),
+                BigUint::from(1_255_419_289u64),
+                None,
+                None,
+                DateTime::from_timestamp_micros(1_795_246_058_086_814),
+            ))
+        );
     }
 }

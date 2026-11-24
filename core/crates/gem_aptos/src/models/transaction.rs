@@ -90,6 +90,13 @@ pub struct DelegationPoolUnlockStakeData {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DelegationPoolWithdrawStakeData {
+    pub pool_address: String,
+    #[serde(deserialize_with = "deserialize_biguint_from_str")]
+    pub amount_withdrawn: BigUint,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Guid {
     pub account_address: String,
 }
