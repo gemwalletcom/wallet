@@ -5,7 +5,7 @@ use std::error::Error;
 use gem_client::Client;
 use primitives::Transaction;
 
-use crate::provider::transactions_mapper::map_transaction;
+use crate::provider::transactions_mapper::{map_transaction, map_transactions_by_address};
 use crate::rpc::client::CardanoClient;
 
 #[async_trait]
@@ -33,12 +33,7 @@ impl<C: Client> ChainTransaction for CardanoClient<C> {
 impl<C: Client> ChainTransactions for CardanoClient<C> {
     async fn get_transactions_by_address(&self, request: TransactionsRequest) -> Result<TransactionsResult, Box<dyn Error + Sync + Send>> {
         let TransactionsRequest { address, limit, .. } = request;
-        let transactions = self
-            .get_address_transactions(&address, limit)
-            .await?
-            .into_iter()
-            .filter_map(|transaction| map_transaction(self.get_chain(), transaction.included_at, &transaction.transaction))
-            .collect();
-        Ok(TransactionsResult::Transactions(transactions))
+        let history = self.get_address_transactions(&address, limit).await?;
+        Ok(TransactionsResult::Transactions(map_transactions_by_address(self.get_chain(), history, limit)))
     }
 }

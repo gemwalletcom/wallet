@@ -47,7 +47,7 @@ impl CardanoTarget {
             Self::Tip => "{ cardano { tip { number slotNo } } }",
             Self::Block { .. } => "query GetBlockByNumber($blockNumber: Int!) { blocks(where: { number: { _eq: $blockNumber } }) { number hash forgedAt transactions { hash inputs { address value } outputs { address value } fee } } }",
             Self::AddressTransactions { .. } => {
-                "query GetTransactionsByAddress($address: String!, $limit: Int!) { transactions(limit: $limit, order_by: { includedAt: desc }, where: { outputs: { address: { _eq: $address } } }) { hash includedAt inputs { address value } outputs { address value } fee } }"
+                "query GetTransactionsByAddress($address: String!, $limit: Int!) { received: transactions(limit: $limit, order_by: { includedAt: desc }, where: { outputs: { address: { _eq: $address } } }) { hash includedAt inputs { address value } outputs { address value } fee } sent: transactions(limit: $limit, order_by: { includedAt: desc }, where: { inputs: { address: { _eq: $address } } }) { hash includedAt inputs { address value } outputs { address value } fee } }"
             }
             Self::Transaction { .. } => "query GetTransactionByHash($hash: Hash32Hex!) { transactions(where: { hash: { _eq: $hash } }) { hash includedAt inputs { address value } outputs { address value } fee } }",
             Self::Balance { .. } => "query GetBalance($address: String!) { utxos: utxos_aggregate(where: { address: { _eq: $address }  } ) { aggregate { sum { value } } } }",

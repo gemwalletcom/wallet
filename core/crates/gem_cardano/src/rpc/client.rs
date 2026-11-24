@@ -8,7 +8,7 @@ use serde::de::DeserializeOwned;
 use crate::models::{
     account::BalanceResponse,
     block::{Block, BlockData, GenesisData},
-    rpc::{AddressTransaction, AddressTransactions, Block as RpcBlock, Blocks, Data},
+    rpc::{AddressHistory, AddressTransaction, AddressTransactions, Block as RpcBlock, Blocks, Data},
     transaction::TransactionBroadcast,
     utxo::{UTXO, UTXOS},
 };
@@ -44,9 +44,9 @@ impl<C: Client> CardanoClient<C> {
         response.data.blocks.first().cloned().ok_or_else(|| "Block not found".into())
     }
 
-    pub async fn get_address_transactions(&self, address: &str, limit: usize) -> Result<Vec<AddressTransaction>, Box<dyn Error + Send + Sync>> {
+    pub async fn get_address_transactions(&self, address: &str, limit: usize) -> Result<AddressHistory, Box<dyn Error + Send + Sync>> {
         let target = CardanoTarget::AddressTransactions { address: address.to_string(), limit };
-        Ok(self.query::<Data<AddressTransactions>>(target).await?.data.transactions)
+        Ok(self.query::<Data<AddressHistory>>(target).await?.data)
     }
 
     pub async fn get_transaction(&self, hash: &str) -> Result<Option<AddressTransaction>, Box<dyn Error + Send + Sync>> {
@@ -147,14 +147,13 @@ mod tests {
             assert_eq!(request["operationName"], "GetTransactionsByAddress");
             assert_eq!(request["variables"], serde_json::json!({ "address": address, "limit": 25 }));
             assert_eq!(request["query"], CardanoTarget::AddressTransactions { address: address.to_string(), limit: 25 }.query());
-            Ok(br#"{"data":{"transactions":[{"hash":"tx_hash","includedAt":"2023-01-01T00:00:00Z","inputs":[{"address":"addr1","value":"1000"}],"outputs":[{"address":"addr2","value":"900"}],"fee":"100"}]}}"#.to_vec())
+            Ok(include_str!("../../testdata/address_transactions.json").as_bytes().to_vec())
         });
 
-        let transactions = CardanoClient::new(client).get_address_transactions(address, 25).await.unwrap();
+        let history = CardanoClient::new(client).get_address_transactions(address, 25).await.unwrap();
 
-        assert_eq!(transactions.len(), 1);
-        assert_eq!(transactions[0].transaction.hash, "tx_hash");
-        assert_eq!(transactions[0].included_at.to_string(), "2023-01-01T00:00:00Z");
+        assert_eq!(history.received.len(), 3);
+        assert_eq!(history.sent.len(), 2);
     }
 
     #[tokio::test]
