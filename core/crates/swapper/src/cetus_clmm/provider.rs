@@ -69,7 +69,11 @@ impl Swapper for CetusClmm {
 #[cfg(all(test, feature = "swap_integration_tests"))]
 mod swap_integration_tests {
     use super::*;
-    use crate::{FetchQuoteData, SwapperQuoteAsset, models::Options, testkit::TEST_SUI_WALLET};
+    use crate::{
+        FetchQuoteData, SwapperQuoteAsset,
+        models::Options,
+        testkit::{TEST_SUI_SMALL_GAS_BALANCE_WALLET, TEST_SUI_WALLET},
+    };
     use gem_reqwest::NativeProvider;
     use primitives::{AssetId, asset_constants::SUI_USDC_TOKEN_ID};
     use std::sync::Arc;
@@ -128,24 +132,26 @@ mod swap_integration_tests {
     async fn test_cetus_clmm_provider_fetch_quote_usdc_to_sui() -> Result<(), SwapperError> {
         let rpc_provider = Arc::new(NativeProvider::default());
         let provider = CetusClmm::new(rpc_provider).unwrap();
-        let request = QuoteRequest {
-            from_asset: SwapperQuoteAsset::from(AssetId::from(Chain::Sui, Some(SUI_USDC_TOKEN_ID.to_string()))),
-            to_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Sui)),
-            wallet_address: TEST_SUI_WALLET.to_string(),
-            destination_address: TEST_SUI_WALLET.to_string(),
-            value: BigUint::from(100000u64),
-            options: Options::new_with_slippage(50.into()),
-        };
+        for wallet in [TEST_SUI_WALLET, TEST_SUI_SMALL_GAS_BALANCE_WALLET] {
+            let request = QuoteRequest {
+                from_asset: SwapperQuoteAsset::from(AssetId::from(Chain::Sui, Some(SUI_USDC_TOKEN_ID.to_string()))),
+                to_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Sui)),
+                wallet_address: wallet.to_string(),
+                destination_address: wallet.to_string(),
+                value: BigUint::from(100000u64),
+                options: Options::new_with_slippage(50.into()),
+            };
 
-        let quote = provider.get_quote(&request).await?;
-        let quote_data = provider.get_quote_data(&quote, FetchQuoteData::None).await?;
-        (&provider as &dyn Swapper).verify_contracts(&quote, &quote_data)?;
-        print_quote("USDC->SUI", &quote)?;
-        print_quote_data("USDC->SUI", &quote_data);
+            let quote = provider.get_quote(&request).await?;
+            let quote_data = provider.get_quote_data(&quote, FetchQuoteData::None).await?;
+            (&provider as &dyn Swapper).verify_contracts(&quote, &quote_data)?;
+            print_quote("USDC->SUI", &quote)?;
+            print_quote_data("USDC->SUI", &quote_data);
 
-        assert!(quote.to_value > BigUint::ZERO);
-        assert!(!quote_data.data.is_empty());
-        assert!(quote_data.gas_limit.is_some());
+            assert!(quote.to_value > BigUint::ZERO);
+            assert!(!quote_data.data.is_empty());
+            assert!(quote_data.gas_limit.is_some());
+        }
 
         Ok(())
     }

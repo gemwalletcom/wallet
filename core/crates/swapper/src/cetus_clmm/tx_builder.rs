@@ -55,12 +55,14 @@ pub(super) async fn build_quote_data(client: &SuiClient, quote: &Quote, route: &
         from_coins: &input_coins,
     };
 
-    sui_swap::build_quote_data(client, |gas_budget| build_transaction(&resolver, quote, route, referral_fee, published_at, &input.with_gas_budget(gas_budget)))
-        .await
-        .map_err(|error| match error {
-            SwapperError::TransactionError(detail) if detail.contains("checked_package_version") => sui_swap::upgraded_error("Cetus"),
-            error => error,
-        })
+    sui_swap::build_quote_data(client, input.transaction.gas_coin_total, |gas_budget| {
+        build_transaction(&resolver, quote, route, referral_fee, published_at, &input.with_gas_budget(gas_budget))
+    })
+    .await
+    .map_err(|error| match error {
+        SwapperError::TransactionError(detail) if detail.contains("checked_package_version") => sui_swap::upgraded_error("Cetus"),
+        error => error,
+    })
 }
 
 pub(super) fn build_batch_quote_inspect(quotes: &[(&Hop, u64)]) -> Result<Vec<u8>, SwapperError> {
