@@ -1,0 +1,93 @@
+{
+  "data": {
+    "received": [
+      {
+        "hash": "send_with_change",
+        "includedAt": "2023-01-03T00:00:00Z",
+        "inputs": [
+          {
+            "address": "addr1",
+            "value": "1000"
+          }
+        ],
+        "outputs": [
+          {
+            "address": "addr2",
+            "value": "900"
+          }
+        ],
+        "fee": "100"
+      },
+      {
+        "hash": "receive",
+        "includedAt": "2023-01-03T00:00:00Z",
+        "inputs": [
+          {
+            "address": "addr1",
+            "value": "1000"
+          }
+        ],
+        "outputs": [
+          {
+            "address": "addr2",
+            "value": "900"
+          }
+        ],
+        "fee": "100"
+      },
+      {
+        "hash": "old_receive",
+        "includedAt": "2023-01-01T00:00:00Z",
+        "inputs": [
+          {
+            "address": "addr1",
+            "value": "1000"
+          }
+        ],
+        "outputs": [
+          {
+            "address": "addr2",
+            "value": "900"
+          }
+        ],
+        "fee": "100"
+      }
+    ],
+    "sent": [
+      {
+        "hash": "send_with_change",
+        "includedAt": "2023-01-03T00:00:00Z",
+        "inputs": [
+          {
+            "address": "addr1",
+            "value": "1000"
+          }
+        ],
+        "outputs": [
+          {
+            "address": "addr2",
+            "value": "900"
+          }
+        ],
+        "fee": "100"
+      },
+      {
+        "hash": "send_max",
+        "includedAt": "2023-01-02T00:00:00Z",
+        "inputs": [
+          {
+            "address": "addr1",
+            "value": "1000"
+          }
+        ],
+        "outputs": [
+          {
+            "address": "addr2",
+            "value": "900"
+          }
+        ],
+        "fee": "100"
+      }
+    ]
+  }
+}
