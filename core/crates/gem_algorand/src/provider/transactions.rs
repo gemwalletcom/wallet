@@ -6,15 +6,15 @@ use gem_client::Client;
 use primitives::Transaction;
 
 use crate::{
-    provider::transactions_mapper::{map_transaction_by_hash, map_transactions},
-    rpc::AlgorandIndexer,
+    provider::transactions_mapper::{map_block_transactions, map_transaction_by_hash, map_transactions},
+    rpc::{AlgorandClient, AlgorandIndexer},
 };
 
 #[async_trait]
-impl<C: Client> ChainBlockTransactions for AlgorandIndexer<C> {
+impl<C: Client> ChainBlockTransactions for AlgorandClient<C> {
     async fn get_transactions_by_block(&self, block: u64) -> Result<Vec<Transaction>, Box<dyn Error + Sync + Send>> {
-        let block = self.get_block(block).await?;
-        Ok(map_transactions(block.transactions))
+        let (block, ids) = futures::try_join!(self.get_block(block), self.get_block_transaction_ids(block))?;
+        map_block_transactions(block.block, ids.transaction_ids)
     }
 }
 

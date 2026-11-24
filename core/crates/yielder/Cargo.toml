@@ -11,5 +11,4 @@ num-bigint = { workspace = true }
 gem_evm = { path = "../gem_evm", features = ["rpc"] }
 gem_jsonrpc = { path = "../gem_jsonrpc" }
 primitives = { path = "../primitives" }
-async-trait = { workspace = true }
 futures = { workspace = true }

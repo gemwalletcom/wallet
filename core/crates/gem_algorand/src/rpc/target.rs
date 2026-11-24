@@ -4,6 +4,8 @@ use gem_client::{ContentType, Target};
 pub enum AlgorandTarget {
     GetAccount { address: String },
     GetAsset { asset_id: String },
+    GetBlock { round: u64 },
+    GetBlockTransactionIds { round: u64 },
     GetTransactionsParams,
     GetPendingTransaction { transaction_id: String },
     SendTransaction,
@@ -14,6 +16,8 @@ impl Target for AlgorandTarget {
         match self {
             Self::GetAccount { address } => format!("/v2/accounts/{address}"),
             Self::GetAsset { asset_id } => format!("/v2/assets/{asset_id}"),
+            Self::GetBlock { round } => format!("/v2/blocks/{round}?format=json"),
+            Self::GetBlockTransactionIds { round } => format!("/v2/blocks/{round}/txids"),
             Self::GetTransactionsParams => "/v2/transactions/params".to_string(),
             Self::GetPendingTransaction { transaction_id } => format!("/v2/transactions/pending/{transaction_id}"),
             Self::SendTransaction => "/v2/transactions".to_string(),
@@ -31,7 +35,6 @@ impl Target for AlgorandTarget {
 #[derive(Clone, Debug)]
 pub enum AlgorandIndexerTarget {
     AccountTransactions { address: String },
-    Block { number: u64 },
     Transaction { id: String },
 }
 
@@ -39,7 +42,6 @@ impl Target for AlgorandIndexerTarget {
     fn path(&self) -> String {
         match self {
             Self::AccountTransactions { address } => format!("/v2/accounts/{address}/transactions"),
-            Self::Block { number } => format!("/v2/blocks/{number}"),
             Self::Transaction { id } => format!("/v2/transactions/{id}"),
         }
     }

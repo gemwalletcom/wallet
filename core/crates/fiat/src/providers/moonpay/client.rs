@@ -78,12 +78,7 @@ impl MoonPayClient {
 
     pub fn map_asset(asset: Asset, buy_limits: &[FiatAssetLimits], sell_limits: &[FiatAssetLimits]) -> Option<FiatProviderAsset> {
         let chain = map_asset_chain(asset.clone())?;
-        let contract_address = match asset.metadata.as_ref().map(|m| m.network_code.as_str()) {
-            Some("ripple") => asset.metadata.as_ref().and_then(|m| m.contract_address.as_deref().and_then(|s| s.split('.').next_back().map(String::from))),
-            _ => asset.clone().metadata?.contract_address,
-        };
-
-        let token_id = filter_token_id(Some(chain), contract_address);
+        let token_id = filter_token_id(Some(chain), asset.clone().metadata?.contract_address);
 
         if token_id.is_none() && !asset.is_base_asset.unwrap_or(false) {
             return None;

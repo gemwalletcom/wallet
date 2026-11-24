@@ -2,8 +2,8 @@ use num_bigint::BigUint;
 use std::error::Error;
 
 use crate::constants::{TRANSACTION_TYPE_ASSET_TRANSFER, TRANSACTION_TYPE_PAY};
-use crate::models::{Transaction as AlgoTransaction, TransactionBroadcast, TransactionLookup};
-use primitives::{AssetId, Transaction, TransactionState, TransactionType, chain::Chain};
+use crate::models::{AssetTransferTransaction, Block, BlockTransaction, PaymentTransaction, Transaction as AlgoTransaction, TransactionBroadcast, TransactionLookup};
+use primitives::{AssetId, DateTime, Transaction, TransactionState, TransactionType, chain::Chain};
 
 pub fn map_transaction_broadcast(result: &TransactionBroadcast) -> Result<String, Box<dyn Error + Sync + Send>> {
     if let Some(message) = &result.message {
@@ -17,6 +17,34 @@ pub fn map_transaction_broadcast(result: &TransactionBroadcast) -> Result<String
 
 pub fn map_transactions(transactions: Vec<AlgoTransaction>) -> Vec<Transaction> {
     transactions.into_iter().flat_map(map_transaction).collect::<Vec<Transaction>>()
+}
+
+pub fn map_block_transactions(block: Block, ids: Vec<String>) -> Result<Vec<Transaction>, Box<dyn Error + Sync + Send>> {
+    let Block { timestamp, transactions } = block;
+    if ids.len() != transactions.len() {
+        return Err(format!("Algorand block has {} transactions and {} ids", transactions.len(), ids.len()).into());
+    }
+    Ok(map_transactions(ids.into_iter().zip(transactions).map(|(id, signed)| map_block_transaction(id, timestamp, signed.transaction)).collect()))
+}
+
+fn map_block_transaction(id: String, round_time: DateTime, transaction: BlockTransaction) -> AlgoTransaction {
+    AlgoTransaction {
+        id,
+        round_time,
+        fee: transaction.fee,
+        sender: Some(transaction.sender),
+        note: transaction.note,
+        payment_transaction: Some(PaymentTransaction {
+            amount: transaction.amount,
+            receiver: transaction.receiver,
+        }),
+        asset_transfer_transaction: transaction.asset_id.map(|asset_id| AssetTransferTransaction {
+            amount: transaction.asset_amount.unwrap_or_default(),
+            asset_id,
+            receiver: transaction.asset_receiver.unwrap_or_default(),
+        }),
+        transaction_type: transaction.transaction_type,
+    }
 }
 
 pub fn map_transaction_by_hash(transaction: TransactionLookup) -> Option<Transaction> {
@@ -62,7 +90,7 @@ fn map_transfer(transaction: &AlgoTransaction, asset_id: AssetId, to: String, tr
 mod tests {
     use super::*;
     use crate::{
-        models::{TransactionBroadcast, Transactions},
+        models::{BlockResponse, BlockTransactionIds, TransactionBroadcast, Transactions},
         provider::testkit::TEST_TRANSACTION_ID,
     };
     use primitives::DateTime;
@@ -86,6 +114,30 @@ mod tests {
     fn test_map_transaction_broadcast_error_data() {
         let broadcast: TransactionBroadcast = serde_json::from_str(include_str!("../../testdata/transaction_broadcast_error.json")).unwrap();
         assert_eq!(map_transaction_broadcast(&broadcast).unwrap_err().to_string(), "txgroup had 0 in fees, which is less than the minimum 1 * 1000");
+    }
+
+    #[test]
+    fn test_map_block_transactions() {
+        let block: BlockResponse = serde_json::from_str(include_str!("../../testdata/block.json")).unwrap();
+        let ids: BlockTransactionIds = serde_json::from_str(include_str!("../../testdata/block_txids.json")).unwrap();
+
+        let transactions = map_block_transactions(block.block.clone(), ids.transaction_ids).unwrap();
+
+        assert_eq!(
+            transactions
+                .iter()
+                .map(|transaction| (transaction.hash(), transaction.asset_id.to_string(), transaction.transaction_type.clone(), transaction.value.clone()))
+                .collect::<Vec<_>>(),
+            [
+                ("QQXLN7C6BMXAZQQ56BDYDGDNSB7D7IGEL5KYKCTQT5TNTT2TN7XQ", "algorand_31566704", TransactionType::Transfer, 2758u64),
+                ("R67WMJRYW7Q6US6BXLJWBBGC2KE6LC2AQPQHBLV55D5DEXEOZQTQ", "algorand", TransactionType::Transfer, 0),
+                ("VNXKBGF7LNZX5WM5QE57FBGOI56LVDDG3VZMBY2F5X6CFT6OYEEA", "algorand_127746157", TransactionType::AssetActivation, 0),
+            ]
+            .map(|(hash, asset_id, transaction_type, value)| (hash, asset_id.to_string(), transaction_type, BigUint::from(value)))
+            .to_vec()
+        );
+        assert_eq!(transactions[0].created_at, DateTime::from_timestamp(1795491063));
+        assert_eq!(map_block_transactions(block.block, vec![]).unwrap_err().to_string(), "Algorand block has 4 transactions and 0 ids");
     }
 
     #[test]

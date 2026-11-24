@@ -2513,6 +2513,7 @@ dependencies = [
  "async-trait",
  "chain_traits",
  "date_time",
+ "futures",
  "gem_algorand",
  "gem_client",
  "gem_encoding",
@@ -7288,7 +7289,6 @@ version = "2.114.103"
 dependencies = [
  "alloy-primitives",
  "alloy-sol-types",
- "async-trait",
  "futures",
  "gem_evm",
  "gem_jsonrpc",

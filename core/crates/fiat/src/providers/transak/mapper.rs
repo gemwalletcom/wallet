@@ -4,7 +4,7 @@ use primitives::FiatQuoteUrlData;
 use primitives::PaymentType;
 use primitives::currency::Currency;
 use primitives::fiat_assets::FiatAssetLimits;
-use primitives::{Chain, FiatProviderName, FiatQuoteType, FiatTransactionStatus, FiatTransactionUpdate};
+use primitives::{AssetId, Chain, FiatProviderName, FiatQuoteType, FiatTransactionStatus, FiatTransactionUpdate};
 use serde_json::{Value, json};
 use std::collections::HashMap;
 
@@ -139,9 +139,17 @@ fn map_limits(fiat_currencies: &[FiatCurrency], quote_type: FiatQuoteType) -> Ve
         .collect()
 }
 
+fn map_token_id(chain: Option<Chain>, asset: &Asset) -> Option<String> {
+    let address = asset.address.clone()?;
+    match chain {
+        Some(Chain::Stellar) => Some(AssetId::sub_token_id(&[address, asset.symbol.clone()])),
+        _ => Some(address),
+    }
+}
+
 pub fn map_asset(asset: Asset) -> Option<FiatProviderAsset> {
     let chain = map_asset_chain(&asset.network.name, Some(&asset.coin_id));
-    let token_id = filter_token_id(chain, asset.clone().address);
+    let token_id = filter_token_id(chain, map_token_id(chain, &asset));
     let enabled = asset.is_allowed && !asset.is_suspended.unwrap_or(false);
     let is_sell_enabled = asset.is_pay_in_allowed.unwrap_or(false);
 
@@ -205,6 +213,7 @@ mod tests {
                 ("USDTaptos".to_string(), Some(APTOS_USDT_ASSET_ID.clone())),
                 ("USDCarc".to_string(), Some(Chain::Arc.as_asset_id())),
                 ("HYPEhyperliquid".to_string(), Some(Chain::HyperCore.as_asset_id())),
+                ("EURCstellar".to_string(), Some(AssetId::from_token(Chain::Stellar, "GDHU6WRG4IEQXM5NZ4BMPKOXHW76MZM4Y2IEMFDVXBSDP6SJY4ITNPP2::EURC"))),
             ]
         );
     }

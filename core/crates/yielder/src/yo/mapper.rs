@@ -1,4 +1,3 @@
-use alloy_primitives::U256;
 use gem_evm::jsonrpc::TransactionObject;
 use gem_evm::u256::u256_to_biguint;
 use num_bigint::BigUint;
@@ -22,8 +21,7 @@ pub fn map_to_delegation(asset_id: AssetId, data: &PositionData, provider_id: &s
 }
 
 pub fn map_to_asset_balance(asset: &YoAsset, data: &PositionData) -> AssetBalance {
-    let balance = if data.share_balance != U256::ZERO { u256_to_biguint(&data.asset_balance) } else { BigUint::ZERO };
-    AssetBalance::new_earn(asset.asset_id(), balance)
+    AssetBalance::new_earn(asset.asset_id(), u256_to_biguint(&data.asset_balance))
 }
 
 pub fn map_to_contract_call_data(transaction: TransactionObject, approval: Option<ApprovalData>, gas_limit: u64) -> ContractCallData {
@@ -51,6 +49,7 @@ pub fn map_to_earn_provider(chain: Chain, provider: YieldProvider) -> Delegation
 mod tests {
     use super::*;
     use crate::yo::assets::YO_USDC;
+    use alloy_primitives::U256;
 
     #[test]
     fn test_map_to_delegation() {
@@ -90,18 +89,6 @@ mod tests {
             .balance
             .earn,
             BigUint::from(1_050_000u64)
-        );
-        assert_eq!(
-            map_to_asset_balance(
-                &YO_USDC,
-                &PositionData {
-                    share_balance: U256::ZERO,
-                    asset_balance: U256::from(1_050_000)
-                }
-            )
-            .balance
-            .earn,
-            BigUint::ZERO
         );
     }
 
