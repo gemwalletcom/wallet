@@ -2513,6 +2513,7 @@ dependencies = [
  "async-trait",
  "chain_traits",
  "date_time",
+ "futures",
  "gem_algorand",
  "gem_client",
  "gem_encoding",

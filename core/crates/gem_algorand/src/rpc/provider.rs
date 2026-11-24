@@ -10,9 +10,9 @@ use primitives::{Chain, Transaction};
 
 use super::AlgorandClient;
 
-pub trait AlgorandTransactionProvider: ChainTransactions + ChainBlockTransactions + ChainTransaction {}
+pub trait AlgorandTransactionProvider: ChainTransactions + ChainTransaction {}
 
-impl<T: ChainTransactions + ChainBlockTransactions + ChainTransaction> AlgorandTransactionProvider for T {}
+impl<T: ChainTransactions + ChainTransaction> AlgorandTransactionProvider for T {}
 
 pub struct AlgorandProvider<C: Client> {
     client: AlgorandClient<C>,
@@ -47,7 +47,7 @@ impl<C: Client> ChainTransactions for AlgorandProvider<C> {
 #[async_trait]
 impl<C: Client> ChainBlockTransactions for AlgorandProvider<C> {
     async fn get_transactions_by_block(&self, block: u64) -> Result<Vec<Transaction>, Box<dyn Error + Sync + Send>> {
-        self.transaction_provider.get_transactions_by_block(block).await
+        self.client.get_transactions_by_block(block).await
     }
 }
 
