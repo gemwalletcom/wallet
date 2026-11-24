@@ -23,7 +23,7 @@ Store variants are Gradle product flavors driven by `gradle/channels.gradle.kts`
 
 `reproducible/` is the public build recipe; [its README](../reproducible/README.md) has the commands and the layout.
 
-- `reproducible/docker.sh <channel>...` builds the checked-out commit, not the working tree, in a pinned Ubuntu container and returns unsigned files. `fdroid` builds as `linux/amd64`, because F-Droid's servers are x86-64 and an ARM64 host compiles a different `libgemstone.so`; every other channel builds as `linux/arm64`, where the build is about twice as fast. A rebuild matches only on the same machine type, so the script chooses it, never the caller. It builds any channel: an APK for `fdroid`, `universal`, `solana` and `emerald`, the AAB for `google`.
+- `reproducible/docker.sh <channel>...` builds the checked-out commit, not the working tree, in a pinned Ubuntu container and returns unsigned files. Every channel builds as `linux/amd64`, because F-Droid's servers are x86-64 and an ARM64 host compiles a different `libgemstone.so`. A rebuild matches only on the same machine type, so the script sets it, never the caller. It builds any channel: an APK for `fdroid`, `universal`, `solana` and `emerald`, the AAB for `google`.
 - Nothing under `reproducible/` reads a keystore, a password or any other secret, and the container gets no host environment beyond `UPDATE_URL`. Signing and publishing belong to the release pipeline, which signs the unsigned file afterwards; do not add a release signing config to the Gradle build. Keep it that way: a build input that is not in the commit cannot be reproduced by anyone else.
 - `reproducible/compare.py` compares two APKs outside the signing block, which is the check F-Droid makes.
 
