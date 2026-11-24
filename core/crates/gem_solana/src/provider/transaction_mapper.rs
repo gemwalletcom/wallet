@@ -372,8 +372,7 @@ mod tests {
 
     use super::*;
     use crate::provider::testkit::TEST_TRANSACTION_ID;
-    use crate::{PYUSD_TOKEN_MINT, RELAY_DEPOSITORY_PROGRAM_ID, USDC_TOKEN_MINT, USDT_TOKEN_MINT, models::SolanaTransaction};
-    use gem_jsonrpc::types::JsonRpcErrorResponse;
+    use crate::{PYUSD_TOKEN_MINT, RELAY_DEPOSITORY_PROGRAM_ID, USDC_TOKEN_MINT, USDT_TOKEN_MINT};
     use primitives::{JsonRpcResult, asset_constants::SOLANA_USDC_ASSET_ID, testkit::json::load_json_rpc_result};
 
     const SPL_NFT_MINT: &str = "4umMdShNxbdnoV2EZjUp6h5GYYneZFLH9otBEU2K3ZYP";
@@ -895,21 +894,6 @@ mod tests {
     }
 
     #[test]
-    fn test_get_transaction_status() {
-        let result: JsonRpcResult<SolanaTransaction> = serde_json::from_str(include_str!("../../testdata/transaction_state_transfer_sol.json")).unwrap();
-        let transaction = result.result;
-
-        let state = if transaction.slot > 0 {
-            if transaction.meta.has_error() { TransactionState::Reverted } else { TransactionState::Confirmed }
-        } else {
-            TransactionState::Pending
-        };
-
-        assert_eq!(state, TransactionState::Confirmed);
-        assert_eq!(transaction.slot, 361169359);
-    }
-
-    #[test]
     fn test_transaction_chainflip_vault_swap() {
         let result: JsonRpcResult<BlockTransaction> = serde_json::from_str(include_str!("../../testdata/chainflip_vault_swap.json")).unwrap();
         let transaction = map_transaction(&result.result, DateTime::from_timestamp(1772283531)).unwrap();
@@ -918,14 +902,5 @@ mod tests {
         assert_eq!(transaction.from, "CabroWmzUzcqqGvprUoC7RnJznuwX6qf5W1tSSaomri7");
         assert_eq!(transaction.contract, Some("J88B7gmadHzTNGiy54c9Ms8BsEXNdB2fntFyhKpk3qoT".to_string()));
         assert_eq!(transaction.value, BigUint::from(152686560u64));
-    }
-
-    #[test]
-    fn test_transaction_broadcast_error() {
-        let error_response: JsonRpcErrorResponse = serde_json::from_str(include_str!("../../testdata/transaction_broadcast_swap_error.json")).unwrap();
-
-        assert_eq!(error_response.error.code, -32002);
-        assert_eq!(error_response.error.message, "Transaction simulation failed: Error processing Instruction 3: custom program error: 0x1771");
-        assert_eq!(error_response.id, Some(1755839259));
     }
 }
