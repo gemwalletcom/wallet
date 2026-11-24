@@ -16,6 +16,9 @@ pub const TEST_ADDRESS: &str = "0x93f65b8c16c263343bbf66cf9f8eef69cb1dbc92d13f0c
 pub const TEST_ADDRESS_EMPTY: &str = "0x180c5478e639770c4424bfbcd4208d8d61f4e52518c76c5ea1ed05b418380457";
 
 #[cfg(all(test, feature = "chain_integration_tests"))]
+pub const TEST_ADDRESS_SMALL_GAS_BALANCE: &str = "0xd785c9bac14ac9bc30dd2fdba37d65ba72409b8ba13fa1f1e81b2b122d1af2d6";
+
+#[cfg(all(test, feature = "chain_integration_tests"))]
 pub const TEST_TOKEN_ADDRESS: &str = SUI_USDC_TOKEN_ID;
 
 #[cfg(test)]

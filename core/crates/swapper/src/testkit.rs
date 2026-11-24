@@ -20,6 +20,8 @@ use gem_reqwest::NativeProvider;
 use primitives::decode_hex;
 
 pub const TEST_SUI_WALLET: &str = "0x2ec5b7bcf6a0512850fe5f95cbd0a4303e8de5a3ffc01f9dba96bf1fde5f9bb5";
+#[cfg(all(test, feature = "swap_integration_tests"))]
+pub const TEST_SUI_SMALL_GAS_BALANCE_WALLET: &str = "0xd785c9bac14ac9bc30dd2fdba37d65ba72409b8ba13fa1f1e81b2b122d1af2d6";
 
 impl ProviderData {
     pub fn mock() -> Self {
