@@ -166,16 +166,16 @@ pub trait ChainTransaction: Send + Sync {
     }
 }
 
+pub type BlockTransactionsResult = (u64, Result<Vec<Transaction>, Box<dyn Error + Sync + Send>>);
+
 #[async_trait]
 pub trait ChainBlockTransactions: Send + Sync {
     async fn get_transactions_by_block(&self, _block: u64) -> Result<Vec<Transaction>, Box<dyn Error + Sync + Send>> {
         Ok(vec![])
     }
 
-    async fn get_transactions_in_blocks(&self, blocks: Vec<u64>) -> Result<Vec<Transaction>, Box<dyn Error + Send + Sync>> {
-        let futures = blocks.into_iter().map(|block| self.get_transactions_by_block(block));
-        let results = futures::future::try_join_all(futures).await?;
-        Ok(results.into_iter().flatten().collect())
+    async fn get_transactions_in_blocks(&self, blocks: Vec<u64>) -> Vec<BlockTransactionsResult> {
+        futures::future::join_all(blocks.into_iter().map(|block| async move { (block, self.get_transactions_by_block(block).await) })).await
     }
 }
 

@@ -73,7 +73,8 @@ mod chain_integration_tests {
     #[tokio::test]
     async fn test_near_get_transactions_in_blocks() -> Result<(), Box<dyn Error + Send + Sync>> {
         let blocks = vec![212506690, 212506691, 212506692];
-        let transactions = create_near_test_client().get_transactions_in_blocks(blocks.clone()).await?;
+        let results = create_near_test_client().get_transactions_in_blocks(blocks.clone()).await;
+        let transactions = results.into_iter().map(|(_, result)| result).collect::<Result<Vec<_>, _>>()?.concat();
 
         assert!(!transactions.is_empty());
         assert!(

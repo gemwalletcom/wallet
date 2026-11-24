@@ -6,6 +6,8 @@ use crate::models::SimulateTransactionQuery;
 pub enum AptosTarget {
     GetLedger,
     GetBlock { height: u64 },
+    GetBlockHeader { height: u64 },
+    GetTransactions { start: u64, limit: u64 },
     GetAccount { address: String },
     GetAccountTransactions { address: String },
     GetAccountResource { address: String, resource: String },
@@ -22,6 +24,8 @@ impl Target for AptosTarget {
         match self {
             Self::GetLedger => "/v1/".to_string(),
             Self::GetBlock { height } => format!("/v1/blocks/by_height/{height}?with_transactions=true"),
+            Self::GetBlockHeader { height } => format!("/v1/blocks/by_height/{height}"),
+            Self::GetTransactions { start, limit } => format!("/v1/transactions?start={start}&limit={limit}"),
             Self::GetAccount { address } => format!("/v1/accounts/{address}"),
             Self::GetAccountTransactions { address } => format!("/v1/accounts/{address}/transactions"),
             Self::GetAccountResource { address, resource } => format!("/v1/accounts/{address}/resource/{resource}"),

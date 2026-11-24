@@ -167,7 +167,7 @@ mod tests {
         let provider = provider(Arc::default(), None);
 
         assert!(provider.get_transactions_by_block(212520205).await.unwrap().is_empty());
-        assert!(provider.get_transactions_in_blocks(vec![212520205, 212520210]).await.unwrap().is_empty());
+        assert!(provider.get_transactions_in_blocks(vec![212520205, 212520210]).await.into_iter().all(|(_, result)| result.unwrap().is_empty()));
     }
 
     #[tokio::test]

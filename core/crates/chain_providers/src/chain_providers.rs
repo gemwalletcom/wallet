@@ -51,7 +51,8 @@ impl ChainProviders {
     }
 
     pub async fn get_transactions_in_blocks(&self, chain: Chain, blocks: Vec<u64>) -> Result<Vec<Transaction>, Box<dyn Error + Send + Sync>> {
-        self.get_provider(chain)?.get_transactions_in_blocks(blocks).await
+        let results = self.get_provider(chain)?.get_transactions_in_blocks(blocks).await;
+        Ok(results.into_iter().map(|(_, result)| result).collect::<Result<Vec<_>, _>>()?.concat())
     }
 
     pub async fn get_transactions_by_address(&self, chain: Chain, request: TransactionsRequest) -> Result<Vec<Transaction>, Box<dyn Error + Send + Sync>> {
