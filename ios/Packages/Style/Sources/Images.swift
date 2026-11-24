@@ -278,7 +278,7 @@ public enum Images {
             (Images.Chains.smartchain, "Smart Chain"),
             (Images.Chains.solana, "Solana"),
             (Images.Chains.sui, "Sui"),
-            (Images.Chains.thorchain, "Thorchain"),
+            (Images.Chains.thorchain, "THORChain"),
             (Images.Chains.ton, "Ton"),
             (Images.Chains.tron, "Tron"),
             (Images.Chains.xrp, "XRP"),
