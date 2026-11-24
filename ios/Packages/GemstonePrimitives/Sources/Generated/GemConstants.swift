@@ -26,8 +26,6 @@ public enum GemConstants {
     public static let recentAssetsLimit: Int = 10
     public static let supportAttachmentMaxDimension: Int = 2048
     public static let supportAttachmentJpegQuality: Int = 90
-    public static let walletConnectUserRejectedErrorCode: Int32 = 4001
-    public static let walletConnectUserRejectedErrorMessage: String = "User rejected the request"
     public static let perpetualActivityTypes: [Primitives.TransactionType] = [Primitives.TransactionType.perpetualOpenPosition, Primitives.TransactionType.perpetualClosePosition, Primitives.TransactionType.perpetualModifyPosition]
     public static let lockPeriods: [Gemstone.GemLockPeriod] = [Gemstone.GemLockPeriod.immediate, Gemstone.GemLockPeriod.oneMinute, Gemstone.GemLockPeriod.fiveMinutes, Gemstone.GemLockPeriod.fifteenMinutes, Gemstone.GemLockPeriod.oneHour, Gemstone.GemLockPeriod.sixHours]
     public static let walletAvatarEmojis: [String] = ["💎", "🦄", "🚀", "❤️", "😍", "🔥", "💩", "😭", "🏆", "🏴‍☠️", "✅", "⚠️", "💰", "🎁", "🎈", "🌈", "⭐️", "👑", "💔", "🔒", "🏦", "🥷", "👨‍💻", "🛢", "🔑", "🛡", "📈", "📉", "💥", "👽", "🔮", "⚡️", "🌍", "⏳", "🤖", "🛰", "🐉", "🐙", "🦅", "👀", "💪", "🔷", "👻", "🌪", "🕶", "👾", "🕵️‍♂️", "⌛️", "✨", "🍀", "☠️", "💀", "🕸", "🕷", "🎰", "☄️", "🏔", "🏜", "🌊", "🎆", "🎖", "🔭", "⛽️", "🏭", "🌉", "🏰", "🔨", "🧰", "💼", "🏷", "♟", "⚓️", "🎡", "🎢", "🎃", "📦"]

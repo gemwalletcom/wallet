@@ -30,12 +30,13 @@ use crate::services::simulation::GemSimulationService;
 use crate::services::wallet_session::GemWalletSessionService;
 use crate::wallet_connect::WalletConnect;
 use gem_wallet_connect::{WalletConnectAction, WalletConnectChainOperation, WalletConnectTransaction, WalletConnectTransactionType};
+use wallet_connect_protocol::sign::Reason;
 
 pub use client::{GemWalletConnectAuthMessage, GemWalletConnectAuthentication, GemWalletConnectClient, GemWalletConnectEvent, GemWalletConnectListener, GemWalletConnectProposal, GemWalletConnectRelay, wallet_connect_relay};
 pub use error::GemWalletConnectError;
 pub use model::{
     GemConnection, GemConnectionDetails, GemConnectionsView, GemSessionApproval, GemSessionProposal, GemSignerFailure, GemWalletConnectAuthAccount, GemWalletConnectFailure, GemWalletConnectMessageRequest, GemWalletConnectOutcome,
-    GemWalletConnectRejection, GemWalletConnectRejectionReason, GemWalletConnectResponse, GemWalletConnectRpcError, GemWalletConnectSessionRequest, GemWalletConnectTransactionAction, GemWalletConnectTransactionRequest,
+    GemWalletConnectRejectionReason, GemWalletConnectResponse, GemWalletConnectSessionRequest, GemWalletConnectTransactionAction, GemWalletConnectTransactionRequest,
 };
 pub use sign_message::{GemSignMessagePreview, GemSignMessageService};
 pub use signer::GemWalletConnectSigner;
@@ -203,10 +204,6 @@ impl GemWalletConnectService {
         self.store.delete_sessions(vec![session_id]).await
     }
 
-    pub fn session_rejection(&self, reason: GemWalletConnectRejectionReason) -> GemWalletConnectRejection {
-        rules::session_rejection(reason)
-    }
-
     pub async fn request_outcome(&self, request: GemWalletConnectSessionRequest) -> GemWalletConnectOutcome {
         if !self.should_process_message(rules::request_message_id(&request.topic, &request.request_id)) {
             return GemWalletConnectOutcome::Ignored;
@@ -307,7 +304,7 @@ impl GemWalletConnectService {
             }
             WalletConnectAction::ChainOperation { operation } => return self.chain_operation(&session_id, operation).await,
             WalletConnectAction::Unsupported { .. } => {
-                return Ok(GemWalletConnectOutcome::respond_error(rules::method_not_found_error()));
+                return Ok(GemWalletConnectOutcome::respond_error(Reason::method_not_found()));
             }
         };
         Ok(GemWalletConnectOutcome::Respond {
