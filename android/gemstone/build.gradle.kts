@@ -10,6 +10,8 @@ val generatedKotlinDir = gemstoneSrc.resolve("main/java")
 val isRelease = System.getenv("BUILD_MODE") == "release"
 val cargoBuildFlag = if (isRelease) "--release" else ""
 val gemstoneHostLibrary = rootProject.extra["gemstoneHostLibrary"] as File
+val kotlinJni = providers.environmentVariable("GEMSTONE_KOTLIN_JNI").orNull == "true"
+val bindingsSrc = projectDir.resolve(if (kotlinJni) "src/jni" else "src/jna")
 
 apply(from = "$rootDir/gradle/channels.gradle.kts")
 
@@ -37,11 +39,19 @@ android {
         getByName("main") {
             kotlin {
                 directories.add(generatedKotlinDir.absolutePath)
+                directories.add(bindingsSrc.resolve("kotlin").absolutePath)
             }
             jniLibs {
                 directories.add(jniLibsDir.absolutePath)
             }
             manifest.srcFile(gemstoneSrc.resolve("main/AndroidManifest.xml"))
+        }
+        if (!kotlinJni) {
+            getByName("test") {
+                kotlin {
+                    directories.add(projectDir.resolve("src/testJna/kotlin").absolutePath)
+                }
+            }
         }
     }
 }
@@ -65,9 +75,12 @@ val buildGemstoneHost = tasks.register<Exec>("buildGemstoneHost") {
 val bindgenKotlin = tasks.register<Exec>("bindgenKotlin") {
     description = "Generate Kotlin bindings from gemstone via uniffi"
     workingDir = gemstoneRoot
-    dependsOn(buildGemstoneHost)
-    inputs.file(gemstoneHostLibrary)
-    inputs.dir(coreRoot.resolve("bin/uniffi-bindgen"))
+    inputs.property("kotlinJni", kotlinJni)
+    if (!kotlinJni) {
+        dependsOn(buildGemstoneHost)
+        inputs.file(gemstoneHostLibrary)
+    }
+    inputs.dir(coreRoot.resolve(if (kotlinJni) "bin/uniffi-kotlin-jni" else "bin/uniffi-bindgen"))
     inputs.files(
         coreRoot.resolve("Cargo.toml"),
         coreRoot.resolve("Cargo.lock"),
@@ -77,7 +90,7 @@ val bindgenKotlin = tasks.register<Exec>("bindgenKotlin") {
         gemstoneRoot.resolve("justfile"),
     )
     outputs.dir(generatedKotlinDir.resolve("uniffi"))
-    commandLine("/bin/sh", "-l", "-c", "just bindgen-kotlin")
+    commandLine("/bin/sh", "-l", "-c", if (kotlinJni) "just bindgen-kotlin-jni" else "just bindgen-kotlin")
 }
 
 val buildCargoNdk = tasks.register<Exec>("buildCargoNdk") {
@@ -88,7 +101,7 @@ val buildCargoNdk = tasks.register<Exec>("buildCargoNdk") {
     outputs.upToDateWhen { false }
     doFirst { outputDir.deleteRecursively() }
     environment("CARGO_PROFILE_RELEASE_STRIP", "debuginfo")
-    commandLine("/bin/sh", "-l", "-c", "cargo ndk $cargoNdkTargets -o ${jniLibsDir.absolutePath} rustc --lib --crate-type cdylib $cargoBuildFlag")
+    commandLine("/bin/sh", "-l", "-c", "cargo ndk $cargoNdkTargets -o ${jniLibsDir.absolutePath} rustc --lib --crate-type cdylib $cargoBuildFlag ${if (kotlinJni) "--features kotlin-jni" else ""}")
 }
 
 tasks.configureEach {
@@ -104,6 +117,8 @@ tasks.configureEach {
 }
 
 dependencies {
-    api("net.java.dev.jna:jna:5.19.1@aar")
+    if (!kotlinJni) {
+        api("net.java.dev.jna:jna:5.19.1@aar")
+    }
     implementation(libs.kotlinx.coroutines.android)
 }
