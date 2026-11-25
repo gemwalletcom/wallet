@@ -29,11 +29,11 @@ impl BscValidator {
     }
 }
 
-pub fn mock_undelegation(unlock_time: Option<u64>) -> BscUndelegation {
+pub fn mock_undelegation(validator_address: &str, amount: u64, unlock_time: Option<u64>) -> BscUndelegation {
     BscUndelegation {
-        validator_address: "0x773760b0708a5Cc369c346993a0c225D8e4043B1".to_string(),
-        amount: BigUint::from(1_000_000_000_000_000_000u64),
-        shares: BigUint::from(1_000_000_000_000_000_000u64),
+        validator_address: validator_address.to_string(),
+        amount: BigUint::from(amount),
+        shares: BigUint::from(amount),
         unlock_time,
     }
 }
