@@ -12,6 +12,7 @@ pub(crate) mod testkit;
 
 use crate::services::error::GemServiceError;
 use std::sync::Arc;
+use strum::IntoEnumIterator;
 
 use primitives::{Asset, AssetBasic, AssetFull, AssetId, AssetPrice, AssetProperties, Chain, ConfigVersions, DateTime, FiatAssets, FiatQuoteType, Wallet, WalletId};
 
@@ -199,7 +200,7 @@ impl GemAssetsService {
             AssetList::Sell => self.store.set_sellable_assets(asset_ids).await?,
             AssetList::Swap => self.store.set_swappable_assets(rules::swappable_asset_ids(asset_ids)).await?,
         }
-        self.preferences.set_assets_version(list, assets.version.to_string())
+        self.preferences.set_assets_version(list, Some(assets.version.to_string()))
     }
 
     pub async fn search_tokens(&self, token_id: String, chains: Vec<Chain>) -> Result<Vec<AssetBasic>, GemServiceError> {
@@ -237,7 +238,8 @@ impl GemAssetsService {
         if missing.is_empty() {
             return Ok(());
         }
-        self.store.save_assets(missing).await
+        self.store.save_assets(missing).await?;
+        AssetList::iter().try_for_each(|list| self.preferences.set_assets_version(list, None))
     }
 
     pub async fn get_fiat_assets(&self, quote_type: FiatQuoteType) -> Result<FiatAssets, GemApiError> {
@@ -284,6 +286,27 @@ mod tests {
             let writes = store.asset_writes.lock().unwrap();
             assert_eq!(writes.len(), 2);
             assert_eq!(writes[1], vec![reranked], "only the row that changed is written");
+        })
+    }
+
+    #[test]
+    fn test_assets_added_by_an_update_have_the_asset_lists_applied_again() {
+        block_on(async {
+            let store = Arc::new(MemoryAssetStore {
+                assets: std::sync::Mutex::new(rules::default_assets().into_iter().filter(|basic| basic.asset.id.chain != Chain::Arc).collect()),
+                ..MemoryAssetStore::default()
+            });
+            let service = GemAssetsService::mock(Arc::new(TestAlienProvider::offline()), store);
+            let store_versions = || AssetList::iter().for_each(|list| service.preferences.set_assets_version(list, Some("1".to_string())).unwrap());
+            let stored_versions = || AssetList::iter().map(|list| service.preferences.get_assets_version(list)).collect::<Vec<_>>();
+            store_versions();
+
+            service.ensure_default_assets().await.unwrap();
+            assert_eq!(stored_versions(), vec![None, None, None], "a new chain's coins get the buy, sell and swap lists on the same start");
+
+            store_versions();
+            service.ensure_default_assets().await.unwrap();
+            assert_eq!(stored_versions(), vec![Some("1".to_string()); 3], "a start that adds nothing keeps the applied lists");
         })
     }
 

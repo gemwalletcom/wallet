@@ -319,8 +319,12 @@ impl GemPreferencesService {
         self.store.get(assets_version_key(list).to_string())
     }
 
-    pub fn set_assets_version(&self, list: AssetList, version: String) -> Result<(), GemServiceError> {
-        self.store.set(assets_version_key(list).to_string(), version)
+    pub fn set_assets_version(&self, list: AssetList, version: Option<String>) -> Result<(), GemServiceError> {
+        let key = assets_version_key(list).to_string();
+        match version {
+            Some(version) => self.store.set(key, version),
+            None => self.store.remove(key),
+        }
     }
 
     pub fn get_config(&self) -> Option<ConfigResponse> {

@@ -15,10 +15,10 @@ use crate::services::perpetual::model::GemPerpetualMarketItem;
 use crate::services::price_alert::rules::GemPriceAlertToggle;
 use crate::services::search::GemSearchScope;
 use crate::services::swap::GemSwapPairSuggestion;
-use strum::IntoEnumIterator;
+use strum::{EnumIter, IntoEnumIterator};
 use swapper::AssetList as SwapAssetList;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, EnumIter)]
 pub enum AssetList {
     Buy,
     Sell,
