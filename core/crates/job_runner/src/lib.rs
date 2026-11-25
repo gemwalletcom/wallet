@@ -17,6 +17,7 @@ pub type JobError = Box<dyn std::error::Error + Send + Sync>;
 
 #[async_trait]
 pub trait JobStatusReporter: Send + Sync {
+    async fn restore(&self, name: &str, interval: u64, last_success_at: Option<u64>);
     async fn report(&self, name: &str, interval: u64, duration: u64, success: bool);
 }
 
@@ -36,6 +37,7 @@ where
     R: Debug + Send + Sync + 'static,
 {
     let job_name = name.into();
+    reporter.restore(&job_name, interval_duration.as_secs(), schedule.last_success_at(&job_name).await).await;
 
     loop {
         if *shutdown.borrow() {

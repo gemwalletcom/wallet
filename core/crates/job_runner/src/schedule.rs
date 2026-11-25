@@ -16,6 +16,7 @@ pub struct JobContext {
 
 #[async_trait]
 pub trait JobSchedule: Send + Sync {
+    async fn last_success_at(&self, job_name: &str) -> Option<u64>;
     async fn evaluate(&self, job_name: &str, interval: Duration, now: SystemTime) -> Result<RunDecision, JobError>;
     async fn mark_success(&self, job_name: &str, timestamp: SystemTime) -> Result<(), JobError>;
 }
