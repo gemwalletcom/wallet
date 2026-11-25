@@ -7289,6 +7289,7 @@ version = "2.114.103"
 dependencies = [
  "alloy-primitives",
  "alloy-sol-types",
+ "async-trait",
  "futures",
  "gem_evm",
  "gem_jsonrpc",
