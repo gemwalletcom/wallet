@@ -15,11 +15,25 @@ pub struct SupportMessageLink {
     pub subtitle: Option<String>,
 }
 
-pub fn markdown_plain_text(message: &str) -> String {
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum DisplayTarget {
+    ChatBubble,
+    Notification,
+}
+
+pub fn support_message_notification_text(markdown: &str) -> String {
+    markdown_plain_text(&parse_display_content(markdown, DisplayTarget::Notification).text)
+}
+
+fn markdown_plain_text(message: &str) -> String {
     collapse_whitespace(&message.replace("**", ""), " ")
 }
 
 pub fn parse_support_message_display_content(markdown: &str) -> SupportMessageDisplayContent {
+    parse_display_content(markdown, DisplayTarget::ChatBubble)
+}
+
+fn parse_display_content(markdown: &str, target: DisplayTarget) -> SupportMessageDisplayContent {
     let markdown = markdown.trim();
     let mut text = String::new();
     let mut links = Vec::new();
@@ -55,7 +69,7 @@ pub fn parse_support_message_display_content(markdown: &str) -> SupportMessageDi
         match SupportMessageLink::new(Some(title), url) {
             Some(link) => {
                 append_text_and_labeled_links(text_before_link, &mut text, &mut links);
-                if label_prefix.is_none() && !link_stands_alone(&markdown[..title_start], &markdown[next_index..]) {
+                if label_prefix.is_none() && (target == DisplayTarget::Notification || !link_stands_alone(&markdown[..title_start], &markdown[next_index..])) {
                     text.push_str(&title.replace(['[', ']'], ""));
                 }
                 links.push(link);
@@ -223,11 +237,21 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_markdown_plain_text() {
+    fn test_support_message_notification_text() {
         assert_eq!(
-            markdown_plain_text("Gem Wallet charges a **0.5% fee** on all swaps.\nFAQ: https://docs.gemwallet.com/faq/swap-fees"),
-            "Gem Wallet charges a 0.5% fee on all swaps. FAQ: https://docs.gemwallet.com/faq/swap-fees"
+            support_message_notification_text("Read the **swap fees** guide in [Docs](https://docs.gemwallet.com/faq/swap-fees)."),
+            "Read the swap fees guide in Docs."
         );
+        assert_eq!(
+            support_message_notification_text("Gem Wallet charges a **0.5% fee** on all swaps.\n\nFAQ: https://docs.gemwallet.com/faq/swap-fees"),
+            "Gem Wallet charges a 0.5% fee on all swaps."
+        );
+        assert_eq!(support_message_notification_text("Open https://google.com for search."), "Open https://google.com for search.");
+        assert_eq!(
+            support_message_notification_text("You can top up here: [Buy $100 of Bitcoin](https://gemwallet.com/tokens/bitcoin/buy?amount=100)"),
+            "You can top up here: Buy $100 of Bitcoin"
+        );
+        assert_eq!(support_message_notification_text("[Bitcoin](gem://tokens/bitcoin)\n[**Docs**](https://docs.gemwallet.com)"), "Bitcoin Docs");
     }
 
     #[test]
