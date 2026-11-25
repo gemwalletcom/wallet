@@ -317,6 +317,13 @@ mod tests {
                 rate: minimum_text(FeeUnitType::SatVb, &BigInt::from(50), 1, "BCH")
             }
         );
+        assert_eq!(
+            estimate(Chain::Dash, "0.9").rate.check,
+            GemCustomFeeCheck::BelowMinimum {
+                rate: minimum_text(FeeUnitType::SatVb, &BigInt::from(10), 1, "DASH")
+            },
+            "Dash nodes relay from 1 duff/B"
+        );
         let over = estimate(Chain::Bitcoin, "100000");
         assert_eq!(
             over.rate.check,
