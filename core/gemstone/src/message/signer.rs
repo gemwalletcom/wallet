@@ -404,7 +404,6 @@ Issued At: 2026-03-09T15:48:34.458Z"#;
                     version: Some("1.1".to_string()),
                     chain_id: Some(1),
                     verifying_contract: Some("0x00000000006c3852cbEf3e08E8dF289169EdE581".to_string()),
-                    salts: None,
                 },
                 message: vec![GemEIP712Section {
                     name: "OrderComponents".to_string(),
@@ -491,7 +490,6 @@ Issued At: 2026-03-09T15:48:34.458Z"#;
                     version: Some("1".to_string()),
                     chain_id: Some(137),
                     verifying_contract: None,
-                    salts: None,
                 },
                 message: vec![GemEIP712Section {
                     name: "ClobAuth".to_string(),

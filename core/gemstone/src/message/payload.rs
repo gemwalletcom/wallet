@@ -440,7 +440,6 @@ mod tests {
                 version: None,
                 chain_id: Some(1),
                 verifying_contract: Some("0xContract".into()),
-                salts: None,
             },
             message: vec![GemEIP712Section {
                 name: "PermitSingle".into(),
@@ -481,7 +480,6 @@ mod tests {
                 version: None,
                 chain_id: Some(1),
                 verifying_contract: Some("0xContract".into()),
-                salts: None,
             },
             message: vec![GemEIP712Section {
                 name: "Order".into(),
@@ -511,7 +509,6 @@ mod tests {
                 version: None,
                 chain_id: Some(1),
                 verifying_contract: None,
-                salts: None,
             },
             message: vec![GemEIP712Section { name: "Action".into(), values: vec![] }],
         }

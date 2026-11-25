@@ -6,15 +6,13 @@ mod parse;
 mod hash_tests;
 
 use num_bigint::BigUint;
-use primitives::hex;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use serde_serializers::deserialize_option_u64_from_str_or_int;
 use std::collections::HashMap;
 
-use crate::{address::ethereum_address_checksum, u256::u256_to_biguint};
-use hash_impl::validate_eip712_domain_chain_id_binding;
-use parse::parse_uint_str;
+use crate::u256::u256_to_biguint;
+use parse::{DecodedValue, decode_value, parse_uint_str, validate_eip712_domain_chain_id_binding};
 
 pub use hash_impl::hash_typed_data;
 
@@ -31,8 +29,6 @@ pub struct EIP712Domain {
     #[serde(rename = "verifyingContract")]
     #[serde(skip_serializing_if = "Option::is_none")]
     pub verifying_contract: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub salts: Option<Vec<u8>>,
 }
 
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
@@ -130,7 +126,6 @@ pub fn eip712_domain_types() -> Vec<EIP712Type> {
 
 pub fn validate_eip712_chain_id(data: &str, expected_chain_id: u64) -> Result<(), String> {
     let value: serde_json::Value = serde_json::from_str(data).map_err(|e| format!("Invalid EIP712 JSON: {}", e))?;
-    validate_eip712_domain_chain_id_binding(&value).map_err(|e| e.to_string())?;
     let message = parse_eip712_json(&value)?;
 
     if let Some(chain_id) = message.domain.chain_id
@@ -143,13 +138,8 @@ pub fn validate_eip712_chain_id(data: &str, expected_chain_id: u64) -> Result<()
 }
 
 pub fn parse_eip712_json(value: &Value) -> Result<EIP712Message, String> {
+    validate_eip712_domain_chain_id_binding(value).map_err(|error| error.to_string())?;
     let domain_value = value.get("domain").ok_or_else(|| "Invalid EIP712 JSON: missing domain".to_string())?;
-    let domain: EIP712Domain = serde_json::from_value(domain_value.clone()).map_err(|e| format!("Invalid EIP712 JSON: domain parse error: {e}"))?;
-    let verifying_contract = match domain.verifying_contract.as_deref() {
-        Some(verifying_contract) => Some(ethereum_address_checksum(verifying_contract).map_err(|error| error.to_string())?),
-        None => None,
-    };
-    let domain = EIP712Domain { verifying_contract, ..domain };
 
     let types_value = value.get("types").and_then(Value::as_object).ok_or_else(|| "Invalid EIP712 JSON: missing or invalid types".to_string())?;
     let all_types: HashMap<String, Vec<EIP712Type>> = types_value
@@ -160,6 +150,8 @@ pub fn parse_eip712_json(value: &Value) -> Result<EIP712Message, String> {
                 .map_err(|e| format!("Invalid EIP712 JSON: types field '{name}' parse error: {e}"))
         })
         .collect::<Result<_, _>>()?;
+
+    let domain = parse_domain(domain_value, &all_types)?;
 
     let primary_type_name = value.get("primaryType").and_then(Value::as_str).ok_or_else(|| "Invalid EIP712 JSON: missing or invalid primaryType".to_string())?;
 
@@ -179,85 +171,66 @@ pub fn parse_eip712_json(value: &Value) -> Result<EIP712Message, String> {
     })
 }
 
-fn parse_numeric_value_as_string(json_value: &Value, type_name: &str) -> Result<String, String> {
-    match json_value {
-        Value::Number(n) => Ok(n.to_string()),
-        Value::String(s) => Ok(s.clone()),
-        _ => {
-            let type_kind = if type_name.starts_with("int") { "int" } else { "uint" };
-            Err(format!("Expected number or string for {type_kind} type '{type_name}', got: {json_value:?}"))
+fn parse_domain(domain_value: &Value, all_types: &HashMap<String, Vec<EIP712Type>>) -> Result<EIP712Domain, String> {
+    let mut domain = EIP712Domain {
+        name: None,
+        version: None,
+        chain_id: None,
+        verifying_contract: None,
+    };
+    if !all_types.contains_key("EIP712Domain") {
+        return Ok(domain);
+    }
+    let EIP712TypedValue::Struct { fields } = parse_value("EIP712Domain", domain_value, all_types)? else {
+        return Err("EIP712Domain did not resolve to a Struct".to_string());
+    };
+    for field in fields {
+        match (field.name.as_str(), field.value) {
+            ("name", EIP712TypedValue::String { value }) => domain.name = Some(value),
+            ("version", EIP712TypedValue::String { value }) => domain.version = Some(value),
+            ("chainId", EIP712TypedValue::Uint256 { value } | EIP712TypedValue::String { value }) => {
+                domain.chain_id = Some(
+                    parse_uint_str(&value)
+                        .ok()
+                        .and_then(|chain_id| u64::try_from(chain_id).ok())
+                        .ok_or_else(|| format!("Invalid EIP712 domain chainId '{value}'"))?,
+                )
+            }
+            ("verifyingContract", EIP712TypedValue::Address { value }) => domain.verifying_contract = Some(value),
+            ("name" | "version" | "chainId" | "verifyingContract", _) => return Err(format!("Unsupported type for EIP712 domain field '{}'", field.name)),
+            _ => {}
         }
     }
+    Ok(domain)
 }
 
 pub fn parse_value(type_name: &str, json_value: &Value, all_types: &HashMap<String, Vec<EIP712Type>>) -> Result<EIP712TypedValue, String> {
-    // 1. Handle Arrays
-    if let Some(base_type) = type_name.strip_suffix("[]") {
-        let items_json = json_value.as_array().ok_or_else(|| format!("Expected array for type '{type_name}', got: {json_value:?}"))?;
-        let mut items = Vec::with_capacity(items_json.len());
-        for item_json in items_json {
-            items.push(parse_value(base_type, item_json, all_types)?);
-        }
-        Ok(EIP712TypedValue::Array { items })
-    } else {
-        // 2. Handle Non-Array Types
-        match type_name {
-            "address" => {
-                let s = json_value.as_str().ok_or_else(|| format!("Expected string for address, got: {json_value:?}"))?;
-                Ok(EIP712TypedValue::Address {
-                    value: ethereum_address_checksum(s).map_err(|error| format!("Invalid address '{s}': {error}"))?,
+    let decoded = decode_value(type_name, json_value, |name| all_types.contains_key(name)).map_err(|error| error.to_string())?;
+    Ok(match decoded {
+        DecodedValue::Array { element_type, items } => EIP712TypedValue::Array {
+            items: items.iter().map(|item| parse_value(&element_type, item, all_types)).collect::<Result<_, _>>()?,
+        },
+        DecodedValue::Struct { type_name, fields } => {
+            let defined_fields = all_types.get(type_name).ok_or_else(|| format!("Unknown EIP-712 type '{type_name}'"))?;
+            let fields = defined_fields
+                .iter()
+                .map(|field| {
+                    let value = fields.get(&field.name).ok_or_else(|| format!("Missing field '{}' for struct type '{type_name}'", field.name))?;
+                    Ok(EIP712Field {
+                        name: field.name.clone(),
+                        value: parse_value(&field.r#type, value, all_types)?,
+                    })
                 })
-            }
-            "string" => {
-                let s = json_value.as_str().ok_or_else(|| format!("Expected string for string type, got: {json_value:?}"))?;
-                Ok(EIP712TypedValue::String { value: s.to_string() })
-            }
-            "bool" => {
-                let b = json_value.as_bool().ok_or_else(|| format!("Expected boolean for bool type, got: {json_value:?}"))?;
-                Ok(EIP712TypedValue::Bool { value: b })
-            }
-            "bytes" => {
-                // Dynamic bytes
-                let s = json_value.as_str().ok_or_else(|| format!("Expected hex string for bytes type, got: {json_value:?}"))?;
-                let bytes_vec = hex::decode(s.trim_prefix("0x")).map_err(|e| format!("Invalid hex string for bytes type: {s}, error: {e}"))?;
-                Ok(EIP712TypedValue::Bytes { value: bytes_vec })
-            }
-            // Wildcard for uint<N>, int<N>, bytes<N>, and structs
-            other_type_name => {
-                if other_type_name.starts_with("uint") {
-                    let value_str = parse_numeric_value_as_string(json_value, other_type_name)?;
-                    Ok(EIP712TypedValue::Uint256 { value: value_str })
-                } else if other_type_name.starts_with("int") {
-                    let value_str = parse_numeric_value_as_string(json_value, other_type_name)?;
-                    Ok(EIP712TypedValue::Int256 { value: value_str })
-                } else if other_type_name.starts_with("bytes") {
-                    // Fixed-size bytes<N>
-                    let s = json_value.as_str().ok_or_else(|| format!("Expected hex string for bytes type '{other_type_name}', got: {json_value:?}"))?;
-                    let bytes_vec = hex::decode(s.trim_prefix("0x")).map_err(|e| format!("Invalid hex string for bytes type '{other_type_name}': {s}, error: {e}"))?;
-                    Ok(EIP712TypedValue::Bytes { value: bytes_vec })
-                } else {
-                    // Assume it's a struct type defined in 'all_types'
-                    let defined_fields = all_types.get(other_type_name).ok_or_else(|| format!("Unknown or unsupported type '{other_type_name}'"))?;
-
-                    let message_obj = json_value.as_object().ok_or_else(|| format!("Expected object for struct type '{other_type_name}', got: {json_value:?}"))?;
-
-                    let mut struct_fields = Vec::with_capacity(defined_fields.len());
-                    for field_def in defined_fields {
-                        let field_json_value = message_obj.get(&field_def.name).ok_or_else(|| format!("Missing field '{}' for struct type '{}'", field_def.name, other_type_name))?;
-
-                        // Recursive call for the struct field's type
-                        let field_typed_value = parse_value(&field_def.r#type, field_json_value, all_types)?;
-
-                        struct_fields.push(EIP712Field {
-                            name: field_def.name.clone(),
-                            value: field_typed_value,
-                        });
-                    }
-                    Ok(EIP712TypedValue::Struct { fields: struct_fields })
-                }
-            }
+                .collect::<Result<_, String>>()?;
+            EIP712TypedValue::Struct { fields }
         }
-    }
+        DecodedValue::String(value) => EIP712TypedValue::String { value: value.to_string() },
+        DecodedValue::Bytes(value) | DecodedValue::FixedBytes(value) => EIP712TypedValue::Bytes { value },
+        DecodedValue::Bool(value) => EIP712TypedValue::Bool { value },
+        DecodedValue::Address(address) => EIP712TypedValue::Address { value: address.to_checksum(None) },
+        DecodedValue::Uint(number) => EIP712TypedValue::Uint256 { value: number.to_string() },
+        DecodedValue::Int(number) => EIP712TypedValue::Int256 { value: number.to_string() },
+    })
 }
 
 #[cfg(test)]
@@ -394,6 +367,11 @@ mod tests {
     fn test_validate_eip712_chain_id_accepts_declared_non_uint_chain_id_type() {
         let json = include_str!("../testdata/eip712_domain_chain_id_schema_string.json");
         assert!(validate_eip712_chain_id(json, 1).is_ok());
+
+        let mut value: serde_json::Value = serde_json::from_str(json).unwrap();
+        value["domain"]["chainId"] = serde_json::json!("0x1");
+        assert!(validate_eip712_chain_id(&value.to_string(), 1).is_ok());
+        assert!(validate_eip712_chain_id(&value.to_string(), 137).unwrap_err().contains("Chain ID mismatch"));
     }
 
     #[test]
@@ -426,5 +404,75 @@ mod tests {
             EIP712TypedValue::Int256 { value } => assert_eq!(value, "1"),
             _ => panic!("Expected Int256 type for accountIndex field"),
         }
+    }
+
+    #[test]
+    fn test_fixed_size_array_parsing() {
+        let json = include_str!("../testdata/eip712_arrays_nested.json");
+        assert!(validate_eip712_chain_id(json, 31337).is_ok());
+
+        let mut value: serde_json::Value = serde_json::from_str(json).unwrap();
+        let message = parse_eip712_json(&value).unwrap();
+        let weights = message.message.iter().find(|field| field.name == "weights").unwrap();
+        assert_eq!(
+            weights.value,
+            EIP712TypedValue::Array {
+                items: ["1", "2", "3"].map(|value| EIP712TypedValue::Uint256 { value: value.to_string() }).to_vec()
+            }
+        );
+
+        value["message"]["weights"] = serde_json::json!(["1", "2"]);
+        assert!(parse_eip712_json(&value).unwrap_err().contains("Expected array of length 3"));
+
+        value["types"]["Group"][3]["type"] = serde_json::json!("uint64[3][2]");
+        value["message"]["weights"] = serde_json::json!([["1", "2", "3"], ["4", "5", "6"]]);
+        assert!(parse_eip712_json(&value).is_ok());
+    }
+
+    #[test]
+    fn test_review_parser_accepts_what_signer_accepts() {
+        let base: serde_json::Value = serde_json::from_str(include_str!("../testdata/eip712_arrays_nested.json")).unwrap();
+        let cases = [
+            ("/message/weights", serde_json::json!(["1", "2"]), false),
+            ("/message/weights", serde_json::json!(["18446744073709551616", "2", "3"]), false),
+            ("/message/weights", serde_json::json!(["0x10", 2, "3"]), true),
+            ("/message/nested/flag", serde_json::json!(1), true),
+            ("/message/nested/flag", serde_json::json!("true"), false),
+            ("/message/nested/payload", serde_json::json!(format!("0x{}", "01".repeat(33))), false),
+            ("/message/members/0", serde_json::json!("0x90f8bf6a479f320ead074411a4b0e7944ea8c9"), false),
+            ("/message/name", serde_json::json!(5), false),
+            ("/types/Group/3/type", serde_json::json!("uint7[3]"), false),
+            ("/domain/verifyingContract", serde_json::json!("0x90f8bf6a479f320ead074411a4b0e7944ea8c9"), false),
+            ("/domain/chainId", serde_json::json!("0x7a69"), true),
+            ("/domain/chainId", serde_json::json!("abc"), false),
+            ("/domain/name", serde_json::json!(5), false),
+            ("/types/EIP712Domain", serde_json::json!([{ "name": "name", "type": "string" }]), false),
+        ];
+
+        for (pointer, replacement, accepted) in cases {
+            let mut value = base.clone();
+            *value.pointer_mut(pointer).unwrap() = replacement;
+            assert_eq!(parse_eip712_json(&value).is_ok(), accepted, "review {pointer}");
+            assert_eq!(hash_typed_data(&value.to_string()).is_ok(), accepted, "signer {pointer}");
+        }
+
+        let mut value = base.clone();
+        value["domain"]["chainId"] = serde_json::json!("0x7a69");
+        value["domain"]["verifyingContract"] = serde_json::json!("0xcccccccccccccccccccccccccccccccccccccccc");
+        value["types"]["EIP712Domain"] = serde_json::json!([{ "name": "name", "type": "string" }, { "name": "chainId", "type": "uint256" }]);
+        let domain = parse_eip712_json(&value).unwrap().domain;
+        assert_eq!(domain.chain_id, Some(31337));
+        assert_eq!(domain.verifying_contract, None);
+
+        let mut value = base;
+        value["message"]["weights"] = serde_json::json!(["0x10", 2, "3"]);
+        let message = parse_eip712_json(&value).unwrap();
+        let weights = message.message.iter().find(|field| field.name == "weights").unwrap();
+        assert_eq!(
+            weights.value,
+            EIP712TypedValue::Array {
+                items: ["16", "2", "3"].map(|value| EIP712TypedValue::Uint256 { value: value.to_string() }).to_vec()
+            }
+        );
     }
 }
