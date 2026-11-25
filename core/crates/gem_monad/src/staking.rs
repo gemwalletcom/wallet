@@ -6,12 +6,11 @@ use gem_evm::rpc::parsers::ProtocolParser;
 use gem_evm::rpc::{EthereumClient, EvmFeeCalculator, EvmStakingClient};
 use gem_evm::transaction_params::TransactionParams;
 use num_bigint::BigInt;
-use num_traits::Zero;
 use primitives::{AssetBalance, AssetId, Balance, Chain, DelegationBase, DelegationValidator, StakeType};
 
 use crate::constants::STAKING_LENS_CONTRACT;
 use crate::encode::{decode_apys, decode_balance, decode_delegations, decode_validators, encode_apys, encode_balance, encode_delegations, encode_stake, encode_validators};
-use crate::mapper::{map_delegation, map_validator};
+use crate::mapper::{map_delegations, map_validator};
 use crate::parser::MonadParser;
 
 pub struct MonadStakingClient<C: Client + Clone> {
@@ -53,11 +52,7 @@ impl<C: Client + Clone> EvmStakingClient for MonadStakingClient<C> {
         }
         let positions = decode_delegations(&self.call_delegations(address).await?)?;
 
-        Ok(positions
-            .into_iter()
-            .filter(|position| !position.amount.is_zero() || !position.rewards.is_zero())
-            .map(|position| map_delegation(address, position))
-            .collect())
+        Ok(map_delegations(address, positions))
     }
 
     async fn get_staking_balance(&self, address: &str) -> Result<Option<AssetBalance>, Box<dyn Error + Sync + Send>> {
