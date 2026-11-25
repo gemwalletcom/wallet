@@ -58,7 +58,7 @@ impl BitcoinChain {
             BitcoinChain::BitcoinCash => 50,
             BitcoinChain::Litecoin => 50,
             BitcoinChain::Doge => 10_000,
-            BitcoinChain::Dash => 1,
+            BitcoinChain::Dash => 10,
             BitcoinChain::Zcash => 10,
         }
     }
