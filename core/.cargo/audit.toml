@@ -1,0 +1,7 @@
+[advisories]
+ignore = [
+    # crypto-bigint 0.5.5 has timing variability in operations meant to be constant-time. It is an optional dependency of
+    # alloy-primitives through k256 0.13, which nothing enables, so it is listed in Cargo.lock but never compiled.
+    # Remove once alloy-primitives moves to k256 0.14.
+    "RUSTSEC-2026-0387",
+]

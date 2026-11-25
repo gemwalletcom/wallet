@@ -8,6 +8,17 @@ buildscript {
         classpath(libs.gradle)
         classpath(libs.hilt.android.gradle.plugin)
         classpath(libs.kotlin.serialization)
+        constraints {
+            listOf(
+                "org.bouncycastle:bcprov-jdk18on:1.85",
+                "org.bouncycastle:bcpkix-jdk18on:1.85",
+                "org.bouncycastle:bcutil-jdk18on:1.85",
+                "com.google.guava:guava:33.7.2-jre",
+                "org.bitbucket.b_c:jose4j:0.9.6",
+                "org.jdom:jdom2:2.0.6.1",
+                "org.apache.commons:commons-lang3:3.18.0",
+            ).forEach { classpath(it) { because("Android Gradle plugin resolves a version with published advisories") } }
+        }
     }
 }
 
