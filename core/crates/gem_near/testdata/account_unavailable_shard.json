@@ -1,0 +1,16 @@
+{
+  "jsonrpc": "2.0",
+  "error": {
+    "name": "HANDLER_ERROR",
+    "cause": {
+      "info": {
+        "requested_shard_id": 13
+      },
+      "name": "UNAVAILABLE_SHARD"
+    },
+    "code": -32000,
+    "message": "Server error",
+    "data": "The node does not track the shard ID 13"
+  },
+  "id": 1
+}
