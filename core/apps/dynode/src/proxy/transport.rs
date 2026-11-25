@@ -19,11 +19,20 @@ impl TransportError {
             Self::ResponseBody(_) => "response_body",
         }
     }
+
+    fn cause(&self) -> Option<&(dyn Error + 'static)> {
+        let (Self::Transport(error) | Self::ResponseBody(error)) = self;
+        std::iter::successors(error.source(), |error| (*error).source()).last()
+    }
 }
 
 impl fmt::Display for TransportError {
     fn fmt(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-        formatter.write_str(self.kind())
+        formatter.write_str(self.kind())?;
+        match self.cause() {
+            Some(cause) => write!(formatter, " cause={cause}"),
+            None => Ok(()),
+        }
     }
 }
 
@@ -44,8 +53,26 @@ pub(crate) async fn send(client: &Client, request: Request) -> Result<ProxyRespo
 #[cfg(test)]
 mod tests {
     use reqwest::header::{ACCEPT, AUTHORIZATION, HeaderValue};
+    use tokio::net::TcpListener;
 
     use super::*;
+
+    #[tokio::test]
+    async fn test_send_reports_closed_connection_without_url() {
+        let listener = TcpListener::bind("127.0.0.1:0").await.unwrap();
+        let address = listener.local_addr().unwrap();
+        tokio::spawn(async move {
+            let (socket, _) = listener.accept().await.unwrap();
+            socket.readable().await.unwrap();
+            socket.try_read(&mut [0; 1024]).unwrap();
+        });
+        let client = Client::new();
+        let request = client.get(format!("http://{address}/secret-key?apikey=secret")).build().unwrap();
+
+        let error = send(&client, request).await.err().unwrap();
+
+        assert_eq!(error.to_string(), "transport cause=connection closed before message completed");
+    }
 
     #[test]
     fn test_filter_headers_preserves_repeated_values() {

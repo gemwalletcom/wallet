@@ -103,14 +103,14 @@ mod tests {
         let error = client.get("https://node.example/secret-key?apikey=secret").header("invalid header", "value").build().unwrap_err();
         let transport = TransportError::Transport(error);
         assert_eq!(FailureReason::from_error(&transport), FailureReason::Transport);
-        assert_eq!(FailureReason::error_detail(&transport), "transport");
-        assert_eq!(transport.to_string(), "transport");
+        assert_eq!(FailureReason::error_detail(&transport), "transport cause=invalid HTTP header name");
+        assert_eq!(transport.to_string(), "transport cause=invalid HTTP header name");
 
         let error = client.get("https://node.example/secret-key?apikey=secret").header("invalid header", "value").build().unwrap_err();
         let body = TransportError::ResponseBody(error);
         assert_eq!(FailureReason::from_error(&body), FailureReason::ResponseBody);
-        assert_eq!(FailureReason::error_detail(&body), "response_body");
-        assert_eq!(body.to_string(), "response_body");
+        assert_eq!(FailureReason::error_detail(&body), "response_body cause=invalid HTTP header name");
+        assert_eq!(body.to_string(), "response_body cause=invalid HTTP header name");
 
         let error = ClientError::Network("https://node.example/secret-key?apikey=secret".into());
         assert_eq!(FailureReason::error_detail(&error), "transport");
