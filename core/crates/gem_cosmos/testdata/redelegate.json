@@ -1,0 +1,41 @@
+{
+  "tx": {
+    "body": {
+      "messages": [
+        {
+          "@type": "/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward",
+          "delegator_address": "cosmos1qhymx7svuag4mzstm9g9qtqskwkzzumxn83a8z",
+          "validator_address": "cosmosvaloper1hjadhj9nqzpye2vkmkz4thahhd0z8dh3udhq74"
+        },
+        {
+          "@type": "/cosmos.staking.v1beta1.MsgBeginRedelegate",
+          "delegator_address": "cosmos1qhymx7svuag4mzstm9g9qtqskwkzzumxn83a8z",
+          "validator_src_address": "cosmosvaloper1hjadhj9nqzpye2vkmkz4thahhd0z8dh3udhq74",
+          "validator_dst_address": "cosmosvaloper1fhr7e04ct0zslmkzqt9smakg3sxrdve6ulclj2",
+          "amount": {
+            "denom": "uatom",
+            "amount": "326222"
+          }
+        }
+      ],
+      "memo": "Stake via Gem Wallet"
+    },
+    "auth_info": {
+      "fee": {
+        "amount": [
+          {
+            "denom": "uatom",
+            "amount": "12500"
+          }
+        ],
+        "gas_limit": "2500000"
+      }
+    }
+  },
+  "tx_response": {
+    "txhash": "CE342F6582FC26F86C4CF881FBE15B12C0A3BF8FDF30DBB423AABEC42CD05551",
+    "code": 0,
+    "events": [],
+    "timestamp": "2026-11-03T20:45:14Z"
+  }
+}
