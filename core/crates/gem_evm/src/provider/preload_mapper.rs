@@ -19,8 +19,7 @@ pub fn bytes_to_hex_string(data: &[u8]) -> String {
     format!("0x{}", hex::encode(data))
 }
 
-pub fn map_transaction_preload(nonce_hex: String, chain_id: String) -> Result<TransactionLoadMetadata, Box<dyn std::error::Error + Send + Sync>> {
-    let nonce = u64::from_str_radix(nonce_hex.trim_start_matches("0x"), 16)?;
+pub fn map_transaction_preload(nonce: u64, chain_id: String) -> Result<TransactionLoadMetadata, Box<dyn std::error::Error + Send + Sync>> {
     Ok(TransactionLoadMetadata::Evm {
         nonce,
         chain_id: chain_id.parse::<u64>()?,
@@ -72,11 +71,10 @@ mod tests {
     use primitives::swap::{ApprovalData, Permit2ApprovalData, SwapData, SwapQuoteData};
 
     #[test]
-    fn test_map_transaction_preload_with_hex_prefix() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        let nonce_hex = "0xa".to_string();
+    fn test_map_transaction_preload() -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         let chain_id = "1".to_string();
 
-        let result = map_transaction_preload(nonce_hex, chain_id)?;
+        let result = map_transaction_preload(10, chain_id)?;
 
         match result {
             TransactionLoadMetadata::Evm { nonce, chain_id, contract_call } => {
@@ -91,21 +89,10 @@ mod tests {
     }
 
     #[test]
-    fn test_map_transaction_preload_invalid_nonce() {
-        let nonce_hex = "invalid".to_string();
-        let chain_id_hex = "0x1".to_string();
-
-        let result = map_transaction_preload(nonce_hex, chain_id_hex);
-
-        assert!(result.is_err());
-    }
-
-    #[test]
     fn test_map_transaction_preload_invalid_chain_id() {
-        let nonce_hex = "0x1".to_string();
         let chain_id_hex = "invalid".to_string();
 
-        let result = map_transaction_preload(nonce_hex, chain_id_hex);
+        let result = map_transaction_preload(1, chain_id_hex);
 
         assert!(result.is_err());
     }
