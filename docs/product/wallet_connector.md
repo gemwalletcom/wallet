@@ -47,7 +47,8 @@ flowchart LR
 | A connected site is flagged as malicious after it connected | its next request is refused before anything is signed | each request is checked against its own Verify attestation, not only the one from connecting |
 | A dapp disconnects, or the user disconnects it, while its request is on screen | the review closes and nothing is signed | the dapp no longer listens for the answer |
 | A permit to sign names a flagged spender | a critical warning on the review | |
-| A permit to sign has an amount or deadline Gem can't read, or lets a spender take several tokens at once | the review still warns about the approval, as unlimited when the amount can't be read | a drainer shouldn't escape the warning by writing its permit differently |
+| A message to sign has a value its type does not allow, such as letters in a number, a number too big for its size or a list of the wrong length | it is refused before the review and the dapp is told | it could never be signed, and the review shows only what will be signed |
+| A permit to sign has an amount or deadline that is not typed as a number, or lets a spender take several tokens at once | the review still warns about the approval, as unlimited when the amount isn't a number | a drainer shouldn't escape the warning by writing its permit differently |
 | A transaction names a sender other than the session's account, on an EVM network, Tron or Sui | it is refused before anything is signed | the review reads as a send from the session's account |
 | A transaction on an EVM network names its own gas limit | the fee shown, the balance check and the signature all use the dapp's gas limit; with no limit, or an empty or zero one, they use Gem's estimate | the user approves the fee that is signed, as in other wallets |
 | An approved transaction fails to send | the dapp is never told it was sent | a failed send must not reach the dapp as a transaction hash |

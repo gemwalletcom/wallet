@@ -7,7 +7,6 @@ impl EIP712Domain {
             version: Some("1".to_string()),
             chain_id: Some(chain_id),
             verifying_contract: None,
-            salts: None,
         }
     }
 }
