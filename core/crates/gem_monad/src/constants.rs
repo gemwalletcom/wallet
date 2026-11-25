@@ -1,6 +1,7 @@
 pub use primitives::contract_constants::{MONAD_STAKING_CONTRACT as STAKING_CONTRACT, MONAD_STAKING_LENS_CONTRACT as STAKING_LENS_CONTRACT};
 
 pub const DEFAULT_WITHDRAW_ID: u8 = 0;
+pub const FIRST_WITHDRAW_ID: u8 = DEFAULT_WITHDRAW_ID + 1;
 pub const COMMISSION_SCALE: f64 = 1e18;
 pub const VALIDATOR_NAMES: &[(u64, &str)] = &[(16, "MonadVision"), (5, "Alchemy"), (10, "Stakin"), (9, "Everstake")];
 

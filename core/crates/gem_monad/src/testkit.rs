@@ -5,12 +5,14 @@ use gem_evm::rpc::EthereumClient;
 use gem_jsonrpc::JsonRpcClient;
 #[cfg(feature = "chain_integration_tests")]
 use gem_reqwest::ReqwestClient;
+use num_bigint::BigUint;
 #[cfg(feature = "chain_integration_tests")]
 use primitives::EVMChain;
 #[cfg(feature = "chain_integration_tests")]
 use settings::testkit::get_test_settings;
 
 use crate::contracts::IMonadStakingLens::{Delegation, DelegationState};
+use crate::model::LensDelegation;
 #[cfg(feature = "chain_integration_tests")]
 use crate::staking::MonadStakingClient;
 
@@ -32,6 +34,19 @@ impl Delegation {
             rewards: U256::ZERO,
             withdrawEpoch: 0,
             completionTimestamp: 0,
+        }
+    }
+}
+
+impl LensDelegation {
+    pub fn mock_with(validator_id: u64, withdraw_id: u8, state: DelegationState) -> Self {
+        Self {
+            validator_id,
+            withdraw_id,
+            state,
+            amount: BigUint::from(1_000_000_000_000_000_000u64),
+            rewards: BigUint::from(0u32),
+            completion_timestamp: 0,
         }
     }
 }

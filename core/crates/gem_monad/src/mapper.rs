@@ -2,7 +2,7 @@ use num_bigint::BigUint;
 use num_traits::{ToPrimitive, Zero};
 use primitives::{AssetId, Chain, DateTime, DelegationBase, DelegationState, DelegationValidator};
 
-use crate::constants::{COMMISSION_SCALE, VALIDATOR_NAMES};
+use crate::constants::{COMMISSION_SCALE, FIRST_WITHDRAW_ID, VALIDATOR_NAMES};
 use crate::contracts::IMonadStakingLens;
 use crate::model::{LensDelegation, LensValidator};
 
@@ -23,7 +23,38 @@ pub fn map_validator(validator: &LensValidator, network_apy: f64) -> DelegationV
     )
 }
 
-pub fn map_delegation(address: &str, position: LensDelegation) -> DelegationBase {
+pub fn map_delegations(address: &str, positions: Vec<LensDelegation>) -> Vec<DelegationBase> {
+    let pending_withdrawals: Vec<(u64, u8)> = positions.iter().filter(|position| is_pending_withdrawal(position)).map(|position| (position.validator_id, position.withdraw_id)).collect();
+
+    positions
+        .into_iter()
+        .filter(|position| !position.amount.is_zero() || !position.rewards.is_zero())
+        .map(|position| LensDelegation {
+            withdraw_id: if is_pending_withdrawal(&position) {
+                position.withdraw_id
+            } else {
+                last_withdraw_id_before_free(&pending_withdrawals, &position)
+            },
+            ..position
+        })
+        .map(|position| map_delegation(address, position))
+        .collect()
+}
+
+fn is_pending_withdrawal(position: &LensDelegation) -> bool {
+    match position.state {
+        IMonadStakingLens::DelegationState::Deactivating | IMonadStakingLens::DelegationState::AwaitingWithdrawal => true,
+        IMonadStakingLens::DelegationState::Active | IMonadStakingLens::DelegationState::Activating | IMonadStakingLens::DelegationState::__Invalid => false,
+    }
+}
+
+fn last_withdraw_id_before_free(pending_withdrawals: &[(u64, u8)], position: &LensDelegation) -> u8 {
+    (FIRST_WITHDRAW_ID..=u8::MAX)
+        .find(|withdraw_id| !pending_withdrawals.contains(&(position.validator_id, *withdraw_id)))
+        .map_or(position.withdraw_id, |free_withdraw_id| free_withdraw_id - 1)
+}
+
+fn map_delegation(address: &str, position: LensDelegation) -> DelegationBase {
     let state = map_state(&position);
     let completion_date = (position.completion_timestamp != 0).then(|| DateTime::from_timestamp(position.completion_timestamp as i64));
 
@@ -79,6 +110,41 @@ mod tests {
 
         assert_eq!((listed.name.as_str(), listed.apr), ("Alchemy", 11.46));
         assert_eq!((unlisted.name.as_str(), unlisted.apr), ("", 11.46));
+    }
+
+    #[test]
+    fn test_map_delegations() {
+        let active = IMonadStakingLens::DelegationState::Active;
+        let deactivating = IMonadStakingLens::DelegationState::Deactivating;
+        let awaiting = IMonadStakingLens::DelegationState::AwaitingWithdrawal;
+        let positions = vec![
+            LensDelegation::mock_with(5, 255, deactivating),
+            LensDelegation::mock_with(5, 255, active),
+            LensDelegation::mock_with(10, 1, awaiting),
+            LensDelegation::mock_with(10, 2, deactivating),
+            LensDelegation::mock_with(10, 2, active),
+            LensDelegation::mock_with(16, 2, awaiting),
+            LensDelegation::mock_with(16, 2, active),
+            LensDelegation::mock_with(9, 0, active),
+            LensDelegation {
+                amount: BigUint::zero(),
+                ..LensDelegation::mock_with(7, 0, active)
+            },
+        ];
+
+        assert_eq!(
+            map_delegations(TEST_ADDRESS, positions).into_iter().map(|delegation| delegation.delegation_id).collect::<Vec<_>>(),
+            vec![
+                format!("{TEST_ADDRESS}:5:deactivating:255"),
+                format!("{TEST_ADDRESS}:5:active:0"),
+                format!("{TEST_ADDRESS}:10:awaitingwithdrawal:1"),
+                format!("{TEST_ADDRESS}:10:deactivating:2"),
+                format!("{TEST_ADDRESS}:10:active:2"),
+                format!("{TEST_ADDRESS}:16:awaitingwithdrawal:2"),
+                format!("{TEST_ADDRESS}:16:active:0"),
+                format!("{TEST_ADDRESS}:9:active:0"),
+            ]
+        );
     }
 
     #[test]
