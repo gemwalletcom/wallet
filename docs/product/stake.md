@@ -29,6 +29,7 @@ flowchart LR
 | No other active validator exists | no Redelegate | |
 | The user redelegates | never to the validator being left | |
 | The delegation is awaiting withdrawal | Withdraw is offered | |
+| Several unstakes are ready to withdraw from one BNB Smart Chain validator, or several TRX unfreezes on TRON | one delegation awaiting withdrawal shows their total, and Withdraw shows that total | the network withdraws all of them at once |
 | The user claims rewards on a network that claims one validator at a time and picks another validator | the amount becomes that validator's rewards | the claim takes every reward of the validator it names, so the amount is never typed |
 | The coin is TRX on TRON | the user freezes and unfreezes it, and sees Energy and Bandwidth as "available / total" | |
 | The user votes TRX on TRON, with Max or the whole frozen amount | Confirm shows every frozen TRX the vote names, and the Network Fee must be covered by the liquid TRX | a vote only assigns frozen TRX, while its fee burns liquid TRX, so the signed votes match the amount shown |
