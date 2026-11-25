@@ -1,36 +1,61 @@
+use std::collections::HashMap;
 use std::sync::Arc;
 
 use gem_jsonrpc::alien::RpcProvider;
+use num_bigint::BigUint;
 use primitives::{AssetBalance, AssetId, Chain, ContractCallData, DelegationBase, DelegationValidator, EarnType};
 
 use crate::error::YielderError;
+use crate::provider::EarnProvider;
 use crate::yo::YoEarnProvider;
 
 pub struct Yielder {
-    provider: YoEarnProvider,
+    providers: Vec<Arc<dyn EarnProvider>>,
 }
 
 impl Yielder {
     pub fn new(rpc_provider: Arc<dyn RpcProvider>) -> Self {
-        Self { provider: YoEarnProvider::new(rpc_provider) }
+        Self::with_providers(vec![Arc::new(YoEarnProvider::new(rpc_provider))])
+    }
+
+    pub fn with_providers(providers: Vec<Arc<dyn EarnProvider>>) -> Self {
+        Self { providers }
     }
 
     pub fn get_providers(&self, asset_id: &AssetId) -> Vec<DelegationValidator> {
-        self.provider.get_provider(asset_id).into_iter().collect()
+        self.providers.iter().filter_map(|p| p.get_provider(asset_id)).collect()
     }
 
     pub async fn get_positions(&self, address: &str, asset_id: &AssetId) -> Result<Vec<DelegationBase>, YielderError> {
-        Ok(self.provider.get_position(address, asset_id).await?.into_iter().collect())
+        let futures: Vec<_> = self.providers.iter().map(|p| p.get_position(address, asset_id)).collect();
+        let positions = futures::future::join_all(futures).await.into_iter().collect::<Result<Vec<_>, _>>()?;
+        Ok(positions.into_iter().flatten().collect())
     }
 
     pub async fn get_balance(&self, chain: Chain, address: &str, token_ids: &[String]) -> Result<Vec<AssetBalance>, YielderError> {
-        self.provider.get_balance(chain, address, token_ids).await
+        let futures: Vec<_> = self.providers.iter().map(|p| p.get_balance(chain, address, token_ids)).collect();
+        let balances = futures::future::join_all(futures).await.into_iter().collect::<Result<Vec<_>, _>>()?;
+        Ok(Self::map_earn_balances(balances.into_iter().flatten().collect()))
     }
 
     pub async fn get_data(&self, asset_id: &AssetId, address: &str, value: &str, earn_type: &EarnType) -> Result<ContractCallData, YielderError> {
-        if !self.provider.get_provider(asset_id).is_some_and(|provider| provider.id == earn_type.provider_id()) {
-            return Err(YielderError::NotSupportedAsset);
-        }
-        self.provider.get_data(asset_id, address, value, earn_type).await
+        self.providers
+            .iter()
+            .find(|p| p.get_provider(asset_id).is_some_and(|v| v.id == earn_type.provider_id()))
+            .ok_or(YielderError::NotSupportedAsset)?
+            .get_data(asset_id, address, value, earn_type)
+            .await
+    }
+
+    fn map_earn_balances(balances: Vec<AssetBalance>) -> Vec<AssetBalance> {
+        balances
+            .into_iter()
+            .fold(HashMap::<AssetId, BigUint>::new(), |mut acc, b| {
+                *acc.entry(b.asset_id).or_default() += b.balance.earn;
+                acc
+            })
+            .into_iter()
+            .map(|(id, earn)| AssetBalance::new_earn(id, earn))
+            .collect()
     }
 }
