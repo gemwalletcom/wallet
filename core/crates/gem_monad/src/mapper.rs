@@ -24,28 +24,20 @@ pub fn map_validator(validator: &LensValidator, network_apy: f64) -> DelegationV
 }
 
 pub fn map_delegations(address: &str, positions: Vec<LensDelegation>) -> Vec<DelegationBase> {
-    let pending_withdrawals: Vec<(u64, u8)> = positions.iter().filter(|position| is_pending_withdrawal(position)).map(|position| (position.validator_id, position.withdraw_id)).collect();
+    let pending_withdrawals: Vec<(u64, u8)> = positions.iter().filter(|position| position.is_pending_withdrawal()).map(|position| (position.validator_id, position.withdraw_id)).collect();
 
     positions
         .into_iter()
         .filter(|position| !position.amount.is_zero() || !position.rewards.is_zero())
-        .map(|position| LensDelegation {
-            withdraw_id: if is_pending_withdrawal(&position) {
+        .map(|position| {
+            let withdraw_id = if position.is_pending_withdrawal() {
                 position.withdraw_id
             } else {
                 last_withdraw_id_before_free(&pending_withdrawals, &position)
-            },
-            ..position
+            };
+            map_delegation(address, LensDelegation { withdraw_id, ..position })
         })
-        .map(|position| map_delegation(address, position))
         .collect()
-}
-
-fn is_pending_withdrawal(position: &LensDelegation) -> bool {
-    match position.state {
-        IMonadStakingLens::DelegationState::Deactivating | IMonadStakingLens::DelegationState::AwaitingWithdrawal => true,
-        IMonadStakingLens::DelegationState::Active | IMonadStakingLens::DelegationState::Activating | IMonadStakingLens::DelegationState::__Invalid => false,
-    }
 }
 
 fn last_withdraw_id_before_free(pending_withdrawals: &[(u64, u8)], position: &LensDelegation) -> u8 {
@@ -150,12 +142,9 @@ mod tests {
     #[test]
     fn test_map_delegation_awaiting_withdrawal() {
         let position = LensDelegation {
-            validator_id: 10,
-            withdraw_id: 1,
-            state: IMonadStakingLens::DelegationState::AwaitingWithdrawal,
             amount: BigUint::from(5u32),
-            rewards: BigUint::zero(),
             completion_timestamp: 1_700_000_000,
+            ..LensDelegation::mock_with(10, 1, IMonadStakingLens::DelegationState::AwaitingWithdrawal)
         };
 
         let delegation = map_delegation(TEST_ADDRESS, position);

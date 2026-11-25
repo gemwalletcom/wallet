@@ -6,6 +6,7 @@ use gem_jsonrpc::JsonRpcClient;
 #[cfg(feature = "chain_integration_tests")]
 use gem_reqwest::ReqwestClient;
 use num_bigint::BigUint;
+use num_traits::Zero;
 #[cfg(feature = "chain_integration_tests")]
 use primitives::EVMChain;
 #[cfg(feature = "chain_integration_tests")]
@@ -45,7 +46,7 @@ impl LensDelegation {
             withdraw_id,
             state,
             amount: BigUint::from(1_000_000_000_000_000_000u64),
-            rewards: BigUint::from(0u32),
+            rewards: BigUint::zero(),
             completion_timestamp: 0,
         }
     }
