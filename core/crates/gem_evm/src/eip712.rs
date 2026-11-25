@@ -188,7 +188,14 @@ fn parse_domain(domain_value: &Value, all_types: &HashMap<String, Vec<EIP712Type
         match (field.name.as_str(), field.value) {
             ("name", EIP712TypedValue::String { value }) => domain.name = Some(value),
             ("version", EIP712TypedValue::String { value }) => domain.version = Some(value),
-            ("chainId", EIP712TypedValue::Uint256 { value } | EIP712TypedValue::String { value }) => domain.chain_id = Some(value.parse().map_err(|_| format!("Invalid EIP712 domain chainId '{value}'"))?),
+            ("chainId", EIP712TypedValue::Uint256 { value } | EIP712TypedValue::String { value }) => {
+                domain.chain_id = Some(
+                    parse_uint_str(&value)
+                        .ok()
+                        .and_then(|chain_id| u64::try_from(chain_id).ok())
+                        .ok_or_else(|| format!("Invalid EIP712 domain chainId '{value}'"))?,
+                )
+            }
             ("verifyingContract", EIP712TypedValue::Address { value }) => domain.verifying_contract = Some(value),
             ("name" | "version" | "chainId" | "verifyingContract", _) => return Err(format!("Unsupported type for EIP712 domain field '{}'", field.name)),
             _ => {}
@@ -360,6 +367,11 @@ mod tests {
     fn test_validate_eip712_chain_id_accepts_declared_non_uint_chain_id_type() {
         let json = include_str!("../testdata/eip712_domain_chain_id_schema_string.json");
         assert!(validate_eip712_chain_id(json, 1).is_ok());
+
+        let mut value: serde_json::Value = serde_json::from_str(json).unwrap();
+        value["domain"]["chainId"] = serde_json::json!("0x1");
+        assert!(validate_eip712_chain_id(&value.to_string(), 1).is_ok());
+        assert!(validate_eip712_chain_id(&value.to_string(), 137).unwrap_err().contains("Chain ID mismatch"));
     }
 
     #[test]
