@@ -31,7 +31,8 @@ use crate::services::perpetual::rules as perpetual_rules;
 use crate::services::swap::model::GemSwapRate;
 use crate::services::swap::rules as swap_rules;
 use crate::services::transfer::GemRecipient;
-use swapper::{ProviderType as SwapperProviderType, SwapperProvider};
+use primitives::SwapProvider as SwapperProvider;
+use swapper::ProviderType as SwapperProviderType;
 
 fn transaction_filter(transaction_type: &TransactionType) -> GemTransactionFilter {
     match transaction_type {

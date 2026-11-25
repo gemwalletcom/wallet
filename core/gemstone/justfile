@@ -65,6 +65,12 @@ bindgen-kotlin: (_generate-bindings "kotlin" GEN_KOTLIN_FOLDER)
         cp -R "${GEN_KOTLIN_FOLDER}/uniffi" "${ANDROID_MODULE_FOLDER}/uniffi"
     fi
 
+bindgen-kotlin-jni:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    rm -rf "${ANDROID_MODULE_FOLDER}/uniffi"
+    cargo run -p uniffi-kotlin-jni -- bindings src:${LIB_NAME} --features kotlin-jni "${ANDROID_MODULE_FOLDER}"
+
 build-android: bindgen-kotlin
     #!/usr/bin/env bash
     rm -rf ~/.m2/repository/com/gemwallet/gemstone/gemstone

@@ -1,7 +1,8 @@
+use primitives::SwapProvider as SwapperProvider;
 use primitives::{Chain, DateTime, Transaction, TransactionChange, TransactionMetadata, TransactionState, TransactionStateRequest, TransactionType, TransactionUpdate, chain_transaction_timeout, swap_transaction_timeout};
 use std::sync::Arc;
 use std::time::Duration;
-use swapper::{SwapResult, SwapResultRequest, SwapperProvider, swapper::GemSwapper};
+use swapper::{SwapResult, SwapResultRequest, swapper::GemSwapper};
 
 use crate::gateway::ChainClientFactory;
 use crate::gateway::map_network_error;

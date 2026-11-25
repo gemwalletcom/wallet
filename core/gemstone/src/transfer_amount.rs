@@ -1,5 +1,5 @@
 use crate::models::custom_types::GemBigInt;
-use primitives::TransferAmount;
+pub use primitives::TransferAmount;
 
 #[uniffi::remote(Record)]
 pub struct TransferAmount {

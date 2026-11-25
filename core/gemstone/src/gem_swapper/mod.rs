@@ -1,11 +1,12 @@
 mod error;
 pub use error::SwapperError;
-mod remote_types;
+pub mod remote_types;
 use remote_types::*;
 type Swapper = swapper::swapper::GemSwapper;
 
 use crate::alien::{AlienProvider, AlienRpcProvider, coalescing_provider};
 use crate::services::node::GemNodeService;
+use primitives::SwapProvider as SwapperProvider;
 use primitives::{AssetId, SwapQuoteData};
 use std::sync::Arc;
 

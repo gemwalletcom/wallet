@@ -16,6 +16,7 @@ use std::time::Duration;
 
 pub use confirmation::GemConfirmation;
 pub use error::GemConfirmError;
+pub use header::GemConfirmHeader;
 pub use model::*;
 pub use swap::ConfirmSwapQuote;
 pub use transfer::GemConfirmTransferService;
@@ -35,6 +36,10 @@ use crate::services::simulation::GemSimulationService;
 use crate::services::transaction_state::{GemTransactionStateService, GemTransactionStatusService};
 use crate::services::transfer::rules::TransferInput;
 use crate::services::wallet_preferences::GemWalletPreferencesService;
+pub use error::GemConfirmErrorDisplay;
+pub use error::GemConfirmErrorInfo;
+pub use error::GemConfirmErrorSheet;
+pub use error::confirm_error_info;
 use num_bigint::BigInt;
 use primitives::TransactionInputType;
 use primitives::currency::Currency;

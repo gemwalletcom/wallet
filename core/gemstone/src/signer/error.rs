@@ -1,4 +1,4 @@
-use primitives::SignerError;
+pub use primitives::SignerError;
 
 #[uniffi::remote(Enum)]
 pub enum SignerError {

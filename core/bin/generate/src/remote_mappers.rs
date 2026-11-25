@@ -305,7 +305,7 @@ impl Generator {
         let types = &self.types;
         let mut names = types.iter().map(RemoteType::name).collect::<Vec<_>>();
         names.sort_unstable();
-        let mut out = format!("{HEADER}\nuse primitives::{{{}}};\n", names.join(", "));
+        let mut out = format!("{HEADER}\npub use primitives::{{{}}};\n", names.join(", "));
         if types.iter().any(|remote| matches!(remote, RemoteType::Code { .. })) {
             out.push_str("use std::str::FromStr;\n");
         }

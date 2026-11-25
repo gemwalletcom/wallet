@@ -1,4 +1,4 @@
-use support::{SupportMessageDisplayContent, SupportMessageLink};
+pub use support::{SupportMessageDisplayContent, SupportMessageLink};
 
 #[uniffi::remote(Record)]
 pub struct SupportMessageDisplayContent {

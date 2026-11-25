@@ -2,10 +2,11 @@ use crate::formatted_number::GemFormattedNumber;
 use num_bigint::BigInt;
 use num_bigint::BigUint;
 use number_formatter::BigNumberFormatter;
+use primitives::SwapProvider as SwapperProvider;
 use primitives::swap::{SwapData, SwapPriceImpact, SwapPriceImpactType, SwapProviderData, SwapQuote, SwapQuoteData};
 use primitives::{Asset, AssetId, Chain, TransactionInputType, Wallet};
 use swapper::permit2_data::{Permit2Detail, PermitSingle};
-use swapper::{AssetList, Options, Permit2ApprovalData, Quote, QuoteRequest, SwapperError, SwapperProvider, SwapperQuoteAsset, SwapperSlippage, SwapperSlippageMode};
+use swapper::{AssetList, Options, Permit2ApprovalData, Quote, QuoteRequest, SwapperError, SwapperQuoteAsset, SwapperSlippage, SwapperSlippageMode};
 
 use crate::config::swap_config::{SwapConfig, get_default_slippage};
 use crate::formatted_number::GemValueTone;

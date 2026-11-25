@@ -1,6 +1,7 @@
 use crate::models::custom_types::GemBigInt;
 use crate::services::assets::model::GemFeeAmount;
-use primitives::{FeeOption, TransactionLoadMetadata, TransactionType};
+pub use primitives::FeeOption;
+use primitives::{TransactionLoadMetadata, TransactionType};
 use std::collections::HashMap;
 
 #[uniffi::remote(Enum)]

@@ -1,4 +1,5 @@
-use links::{Deeplink, UrlAction, WalletConnectLink};
+pub use links::UrlAction;
+use links::{Deeplink, WalletConnectLink};
 use primitives::Payment;
 
 #[uniffi::remote(Enum)]

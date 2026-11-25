@@ -2,9 +2,10 @@ use crate::models::button::GemButtonState;
 use crate::services::assets::icon::asset_icon;
 use number_formatter::precision::round_to_places;
 use number_formatter::{BigNumberFormatter, ValueStyle};
+use primitives::SwapProvider as SwapperProvider;
 use primitives::{Asset, AssetData, AssetId, Currency};
 use swapper::config::quote_preferences;
-use swapper::{Quote as SwapperQuote, QuoteRequest as SwapperQuoteRequest, SwapperError, SwapperProvider, rank_quotes};
+use swapper::{Quote as SwapperQuote, QuoteRequest as SwapperQuoteRequest, SwapperError, rank_quotes};
 
 use super::model::{GemSwapButtonAction, GemSwapButtonInput, GemSwapDetails, quote_details};
 use super::rules;

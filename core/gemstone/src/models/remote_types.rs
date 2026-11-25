@@ -2,7 +2,7 @@
 // Declared in core/bin/generate/remote_types.yml.
 
 use crate::models::custom_types::{DateTimeUtc, GemBigInt, GemBigUint, GemJsonValue};
-use primitives::{
+pub use primitives::{
     Account, AccountDataType, AddressName, AddressType, Appearance, ApplicationMetadata, ApplicationMetadataSource, ApprovalData, Asset, AssetAssociation, AssetAssociationType, AssetBalance, AssetBasic, AssetData, AssetFiatValue,
     AssetFull, AssetLink, AssetList, AssetMarket, AssetMetaData, AssetPrice, AssetProperties, AssetRank, AssetScore, AssetType, Balance, BalanceMetadata, Banner, BannerEvent, BannerState, BlockExplorerLink, CancelOrderData, Chain,
     ChainAsset, ChartCandleStick, ChartCandleUpdate, ChartDateValue, ChartPeriod, ChartValuePercentage, ConnectionComponent, ConnectionStatus, Contact, ContactAddress, ContactData, ContractCallData, CoreEmoji, CoreListItem,

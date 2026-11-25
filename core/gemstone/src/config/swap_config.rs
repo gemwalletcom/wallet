@@ -1,4 +1,5 @@
-use swapper::{SwapperSlippage, config as swap_config};
+use crate::gem_swapper::remote_types::SwapperSlippage;
+use swapper::config as swap_config;
 
 pub use swap_config::{Config as SwapConfig, SwapQuoteRound, SwapQuoteRoundTiming, get_default_slippage, get_swap_config};
 

@@ -1,7 +1,8 @@
 use std::sync::Arc;
 
+use primitives::SwapProvider as SwapperProvider;
 use primitives::{Asset, AssetId, Currency, Feature, Wallet};
-use swapper::{FetchQuoteData, Quote, QuoteRequest, SwapperError, SwapperProvider};
+use swapper::{FetchQuoteData, Quote, QuoteRequest, SwapperError};
 
 use super::model::{GemSwapPairSelection, GemSwapSide};
 use super::rules;
@@ -156,9 +157,10 @@ mod tests {
     use primitives::Chain;
     use std::sync::atomic::Ordering;
 
+    use primitives::SwapProvider as SwapperProvider;
     use primitives::TransactionInputType;
+    use swapper::FetchQuoteData;
     use swapper::testkit::MockSwapper;
-    use swapper::{FetchQuoteData, SwapperProvider};
 
     use super::super::session::GemSwapRequest;
     use super::super::testkit::SwapQuoteTestkit;

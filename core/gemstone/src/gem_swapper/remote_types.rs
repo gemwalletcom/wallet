@@ -1,9 +1,10 @@
 use crate::models::custom_types::GemBigUint;
 
+use primitives::SwapProvider as SwapperProvider;
+pub use primitives::swap::{QuoteAsset as SwapperQuoteAsset, Slippage as SwapperSlippage, SlippageMode as SwapperSlippageMode, SwapProviderMode as SwapperProviderMode};
 use primitives::{AssetId, AssetType, Chain};
 pub use swapper::{
     AssetList as SwapperAssetList, FetchQuoteData, Options as SwapperOptions, ProviderData as SwapperProviderData, ProviderType as SwapperProviderType, Quote as SwapperQuote, QuoteRequest as SwapperQuoteRequest, Route as SwapperRoute,
-    SwapperProvider, SwapperProviderMode, SwapperQuoteAsset, SwapperSlippage, SwapperSlippageMode,
 };
 
 #[uniffi::remote(Record)]

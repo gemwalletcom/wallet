@@ -110,10 +110,11 @@ mod tests {
     use std::time::{Duration, Instant};
 
     use futures::executor::block_on;
+    use primitives::SwapProvider as SwapperProvider;
     use primitives::swap::{Permit2ApprovalData, SwapData};
     use primitives::{Asset, Chain, Currency, SwapProvider, TransactionFee, TransactionInputType, Wallet};
     use swapper::testkit::MockSwapper;
-    use swapper::{FetchQuoteData, Quote, SwapperProvider};
+    use swapper::{FetchQuoteData, Quote};
 
     use super::*;
     use crate::services::confirm::GemTransferAmountResult;

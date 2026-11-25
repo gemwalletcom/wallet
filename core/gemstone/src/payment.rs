@@ -12,7 +12,8 @@ use crate::services::transfer::model::{GemRecipient, GemTransferData};
 use crate::services::transfer::rules::TransferInput;
 use num_bigint::{BigInt, BigUint};
 use number_formatter::BigNumberFormatter;
-use payment::{PaymentError, PaymentLoad, PaymentService, PaymentTransaction, PaymentURLDecoder, PaymentUpdate, VerificationOutcome, WalletConnectPayAuth, verification_outcome};
+pub use payment::PaymentError;
+use payment::{PaymentLoad, PaymentService, PaymentTransaction, PaymentURLDecoder, PaymentUpdate, VerificationOutcome, WalletConnectPayAuth, verification_outcome};
 use primitives::name::is_name;
 use primitives::{
     Account, Asset, AssetId, Chain, ChainAddress, ChainType, Payment, PaymentAmount, PaymentInvoice, PaymentLink, PaymentQuote, PaymentRequest, PaymentStatus, PaymentVerification, TransactionChange, TransactionInputType, TransactionState,

@@ -1,5 +1,6 @@
 use num_bigint::{BigInt, BigUint};
-use primitives::{AssetId, DateTime, NFTAssetId, NFTCollectionId, PerpetualId, StakeChain, TransactionId, WalletId};
+use primitives::DateTime;
+pub use primitives::{AssetId, NFTAssetId, NFTCollectionId, PerpetualId, StakeChain, TransactionId, WalletId};
 use std::str::FromStr;
 
 uniffi::custom_type!(StakeChain, String, {

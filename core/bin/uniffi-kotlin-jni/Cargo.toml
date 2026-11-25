@@ -1,0 +1,7 @@
+[package]
+name = "uniffi-kotlin-jni"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+uniffi-bindgen-kotlin-jni.workspace = true

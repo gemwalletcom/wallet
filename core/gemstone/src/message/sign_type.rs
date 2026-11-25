@@ -1,4 +1,4 @@
-use gem_wallet_connect::SignDigestType;
+pub use gem_wallet_connect::SignDigestType;
 use primitives::Chain;
 
 pub use gem_wallet_connect::sign_type::SignMessage;

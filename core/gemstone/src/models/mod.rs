@@ -2,7 +2,7 @@ pub mod asset;
 pub mod button;
 pub mod connection;
 pub mod copy;
-pub(crate) mod custom_types;
+pub mod custom_types;
 pub mod list;
 pub mod perpetual;
 pub mod placeholder;

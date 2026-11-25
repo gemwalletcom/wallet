@@ -1,8 +1,7 @@
 use gem_wallet_connect::WalletConnectRequest;
-use gem_wallet_connect::{
-    SignDigestType, WalletConnectAction, WalletConnectRequestHandler, WalletConnectResponseHandler, WalletConnectResponseType, WalletConnectTransaction, WalletConnectTransactionType, config_session_properties, decode_sign_message,
-};
-use links::WalletConnectLink;
+pub use gem_wallet_connect::WalletConnectResponseType;
+use gem_wallet_connect::{SignDigestType, WalletConnectAction, WalletConnectRequestHandler, WalletConnectResponseHandler, WalletConnectTransaction, WalletConnectTransactionType, config_session_properties, decode_sign_message};
+pub use links::WalletConnectLink;
 use primitives::{Account, Chain, ChainAddress, WalletConnectCAIP2};
 use std::collections::HashMap;
 

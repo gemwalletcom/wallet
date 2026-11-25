@@ -1,6 +1,6 @@
 use std::fmt;
 
-use gem_keystore::SecretKind;
+pub use gem_keystore::SecretKind;
 use primitives::{Account, Chain, WalletId, WalletType};
 
 #[uniffi::remote(Enum)]

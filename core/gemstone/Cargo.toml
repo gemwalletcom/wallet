@@ -12,6 +12,11 @@ crate-type = [
 
 name = "gemstone"
 
+[features]
+default = ["macro-scaffolding"]
+macro-scaffolding = ["uniffi/macro-scaffolding"]
+kotlin-jni = ["dep:uniffi-bindgen-kotlin-jni", "dep:uniffi-bindgen-kotlin-jni-runtime"]
+
 [dependencies]
 swapper = { path = "../crates/swapper" }
 payment = { path = "../crates/payment" }
@@ -64,6 +69,7 @@ gem_encoding = { path = "../crates/gem_encoding", features = ["base58"] }
 
 # uniffi
 uniffi.workspace = true
+uniffi-bindgen-kotlin-jni-runtime = { workspace = true, optional = true }
 
 
 serde.workspace = true
@@ -77,5 +83,8 @@ zeroize = { workspace = true }
 
 [lints.clippy]
 large_futures = "warn"
+
+[build-dependencies]
+uniffi-bindgen-kotlin-jni = { workspace = true, optional = true }
 
 [dev-dependencies]

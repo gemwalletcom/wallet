@@ -135,3 +135,9 @@ impl From<std::string::FromUtf8Error> for GemstoneError {
         Self::AnyError { msg: error.to_string() }
     }
 }
+
+#[cfg(feature = "kotlin-jni")]
+include!(concat!(env!("OUT_DIR"), "/uniffi_bindgen_kotlin_jni.uniffi.rs"));
+
+#[cfg(feature = "kotlin-jni")]
+extern crate self as gemstone;

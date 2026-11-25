@@ -161,8 +161,10 @@ rust-embed = { version = "8.11.0" }
 # Code generation and bindings
 quote = { version = "1.0.47" }
 syn = { version = "3.0.6" }
-uniffi = { version = "0.32.1", default-features = false }
-uniffi_bindgen = { version = "0.32.1" }
+uniffi = { git = "https://github.com/0xh3rman/uniffi-rs", rev = "63aad56d24e6c7abe57b86bba9a92d4959fce88c", default-features = false }
+uniffi_bindgen = { git = "https://github.com/0xh3rman/uniffi-rs", rev = "63aad56d24e6c7abe57b86bba9a92d4959fce88c" }
+uniffi-bindgen-kotlin-jni = { git = "https://github.com/0xh3rman/uniffi-rs", rev = "63aad56d24e6c7abe57b86bba9a92d4959fce88c" }
+uniffi-bindgen-kotlin-jni-runtime = { git = "https://github.com/0xh3rman/uniffi-rs", rev = "63aad56d24e6c7abe57b86bba9a92d4959fce88c" }
 
 [profile.dev]
 debug = "line-tables-only"

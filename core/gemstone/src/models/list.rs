@@ -524,7 +524,7 @@ pub enum GemListRow {
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemProviderKind {
-    Swap { provider: swapper::SwapperProvider },
+    Swap { provider: primitives::SwapProvider },
     Fiat { provider: primitives::FiatProviderName },
 }
 

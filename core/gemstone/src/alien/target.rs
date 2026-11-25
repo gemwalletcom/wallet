@@ -49,7 +49,7 @@ pub enum AlienHttpMethod {
 }
 
 #[uniffi::export]
-fn alien_method_to_string(method: AlienHttpMethod) -> String {
+pub fn alien_method_to_string(method: AlienHttpMethod) -> String {
     method.into()
 }
 

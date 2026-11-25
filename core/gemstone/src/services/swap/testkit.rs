@@ -1,9 +1,10 @@
 use std::sync::{Arc, Mutex};
 
 use num_bigint::{BigInt, BigUint};
+use primitives::SwapProvider as SwapperProvider;
 use primitives::{Asset, AssetData, AssetId, Balance, Chain, RecentActivityType, WalletId};
 use swapper::testkit::MockSwapper;
-use swapper::{FetchQuoteData, ProviderType, Quote, QuoteRequest, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData};
+use swapper::{FetchQuoteData, ProviderType, Quote, QuoteRequest, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperQuoteData};
 
 use super::GemSwapService;
 use super::model::{GemSwapButtonInput, GemSwapPair};

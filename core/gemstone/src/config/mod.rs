@@ -42,27 +42,27 @@ use {
 };
 
 #[derive(uniffi::Object)]
-struct Config {}
+pub struct Config {}
 #[uniffi::export]
 impl Config {
     #[uniffi::constructor]
-    fn new() -> Self {
+    pub(crate) fn new() -> Self {
         Self {}
     }
 
-    fn get_swap_config(&self) -> SwapConfig {
+    pub(crate) fn get_swap_config(&self) -> SwapConfig {
         get_swap_config()
     }
 
-    fn get_chain_config(&self, chain: Chain) -> ChainConfig {
+    pub(crate) fn get_chain_config(&self, chain: Chain) -> ChainConfig {
         crate::config::chain::get_chain_config(chain)
     }
 
-    fn get_wallet_connect_config(&self) -> WalletConnectConfig {
+    pub(crate) fn get_wallet_connect_config(&self) -> WalletConnectConfig {
         get_wallet_connect_config()
     }
 
-    fn get_node_url(&self, chain: Chain, region: NodeRegion) -> String {
+    pub(crate) fn get_node_url(&self, chain: Chain, region: NodeRegion) -> String {
         region.url(chain)
     }
 }

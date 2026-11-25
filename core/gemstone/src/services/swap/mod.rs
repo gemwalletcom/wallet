@@ -15,10 +15,11 @@ use std::panic::AssertUnwindSafe;
 use std::sync::Arc;
 use std::time::Duration;
 
+use primitives::SwapProvider as SwapperProvider;
 use primitives::swap::Permit2ApprovalData;
 use primitives::{Asset, Wallet};
 use swapper::permit2_data::{Permit2Data, PermitSingle, permit2_data_to_eip712_json};
-use swapper::{AssetList, FetchQuoteData, Quote, QuoteRequest, SwapperError, SwapperProvider};
+use swapper::{AssetList, FetchQuoteData, Quote, QuoteRequest, SwapperError};
 
 use crate::config::swap_config::get_swap_config;
 use crate::gem_swapper::GemSwapper;

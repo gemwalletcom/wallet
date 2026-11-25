@@ -1,4 +1,4 @@
-use primitives::node_config::NodeRegion;
+pub use primitives::node_config::NodeRegion;
 
 #[uniffi::remote(Enum)]
 pub enum NodeRegion {
