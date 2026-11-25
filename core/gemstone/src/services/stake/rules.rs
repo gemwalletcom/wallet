@@ -322,7 +322,10 @@ fn balance_tone(balance: &BigUint) -> GemValueTone {
 }
 
 pub fn shows_rewards(delegation: &DelegationBase) -> bool {
-    delegation.state == DelegationState::Active && delegation.rewards > BigUint::ZERO
+    match delegation.state {
+        DelegationState::Active | DelegationState::Inactive => delegation.rewards > BigUint::ZERO,
+        DelegationState::Pending | DelegationState::Activating | DelegationState::Deactivating | DelegationState::AwaitingWithdrawal => false,
+    }
 }
 
 fn requires_frozen_balance(chain: Chain, frozen_value: &BigUint) -> bool {
@@ -1287,7 +1290,7 @@ mod tests {
         }
         assert!(shows_rewards(&Delegation::mock_with(Chain::Cosmos, StakeProviderType::Stake, DelegationState::Active, 100).base));
         assert!(!shows_rewards(&Delegation::mock_with(Chain::Cosmos, StakeProviderType::Stake, DelegationState::Active, 0).base));
-        assert!(!shows_rewards(&Delegation::mock_with(Chain::Cosmos, StakeProviderType::Stake, DelegationState::Inactive, 100).base));
+        assert!(shows_rewards(&Delegation::mock_with(Chain::Cosmos, StakeProviderType::Stake, DelegationState::Inactive, 100).base));
     }
 
     fn destination_kind(destination: &GemDelegationDestination) -> &'static str {
@@ -1882,7 +1885,10 @@ mod tests {
     fn test_can_claim_rewards() {
         assert!(can_claim_rewards(WalletType::Multicoin, &Delegation::mock_with(Chain::Cosmos, StakeProviderType::Stake, DelegationState::Active, 10)));
         assert!(!can_claim_rewards(WalletType::Multicoin, &Delegation::mock_with(Chain::Cosmos, StakeProviderType::Stake, DelegationState::Active, 0)));
-        assert!(!can_claim_rewards(WalletType::Multicoin, &Delegation::mock_with(Chain::Cosmos, StakeProviderType::Stake, DelegationState::Inactive, 10)));
+        for chain in Chain::stakeable() {
+            let inactive = Delegation::mock_with(chain, StakeProviderType::Stake, DelegationState::Inactive, 10);
+            assert_eq!(can_claim_rewards(WalletType::Multicoin, &inactive), chain.stake_config().is_some_and(|config| config.can_claim_rewards), "{chain}");
+        }
         assert!(!can_claim_rewards(WalletType::View, &Delegation::mock_with(Chain::Cosmos, StakeProviderType::Stake, DelegationState::Active, 10)));
         assert!(!can_claim_rewards(WalletType::Multicoin, &Delegation::mock_with(Chain::Solana, StakeProviderType::Stake, DelegationState::Active, 10)));
     }

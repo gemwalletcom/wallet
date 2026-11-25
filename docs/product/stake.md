@@ -21,6 +21,7 @@ flowchart LR
 | When | Expected | Why |
 |---|---|---|
 | An Active delegation has rewards | Rewards shows on it | |
+| A delegation on an inactive or jailed validator has rewards | Rewards shows on it, and its details offer Claim Rewards | the rewards it earned stay claimable, and Claim Rewards on the Stake screen already takes them |
 | A delegation has yet to activate or become available | a countdown says when | |
 | A HYPE stake is less than 1 day old | it shows as Active, and Unstake opens a sheet saying how long until it can be unstaked | Hyperliquid locks HYPE for 1 day after each stake, while it keeps earning |
 | The user taps a delegation awaiting withdrawal, in a wallet that can sign | straight to Withdraw | |
