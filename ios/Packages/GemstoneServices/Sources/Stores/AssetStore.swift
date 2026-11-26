@@ -56,8 +56,4 @@ public final class GemstoneAssetStore: GemAssetStore, @unchecked Sendable {
     public func setStakeableAssets(assetIds: [Gemstone.AssetId]) async throws {
         try assetStore.setAssetIsStakeable(for: assetIds, value: true)
     }
-
-    public func setSwappableAssets(assetIds: [Gemstone.AssetId]) async throws {
-        try assetStore.updateSwappableAssets(assetIds: assetIds)
-    }
 }

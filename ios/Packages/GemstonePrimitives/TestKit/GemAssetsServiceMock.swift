@@ -30,7 +30,6 @@ public final class GemAssetStoreMock: GemAssetStore, @unchecked Sendable {
     public func saveAsset(asset _: Gemstone.AssetFull) async throws {}
     public func setBuyableAssets(assetIds _: [Gemstone.AssetId]) async throws {}
     public func setSellableAssets(assetIds _: [Gemstone.AssetId]) async throws {}
-    public func setSwappableAssets(assetIds _: [Gemstone.AssetId]) async throws {}
     public func setStakeableAssets(assetIds _: [Gemstone.AssetId]) async throws {}
 }
 
