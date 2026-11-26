@@ -92,6 +92,7 @@ fn map_payment_type(payment_code: &str, payment_name: &str) -> Option<PaymentTyp
 pub fn map_order_from_webhook(webhook: WebhookData) -> FiatTransactionUpdate {
     let WebhookData {
         merchant_transaction_id,
+        transaction_type,
         status,
         fiat_amount,
         fiat_currency,
@@ -102,7 +103,7 @@ pub fn map_order_from_webhook(webhook: WebhookData) -> FiatTransactionUpdate {
     FiatTransactionUpdate {
         transaction_id: merchant_transaction_id,
         provider_transaction_id: None,
-        status: map_status(&status),
+        status: map_status(&transaction_type, &status),
         transaction_hash: transaction.and_then(|transaction| transaction.id),
         fiat_amount: Some(fiat_amount),
         fiat_currency: Some(fiat_currency.to_ascii_uppercase()),
@@ -113,11 +114,11 @@ pub fn map_webhook_data(data: Value) -> Result<WebhookData, serde_json::Error> {
     Ok(serde_json::from_value::<super::models::Webhook>(data)?.data)
 }
 
-fn map_status(status: &str) -> FiatTransactionStatus {
-    match status {
-        "new" | "pending" | "order_scheduled" => FiatTransactionStatus::Pending,
-        "cancelled" | "order_failed" | "descriptor_failed" => FiatTransactionStatus::Failed,
-        "paid" | "completed" | "succeeded" => FiatTransactionStatus::Complete,
+fn map_status(transaction_type: &str, status: &str) -> FiatTransactionStatus {
+    match (transaction_type, status) {
+        (_, "new" | "pending" | "order_scheduled") | ("buy", "paid") | ("deposit", "completed") => FiatTransactionStatus::Pending,
+        (_, "cancelled" | "order_failed" | "descriptor_failed" | "failed") => FiatTransactionStatus::Failed,
+        ("withdraw", "completed") | ("sell", "succeeded") => FiatTransactionStatus::Complete,
         _ => FiatTransactionStatus::Unknown,
     }
 }
@@ -208,6 +209,7 @@ mod tests {
         let mobile_pay: Webhook = serde_json::from_str(include_str!("../../../testdata/mercuryo/webhook_mobile_pay_complete.json"))?;
         let sell: Webhook = serde_json::from_str(include_str!("../../../testdata/mercuryo/webhook_sell_complete.json"))?;
         let withdraw: Webhook = serde_json::from_str(include_str!("../../../testdata/mercuryo/webhook_withdraw_same_order_complete.json"))?;
+        let withdraw_failed: Webhook = serde_json::from_str(include_str!("../../../testdata/mercuryo/webhook_withdraw_failed.json"))?;
 
         assert_eq!(
             map_order_from_webhook(buy.data),
@@ -238,7 +240,7 @@ mod tests {
             FiatTransactionUpdate {
                 transaction_id: "0d274c2f-cd7f-4137-a5b4-e63c4c2c020b".to_string(),
                 provider_transaction_id: None,
-                status: FiatTransactionStatus::Complete,
+                status: FiatTransactionStatus::Pending,
                 transaction_hash: None,
                 fiat_amount: Some(1500.0),
                 fiat_currency: Some("USD".to_string()),
@@ -257,7 +259,39 @@ mod tests {
             }
         );
 
+        assert_eq!(
+            map_order_from_webhook(withdraw_failed.data),
+            FiatTransactionUpdate {
+                transaction_id: "0d274c2f-cd7f-4137-a5b4-e63c4c2c020b".to_string(),
+                provider_transaction_id: None,
+                status: FiatTransactionStatus::Failed,
+                transaction_hash: None,
+                fiat_amount: Some(1500.0),
+                fiat_currency: Some("USD".to_string()),
+            }
+        );
+
         Ok(())
+    }
+
+    #[test]
+    fn test_map_status() {
+        for (transaction_type, statuses) in [
+            ("buy", ["new", "pending", "order_scheduled", "paid"].as_slice()),
+            ("withdraw", &["new", "pending", "order_scheduled"]),
+            ("deposit", &["new", "pending", "completed"]),
+            ("sell", &["new", "pending"]),
+        ] {
+            for status in statuses {
+                assert_eq!(map_status(transaction_type, status), FiatTransactionStatus::Pending, "{transaction_type} {status}");
+            }
+        }
+        for (transaction_type, status) in [("buy", "cancelled"), ("buy", "order_failed"), ("buy", "descriptor_failed"), ("withdraw", "failed"), ("deposit", "failed"), ("sell", "failed")] {
+            assert_eq!(map_status(transaction_type, status), FiatTransactionStatus::Failed, "{transaction_type} {status}");
+        }
+        assert_eq!(map_status("withdraw", "completed"), FiatTransactionStatus::Complete);
+        assert_eq!(map_status("sell", "succeeded"), FiatTransactionStatus::Complete);
+        assert_eq!(map_status("buy", "completed"), FiatTransactionStatus::Unknown);
     }
 
     #[test]
