@@ -1,0 +1,21 @@
+{
+    "ret": [
+        {
+            "contractRet": "SUCCESS"
+        }
+    ],
+    "txID": "0014e0e7485ac32edc0af665c0c0f2bd7cbf6b1afa5a33fdaa713a1819fc3a0f",
+    "raw_data": {
+        "contract": [
+            {
+                "parameter": {
+                    "value": {
+                        "owner_address": "4125fa01c50b65768b430c1653a874b6e46b35627e"
+                    },
+                    "type_url": "type.googleapis.com/protocol.WithdrawBalanceContract"
+                },
+                "type": "WithdrawBalanceContract"
+            }
+        ]
+    }
+}
