@@ -7,14 +7,12 @@ use std::{error::Error, process::ExitCode};
 
 use chain_traits::node_check::NodeCheckProfile;
 use factory::new_provider;
-use gem_args::Args;
+use gem_args::{Args, ArgsError};
 use gem_tracing::error_with_fields;
 use node_probes::node_check_request;
 use primitives::Chain;
 
 use crate::service::NodeCheckService;
-
-const USAGE: &str = "Check blockchain node capabilities and data\n\nUsage: nodecheck --profile <wallet|parser> [--header <NAME:VALUE>] [--rate-limit <PROFILE_RUNS_PER_SECOND>] <chain> <url>";
 
 struct NodeCheck {
     chain: Chain,
@@ -25,17 +23,24 @@ struct NodeCheck {
 }
 
 impl NodeCheck {
-    fn new(mut args: Args) -> Result<Self, Box<dyn Error + Send + Sync>> {
-        let profile = args.required(&["--profile", "-p"])?.parse()?;
-        let headers = args.options(&["--header", "-H"])?;
-        let rate_limit = args.option(&["--rate-limit"])?.map(|value| value.parse()).transpose()?;
+    fn new(mut args: Args) -> Result<Self, ArgsError> {
+        let profile = args.required(&["--profile", "-p"], "wallet|parser", "Checks to run");
+        let headers = args.options(&["--header", "-H"], "NAME:VALUE", "Header sent with each request, repeatable");
+        let rate_limit = args.option(&["--rate-limit"], "PROFILE_RUNS_PER_SECOND", "Also run the profile at this rate, 1 to 10000");
+        let chain = args.positional("chain", "Chain the node serves");
+        let url = args.positional("url", "Node URL");
+        args.finish("Check blockchain node capabilities and data")?;
+        let rate_limit = rate_limit.map(|value| value.parse()).transpose().map_err(ArgsError::invalid)?;
         if rate_limit.is_some_and(|value| !(1..=10_000).contains(&value)) {
-            return Err("rate limit must be between 1 and 10000".into());
+            return Err(ArgsError::invalid("rate limit must be between 1 and 10000"));
         }
-        let chain = args.positional("chain")?.parse()?;
-        let url = args.positional("url")?;
-        args.finish()?;
-        Ok(Self { chain, url, profile, headers, rate_limit })
+        Ok(Self {
+            chain: chain.parse().map_err(ArgsError::invalid)?,
+            url,
+            profile: profile.parse().map_err(ArgsError::invalid)?,
+            headers,
+            rate_limit,
+        })
     }
 
     async fn run(&self) -> Result<bool, Box<dyn Error + Send + Sync>> {
@@ -51,17 +56,9 @@ impl NodeCheck {
 
 #[tokio::main]
 async fn main() -> ExitCode {
-    let mut args = Args::from_env();
-    if args.flag(&["--help", "-h"]) {
-        println!("{USAGE}");
-        return ExitCode::SUCCESS;
-    }
-    let node_check = match NodeCheck::new(args) {
+    let node_check = match NodeCheck::new(Args::from_env()) {
         Ok(node_check) => node_check,
-        Err(error) => {
-            eprintln!("{error}\n{USAGE}");
-            return ExitCode::from(2);
-        }
+        Err(error) => return error.report(),
     };
     match node_check.run().await {
         Ok(true) => ExitCode::SUCCESS,

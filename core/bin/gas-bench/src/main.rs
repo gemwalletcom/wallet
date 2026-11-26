@@ -3,8 +3,9 @@ mod helius;
 mod jito;
 mod solana_client;
 
-use gem_args::Args;
+use gem_args::{Args, ArgsError};
 use std::error::Error;
+use std::process::ExitCode;
 use std::{collections::HashMap, env, sync::Arc, time::Duration};
 use tokio::time::interval;
 
@@ -40,22 +41,11 @@ struct SourceFeeDetail {
     fast_fee: String,
 }
 
-const USAGE: &str = "A CLI tool to benchmark gas/priority fees from multiple sources.
+const ABOUT: &str = "A CLI tool to benchmark gas/priority fees from multiple sources.
 It periodically fetches fee data and displays comparative tables.
 
 For Ethereum: compares Core fee rates with Etherscan.
-For Solana: compares Core fee rates with RPC samples, Helius, and the Jito tip floor API.
-
-Usage: gas-bench [OPTIONS]
-
-Options:
-  -c, --chain <ethereum|solana>      Chain to benchmark [default: ethereum]
-  -d, --debug                        Enable debug logging
-      --rpc-url <URL>                Ethereum RPC URL for Core fee history (Ethereum only, defaults to the Core node list) [env: ETHEREUM_RPC_URL]
-      --etherscan-api-key <KEY>      The Etherscan API key (Ethereum only, optional: keyless requests are rate limited) [env: ETHERSCAN_API_KEY]
-      --compute-units <UNITS>        Compute units for priority fee calculation (Solana only) [default: 200000]
-      --skip-jito                    Skip Jito API comparison (Solana only)
-      --helius-api-key <KEY>         Helius API key for getPriorityFeeEstimate (Solana only) [env: HELIUS_API_KEY]";
+For Solana: compares Core fee rates with RPC samples, Helius, and the Jito tip floor API.";
 
 #[derive(Debug)]
 struct Cli {
@@ -69,23 +59,28 @@ struct Cli {
 }
 
 impl Cli {
-    fn new(mut args: Args) -> Result<Self, Box<dyn Error + Send + Sync>> {
-        let chain = match args.option(&["--chain", "-c"])?.as_deref() {
-            None | Some("ethereum") => ChainMode::Ethereum,
-            Some("solana") => ChainMode::Solana,
-            Some(chain) => return Err(format!("unsupported chain: {chain}").into()),
-        };
-        let cli = Self {
-            chain,
-            debug: args.flag(&["--debug", "-d"]),
-            rpc_url: args.option(&["--rpc-url"])?.or_else(|| env::var("ETHEREUM_RPC_URL").ok()),
-            etherscan_api_key: args.option(&["--etherscan-api-key"])?.or_else(|| env::var("ETHERSCAN_API_KEY").ok()),
-            compute_units: args.option(&["--compute-units"])?.map(|value| value.parse()).transpose()?.unwrap_or(200_000),
-            skip_jito: args.flag(&["--skip-jito"]),
-            helius_api_key: args.option(&["--helius-api-key"])?.or_else(|| env::var("HELIUS_API_KEY").ok()),
-        };
-        args.finish()?;
-        Ok(cli)
+    fn new(mut args: Args) -> Result<Self, ArgsError> {
+        let chain = args.option(&["--chain", "-c"], "ethereum|solana", "Chain to benchmark [default: ethereum]");
+        let debug = args.flag(&["--debug", "-d"], "Enable debug logging");
+        let rpc_url = args.option(&["--rpc-url"], "URL", "Ethereum RPC URL for Core fee history (Ethereum only, defaults to the Core node list) [env: ETHEREUM_RPC_URL]");
+        let etherscan_api_key = args.option(&["--etherscan-api-key"], "KEY", "The Etherscan API key (Ethereum only, optional: keyless requests are rate limited) [env: ETHERSCAN_API_KEY]");
+        let compute_units = args.option(&["--compute-units"], "UNITS", "Compute units for priority fee calculation (Solana only) [default: 200000]");
+        let skip_jito = args.flag(&["--skip-jito"], "Skip Jito API comparison (Solana only)");
+        let helius_api_key = args.option(&["--helius-api-key"], "KEY", "Helius API key for getPriorityFeeEstimate (Solana only) [env: HELIUS_API_KEY]");
+        args.finish(ABOUT)?;
+        Ok(Self {
+            chain: match chain.as_deref() {
+                None | Some("ethereum") => ChainMode::Ethereum,
+                Some("solana") => ChainMode::Solana,
+                Some(chain) => return Err(ArgsError::invalid(format!("unsupported chain: {chain}"))),
+            },
+            debug,
+            rpc_url: rpc_url.or_else(|| env::var("ETHEREUM_RPC_URL").ok()),
+            etherscan_api_key: etherscan_api_key.or_else(|| env::var("ETHERSCAN_API_KEY").ok()),
+            compute_units: compute_units.map(|value| value.parse()).transpose().map_err(ArgsError::invalid)?.unwrap_or(200_000),
+            skip_jito,
+            helius_api_key: helius_api_key.or_else(|| env::var("HELIUS_API_KEY").ok()),
+        })
     }
 }
 
@@ -377,29 +372,22 @@ async fn run(args: Cli) -> Result<(), Box<dyn Error + Send + Sync>> {
 }
 
 #[tokio::main]
-async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
-    let mut args = Args::from_env();
-    if args.flag(&["--help", "-h"]) {
-        println!("{USAGE}");
-        return Ok(());
-    }
-    let args = match Cli::new(args) {
+async fn main() -> ExitCode {
+    let args = match Cli::new(Args::from_env()) {
         Ok(args) => args,
-        Err(error) => {
-            eprintln!("{error}\n\n{USAGE}");
-            std::process::exit(2);
-        }
+        Err(error) => return error.report(),
     };
     if args.debug {
         eprintln!("gas-bench: debug mode enabled by CLI flag.");
     }
 
-    if let Err(error) = run(args).await {
-        eprintln!("gas-bench: run error: {error}");
-        std::process::exit(1);
+    match run(args).await {
+        Ok(()) => ExitCode::SUCCESS,
+        Err(error) => {
+            eprintln!("gas-bench: run error: {error}");
+            ExitCode::FAILURE
+        }
     }
-
-    Ok(())
 }
 
 #[cfg(test)]
