@@ -14,8 +14,9 @@ fn delegation_id(validator_id: &str, state: DelegationState) -> String {
 pub fn map_account_state_to_delegations(state: &AccountState) -> Vec<DelegationBase> {
     let mut delegations = Vec::new();
 
-    if state.deposited_balance > BigUint::zero() {
-        delegations.push(map_balance_to_delegation(&state.deposited_balance, &state.restaked_reward, DelegationState::Active));
+    let active_balance = &state.deposited_balance + &state.restaked_reward;
+    if active_balance > BigUint::zero() {
+        delegations.push(map_balance_to_delegation(&active_balance, &state.restaked_reward, DelegationState::Active));
     }
 
     let pending_balance = &state.pending_balance + &state.pending_deposited_balance;
@@ -52,7 +53,7 @@ pub fn map_staking_balance(delegations: &[DelegationBase]) -> Balance {
     for delegation in delegations {
         match delegation.state {
             DelegationState::Active => {
-                staked += &delegation.balance;
+                staked += &delegation.balance - &delegation.rewards;
                 rewards += &delegation.rewards;
             }
             DelegationState::Activating | DelegationState::Deactivating | DelegationState::AwaitingWithdrawal => {
@@ -125,7 +126,7 @@ mod tests {
         assert_eq!(
             map_account_state_to_delegations(&state),
             vec![
-                map_balance_to_delegation(&BigUint::from(5u32), &BigUint::from(7u32), DelegationState::Active),
+                map_balance_to_delegation(&BigUint::from(12u32), &BigUint::from(7u32), DelegationState::Active),
                 map_balance_to_delegation(&BigUint::from(3u32), &BigUint::zero(), DelegationState::Activating),
                 map_balance_to_delegation(&BigUint::from(3u32), &BigUint::zero(), DelegationState::Deactivating),
                 map_balance_to_delegation(&BigUint::from(1u32), &BigUint::zero(), DelegationState::AwaitingWithdrawal),
@@ -143,6 +144,32 @@ mod tests {
                 restaked_reward: BigUint::zero(),
             }),
             vec![]
+        );
+    }
+
+    #[test]
+    fn test_map_account_state_active_balance_includes_restaked_reward() {
+        let account_state = |deposited_balance: BigUint, restaked_reward: BigUint| AccountState {
+            deposited_balance,
+            pending_balance: BigUint::zero(),
+            pending_deposited_balance: BigUint::zero(),
+            withdraw_request: WithdrawRequest {
+                requested: U256::ZERO,
+                readyForClaim: U256::ZERO,
+            },
+            restaked_reward,
+        };
+        let deposited = BigUint::from(18_991_489_398_350_502_488u128);
+        let restaked = BigUint::from(879_162_057_515_466_311u128);
+        let autocompound_balance = BigUint::from(19_870_651_455_865_968_799u128);
+
+        let delegations = map_account_state_to_delegations(&account_state(deposited.clone(), restaked.clone()));
+
+        assert_eq!(delegations, vec![map_balance_to_delegation(&autocompound_balance, &restaked, DelegationState::Active)]);
+        assert_eq!(map_staking_balance(&delegations), Balance::stake_balance(deposited, BigUint::zero(), Some(restaked.clone())));
+        assert_eq!(
+            map_account_state_to_delegations(&account_state(BigUint::zero(), restaked.clone())),
+            vec![map_balance_to_delegation(&restaked, &restaked, DelegationState::Active)]
         );
     }
 }
