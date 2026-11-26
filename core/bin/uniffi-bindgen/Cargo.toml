@@ -4,5 +4,5 @@ version = { workspace = true }
 edition = { workspace = true }
 
 [dependencies]
-clap = { workspace = true }
+gem_args = { path = "../../crates/gem_args" }
 uniffi_bindgen = { workspace = true }
