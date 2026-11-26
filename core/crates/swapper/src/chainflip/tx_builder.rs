@@ -62,12 +62,12 @@ pub(super) fn build_solana_transaction(fee_payer: &str, instruction: Instruction
 mod tests {
     use super::*;
     use crate::{
+        binding_check::solana::verify_solana,
         chainflip::{
             broker::{SolanaVaultSwapResponse, TronVaultSwapResponse},
             provider::SOLANA_VAULT,
             testkit::TRON_NOTE,
         },
-        contract_check::solana::verify_solana,
     };
     use gem_jsonrpc::types::JsonRpcResponse;
     use gem_solana::decode_transaction;

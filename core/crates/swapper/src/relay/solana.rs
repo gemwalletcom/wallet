@@ -14,7 +14,7 @@ use super::{
     contracts::contracts,
     model::{RelayQuoteResponse, SolanaStepData},
 };
-use crate::{QuoteRequest, SwapperError, contract_check::solana::verify_steps, jupiter::JupiterRoute, solana_dex::SolanaTransaction};
+use crate::{QuoteRequest, SwapperError, binding_check::solana::verify_steps, jupiter::JupiterRoute, solana_dex::SolanaTransaction};
 
 const DEPOSIT_NATIVE: &str = "deposit_native";
 const DEPOSIT_TOKEN: &str = "deposit_token";
@@ -111,7 +111,7 @@ impl<'a> RelayStep<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{SwapperQuoteAsset, contract_check::solana::verify_solana, relay::testkit::TEST_SOLANA_PAYER, testkit::mock_quote};
+    use crate::{SwapperQuoteAsset, binding_check::solana::verify_solana, relay::testkit::TEST_SOLANA_PAYER, testkit::mock_quote};
     use gem_solana::{AddressLookupTableAccount, decode_transaction};
     use primitives::{
         AssetId,

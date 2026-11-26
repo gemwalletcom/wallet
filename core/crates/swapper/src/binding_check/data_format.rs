@@ -1,14 +1,14 @@
 use primitives::ChainType;
 
 #[derive(Clone, Copy)]
-pub(super) enum QuoteData {
+pub(super) enum DataFormat {
     EvmCall,
     SolanaTransaction,
     TonMessages,
     Unread,
 }
 
-impl QuoteData {
+impl DataFormat {
     pub(super) fn of(chain_type: ChainType) -> Self {
         match chain_type {
             ChainType::Ethereum | ChainType::Tron => Self::EvmCall,

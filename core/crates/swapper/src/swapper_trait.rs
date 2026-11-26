@@ -1,5 +1,5 @@
 use super::{
-    Binding, SwapperQuoteData, contract_check,
+    Binding, SwapperQuoteData, binding_check,
     cross_chain::VaultAddresses,
     error::SwapperError,
     models::{QuoteDataInput, ProviderType, Quote, QuoteRequest, SwapAmountMode, SwapResult, SwapResultRequest, SwapperChainAsset},
@@ -40,6 +40,6 @@ impl<'a> dyn Swapper + 'a {
     }
 
     pub fn verify_binding(&self, quote: &Quote, data: &SwapperQuoteData) -> Result<(), SwapperError> {
-        contract_check::verify(quote, &self.binding(&quote.request.from_asset.asset_id()), data)
+        binding_check::verify(quote, &self.binding(&quote.request.from_asset.asset_id()), data)
     }
 }

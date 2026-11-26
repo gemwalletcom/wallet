@@ -1,6 +1,6 @@
 use primitives::{AssetId, swap::SwapQuoteDataType};
 
-use super::{amounts::verify_amounts, evm::verify_targets, quote_data::QuoteData, solana::verify_solana, ton::verify_ton_messages};
+use super::{amounts::verify_amounts, data_format::DataFormat, evm::verify_evm_call, solana::verify_solana, ton::verify_ton_messages};
 use crate::{Binding, Contracts, Deployment, Quote, SwapperError, SwapperQuoteData};
 
 pub(crate) fn verify(quote: &Quote, binding: &Binding, data: &SwapperQuoteData) -> Result<(), SwapperError> {
@@ -16,15 +16,15 @@ fn verify_contracts(quote: &Quote, from_asset: &AssetId, contracts: &Contracts, 
     if contracts.targets.is_empty() {
         return Err(SwapperError::InvalidRoute);
     }
-    match (QuoteData::of(from_asset.chain.chain_type()), &data.data_type) {
-        (QuoteData::SolanaTransaction, SwapQuoteDataType::Transfer | SwapQuoteDataType::Contract) => verify_solana(&data.data, &quote.request.wallet_address, &contracts.targets),
-        (QuoteData::TonMessages, SwapQuoteDataType::Transfer | SwapQuoteDataType::Contract) => verify_ton_messages(&data.data, &contracts.targets),
-        (QuoteData::EvmCall | QuoteData::Unread, SwapQuoteDataType::Transfer) => match Deployment::contains(from_asset.chain, &contracts.targets, &data.to) {
+    match (DataFormat::of(from_asset.chain.chain_type()), &data.data_type) {
+        (DataFormat::SolanaTransaction, SwapQuoteDataType::Transfer | SwapQuoteDataType::Contract) => verify_solana(&data.data, &quote.request.wallet_address, &contracts.targets),
+        (DataFormat::TonMessages, SwapQuoteDataType::Transfer | SwapQuoteDataType::Contract) => verify_ton_messages(&data.data, &contracts.targets),
+        (DataFormat::EvmCall | DataFormat::Unread, SwapQuoteDataType::Transfer) => match Deployment::contains(from_asset.chain, &contracts.targets, &data.to) {
             true => Ok(()),
             false => Err(SwapperError::InvalidRoute),
         },
-        (QuoteData::EvmCall, SwapQuoteDataType::Contract) => verify_targets(from_asset, contracts, data),
-        (QuoteData::Unread, SwapQuoteDataType::Contract) => Err(SwapperError::InvalidRoute),
+        (DataFormat::EvmCall, SwapQuoteDataType::Contract) => verify_evm_call(from_asset, contracts, data),
+        (DataFormat::Unread, SwapQuoteDataType::Contract) => Err(SwapperError::InvalidRoute),
     }
 }
 

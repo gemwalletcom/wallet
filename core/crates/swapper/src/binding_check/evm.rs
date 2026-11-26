@@ -5,7 +5,7 @@ use primitives::{AssetId, ChainType, decode_hex};
 
 use crate::{Contracts, Deployment, SwapperError, SwapperQuoteData};
 
-pub(super) fn verify_targets(from_asset: &AssetId, contracts: &Contracts, data: &SwapperQuoteData) -> Result<(), SwapperError> {
+pub(super) fn verify_evm_call(from_asset: &AssetId, contracts: &Contracts, data: &SwapperQuoteData) -> Result<(), SwapperError> {
     let chain = from_asset.chain;
     let is_contract = |address: &str| Deployment::contains(chain, &contracts.targets, address);
     let is_spender = |address: &str| Deployment::contains(chain, &contracts.spenders, address);
@@ -65,7 +65,7 @@ mod tests {
     };
 
     #[test]
-    fn test_verify_targets_spenders() {
+    fn test_verify_evm_call_spenders() {
         let router = TEST_EVM_RECIPIENT;
         let usdc = AssetId::from_token(Chain::Ethereum, ETHEREUM_USDC_TOKEN_ID);
         let permit2 = UNISWAP_PERMIT2_CONTRACT;
@@ -78,13 +78,13 @@ mod tests {
             ..SwapperQuoteData::new_contract(to.to_string(), BigUint::ZERO, String::new(), Some(ApprovalData::make(ETHEREUM_USDC_TOKEN_ID, approved, BigUint::from(1u64), false)), None)
         };
 
-        assert_eq!(verify_targets(&usdc, &contracts, &call(router, permit2, router)), Ok(()));
+        assert_eq!(verify_evm_call(&usdc, &contracts, &call(router, permit2, router)), Ok(()));
         for (data, reason) in [
             (call(permit2, permit2, router), "Permit2 takes approvals, never the swap call"),
             (call(router, TEST_EVM_SENDER, router), "an approval to another spender"),
             (call(router, permit2, TEST_EVM_SENDER), "a Permit2 signature for another spender"),
         ] {
-            assert_eq!(verify_targets(&usdc, &contracts, &data), Err(SwapperError::InvalidRoute), "{reason}");
+            assert_eq!(verify_evm_call(&usdc, &contracts, &data), Err(SwapperError::InvalidRoute), "{reason}");
         }
     }
 
@@ -101,20 +101,20 @@ mod tests {
             SwapperQuoteData::new_contract(TRON_USDT_TOKEN_ID.to_string(), BigUint::ZERO, hex::encode(call.abi_encode()), None, None)
         };
 
-        assert_eq!(verify_targets(&usdt, &Contracts::new(vec![vault]), &transfer(vault)), Ok(()), "a token transfer into the shipped vault is the deposit");
+        assert_eq!(verify_evm_call(&usdt, &Contracts::new(vec![vault]), &transfer(vault)), Ok(()), "a token transfer into the shipped vault is the deposit");
         let router = "TXtEs6t2oUWQsNos7m68gbHdE9Q5n6x2oN";
         let routed = Contracts {
             targets: vec![vault, router],
             spenders: vec![vault],
         };
         assert_eq!(
-            verify_targets(&usdt, &routed, &transfer(router)),
+            verify_evm_call(&usdt, &routed, &transfer(router)),
             Err(SwapperError::InvalidRoute),
             "a token sent to a contract that only runs calls is not a deposit"
         );
-        assert_eq!(verify_targets(&usdt, &Contracts::new(vec![vault]), &transfer("TDMakP1fbWc7XXoSWZpujpjRAuePPEn4oi")), Err(SwapperError::InvalidRoute));
+        assert_eq!(verify_evm_call(&usdt, &Contracts::new(vec![vault]), &transfer("TDMakP1fbWc7XXoSWZpujpjRAuePPEn4oi")), Err(SwapperError::InvalidRoute));
         assert_eq!(
-            verify_targets(&AssetId::from_chain(Chain::Tron), &Contracts::new(vec![vault]), &transfer(vault)),
+            verify_evm_call(&AssetId::from_chain(Chain::Tron), &Contracts::new(vec![vault]), &transfer(vault)),
             Err(SwapperError::InvalidRoute),
             "a coin swap may not call a token contract"
         );

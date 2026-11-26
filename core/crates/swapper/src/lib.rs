@@ -1,8 +1,8 @@
 mod alien;
 mod approval;
+mod binding_check;
 mod chainlink;
 mod clmm;
-mod contract_check;
 pub mod cross_chain;
 mod deployment;
 mod eth_address;

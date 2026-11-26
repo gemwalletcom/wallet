@@ -2,7 +2,7 @@ use gem_evm::u256::u256_to_biguint;
 use num_bigint::BigUint;
 use primitives::{AssetId, EVMChain, swap::SwapQuoteDataType};
 
-use super::{evm::token_transfer, quote_data::QuoteData};
+use super::{data_format::DataFormat, evm::token_transfer};
 use crate::{Deployment, SwapperError, SwapperQuoteData};
 
 pub(super) fn verify_amounts(from_asset: &AssetId, from_value: &BigUint, data: &SwapperQuoteData) -> Result<(), SwapperError> {
@@ -17,13 +17,13 @@ pub(super) fn verify_amounts(from_asset: &AssetId, from_value: &BigUint, data: &
         .map(|approval| approval.token.as_str())
         .chain(data.permit2.iter().map(|permit2| permit2.token.as_str()))
         .all(is_swapped_token);
-    let sends_quoted_value = match (&data.data_type, QuoteData::of(from_asset.chain.chain_type())) {
+    let sends_quoted_value = match (&data.data_type, DataFormat::of(from_asset.chain.chain_type())) {
         (SwapQuoteDataType::Transfer, _) => data.value <= *from_value,
-        (SwapQuoteDataType::Contract, QuoteData::EvmCall) => match from_asset.is_native() {
+        (SwapQuoteDataType::Contract, DataFormat::EvmCall) => match from_asset.is_native() {
             true => data.value <= *from_value,
             false => data.value == BigUint::ZERO && token_transfer(from_asset, data).is_none_or(|transfer| u256_to_biguint(&transfer.value) <= *from_value),
         },
-        (SwapQuoteDataType::Contract, QuoteData::SolanaTransaction | QuoteData::TonMessages | QuoteData::Unread) => true,
+        (SwapQuoteDataType::Contract, DataFormat::SolanaTransaction | DataFormat::TonMessages | DataFormat::Unread) => true,
     };
     if !approves_swapped_token || !sends_quoted_value {
         return Err(SwapperError::InvalidRoute);

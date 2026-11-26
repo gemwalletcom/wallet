@@ -2,7 +2,7 @@ use gem_solana::models::SolanaInstruction;
 use gem_solana::{Base64InstructionData, Instruction, Pubkey, StandardInstruction, associated_token::is_associated_token_address, decode_instruction, decode_instructions, wrapped_sol};
 
 use super::JupiterRoute;
-use crate::{SwapperError, contract_check::solana::verify_steps};
+use crate::{SwapperError, binding_check::solana::verify_steps};
 
 #[derive(Debug, Clone, Copy)]
 pub(crate) enum RouteDestination {
