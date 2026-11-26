@@ -59,26 +59,30 @@ fn map_transfer(chain: Chain, transaction: Extrinsic, method: String, to_address
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::models::rpc::ExtrinsicTimestamp;
     use primitives::Chain;
 
     #[test]
     fn map_transactions_finds_timestamp_at_any_index() {
-        let block = Block {
-            number: 12147467,
-            extrinsics: vec![
-                Extrinsic::mock(),
-                Extrinsic {
-                    args: ExtrinsicArguments::Timestamp(ExtrinsicTimestamp {
-                        now: DateTime::from_timestamp_millis(1_771_126_812_000),
-                    }),
-                    ..Extrinsic::mock()
-                },
-            ],
-        };
+        let block: Block = serde_json::from_str(include_str!("../../testdata/sidecar_asset_hub_block.json")).unwrap();
 
-        let result = map_transactions(Chain::Polkadot, block);
-        assert!(result.is_empty());
+        assert_eq!(
+            map_transactions(Chain::Polkadot, block),
+            vec![Transaction::new(
+                "0xabb21bccc6d18d4955b131083f9a4932411bfe354e1dd47e929793ea43e0f09e".to_string(),
+                Chain::Polkadot.as_asset_id(),
+                "1cG9zmMQZLHgDqnbBG13Pt2Df6PHmBNqG8EYUXQn9EdWa9j".to_string(),
+                "11J9yCCuVjHNWm9gHV8EjTg3AfGkFzCLqcBHsiedorPkniV".to_string(),
+                None,
+                TransactionType::Transfer,
+                TransactionState::Confirmed,
+                BigUint::from(8_958_355u64),
+                Chain::Polkadot.as_asset_id(),
+                BigUint::from(100_000_000u64),
+                None,
+                None,
+                DateTime::from_timestamp_millis(1_795_684_848_000),
+            )]
+        );
     }
 
     #[test]
