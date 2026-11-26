@@ -1,0 +1,26 @@
+{
+  "jsonrpc": "2.0",
+  "result": {
+    "value": [
+      {
+        "pubkey": "8FfxVzDniioMAEaKtYWd1eF1zdoYCtD9aSPsVdbhmvu",
+        "account": {
+          "data": {
+            "parsed": {
+              "info": {
+                "mint": "9yMP3WUodc5RmuHSmNzFQagA58cjqWr8oQMXvPYnUHtJ",
+                "tokenAmount": {
+                  "amount": "14000000000000",
+                  "decimals": 6
+                }
+              }
+            }
+          },
+          "owner": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA",
+          "lamports": 2039280
+        }
+      }
+    ]
+  },
+  "id": 1
+}
