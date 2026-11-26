@@ -7,11 +7,12 @@ use async_trait::async_trait;
 use futures::lock::Mutex as AsyncMutex;
 use gem_spark::chain_signer::SignedLightningTransfer;
 use gem_spark::provider::LightningSessions;
-use gem_spark::{AccountKey, LightningError, LightningInvoice, LightningPayment, LightningPaymentStatus, LightningWallet};
+use gem_spark::{AccountKey, LightningError, LightningInvoice, LightningPayment, LightningPaymentStatus, LightningWallet, PartnerHeaders};
 use primitives::{Chain, WalletId};
 
 use super::runtime::run;
 use super::store::WalletLightningStore;
+use crate::alien::AlienClient;
 use crate::keystore::keystore_id_for_wallet;
 use crate::services::error::GemServiceError;
 use crate::services::preferences::GemSecureStore;
@@ -28,6 +29,7 @@ pub(crate) struct LightningAccounts {
     pub(crate) secure: Arc<dyn GemSecureStore>,
     pub(crate) preferences: Arc<GemWalletPreferencesService>,
     pub(crate) session: Arc<GemWalletSessionService>,
+    pub(crate) partner: Arc<PartnerHeaders<AlienClient>>,
 }
 
 impl LightningAccounts {
@@ -41,8 +43,9 @@ impl LightningAccounts {
             .ok_or(GemServiceError::Cancelled)?;
         let key = self.secure.get(account_key_name(&wallet.id))?.ok_or(GemServiceError::Cancelled)?;
         let account = AccountKey::decode(&key)?;
+        let partner = self.partner.clone();
         let store = Arc::new(WalletLightningStore::new(self.preferences.clone(), wallet.id));
-        Ok(run(async move { LightningWallet::open(account, store).await }).await?)
+        Ok(run(async move { LightningWallet::open(account, store, partner).await }).await?)
     }
 }
 

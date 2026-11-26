@@ -156,6 +156,7 @@ struct ServicesFactory {
             transactionStatus: GemstoneTransactionStatusService(service: transactionStateService),
         )
         let lightningService = storages.keystore.lightningService(
+            provider: nativeProvider,
             secure: encryptedStore,
             preferences: walletPreferencesService,
             balances: balanceService,

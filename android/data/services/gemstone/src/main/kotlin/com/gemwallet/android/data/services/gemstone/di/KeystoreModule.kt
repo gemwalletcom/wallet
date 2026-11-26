@@ -11,6 +11,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
+import uniffi.gemstone.AlienProvider
 import uniffi.gemstone.GemAuthService
 import uniffi.gemstone.GemAvatarService
 import uniffi.gemstone.GemBalanceService
@@ -116,6 +117,7 @@ object KeystoreModule {
     @Provides
     @Singleton
     fun provideGemLightningService(
+        alienProvider: AlienProvider,
         keystore: GemKeystore,
         passwordStore: PasswordStore,
         deviceAuthentication: DeviceAuthentication,
@@ -125,6 +127,7 @@ object KeystoreModule {
         transactionsService: GemTransactionsService,
         walletSessionService: GemWalletSessionService,
     ): GemLightningService = GemLightningService(
+        alienProvider,
         keystore,
         GemstoneKeystorePassword(passwordStore, deviceAuthentication),
         secureStore,

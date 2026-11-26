@@ -3264,6 +3264,8 @@ dependencies = [
  "bitcoin",
  "chain_traits",
  "date_time",
+ "gem_client",
+ "gem_encoding",
  "gem_hash",
  "lightning-invoice",
  "num-bigint 0.5.1",

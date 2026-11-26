@@ -5,7 +5,7 @@ use std::sync::{Arc, LazyLock, Mutex, PoisonError};
 use bitcoin::secp256k1::ecdsa::Signature;
 use bitcoin::secp256k1::{Message, PublicKey, Secp256k1};
 use primitives::time::unix_timestamp;
-use spark_wallet::{DefaultSigner, InvoicePreimage, ListTransfersRequest, Network, Order, PagingFilter, SparkSignerAdapter, SparkWallet, SparkWalletConfig, TransferId, WalletBuilder};
+use spark_wallet::{DefaultSigner, HeaderProvider, InvoicePreimage, ListTransfersRequest, Network, Order, PagingFilter, SparkSignerAdapter, SparkWallet, SparkWalletConfig, TransferId, WalletBuilder};
 
 use crate::address::SparkAddress;
 use crate::error::LightningError;
@@ -51,10 +51,14 @@ impl Drop for InFlight {
 }
 
 impl LightningWallet {
-    pub async fn open(account: AccountKey, store: Arc<dyn LightningStore>) -> Result<Self, LightningError> {
+    pub async fn open(account: AccountKey, store: Arc<dyn LightningStore>, partner: Arc<dyn HeaderProvider>) -> Result<Self, LightningError> {
         let signer = Arc::new(DefaultSigner::from_master(account.xpriv()));
         drop(account);
-        let wallet = WalletBuilder::new(SparkWalletConfig::default_config(Network::Mainnet), Arc::new(SparkSignerAdapter::new(signer))).build().await?;
+        let wallet = WalletBuilder::new(SparkWalletConfig::default_config(Network::Mainnet), Arc::new(SparkSignerAdapter::new(signer)))
+            .with_so_extra_header_provider(partner.clone())
+            .with_ssp_extra_header_provider(partner)
+            .build()
+            .await?;
         wallet.start_background_processing().await;
         Ok(Self { wallet, store })
     }
@@ -198,8 +202,11 @@ fn verify_signature(public_key: &PublicKey, digest: &[u8; 32], signature: &[u8])
 mod chain_integration_tests {
     use primitives::hex::decode_hex;
 
+    use gem_client::testkit::MockClient;
+
     use super::*;
     use crate::keys::account_key;
+    use crate::partner::PartnerHeaders;
     use crate::testkit::MemoryLightningStore;
 
     #[tokio::test]
@@ -208,6 +215,7 @@ mod chain_integration_tests {
         let wallet = LightningWallet::open(
             account_key(&decode_hex("5eb00bbddcf069084889a8ab9155568165f5c453ccb85e70811aaed6f6da5fc19a5ac40b389cd370d086206dec8aa6c43daea6690f20ad3d8d48b2d2ce9e38e4").unwrap()).unwrap(),
             store,
+            Arc::new(PartnerHeaders::new(MockClient::new(), None)),
         )
         .await
         .unwrap();

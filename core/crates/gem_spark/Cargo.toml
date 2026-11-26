@@ -6,7 +6,7 @@ edition = { workspace = true }
 [features]
 default = []
 rpc = ["dep:async-trait", "dep:chain_traits", "dep:primitives", "dep:num-bigint", "dep:signer", "dep:gem_hash", "dep:serde_json", "dep:serde_serializers"]
-wallet = ["dep:bitcoin", "dep:primitives", "dep:spark-wallet"]
+wallet = ["dep:async-trait", "dep:bitcoin", "dep:gem_client", "dep:gem_encoding", "dep:primitives", "dep:serde_json", "dep:spark-wallet", "dep:tokio"]
 chain_integration_tests = ["wallet"]
 
 [dependencies]
@@ -24,6 +24,9 @@ date_time = { path = "../date_time" }
 async-trait = { workspace = true, optional = true }
 bitcoin = { workspace = true, optional = true }
 spark-wallet = { workspace = true, optional = true }
+gem_client = { path = "../gem_client", optional = true }
+gem_encoding = { path = "../gem_encoding", optional = true }
+tokio = { workspace = true, optional = true }
 
 [dev-dependencies]
 signer = { path = "../signer" }

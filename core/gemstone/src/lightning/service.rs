@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use gem_spark::{LIGHTNING_SCHEME, LightningWallet, decode_invoice};
+use gem_spark::{LIGHTNING_SCHEME, LightningWallet, PARTNER_URL, PartnerHeaders, decode_invoice};
 use primitives::time::unix_timestamp;
 use primitives::{AddressFormatStyle, AssetId, Chain, WalletId};
 
@@ -8,6 +8,7 @@ use super::model::{GemLightningReceive, GemLightningReceiveState};
 use super::runtime::run;
 use super::sessions::{LightningAccounts, SESSIONS, account_key_name};
 use crate::address_formatter::format_address;
+use crate::alien::{AlienProvider, new_alien_client};
 use crate::keystore::{GemKeystore, decode_password, keystore_id_for_wallet};
 use crate::models::copy::{GemCopy, GemCopyKind};
 use crate::services::balance::GemBalanceService;
@@ -32,6 +33,7 @@ pub struct GemLightningService {
 impl GemLightningService {
     #[uniffi::constructor]
     pub fn new(
+        provider: Arc<dyn AlienProvider>,
         keystore: Arc<GemKeystore>,
         password: Arc<dyn GemKeystorePassword>,
         secure: Arc<dyn GemSecureStore>,
@@ -44,6 +46,7 @@ impl GemLightningService {
             secure: secure.clone(),
             preferences,
             session: session.clone(),
+            partner: Arc::new(PartnerHeaders::new(new_alien_client(PARTNER_URL.to_string(), provider), option_env!("BREEZ_API_KEY"))),
         });
         Self {
             keystore,

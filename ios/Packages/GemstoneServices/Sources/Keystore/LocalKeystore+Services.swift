@@ -71,6 +71,7 @@ public extension LocalKeystore {
     }
 
     func lightningService(
+        provider: any AlienProvider,
         secure: any GemSecureStore,
         preferences: GemWalletPreferencesService,
         balances: GemBalanceService,
@@ -78,6 +79,7 @@ public extension LocalKeystore {
         session: GemWalletSessionService,
     ) -> GemLightningService {
         GemLightningService(
+            provider: provider,
             keystore: gemKeystore,
             password: password,
             secure: secure,
