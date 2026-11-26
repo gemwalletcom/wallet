@@ -296,7 +296,6 @@ dependencies = [
  "security",
  "serde",
  "serde_json",
- "serde_urlencoded",
  "services",
  "settings",
  "signer",
@@ -304,7 +303,6 @@ dependencies = [
  "swapper",
  "tokio",
  "tokio-tungstenite",
- "tokio-util",
  "tower",
  "tower-http",
 ]
@@ -6481,7 +6479,6 @@ dependencies = [
  "bytes",
  "futures-core",
  "futures-sink",
- "futures-util",
  "libc",
  "pin-project-lite",
  "tokio",
