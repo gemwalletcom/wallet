@@ -20,6 +20,8 @@ Supply the family files you need. Chains and provider routes share the cache imp
 
 Chain requests use `/<chain>`. Provider requests use `/<source>/<service>/<path>`; `source` identifies the caller, and the route's configured `group` is used for metrics.
 
+A route used for more than one purpose lists its groups, `group: [indexer, nft]`. A caller names the one it is using, `/<source>/<group>/<service>/<path>`, and that request's metrics and logs carry it; without a group in the URL the first one applies. The cache, quota and cooldowns stay shared by the whole route, and a route cannot be named like a group.
+
 ```mermaid
 flowchart TD
     Request["Provider request"] --> Route{"Route exists and request allowed?"}

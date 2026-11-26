@@ -30,7 +30,7 @@ impl RoutesConfig {
 impl RouteConfig {
     pub fn mock() -> Self {
         Self {
-            group: "indexer".to_string(),
+            groups: vec!["indexer".to_string()],
             selection: Selection::Ordered,
             headers: None,
             allowlist: PathAllowlist::default(),
