@@ -27,13 +27,14 @@ const COINGECKO_CHAIN_PLATFORMS: &[(Chain, &str)] = &[
     (Chain::Celo, "celo"),
     (Chain::ZkSync, "zksync"),
     (Chain::Linea, "linea"),
+    (Chain::World, "world-chain"),
     (Chain::Near, "near-protocol"),
     (Chain::Ton, "the-open-network"),
     (Chain::Algorand, "algorand"),
     (Chain::Berachain, "berachain"),
     (Chain::Ink, "ink"),
     (Chain::Unichain, "unichain"),
-    (Chain::SeiEvm, "sei-network"),
+    (Chain::SeiEvm, "sei-v2"),
     (Chain::Xrp, "xrp"),
     (Chain::Hyperliquid, "hyperevm"),
     (Chain::Sonic, "sonic"),
@@ -138,6 +139,10 @@ mod tests {
         assert_eq!(get_coingecko_platform_id_for_chain(Chain::Robinhood), Some("robinhood"));
         assert_eq!(get_chain_for_coingecko_platform_id("x-layer"), Some(Chain::XLayer));
         assert_eq!(get_coingecko_platform_id_for_chain(Chain::XLayer), Some("x-layer"));
+        assert_eq!(get_chain_for_coingecko_platform_id("sei-v2"), Some(Chain::SeiEvm));
+        assert_eq!(get_coingecko_platform_id_for_chain(Chain::SeiEvm), Some("sei-v2"));
+        assert_eq!(get_chain_for_coingecko_platform_id("world-chain"), Some(Chain::World));
+        assert_eq!(get_coingecko_platform_id_for_chain(Chain::World), Some("world-chain"));
         assert_eq!(get_chain_for_coingecko_platform_id("unknown"), None);
         assert_eq!(get_coingecko_platform_id_for_chain(Chain::Bitcoin), None);
 
