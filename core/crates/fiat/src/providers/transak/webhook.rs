@@ -1,5 +1,5 @@
 use crate::error::FiatQuoteError;
-use jsonwebtoken::{Algorithm, DecodingKey, Validation, decode};
+use gem_jwt::{VerifyingKey, decode};
 use serde::Deserialize;
 use serde_json::Value;
 use std::error::Error;
@@ -22,17 +22,14 @@ impl TransakClient {
 }
 
 fn decode_webhook_order(jwt: &str, access_token: &str) -> Result<Option<TransakOrderResponse>, Box<dyn Error + Send + Sync>> {
-    let mut validation = Validation::new(Algorithm::HS256);
-    validation.validate_exp = false;
-    validation.required_spec_claims.clear();
+    let key = VerifyingKey::hs256(access_token.as_bytes())?;
+    let claims = decode::<TransakWebhookClaims>(&key, jwt).map_err(|_| FiatQuoteError::InvalidRequest("Invalid Transak webhook signature".to_string()))?;
 
-    let token = decode::<TransakWebhookClaims>(jwt, &DecodingKey::from_secret(access_token.as_bytes()), &validation).map_err(|_| FiatQuoteError::InvalidRequest("Invalid Transak webhook signature".to_string()))?;
-
-    if token.claims.event_id.as_deref().is_some_and(|event_id| event_id.starts_with("KYC_")) {
+    if claims.event_id.as_deref().is_some_and(|event_id| event_id.starts_with("KYC_")) {
         return Ok(None);
     }
 
-    let Some(webhook_data) = token.claims.webhook_data else {
+    let Some(webhook_data) = claims.webhook_data else {
         return Ok(None);
     };
     Ok(Some(serde_json::from_value(webhook_data)?))
@@ -41,18 +38,18 @@ fn decode_webhook_order(jwt: &str, access_token: &str) -> Result<Option<TransakO
 #[cfg(test)]
 mod tests {
     use super::*;
-    use jsonwebtoken::{EncodingKey, Header, encode};
+    use gem_jwt::{SigningKey, encode};
 
     #[test]
     fn test_decode_webhook_order() {
         let claims: Value = serde_json::from_str(include_str!("../../../testdata/transak/webhook_transaction_completed.json")).unwrap();
-        let jwt = encode(&Header::default(), &claims, &EncodingKey::from_secret(b"access_token")).unwrap();
+        let jwt = encode(&SigningKey::hs256(b"access_token").unwrap(), None, &claims).unwrap();
 
         assert_eq!(decode_webhook_order(&jwt, "access_token").unwrap().unwrap().id, "order-id");
         assert!(decode_webhook_order(&jwt, "wrong_access_token").is_err());
 
         let claims: Value = serde_json::from_str(include_str!("../../../testdata/transak/webhook_kyc_approved.json")).unwrap();
-        let jwt = encode(&Header::default(), &claims, &EncodingKey::from_secret(b"access_token")).unwrap();
+        let jwt = encode(&SigningKey::hs256(b"access_token").unwrap(), None, &claims).unwrap();
         assert!(decode_webhook_order(&jwt, "access_token").unwrap().is_none());
     }
 }

@@ -2220,10 +2220,10 @@ dependencies = [
  "gem_client",
  "gem_crypto",
  "gem_encoding",
+ "gem_jwt",
  "gem_reqwest",
  "gem_uuid",
  "hmac 0.13.0",
- "jsonwebtoken",
  "num-bigint 0.5.1",
  "number_formatter",
  "primitives",
@@ -2821,6 +2821,16 @@ dependencies = [
  "serde_json",
  "tokio",
  "uniffi",
+]
+
+[[package]]
+name = "gem_jwt"
+version = "2.114.104"
+dependencies = [
+ "aws-lc-rs",
+ "gem_encoding",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]
@@ -4055,22 +4065,6 @@ dependencies = [
  "cfg-if",
  "futures-util",
  "wasm-bindgen",
-]
-
-[[package]]
-name = "jsonwebtoken"
-version = "11.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e75fe14a82d81e5f5af639997db37d8b96045938a7ac6ab18cdbe1c7467e05e1"
-dependencies = [
- "aws-lc-rs",
- "base64",
- "getrandom 0.2.17",
- "js-sys",
- "serde",
- "serde_json",
- "signature 2.2.0",
- "zeroize",
 ]
 
 [[package]]

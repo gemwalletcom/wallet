@@ -1,0 +1,10 @@
+[package]
+name = "gem_jwt"
+version = { workspace = true }
+edition = { workspace = true }
+
+[dependencies]
+aws-lc-rs = { workspace = true }
+gem_encoding = { path = "../gem_encoding" }
+serde = { workspace = true }
+serde_json = { workspace = true }

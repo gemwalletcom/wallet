@@ -14,10 +14,10 @@ sha2 = { workspace = true }
 gem_encoding = { path = "../gem_encoding" }
 gem_crypto = { path = "../gem_crypto" }
 gem_uuid = { path = "../gem_uuid" }
+gem_jwt = { path = "../gem_jwt" }
 aws-lc-rs = { workspace = true }
 futures = { workspace = true }
 async-trait = { workspace = true }
-jsonwebtoken = { workspace = true }
 tokio = { workspace = true }
 
 settings = { path = "../settings" }
