@@ -3,7 +3,7 @@ use primitives::Chain;
 
 pub use gem_wallet_connect::sign_type::SignMessage;
 
-#[derive(Debug, Clone, Copy, PartialEq, uniffi::Enum)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub enum MessageType {
     Text,
     Eip712,

@@ -93,7 +93,7 @@ mod tests {
 
     #[test]
     fn test_siws_origin_mismatch_is_a_critical_warning() {
-        let data = encode_base58(include_str!("../../../crates/gem_solana/testdata/siws_sign_in.txt"));
+        let data = encode_base58(include_str!("../../../../crates/gem_solana/testdata/siws_sign_in.txt"));
         assert_eq!(sign_message_validation_warnings(Chain::Solana, &SignDigestType::Base58, &data, "https://example.com"), vec![]);
         assert_eq!(
             sign_message_validation_warnings(Chain::Solana, &SignDigestType::Base58, &data, "https://other.xyz"),
