@@ -3,10 +3,12 @@ use hmac::{Hmac, KeyInit, Mac};
 use sha2::{Digest as Sha2Digest, Sha256, Sha512, Sha512_256};
 use zeroize::{Zeroize, Zeroizing};
 
-pub use hmac::digest::InvalidLength;
-
 type HmacSha256 = Hmac<Sha256>;
 type HmacSha512 = Hmac<Sha512>;
+
+fn hmac<M: Mac + KeyInit>(key: &[u8]) -> M {
+    <M as KeyInit>::new_from_slice(key).expect("HMAC accepts any key length")
+}
 
 pub fn sha256(bytes: &[u8]) -> [u8; 32] {
     let mut hasher = Sha256::new();
@@ -46,28 +48,24 @@ pub fn sha512_half(bytes: &[u8]) -> [u8; 32] {
     hash
 }
 
-pub fn hmac_sha256(key: &[u8], data: &[u8]) -> Result<Zeroizing<[u8; 32]>, InvalidLength> {
-    let mut mac = HmacSha256::new_from_slice(key)?;
-    mac.update(data);
-    let mut output = mac.finalize().into_bytes();
+pub fn hmac_sha256(key: &[u8], data: &[u8]) -> Zeroizing<[u8; 32]> {
+    let mut output = hmac::<HmacSha256>(key).chain_update(data).finalize().into_bytes();
     let mut hash = Zeroizing::new([0u8; 32]);
     hash.copy_from_slice(&output);
     output.zeroize();
-    Ok(hash)
+    hash
 }
 
-pub fn hmac_sha512(key: &[u8], data: &[u8]) -> Result<Zeroizing<[u8; 64]>, InvalidLength> {
-    let mut mac = HmacSha512::new_from_slice(key)?;
-    mac.update(data);
-    let mut output = mac.finalize().into_bytes();
+pub fn hmac_sha512(key: &[u8], data: &[u8]) -> Zeroizing<[u8; 64]> {
+    let mut output = hmac::<HmacSha512>(key).chain_update(data).finalize().into_bytes();
     let mut hash = Zeroizing::new([0u8; 64]);
     hash.copy_from_slice(&output);
     output.zeroize();
-    Ok(hash)
+    hash
 }
 
 pub fn verify_hmac_sha256(key: &[u8], data: &[u8], signature: &[u8]) -> bool {
-    HmacSha256::new_from_slice(key).is_ok_and(|mac| mac.chain_update(data).verify_slice(signature).is_ok())
+    hmac::<HmacSha256>(key).chain_update(data).verify_slice(signature).is_ok()
 }
 
 #[cfg(test)]
@@ -89,8 +87,13 @@ mod tests {
     #[test]
     fn test_hmac_sha256() {
         assert_eq!(
-            gem_encoding::encode_hex(hmac_sha256(b"key", b"The quick brown fox jumps over the lazy dog").unwrap().as_slice()),
+            gem_encoding::encode_hex(hmac_sha256(b"key", b"The quick brown fox jumps over the lazy dog").as_slice()),
             "f7bc83f430538424b13298e6aa6fb143ef4d59a14946175997479dbc2d1a3cd8"
+        );
+        assert_eq!(gem_encoding::encode_hex(hmac_sha256(&[], &[]).as_slice()), "b613679a0814d9ec772f95d778c35fc5ff1697c493715653c6c712144292c5ad");
+        assert_eq!(
+            gem_encoding::encode_hex(hmac_sha256(&[0xaa; 131], b"Test Using Larger Than Block-Size Key - Hash Key First").as_slice()),
+            "60e431591ee0b67f0d8a26aacbf5b77f8e0bc6213728c5140546040f0ee37f54"
         );
     }
 
@@ -108,8 +111,16 @@ mod tests {
     #[test]
     fn test_hmac_sha512() {
         assert_eq!(
-            gem_encoding::encode_hex(hmac_sha512(b"key", b"The quick brown fox jumps over the lazy dog").unwrap().as_slice()),
+            gem_encoding::encode_hex(hmac_sha512(b"key", b"The quick brown fox jumps over the lazy dog").as_slice()),
             "b42af09057bac1e2d41708e48a902e09b5ff7f12ab428a4fe86653c73dd248fb82f948a549f7b791a5b41915ee4d1ec3935357e4e2317250d0372afa2ebeeb3a"
+        );
+        assert_eq!(
+            gem_encoding::encode_hex(hmac_sha512(&[], &[]).as_slice()),
+            "b936cee86c9f87aa5d3c6f2e84cb5a4239a5fe50480a6ec66b70ab5b1f4ac6730c6c515421b327ec1d69402e53dfb49ad7381eb067b338fd7b0cb22247225d47"
+        );
+        assert_eq!(
+            gem_encoding::encode_hex(hmac_sha512(&[0xaa; 131], b"Test Using Larger Than Block-Size Key - Hash Key First").as_slice()),
+            "80b24263c7c1a3ebb71493c1dd7be8b49b46d1f41b4aeec1121b013783f8f3526b56d037e05f2598bd0fd2215d6a1e5295e64f73f63f0aec8b915a985d786598"
         );
     }
 }

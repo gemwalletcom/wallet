@@ -50,7 +50,7 @@ impl ChatwootClient {
     }
 
     async fn set_contact(&self, device: &Device, auth_token: &str) -> Result<Option<ChatwootSession>, Box<dyn Error + Send + Sync>> {
-        let update = ChatwootContactUpdate::new(device, identifier_hash(&self.identity, &device.id)?);
+        let update = ChatwootContactUpdate::new(device, identifier_hash(&self.identity, &device.id));
         let contact: ChatwootContactResponse = match self.client.patch(ChatwootTarget::SetContact, &update).query(&self.token_query()).headers(Self::auth_headers(auth_token)).await {
             Ok(contact) => contact,
             Err(ClientError::Http { status: 404, .. }) => return Ok(None),

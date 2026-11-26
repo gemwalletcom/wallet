@@ -1,7 +1,7 @@
+use gem_hash::sha2::hmac_sha512;
 use zeroize::Zeroizing;
 
 use crate::CryptoError;
-use crate::hash::hmac_sha512;
 
 const HMAC_SHA512_OUTPUT_LEN: usize = 64;
 
@@ -17,10 +17,10 @@ pub fn pbkdf2_hmac_sha512(password: &[u8], salt: &[u8], iterations: usize, outpu
         let block_number = u32::try_from(block_index + 1).map_err(|_| CryptoError::invalid_input("PBKDF2 output length is too large"))?;
         block_salt.extend_from_slice(&block_number.to_be_bytes());
 
-        let mut u = hmac_sha512(password, block_salt.as_slice())?;
+        let mut u = hmac_sha512(password, block_salt.as_slice());
         let mut block = Zeroizing::new(*u);
         for _ in 1..iterations {
-            u = hmac_sha512(password, u.as_slice())?;
+            u = hmac_sha512(password, u.as_slice());
             for (left, right) in block.iter_mut().zip(u.iter()) {
                 *left ^= *right;
             }

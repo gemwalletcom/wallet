@@ -3,7 +3,7 @@ use gem_hash::sha2::{hmac_sha256, verify_hmac_sha256};
 use primitives::hex;
 
 fn generate_hmac_bytes(key: &[u8], message: &str) -> Vec<u8> {
-    hmac_sha256(key, message.as_bytes()).expect("HMAC can take key of any size").to_vec()
+    hmac_sha256(key, message.as_bytes()).to_vec()
 }
 
 pub fn generate_hmac_signature(secret_key: &str, message: &str) -> String {

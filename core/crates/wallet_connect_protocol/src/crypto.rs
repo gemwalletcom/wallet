@@ -27,8 +27,8 @@ pub fn shared_key(secret: &[u8; KEY_LENGTH], peer_public_key: &[u8; KEY_LENGTH])
     if *shared_secret == [0u8; KEY_LENGTH] {
         return Err(ProtocolError::InvalidKey);
     }
-    let pseudo_random_key = hmac_sha256(&[], shared_secret.as_slice()).map_err(|_| ProtocolError::InvalidKey)?;
-    hmac_sha256(pseudo_random_key.as_slice(), &HKDF_FIRST_BLOCK).map_err(|_| ProtocolError::InvalidKey)
+    let pseudo_random_key = hmac_sha256(&[], shared_secret.as_slice());
+    Ok(hmac_sha256(pseudo_random_key.as_slice(), &HKDF_FIRST_BLOCK))
 }
 
 pub fn topic(key: &[u8]) -> String {

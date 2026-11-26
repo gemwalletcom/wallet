@@ -10,7 +10,7 @@ pub(super) const HEADER_PASSPHRASE: &str = "OK-ACCESS-PASSPHRASE";
 pub(super) const HEADER_PROJECT: &str = "OK-ACCESS-PROJECT";
 
 pub(super) fn sign(timestamp: &str, method: &str, path: &str, secret_key: &str) -> String {
-    let signature = hmac_sha256(secret_key.as_bytes(), format!("{timestamp}{method}{path}").as_bytes()).expect("HMAC accepts any key length");
+    let signature = hmac_sha256(secret_key.as_bytes(), format!("{timestamp}{method}{path}").as_bytes());
     encode_base64(signature.as_slice())
 }
 
