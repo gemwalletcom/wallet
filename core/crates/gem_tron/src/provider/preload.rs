@@ -53,13 +53,13 @@ impl<C: Client> ChainTransactionLoad for TronProvider<C> {
             account_usage: &account_usage,
             is_new_account,
         };
-        let memo_data_bytes = input.get_memo().map(|memo| memo.len() as u64);
+        let memo_data_bytes = memo_data_bytes(&input)?;
         let fee = match &input.input_type {
             TransactionInputType::Transfer { asset } | TransactionInputType::Withdrawal { asset } | TransactionInputType::TransferNft { asset, .. } | TransactionInputType::Account { asset, .. } => match &asset.id.token_id {
                 None => native_transfer_fee(&fee_context, memo_data_bytes)?,
                 Some(token_id) => {
                     let call = TronTriggerSmartContract::token_transfer(TronAddress::parse(&input.sender_address)?, token_id, &input.destination_address, &input.value)?;
-                    self.estimate_token_transfer_fee(&call, &fee_context, input.get_memo()).await?
+                    self.estimate_token_transfer_fee(&call, &fee_context, memo_data_bytes).await?
                 }
             },
             TransactionInputType::Generic { extra, .. } | TransactionInputType::Payment { extra, .. } => match extra.output_action {
@@ -74,7 +74,7 @@ impl<C: Client> ChainTransactionLoad for TronProvider<C> {
                 let call = TronTriggerSmartContract::token_approval(TronAddress::parse(&input.sender_address)?, approval)?;
                 self.estimate_smart_contract_fee(call.trigger_smart_contract_data(None), &fee_context, None).await?
             }
-            TransactionInputType::Swap { from_asset, swap_data, .. } => self.estimate_swap_fee(&input, from_asset, swap_data, &fee_context, input.get_memo()).await?,
+            TransactionInputType::Swap { from_asset, swap_data, .. } => self.estimate_swap_fee(&input, from_asset, swap_data, &fee_context, memo_data_bytes).await?,
             _ => native_transfer_fee(&fee_context, memo_data_bytes)?,
         };
 
@@ -86,13 +86,18 @@ impl<C: Client> ChainTransactionLoad for TronProvider<C> {
     }
 }
 
-fn swap_contract_memo_data_bytes(input_memo: Option<&str>, data: &SwapQuoteData) -> Result<Option<u64>, Box<dyn Error + Send + Sync>> {
-    if let Some(memo) = data.memo.as_deref().non_empty() {
-        let bytes = decode_hex(memo).map_err(|_| "invalid Tron swap memo")?;
-        return Ok(Some(bytes.len() as u64));
-    }
-
-    Ok(input_memo.map(|memo| memo.len() as u64))
+fn memo_data_bytes(input: &TransactionLoadInput) -> Result<Option<u64>, Box<dyn Error + Send + Sync>> {
+    let swap_memo = input
+        .input_type
+        .get_swap_data()
+        .ok()
+        .and_then(|swap_data| swap_data.data.memo.as_deref().non_empty().map(|memo| (&swap_data.data.data_type, memo)));
+    let bytes = match swap_memo {
+        Some((SwapQuoteDataType::Contract, memo)) => Some(decode_hex(memo).map_err(|_| "invalid Tron swap memo")?.len()),
+        Some((SwapQuoteDataType::Transfer, memo)) => Some(memo.len()),
+        None => input.get_memo().map(str::len),
+    };
+    Ok(bytes.map(|bytes| bytes as u64))
 }
 
 fn needs_approval_energy_estimate(data: &SwapQuoteData) -> Option<u64> {
@@ -103,17 +108,17 @@ fn needs_approval_energy_estimate(data: &SwapQuoteData) -> Option<u64> {
 }
 
 impl<C: Client> TronClient<C> {
-    async fn estimate_swap_fee(&self, input: &TransactionLoadInput, from_asset: &Asset, swap_data: &SwapData, fee_context: &FeeEstimateContext<'_>, input_memo: Option<&str>) -> Result<TransactionFee, Box<dyn Error + Send + Sync>> {
+    async fn estimate_swap_fee(&self, input: &TransactionLoadInput, from_asset: &Asset, swap_data: &SwapData, fee_context: &FeeEstimateContext<'_>, memo_data_bytes: Option<u64>) -> Result<TransactionFee, Box<dyn Error + Send + Sync>> {
         match &swap_data.data.data_type {
-            SwapQuoteDataType::Contract => self.estimate_contract_swap_fee(&input.sender_address, from_asset, swap_data, fee_context, input_memo).await,
-            SwapQuoteDataType::Transfer => self.estimate_transfer_swap_fee(input, from_asset, swap_data, fee_context, input_memo).await,
+            SwapQuoteDataType::Contract => self.estimate_contract_swap_fee(&input.sender_address, from_asset, swap_data, fee_context, memo_data_bytes).await,
+            SwapQuoteDataType::Transfer => self.estimate_transfer_swap_fee(input, from_asset, swap_data, fee_context, memo_data_bytes).await,
         }
     }
 
-    async fn estimate_contract_swap_fee(&self, sender_address: &str, from_asset: &Asset, swap_data: &SwapData, fee_context: &FeeEstimateContext<'_>, input_memo: Option<&str>) -> Result<TransactionFee, Box<dyn Error + Send + Sync>> {
+    async fn estimate_contract_swap_fee(&self, sender_address: &str, from_asset: &Asset, swap_data: &SwapData, fee_context: &FeeEstimateContext<'_>, memo_data_bytes: Option<u64>) -> Result<TransactionFee, Box<dyn Error + Send + Sync>> {
         let owner = TronAddress::parse(sender_address)?;
         let swap_contract = TronContract::contract_swap(owner, from_asset, &swap_data.data)?;
-        let swap_fee = self.estimate_contract_swap_call_fee(&swap_contract, swap_data, fee_context, input_memo);
+        let swap_fee = self.estimate_contract_swap_call_fee(&swap_contract, swap_data, fee_context, memo_data_bytes);
         if let Some(approval) = &swap_data.data.approval {
             let approval_call = TronTriggerSmartContract::token_approval(owner, approval)?;
             let approval_fee = self.estimate_smart_contract_fee(approval_call.trigger_smart_contract_data(None), fee_context, None);
@@ -131,8 +136,7 @@ impl<C: Client> TronClient<C> {
         swap_fee.await
     }
 
-    async fn estimate_contract_swap_call_fee(&self, swap_contract: &TronContract, swap_data: &SwapData, fee_context: &FeeEstimateContext<'_>, input_memo: Option<&str>) -> Result<TransactionFee, Box<dyn Error + Send + Sync>> {
-        let memo_data_bytes = swap_contract_memo_data_bytes(input_memo, &swap_data.data)?;
+    async fn estimate_contract_swap_call_fee(&self, swap_contract: &TronContract, swap_data: &SwapData, fee_context: &FeeEstimateContext<'_>, memo_data_bytes: Option<u64>) -> Result<TransactionFee, Box<dyn Error + Send + Sync>> {
         let TronContract::TriggerSmart(call) = swap_contract else {
             return native_transfer_fee(fee_context, memo_data_bytes);
         };
@@ -143,19 +147,25 @@ impl<C: Client> TronClient<C> {
         self.estimate_smart_contract_fee(call.trigger_smart_contract_data(None), fee_context, memo_data_bytes).await
     }
 
-    async fn estimate_transfer_swap_fee(&self, input: &TransactionLoadInput, from_asset: &Asset, swap_data: &SwapData, fee_context: &FeeEstimateContext<'_>, input_memo: Option<&str>) -> Result<TransactionFee, Box<dyn Error + Send + Sync>> {
+    async fn estimate_transfer_swap_fee(
+        &self,
+        input: &TransactionLoadInput,
+        from_asset: &Asset,
+        swap_data: &SwapData,
+        fee_context: &FeeEstimateContext<'_>,
+        memo_data_bytes: Option<u64>,
+    ) -> Result<TransactionFee, Box<dyn Error + Send + Sync>> {
         match &from_asset.id.token_id {
-            None => native_transfer_fee(fee_context, swap_data.data.memo.as_deref().non_empty().or(input_memo).map(|memo| memo.len() as u64)),
+            None => native_transfer_fee(fee_context, memo_data_bytes),
             Some(token_id) => {
                 let call = TronTriggerSmartContract::token_transfer(TronAddress::parse(&input.sender_address)?, token_id, &swap_data.data.to, &input.value)?;
-                self.estimate_token_transfer_fee(&call, fee_context, input_memo).await
+                self.estimate_token_transfer_fee(&call, fee_context, memo_data_bytes).await
             }
         }
     }
 
-    async fn estimate_token_transfer_fee(&self, call: &TronTriggerSmartContract, fee_context: &FeeEstimateContext<'_>, input_memo: Option<&str>) -> Result<TransactionFee, Box<dyn Error + Send + Sync>> {
+    async fn estimate_token_transfer_fee(&self, call: &TronTriggerSmartContract, fee_context: &FeeEstimateContext<'_>, memo_data_bytes: Option<u64>) -> Result<TransactionFee, Box<dyn Error + Send + Sync>> {
         let estimated_energy = self.estimate_energy_with_data(&call.trigger_smart_contract_data(None)).await?;
-        let memo_data_bytes = input_memo.map(|memo| memo.len() as u64);
         transaction_fee_from_energy_estimate(fee_context.chain_parameters, fee_context.account_usage, estimated_energy, call.data.len() as u64, memo_data_bytes, FEE_LIMIT_BUFFER_PERCENT)
     }
 
@@ -246,7 +256,7 @@ fn contract_fee_from_energy(
 
 #[cfg(test)]
 mod tests {
-    use super::swap_contract_memo_data_bytes;
+    use super::memo_data_bytes;
     use crate::models::TriggerSmartContractRequest;
     use crate::rpc::TronProvider;
     use chain_traits::ChainTransactionLoad;
@@ -258,6 +268,7 @@ mod tests {
 
     const ROUTER: &str = "TDMakP1fbWc7XXoSWZpujpjRAuePPEn4oi";
     const SWAP_CALLDATA: &str = "7b9392320000000000000000000000005cd0fb0ab3ce40f3051414c604b27756e69e43db";
+    const SWAP_MEMO: &str = "=:ETH.ETH:0x1111111111111111111111111111111111111111:0/1/0:g1:50";
 
     #[tokio::test]
     async fn test_get_transaction_load_estimates_the_signed_calls() {
@@ -268,17 +279,19 @@ mod tests {
             ..SwapQuoteData::mock_contract_call(ROUTER, "0", SWAP_CALLDATA, None)
         };
         let native_swap = SwapQuoteData::mock_contract_call(ROUTER, "1000", SWAP_CALLDATA, None);
+        let native_memo_swap = SwapQuoteData::new_transfer(ROUTER.to_string(), BigUint::from(1000u32), Some(SWAP_MEMO.to_string()));
 
         let mut fees = Vec::new();
         for input_type in [
             TransactionInputType::Transfer { asset: Asset::mock_tron_usdt() },
             TransactionInputType::mock_swap(Asset::mock_tron_usdt(), token_swap),
             TransactionInputType::mock_swap(Asset::from_chain(Chain::Tron), native_swap),
+            TransactionInputType::mock_swap(Asset::from_chain(Chain::Tron), native_memo_swap),
         ] {
             fees.push(provider.get_transaction_load(TransactionLoadInput::mock_tron(input_type, 1000)).await.unwrap().fee.fee);
         }
 
-        assert_eq!(fees, [BigInt::from(8_082_200), BigInt::from(17_418_000), BigInt::from(8_693_000)]);
+        assert_eq!(fees, [BigInt::from(8_082_200), BigInt::from(17_418_000), BigInt::from(8_693_000), BigInt::from(1_364_000)]);
         assert_eq!(
             *requests.lock().unwrap(),
             [
@@ -301,20 +314,31 @@ mod tests {
     }
 
     #[test]
-    fn test_swap_memo_fee_preload_uses_quote_memo_bytes() {
-        let mut data = SwapQuoteData::new_contract("TDMakP1fbWc7XXoSWZpujpjRAuePPEn4oi".to_string(), BigUint::from(0u64), String::new(), None, None);
+    fn test_memo_data_bytes() {
+        let tron = Asset::from_chain(Chain::Tron);
+        let transfer = TransactionLoadInput::mock_tron(TransactionInputType::Transfer { asset: tron.clone() }, 1000);
+        let with_memo = TransactionLoadInput {
+            memo: Some("memo".to_string()),
+            ..transfer.clone()
+        };
 
-        assert_eq!(swap_contract_memo_data_bytes(None, &data).unwrap(), None);
-        assert_eq!(swap_contract_memo_data_bytes(Some("memo"), &data).unwrap(), Some(4));
+        assert_eq!(memo_data_bytes(&transfer).unwrap(), None);
+        assert_eq!(memo_data_bytes(&with_memo).unwrap(), Some(4));
 
-        data.memo = Some(String::new());
-        assert_eq!(swap_contract_memo_data_bytes(None, &data).unwrap(), None);
+        let transfer_swap = SwapQuoteData::new_transfer(ROUTER.to_string(), BigUint::from(1000u32), Some(SWAP_MEMO.to_string()));
+        assert_eq!(
+            memo_data_bytes(&TransactionLoadInput::mock_tron(TransactionInputType::mock_swap(tron.clone(), transfer_swap), 1000)).unwrap(),
+            Some(64),
+            "a transfer swap signs its memo as text"
+        );
 
-        data.memo = Some("0x010203".to_string());
-        assert_eq!(swap_contract_memo_data_bytes(Some("memo"), &data).unwrap(), Some(3));
+        for (swap_memo, bytes) in [(Some("0x010203"), Some(3)), (Some(""), Some(4)), (None, Some(4))] {
+            let input_type = TransactionInputType::mock_swap(tron.clone(), SwapQuoteData::mock_contract_call(ROUTER, "1000", "", swap_memo));
+            assert_eq!(memo_data_bytes(&TransactionLoadInput { input_type, ..with_memo.clone() }).unwrap(), bytes, "contract swap memo {swap_memo:?}");
+        }
 
-        data.memo = Some("0xzz".to_string());
-        assert_eq!(swap_contract_memo_data_bytes(None, &data).unwrap_err().to_string(), "invalid Tron swap memo");
+        let invalid = TransactionInputType::mock_swap(tron, SwapQuoteData::mock_contract_call(ROUTER, "1000", "", Some("0xzz")));
+        assert_eq!(memo_data_bytes(&TransactionLoadInput::mock_tron(invalid, 1000)).unwrap_err().to_string(), "invalid Tron swap memo");
     }
 }
 

@@ -239,6 +239,7 @@ impl TronProvider<MockClient> {
             move |path, body| match path {
                 "/wallet/getnowblock" => Ok(include_bytes!("../../testdata/now_block.json").to_vec()),
                 "/wallet/getcontract" => Ok(br#"{"consume_user_resource_percent":100}"#.to_vec()),
+                "/wallet/getaccount" => Ok(br#"{"address":"TDMakP1fbWc7XXoSWZpujpjRAuePPEn4oi"}"#.to_vec()),
                 "/wallet/triggerconstantcontract" => {
                     recorded.lock().unwrap().push(serde_json::from_slice(body).unwrap());
                     Ok(include_bytes!("../../testdata/trigger_constant_contract_with_penalty.json").to_vec())

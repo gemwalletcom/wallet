@@ -424,6 +424,10 @@ mod tests {
             BigInt::from(2_100_000),
             "staked bandwidth too small for the memo leaves the account creation fee to be burned"
         );
+        assert_eq!(
+            calculate_transfer_fee_rate(&params, &TronAccountUsage::mock(0, DEFAULT_BANDWIDTH_BYTES + 64, 0), true, Some(64)).unwrap(),
+            BigInt::from(2_000_000)
+        );
     }
 
     #[test]
