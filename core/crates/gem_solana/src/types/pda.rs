@@ -1,5 +1,5 @@
 use curve25519_dalek::edwards::CompressedEdwardsY;
-use sha2::{Digest, Sha256};
+use gem_hash::sha2::sha256;
 
 use crate::{
     error::{Result, SolanaError},
@@ -30,14 +30,7 @@ pub fn find_program_address(program_id: &Pubkey, seeds: &[&[u8]]) -> Result<(Pub
 fn create_program_address(program_id: &Pubkey, seeds: &[&[u8]]) -> Result<Pubkey> {
     validate_seeds(seeds, false)?;
 
-    let mut hasher = Sha256::new();
-    for seed in seeds {
-        hasher.update(seed);
-    }
-    hasher.update(program_id.as_bytes());
-    hasher.update(PROGRAM_DERIVED_ADDRESS_MARKER);
-
-    let address = Pubkey::new(hasher.finalize().into());
+    let address = Pubkey::new(sha256(&[seeds.concat().as_slice(), program_id.as_bytes(), PROGRAM_DERIVED_ADDRESS_MARKER].concat()));
     if is_on_curve(address.as_bytes()) {
         return Err(SolanaError::invalid_input("Solana program address must be off curve"));
     }

@@ -2220,10 +2220,10 @@ dependencies = [
  "gem_client",
  "gem_crypto",
  "gem_encoding",
+ "gem_hash",
  "gem_jwt",
  "gem_reqwest",
  "gem_uuid",
- "hmac 0.13.0",
  "num-bigint 0.5.1",
  "number_formatter",
  "primitives",
@@ -2232,7 +2232,6 @@ dependencies = [
  "serde_json",
  "serde_serializers",
  "settings",
- "sha2 0.11.0",
  "tokio",
  "url",
 ]
@@ -2648,7 +2647,6 @@ dependencies = [
  "serde_json",
  "serde_serializers",
  "settings",
- "sha2 0.11.0",
  "tokio",
  "zeroize",
 ]
@@ -2967,6 +2965,7 @@ dependencies = [
  "futures",
  "gem_client",
  "gem_encoding",
+ "gem_hash",
  "gem_jsonrpc",
  "gem_reqwest",
  "gem_solana",
@@ -2977,7 +2976,6 @@ dependencies = [
  "serde_json",
  "serde_serializers",
  "settings",
- "sha2 0.11.0",
  "sign_in",
  "signer",
  "tokio",
@@ -6139,10 +6137,9 @@ checksum = "13c2bddecc57b384dee18652358fb23172facb8a2c51ccc10d74c157bdea3292"
 name = "support"
 version = "2.114.104"
 dependencies = [
- "hmac 0.13.0",
+ "gem_hash",
  "links",
  "primitives",
- "sha2 0.11.0",
  "url",
 ]
 
@@ -6175,7 +6172,6 @@ dependencies = [
  "gem_ton",
  "gem_tron",
  "gem_xrp",
- "hmac 0.13.0",
  "num-bigint 0.5.1",
  "num-traits",
  "number_formatter",
@@ -6185,7 +6181,6 @@ dependencies = [
  "serde_json",
  "serde_serializers",
  "settings",
- "sha2 0.11.0",
  "strum",
  "tokio",
 ]

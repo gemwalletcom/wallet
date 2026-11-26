@@ -2,7 +2,7 @@ use primitives::hex;
 use std::error::Error;
 
 use gem_crypto::compare::constant_time_eq;
-use sha2::{Digest, Sha256};
+use gem_hash::sha2::sha256;
 
 use crate::{FiatWebhookRequest, error::FiatQuoteError};
 
@@ -23,8 +23,8 @@ impl FonbnkClient {
 }
 
 pub(super) fn webhook_signature(secret: &str, raw_body: &str) -> Vec<u8> {
-    let secret_hash = hex::encode(Sha256::digest(secret.as_bytes()));
-    Sha256::new().chain_update(raw_body.as_bytes()).chain_update(secret_hash.as_bytes()).finalize().to_vec()
+    let secret_hash = hex::encode(sha256(secret.as_bytes()));
+    sha256(&[raw_body.as_bytes(), secret_hash.as_bytes()].concat()).to_vec()
 }
 
 #[cfg(test)]

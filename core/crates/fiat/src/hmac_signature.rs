@@ -1,18 +1,9 @@
 use gem_encoding::encode_base64;
-use hmac::{Hmac, KeyInit, Mac};
+use gem_hash::sha2::{hmac_sha256, verify_hmac_sha256};
 use primitives::hex;
-use sha2::Sha256;
-
-type HmacSha256 = Hmac<Sha256>;
-
-fn new_hmac_sha256(key: &[u8]) -> HmacSha256 {
-    HmacSha256::new_from_slice(key).expect("HMAC can take key of any size")
-}
 
 fn generate_hmac_bytes(key: &[u8], message: &str) -> Vec<u8> {
-    let mut mac = new_hmac_sha256(key);
-    mac.update(message.as_bytes());
-    mac.finalize().into_bytes().to_vec()
+    hmac_sha256(key, message.as_bytes()).expect("HMAC can take key of any size").to_vec()
 }
 
 pub fn generate_hmac_signature(secret_key: &str, message: &str) -> String {
@@ -33,9 +24,7 @@ pub fn verify_hmac_signature_hex(secret_key: &str, message: &str, signature: &st
         return false;
     };
 
-    let mut mac = new_hmac_sha256(secret_key.as_bytes());
-    mac.update(message.as_bytes());
-    mac.verify_slice(&signature).is_ok()
+    verify_hmac_sha256(secret_key.as_bytes(), message.as_bytes(), &signature)
 }
 
 #[cfg(test)]

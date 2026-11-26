@@ -1,11 +1,8 @@
-use hmac::digest::InvalidLength;
-use hmac::{Hmac, KeyInit, Mac};
+use gem_hash::sha2::{InvalidLength, hmac_sha256};
 use primitives::hex;
-use sha2::Sha256;
 
 pub fn identifier_hash(secret: &str, identifier: &str) -> Result<String, InvalidLength> {
-    let mac = Hmac::<Sha256>::new_from_slice(secret.as_bytes())?.chain_update(identifier);
-    Ok(hex::encode(mac.finalize().into_bytes()))
+    Ok(hex::encode(hmac_sha256(secret.as_bytes(), identifier.as_bytes())?.as_slice()))
 }
 
 #[cfg(test)]

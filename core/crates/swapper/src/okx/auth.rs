@@ -1,7 +1,6 @@
 use super::model::OkxClientConfig;
 use gem_encoding::encode_base64;
-use hmac::{Hmac, KeyInit, Mac};
-use sha2::Sha256;
+use gem_hash::sha2::hmac_sha256;
 use std::collections::HashMap;
 
 pub(super) const HEADER_KEY: &str = "OK-ACCESS-KEY";
@@ -11,12 +10,8 @@ pub(super) const HEADER_PASSPHRASE: &str = "OK-ACCESS-PASSPHRASE";
 pub(super) const HEADER_PROJECT: &str = "OK-ACCESS-PROJECT";
 
 pub(super) fn sign(timestamp: &str, method: &str, path: &str, secret_key: &str) -> String {
-    type HmacSha256 = Hmac<Sha256>;
-    let mut mac = HmacSha256::new_from_slice(secret_key.as_bytes()).expect("HMAC accepts any key length");
-    mac.update(timestamp.as_bytes());
-    mac.update(method.as_bytes());
-    mac.update(path.as_bytes());
-    encode_base64(&mac.finalize().into_bytes())
+    let signature = hmac_sha256(secret_key.as_bytes(), format!("{timestamp}{method}{path}").as_bytes()).expect("HMAC accepts any key length");
+    encode_base64(signature.as_slice())
 }
 
 pub(super) fn build_headers(config: &OkxClientConfig, timestamp: &str, full_path: &str) -> HashMap<String, String> {
@@ -37,7 +32,7 @@ mod tests {
     fn test_sign() {
         let s = sign("2024-01-01T00:00:00.000Z", "GET", "/api/v6/dex/aggregator/quote", "test_secret");
         assert_eq!(s, sign("2024-01-01T00:00:00.000Z", "GET", "/api/v6/dex/aggregator/quote", "test_secret"));
-        assert!(!s.is_empty());
+        assert_eq!(s, "8fQD4JACttJeAVCwsV0KKm92A3g06DzBKllawdpMlGg=");
         assert_ne!(s, sign("2024-01-01T00:00:00.001Z", "GET", "/api/v6/dex/aggregator/quote", "test_secret"));
         assert_ne!(s, sign("2024-01-01T00:00:00.000Z", "POST", "/api/v6/dex/aggregator/quote", "test_secret"));
         assert_ne!(s, sign("2024-01-01T00:00:00.000Z", "GET", "/api/v6/dex/aggregator/swap", "test_secret"));
