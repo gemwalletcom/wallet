@@ -102,10 +102,13 @@ where
     }
 }
 
-fn validate_route_input(quote: &Quote, route: &MayanQuoteCommon) -> Result<(), SwapperError> {
+fn validate_route(quote: &Quote, route: &MayanQuoteCommon) -> Result<(), SwapperError> {
     let from_asset = quote.request.from_asset.asset_id();
+    let to_asset = quote.request.to_asset.asset_id();
     let amount = route.effective_amount_in64.parse::<BigUint>().map_err(|_| SwapperError::InvalidRoute)?;
-    if asset_id_for_token(from_asset.chain, &route.from_token.contract).as_ref() != Some(&from_asset) || amount > quote.from_value {
+    let spends_quoted_asset = asset_id_for_token(from_asset.chain, &route.from_token.contract).as_ref() == Some(&from_asset);
+    let pays_quoted_asset = route.to_chain == wormhole_chain::name_for_chain(to_asset.chain)? && asset_id_for_token(to_asset.chain, &route.to_token.contract).as_ref() == Some(&to_asset);
+    if !spends_quoted_asset || !pays_quoted_asset || amount > quote.from_value {
         return Err(SwapperError::InvalidRoute);
     }
     Ok(())
@@ -191,7 +194,7 @@ where
 
     async fn get_quote_data(&self, quote: &Quote, _data: QuoteDataInput) -> Result<SwapperQuoteData, SwapperError> {
         let route: MayanQuote = quote.route_data()?;
-        validate_route_input(quote, route.common())?;
+        validate_route(quote, route.common())?;
         match (quote.request.from_asset.chain().chain_type(), &route) {
             (ChainType::Ethereum, MayanQuote::Swift(route)) => swift::evm::build_quote_data(&self.price_client, quote, route, self.rpc_provider.clone()).await,
             (ChainType::Ethereum, MayanQuote::Mctp(route)) => mctp::evm::build_quote_data(&self.price_client, quote, route, self.rpc_provider.clone()).await,
@@ -281,12 +284,14 @@ fn map_quote_error(error: SwapperError, decimals: u32) -> SwapperError {
 mod tests {
     use super::*;
     use crate::{mayan::model::MayanToken, testkit::mock_quote};
-    use primitives::asset_constants::SOLANA_USDC_TOKEN_ID;
+    use primitives::asset_constants::{SOLANA_USDC_ASSET_ID, SUI_USDC_TOKEN_ID};
 
     #[test]
-    fn test_validate_route_input() {
+    fn test_validate_route() {
         let route = MayanMctpQuote::mock_solana_to_sui().common;
-        let quote = Quote::mock(Chain::Solana, Some(SOLANA_USDC_TOKEN_ID));
+        let request = |from: AssetId, to: AssetId| mock_quote(SwapperQuoteAsset::from(from), SwapperQuoteAsset::from(to));
+        let sui_usdc = AssetId::from_token(Chain::Sui, SUI_USDC_TOKEN_ID);
+        let quote = Quote::mock_with_request(&request(SOLANA_USDC_ASSET_ID.clone(), sui_usdc.clone()));
         let coin = MayanQuoteCommon {
             from_token: MayanToken {
                 contract: EVM_ZERO_ADDRESS.to_string(),
@@ -295,24 +300,28 @@ mod tests {
             ..route.clone()
         };
 
-        assert_eq!(validate_route_input(&quote, &route), Ok(()));
-        assert_eq!(validate_route_input(&Quote::mock(Chain::Solana, None), &coin), Ok(()));
-        assert_eq!(
-            validate_route_input(
-                &Quote {
+        assert_eq!(validate_route(&quote, &route), Ok(()));
+        assert_eq!(validate_route(&Quote::mock_with_request(&request(AssetId::from_chain(Chain::Solana), sui_usdc.clone())), &coin), Ok(()));
+        for (quote, reason) in [
+            (
+                Quote {
                     from_value: BigUint::from(999_999u64),
-                    ..quote
+                    ..quote.clone()
                 },
-                &route
+                "a route that spends more than quoted",
             ),
-            Err(SwapperError::InvalidRoute),
-            "a route that spends more than quoted"
-        );
-        assert_eq!(
-            validate_route_input(&Quote::mock(Chain::Solana, None), &route),
-            Err(SwapperError::InvalidRoute),
-            "a route that spends another asset than quoted"
-        );
+            (Quote::mock_with_request(&request(AssetId::from_chain(Chain::Solana), sui_usdc)), "a route that spends another asset than quoted"),
+            (
+                Quote::mock_with_request(&request(SOLANA_USDC_ASSET_ID.clone(), AssetId::from_chain(Chain::Sui))),
+                "a route that pays out another asset than quoted",
+            ),
+            (
+                Quote::mock_with_request(&request(SOLANA_USDC_ASSET_ID.clone(), AssetId::from_token(Chain::Base, SUI_USDC_TOKEN_ID))),
+                "a route that pays out on another network than quoted",
+            ),
+        ] {
+            assert_eq!(validate_route(&quote, &route), Err(SwapperError::InvalidRoute), "{reason}");
+        }
     }
 
     #[test]

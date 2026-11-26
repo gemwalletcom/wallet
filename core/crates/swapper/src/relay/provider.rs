@@ -141,7 +141,7 @@ where
                     .quote_data(&quote.request.wallet_address, self.rpc_provider.clone())
                     .await
             }
-            RelayChain::Ton => mapper::map_ton_quote_data(&response),
+            RelayChain::Ton => mapper::map_ton_quote_data(&response, &quote.from_value),
             RelayChain::Xrp => mapper::map_xrp_quote_data(&response, &quote.from_value),
         }
     }

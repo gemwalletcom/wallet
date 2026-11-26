@@ -517,11 +517,20 @@ mod swap_integration_tests {
             value,
             options: Options::default(),
         };
-        let quote = swapper.get_quote(&request).await.ok()?;
-        let data = swapper.get_quote_data(&quote, QuoteDataInput::None).await.ok()?;
+        let route = format!("{} {from} -> {to}", swapper.provider().id.as_ref());
+        let quote = match swapper.get_quote(&request).await {
+            Ok(quote) => quote,
+            Err(SwapperError::InvalidRoute) => return Some(Err(format!("{route}: refused while quoting"))),
+            Err(_) => return None,
+        };
+        let data = match swapper.get_quote_data(&quote, QuoteDataInput::None).await {
+            Ok(data) => data,
+            Err(SwapperError::InvalidRoute) => return Some(Err(format!("{route}: refused while building"))),
+            Err(_) => return None,
+        };
         Some(swapper.verify_binding(&quote, &data).map_err(|_| {
             let spender = data.approval.map(|approval| approval.spender).or(data.permit2.map(|permit2| permit2.spender));
-            format!("{} {from} -> {to}: calls {}, spender {spender:?}, data {:.200}", swapper.provider().id.as_ref(), data.to, data.data)
+            format!("{route}: calls {}, spender {spender:?}, data {:.200}", data.to, data.data)
         }))
     }
 

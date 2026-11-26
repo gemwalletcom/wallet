@@ -23,7 +23,8 @@ use crate::{
 pub fn validate_quote_response(from_chain: RelayChain, quote_response: &RelayQuoteResponse, request: &QuoteRequest) -> Result<(), SwapperError> {
     match from_chain {
         RelayChain::Bitcoin => map_bitcoin_quote_data(quote_response, &request.value).map(drop),
-        RelayChain::Evm(_) | RelayChain::Tron | RelayChain::Ton => validate_targets(from_chain, quote_response),
+        RelayChain::Evm(_) | RelayChain::Tron => validate_targets(from_chain, quote_response),
+        RelayChain::Ton => map_ton_quote_data(quote_response, &request.value).and_then(|_| validate_targets(from_chain, quote_response)),
         RelayChain::Solana => solana::quoted_transaction(request, &request.value, quote_response).map(drop),
         RelayChain::Xrp => map_xrp_quote_data(quote_response, &request.value).and_then(|_| validate_targets(from_chain, quote_response)),
     }
@@ -80,14 +81,18 @@ pub fn map_tron_quote_data(quote_response: &RelayQuoteResponse, approval: Option
     ))
 }
 
-pub fn map_ton_quote_data(quote_response: &RelayQuoteResponse) -> Result<SwapperQuoteData, SwapperError> {
+pub fn map_ton_quote_data(quote_response: &RelayQuoteResponse, value: &BigUint) -> Result<SwapperQuoteData, SwapperError> {
     let ton = quote_response.get_ton_step().ok_or(SwapperError::InvalidRoute)?;
     let messages = ton
         .messages
         .iter()
         .map(|message| Ok(TonConnectMessage::new(RelayChain::Ton.contract_address(&message.to)?, &BigUint::from_str(&message.value)?, Some(message.body.clone()))))
         .collect::<Result<Vec<_>, SwapperError>>()?;
-    TonConnectMessage::swap_quote_data(&messages).map_err(|_| SwapperError::InvalidRoute)
+    let data = TonConnectMessage::swap_quote_data(&messages).map_err(|_| SwapperError::InvalidRoute)?;
+    if data.value > *value {
+        return Err(SwapperError::InvalidRoute);
+    }
+    Ok(data)
 }
 
 fn map_referral_fee(app_fees: Option<&RelayRequestAppFees>) -> Option<TransactionSwapReferralFee> {
@@ -165,11 +170,16 @@ mod tests {
 
         let mut ton: serde_json::Value = serde_json::from_str(include_str!("testdata/quote_ton_to_base_usdc.json")).unwrap();
         let shipped_ton: RelayQuoteResponse = serde_json::from_value(ton.clone()).unwrap();
+        let request = QuoteRequest {
+            value: BigUint::from(5_000_000_000u64),
+            ..request
+        };
         assert!(validate_quote_response(RelayChain::Ton, &shipped_ton, &request).is_ok());
         let step = ton["steps"].as_array_mut().unwrap().iter_mut().find(|step| step["items"][0]["data"]["messages"].is_array()).unwrap();
         let messages = step["items"][0]["data"]["messages"].as_array_mut().unwrap();
         let mut drain = messages[0].clone();
         drain["to"] = serde_json::Value::String("EQBvW8Z5huBkMJYdnfAEM5JqTNkuWX3diqYENkWsIL0XggGG".to_string());
+        drain["value"] = serde_json::Value::String("0".to_string());
         messages.push(drain);
         let drained: RelayQuoteResponse = serde_json::from_value(ton).unwrap();
         assert_eq!(
@@ -294,7 +304,8 @@ mod tests {
     #[test]
     fn test_map_ton_quote_data() {
         let quote_response: RelayQuoteResponse = serde_json::from_str(include_str!("testdata/quote_ton_to_base_usdc.json")).unwrap();
-        let result = map_ton_quote_data(&quote_response).unwrap();
+        let value = BigUint::from(5_000_000_000u64);
+        let result = map_ton_quote_data(&quote_response, &value).unwrap();
         let body = quote_response.get_ton_step().unwrap().messages[0].body.clone();
 
         assert_eq!(result.to, "EQCrdGsDTqA2t6xRR4N6V4J705F7w_VQbUdHnofsh-8lVIPs");
@@ -305,10 +316,15 @@ mod tests {
         );
         assert!(result.approval.is_none());
         assert!(result.gas_limit.is_none());
+        assert_eq!(
+            map_ton_quote_data(&quote_response, &BigUint::from(4_999_999_999u64)),
+            Err(SwapperError::InvalidRoute),
+            "messages that send more TON than quoted"
+        );
 
         assert_eq!(map_evm_quote_data(&quote_response, None).unwrap_err(), SwapperError::InvalidRoute);
         let tron_quote: RelayQuoteResponse = serde_json::from_str(include_str!("testdata/quote_tron_to_base_usdc.json")).unwrap();
-        assert_eq!(map_ton_quote_data(&tron_quote).unwrap_err(), SwapperError::InvalidRoute);
+        assert_eq!(map_ton_quote_data(&tron_quote, &value).unwrap_err(), SwapperError::InvalidRoute);
     }
 
     #[test]
