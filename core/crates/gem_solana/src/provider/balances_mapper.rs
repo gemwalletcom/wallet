@@ -22,10 +22,9 @@ pub fn map_token_accounts(accounts: &ValueResult<Vec<TokenAccountInfo>>, token_i
     }
 }
 
-pub fn map_balance_assets(results: Vec<ValueResult<Vec<TokenAccountInfo>>>) -> Vec<AssetBalance> {
-    results
+pub fn map_balance_assets(accounts: Vec<TokenAccountInfo>) -> Vec<AssetBalance> {
+    accounts
         .into_iter()
-        .flat_map(|result| result.value)
         .filter_map(|account| {
             let info = account.account.data.parsed.info;
             let (Some(token_amount), Some(mint)) = (info.token_amount, info.mint) else {

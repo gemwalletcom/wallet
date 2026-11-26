@@ -29,7 +29,7 @@ impl<C: Client + Clone> ChainBalances for SolanaProvider<C> {
 
     async fn get_balance_assets(&self, address: String) -> Result<Option<Vec<AssetBalance>>, Box<dyn Error + Send + Sync>> {
         let (token_accounts, token_2022_accounts) = futures::try_join!(self.get_token_accounts_by_owner(&address, crate::TOKEN_PROGRAM), self.get_token_accounts_by_owner(&address, crate::TOKEN_PROGRAM_2022))?;
-        Ok(Some(map_balance_assets(vec![token_accounts, token_2022_accounts])))
+        Ok(Some(map_balance_assets(token_accounts.value.into_iter().chain(token_2022_accounts.value).collect())))
     }
 }
 
