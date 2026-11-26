@@ -86,7 +86,8 @@ tokio = { version = "1.53.1", features = ["macros", "rt-multi-thread"] }
 
 # HTTP and networking
 idna = { version = "1.1.0" }
-reqwest = { version = "0.13.4", features = [
+reqwest = { version = "0.13.4", default-features = false, features = [
+    "default-tls",
     "json",
     "gzip",
     "deflate",
