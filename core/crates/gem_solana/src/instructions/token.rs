@@ -5,9 +5,8 @@ use crate::{
 
 const TRANSFER_DISCRIMINANT: u8 = 3;
 const TRANSFER_CHECKED_DISCRIMINANT: u8 = 12;
-pub const CLOSE_ACCOUNT_DISCRIMINANT: u8 = 9;
-pub const SYNC_NATIVE_DISCRIMINANT: u8 = 17;
-pub const SET_AUTHORITY_DISCRIMINANT: u8 = 6;
+pub(crate) const CLOSE_ACCOUNT_DISCRIMINANT: u8 = 9;
+pub(crate) const SYNC_NATIVE_DISCRIMINANT: u8 = 17;
 
 pub fn transfer_checked_amount(data: &[u8]) -> Option<u64> {
     let (discriminant, arguments) = data.split_first()?;

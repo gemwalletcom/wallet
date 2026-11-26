@@ -150,7 +150,7 @@ mod tests {
         let set_authority = Instruction {
             program_id: token_program(),
             accounts: vec![AccountMeta::new_writable(wallet_usdc), AccountMeta::new_signer(wallet)],
-            data: [vec![token::SET_AUTHORITY_DISCRIMINANT, 2, 1], stranger.as_bytes().to_vec()].concat(),
+            data: [[6, 2, 1].as_slice(), stranger.as_bytes()].concat(),
         };
         for (instructions, reason) in [
             (vec![system::transfer(&wallet, &stranger, MAX_UNBOUND_LAMPORTS + 1)], "SOL sent to someone else"),

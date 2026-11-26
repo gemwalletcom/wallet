@@ -197,7 +197,7 @@ pub struct MockSwapper {
     response: MockResponse,
     amount_mode: SwapAmountMode,
     pending_permit: Option<Permit2ApprovalData>,
-    contracts: Vec<&'static str>,
+    binding: Binding,
     quote_data: SwapperQuoteData,
     builds: Arc<Mutex<Vec<QuoteDataInput>>>,
 }
@@ -210,14 +210,17 @@ impl MockSwapper {
             response,
             amount_mode: SwapAmountMode::Fixed,
             pending_permit: None,
-            contracts: Vec::new(),
+            binding: Binding::BuiltOnDevice,
             quote_data: SwapperQuoteData::mock(),
             builds: Arc::default(),
         }
     }
 
     pub fn with_contracts(self, contracts: Vec<&'static str>) -> Self {
-        Self { contracts, ..self }
+        Self {
+            binding: Binding::Contracts(Contracts::new(contracts)),
+            ..self
+        }
     }
 
     pub fn with_quote_data(self, quote_data: SwapperQuoteData) -> Self {
@@ -256,10 +259,7 @@ impl Swapper for MockSwapper {
     }
 
     fn binding(&self, _from_asset: &AssetId) -> Binding {
-        match self.contracts.is_empty() {
-            true => Binding::BuiltOnDevice,
-            false => Binding::Contracts(Contracts::new(self.contracts.clone())),
-        }
+        self.binding.clone()
     }
 
     async fn get_quote(&self, request: &QuoteRequest) -> Result<Quote, SwapperError> {

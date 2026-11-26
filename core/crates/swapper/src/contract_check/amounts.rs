@@ -53,10 +53,7 @@ mod tests {
         let approval = ApprovalData::make(ETHEREUM_USDC_TOKEN_ID, TEST_EVM_RECIPIENT, amount.clone(), false);
         let permit2 = Permit2ApprovalData {
             token: ETHEREUM_USDC_TOKEN_ID.to_lowercase(),
-            spender: TEST_EVM_RECIPIENT.to_string(),
-            value: amount.clone(),
-            permit2_contract: TEST_EVM_RECIPIENT.to_string(),
-            permit2_nonce: 0,
+            ..Permit2ApprovalData::mock()
         };
         let token_call = SwapperQuoteData {
             approval: Some(approval.clone()),

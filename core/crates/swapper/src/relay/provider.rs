@@ -136,7 +136,11 @@ where
             RelayChain::Bitcoin => mapper::map_bitcoin_quote_data(&response, &quote.from_value),
             RelayChain::Evm(_) => mapper::map_evm_quote_data(&response, approval),
             RelayChain::Tron => mapper::map_tron_quote_data(&response, approval),
-            RelayChain::Solana => solana::build_quote_data(&quote.request, &response, self.rpc_provider.clone()).await,
+            RelayChain::Solana => {
+                solana::quoted_transaction(&quote.request, &quote.from_value, &response)?
+                    .quote_data(&quote.request.wallet_address, self.rpc_provider.clone())
+                    .await
+            }
             RelayChain::Ton => mapper::map_ton_quote_data(&response),
             RelayChain::Xrp => mapper::map_xrp_quote_data(&response, &quote.from_value),
         }
@@ -213,7 +217,7 @@ mod tests {
     const SUFFICIENT_ALLOWANCE: &str = "0x0000000000000000000000000000000000000000000000022b1c8c1227a00000";
 
     #[test]
-    fn test_verify_contracts_approves_only_contracts_that_take_the_deposit() {
+    fn test_verify_binding_approves_only_contracts_that_take_the_deposit() {
         let relay = Relay {
             provider: ProviderType::new(SwapperProvider::Relay),
             rpc_provider: Arc::new(ProviderMock::new(String::new())),
@@ -221,12 +225,7 @@ mod tests {
         };
         let quote = Quote::mock(Chain::Base, Some(BASE_USDC_TOKEN_ID));
         let approving = |spender: &str| {
-            let approval = ApprovalData {
-                token: BASE_USDC_TOKEN_ID.to_string(),
-                spender: spender.to_string(),
-                value: BigUint::from(1u64),
-                is_unlimited: true,
-            };
+            let approval = ApprovalData::make(BASE_USDC_TOKEN_ID, spender, BigUint::from(1u64), true);
             SwapperQuoteData::new_contract(ROUTER_ADDRESS.to_string(), BigUint::ZERO, String::new(), Some(approval), None)
         };
         let relay = &relay as &dyn Swapper;

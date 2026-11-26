@@ -208,7 +208,7 @@ mod tests {
             (
                 Instruction {
                     program_id: token_program(),
-                    data: vec![token::SET_AUTHORITY_DISCRIMINANT],
+                    data: vec![6],
                     ..unknown
                 },
                 "a token instruction the swap and transfer checks do not read",

@@ -24,7 +24,7 @@ pub fn validate_quote_response(from_chain: RelayChain, quote_response: &RelayQuo
     match from_chain {
         RelayChain::Bitcoin => map_bitcoin_quote_data(quote_response, &request.value).map(drop),
         RelayChain::Evm(_) | RelayChain::Tron | RelayChain::Ton => validate_targets(from_chain, quote_response),
-        RelayChain::Solana => solana::quoted_transaction(request, quote_response).map(drop),
+        RelayChain::Solana => solana::quoted_transaction(request, &request.value, quote_response).map(drop),
         RelayChain::Xrp => map_xrp_quote_data(quote_response, &request.value).and_then(|_| validate_targets(from_chain, quote_response)),
     }
 }

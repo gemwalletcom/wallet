@@ -352,14 +352,14 @@ mod tests {
         let request = mock_quote(SwapperQuoteAsset::from(ETHEREUM_USDC_ASSET_ID.clone()), SwapperQuoteAsset::from(AssetId::from_chain(Chain::Ethereum)));
         let router = "0x8feab81d36e7576107d5de0758c1b839be31b4f6";
         let token_approve = "0x40aA958dd87FC8305b97f2BA922CDdCa374bcD7f";
-        let approval = |spender: &str| ApprovalData {
-            token: ETHEREUM_USDC_TOKEN_ID.to_string(),
-            spender: spender.to_string(),
-            value: BigUint::from(1_000_000u64),
-            is_unlimited: false,
-        };
         let swapper = |to: &str, spender: &str| {
-            let data = SwapperQuoteData::new_contract(to.to_string(), BigUint::ZERO, "0x".to_string(), Some(approval(spender)), None);
+            let data = SwapperQuoteData::new_contract(
+                to.to_string(),
+                BigUint::ZERO,
+                "0x".to_string(),
+                Some(ApprovalData::make(ETHEREUM_USDC_TOKEN_ID, spender, BigUint::from(1_000_000u64), false)),
+                None,
+            );
             GemSwapper::mock(vec![Box::new(
                 MockSwapper::new(SwapperProvider::Okx, |request| Ok(Quote::mock_with_request(request)))
                     .with_contracts(vec![router, token_approve])
@@ -380,7 +380,7 @@ mod tests {
         let foreign_spender = swapper(router, "0x0000000000000000000000000000000000000001");
         assert_eq!(quote_data(&foreign_spender, &request).await.unwrap_err(), SwapperError::InvalidRoute);
 
-        let undeclared = GemSwapper::mock(vec![Box::new(
+        let built_on_device = GemSwapper::mock(vec![Box::new(
             MockSwapper::new(SwapperProvider::UniswapV3, |request| Ok(Quote::mock_with_request(request))).with_quote_data(SwapperQuoteData::new_contract(
                 "0x0000000000000000000000000000000000000001".to_string(),
                 BigUint::ZERO,
@@ -389,7 +389,7 @@ mod tests {
                 None,
             )),
         )]);
-        assert!(quote_data(&undeclared, &request).await.is_ok(), "a provider that ships no contracts is not bound");
+        assert!(quote_data(&built_on_device, &request).await.is_ok(), "a transaction built on the device is not held to a contract list");
     }
 
     #[tokio::test]
@@ -455,8 +455,8 @@ mod swap_integration_tests {
     use crate::{QuoteRequest, SwapperQuoteAsset, config::API_BASE_URL, models::Options, testkit::mock_quote};
     use gem_reqwest::NativeProvider;
 
-    const CONTRACT_CHECK_AMOUNT_USD: f64 = 50.0;
-    const CONTRACT_CHECK_CONCURRENCY: usize = 4;
+    const BINDING_CHECK_AMOUNT_USD: f64 = 50.0;
+    const BINDING_CHECK_CONCURRENCY: usize = 4;
 
     fn test_address(chain: Chain) -> Option<&'static str> {
         match chain.chain_type() {
@@ -503,7 +503,7 @@ mod swap_integration_tests {
         let mut url = reqwest::Url::parse(API_BASE_URL).ok()?;
         url.path_segments_mut().ok()?.extend(["v1", "assets", &asset_id.to_string()]);
         let asset: AssetFull = reqwest::get(url).await.ok()?.json().await.ok()?;
-        let value = CONTRACT_CHECK_AMOUNT_USD / asset.price?.price * 10f64.powi(asset.asset.decimals as i32);
+        let value = BINDING_CHECK_AMOUNT_USD / asset.price?.price * 10f64.powi(asset.asset.decimals as i32);
         Some((SwapperQuoteAsset::from(&asset.asset), BigUint::from(value as u128)))
     }
 
@@ -529,7 +529,7 @@ mod swap_integration_tests {
     async fn test_every_route_passes_the_binding_check() {
         let swapper = GemSwapper::new(Arc::new(NativeProvider::default().set_debug(false)));
         let routes = routes(&swapper.swappers);
-        let results: Vec<_> = stream::iter(&routes).map(|(swapper, from, to)| checked_route(*swapper, from, to)).buffer_unordered(CONTRACT_CHECK_CONCURRENCY).collect().await;
+        let results: Vec<_> = stream::iter(&routes).map(|(swapper, from, to)| checked_route(*swapper, from, to)).buffer_unordered(BINDING_CHECK_CONCURRENCY).collect().await;
         let refused: Vec<String> = results.iter().flatten().filter_map(|result| result.clone().err()).collect();
 
         println!("{} of {} routes quoted", results.iter().flatten().count(), routes.len());

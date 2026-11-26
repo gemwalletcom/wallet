@@ -1,11 +1,10 @@
-use std::sync::Arc;
-
 use gem_encoding::borsh::{BorshDeserialize, DecodeError, Reader};
 use gem_solana::{
     HexInstructionData, Instruction, Pubkey, StandardInstruction,
     anchor::{global_discriminator, instruction_arguments},
     decode_instructions, wrapped_sol,
 };
+use num_bigint::BigUint;
 use primitives::{
     Chain,
     contract_constants::{SOLANA_JUPITER_PROGRAM_ID, SOLANA_RELAY_DEPOSITORY_PROGRAM_ID, SOLANA_RELAY_FORWARDER_PROGRAM_ID},
@@ -15,7 +14,7 @@ use super::{
     contracts::contracts,
     model::{RelayQuoteResponse, SolanaStepData},
 };
-use crate::{QuoteRequest, SwapperError, SwapperQuoteData, alien::RpcProvider, contract_check::solana::verify_steps, jupiter::JupiterRoute, solana_dex::SolanaTransaction};
+use crate::{QuoteRequest, SwapperError, contract_check::solana::verify_steps, jupiter::JupiterRoute, solana_dex::SolanaTransaction};
 
 const DEPOSIT_NATIVE: &str = "deposit_native";
 const DEPOSIT_TOKEN: &str = "deposit_token";
@@ -47,12 +46,8 @@ enum RelayStep<'a> {
     Unsupported,
 }
 
-pub fn quoted_transaction(request: &QuoteRequest, response: &RelayQuoteResponse) -> Result<SolanaTransaction, SwapperError> {
-    transaction(response.get_solana_step().ok_or(SwapperError::InvalidRoute)?, &QuotedDeposit::new(request)?)
-}
-
-pub async fn build_quote_data(request: &QuoteRequest, response: &RelayQuoteResponse, rpc_provider: Arc<dyn RpcProvider>) -> Result<SwapperQuoteData, SwapperError> {
-    quoted_transaction(request, response)?.quote_data(&request.wallet_address, rpc_provider).await
+pub fn quoted_transaction(request: &QuoteRequest, value: &BigUint, response: &RelayQuoteResponse) -> Result<SolanaTransaction, SwapperError> {
+    transaction(response.get_solana_step().ok_or(SwapperError::InvalidRoute)?, &QuotedDeposit::new(request, value)?)
 }
 
 fn transaction(step: &SolanaStepData, quoted: &QuotedDeposit) -> Result<SolanaTransaction, SwapperError> {
@@ -64,11 +59,11 @@ fn transaction(step: &SolanaStepData, quoted: &QuotedDeposit) -> Result<SolanaTr
 }
 
 impl QuotedDeposit {
-    fn new(request: &QuoteRequest) -> Result<Self, SwapperError> {
+    fn new(request: &QuoteRequest, value: &BigUint) -> Result<Self, SwapperError> {
         Ok(Self {
             wallet: Pubkey::from_base58(&request.wallet_address).map_err(SwapperError::transaction_error)?,
             mint: request.from_asset.asset_id().token_id.as_deref().map(Pubkey::from_base58).transpose().map_err(SwapperError::transaction_error)?,
-            amount: u64::try_from(&request.value).map_err(SwapperError::transaction_error)?,
+            amount: u64::try_from(value).map_err(SwapperError::transaction_error)?,
         })
     }
 
@@ -118,10 +113,9 @@ mod tests {
     use super::*;
     use crate::{SwapperQuoteAsset, contract_check::solana::verify_solana, relay::testkit::TEST_SOLANA_PAYER, testkit::mock_quote};
     use gem_solana::{AddressLookupTableAccount, decode_transaction};
-    use num_bigint::BigUint;
     use primitives::{
         AssetId,
-        asset_constants::{BASE_USDC_ASSET_ID, SOLANA_USDC_ASSET_ID, SOLANA_USDT_ASSET_ID},
+        asset_constants::{BASE_USDC_ASSET_ID, SOLANA_USDC_ASSET_ID, SOLANA_USDC_TOKEN_ID, SOLANA_USDT_ASSET_ID},
         hex,
         testkit::signer_mock::TEST_PRIVATE_KEY_SOLANA_ADDRESS,
     };
@@ -136,7 +130,7 @@ mod tests {
             ..mock_quote(SwapperQuoteAsset::from(AssetId::from_chain(Chain::Solana)), SwapperQuoteAsset::from(BASE_USDC_ASSET_ID.clone()))
         };
 
-        let quote_data = quoted_transaction(&request, &response).unwrap().encode(&request.wallet_address, &[]).unwrap();
+        let quote_data = quoted_transaction(&request, &request.value, &response).unwrap().encode(&request.wallet_address, &[]).unwrap();
         verify_solana(&quote_data.data, &request.wallet_address, &contracts(Chain::Solana).targets).unwrap();
 
         let transaction_data = decode_transaction(&quote_data.data).unwrap();
@@ -153,7 +147,7 @@ mod tests {
         let mut other_instruction = step.clone();
         other_instruction.instructions[0].data = hex::encode([global_discriminator("withdraw").as_slice(), &instructions[0].data[8..]].concat());
         assert_eq!(
-            transaction(&other_instruction, &QuotedDeposit::new(&request).unwrap()).err(),
+            transaction(&other_instruction, &QuotedDeposit::new(&request, &request.value).unwrap()).err(),
             Some(SwapperError::InvalidRoute),
             "an instruction of Relay's programs the check does not read"
         );
@@ -173,7 +167,7 @@ mod tests {
                 "a deposit of another asset",
             ),
         ] {
-            assert_eq!(quoted_transaction(&request, &response).err(), Some(SwapperError::InvalidRoute), "{reason}");
+            assert_eq!(quoted_transaction(&request, &request.value, &response).err(), Some(SwapperError::InvalidRoute), "{reason}");
         }
     }
 
@@ -186,7 +180,7 @@ mod tests {
             ..mock_quote(SwapperQuoteAsset::from(SOLANA_USDT_ASSET_ID.clone()), SwapperQuoteAsset::from(BASE_USDC_ASSET_ID.clone()))
         };
 
-        assert_eq!(quoted_transaction(&request, &response).err(), None);
+        assert_eq!(quoted_transaction(&request, &request.value, &response).err(), None);
         for (request, reason) in [
             (
                 QuoteRequest {
@@ -203,7 +197,7 @@ mod tests {
                 "a deposit of another token",
             ),
         ] {
-            assert_eq!(quoted_transaction(&request, &response).err(), Some(SwapperError::InvalidRoute), "{reason}");
+            assert_eq!(quoted_transaction(&request, &request.value, &response).err(), Some(SwapperError::InvalidRoute), "{reason}");
         }
     }
 
@@ -227,7 +221,7 @@ mod tests {
                 SwapperQuoteAsset::from(BASE_USDC_ASSET_ID.clone()),
             )
         };
-        let quoted = QuotedDeposit::new(&request).unwrap();
+        let quoted = QuotedDeposit::new(&request, &request.value).unwrap();
 
         let quote_data = transaction(step, &quoted).unwrap().encode(TEST_SOLANA_PAYER, &[lookup_table]).unwrap();
         verify_solana(&quote_data.data, TEST_SOLANA_PAYER, &contracts(Chain::Solana).targets).unwrap();
@@ -256,18 +250,17 @@ mod tests {
             (step, &QuotedDeposit { amount: 49_999_999, ..quoted }, "a route that spends more than quoted"),
             (
                 step,
-                &QuotedDeposit::new(&QuoteRequest {
-                    from_asset: SwapperQuoteAsset::from(SOLANA_USDC_ASSET_ID.clone()),
-                    ..request
-                })
-                .unwrap(),
+                &QuotedDeposit {
+                    mint: Some(Pubkey::from_base58(SOLANA_USDC_TOKEN_ID).unwrap()),
+                    ..quoted
+                },
                 "a route that spends another token",
             ),
             (&other_destination, &quoted, "a route that pays into an account Relay's forwarder does not deposit"),
             (&other_authority, &quoted, "a route another account signs"),
             (
                 with_parameters.get_solana_step().unwrap(),
-                &QuotedDeposit::new(&cbbtc).unwrap(),
+                &QuotedDeposit::new(&cbbtc, &cbbtc.value).unwrap(),
                 "a route whose steps carry parameters, so the amount it spends cannot be read",
             ),
         ] {

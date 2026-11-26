@@ -145,7 +145,7 @@ mod tests {
     const SOL_AMOUNT: u64 = 2_000_000_000;
 
     #[test]
-    fn test_client_swap_through_jupiter_passes_the_contract_check() {
+    fn test_client_swap_through_jupiter_passes_the_binding_check() {
         let mayan = Mayan::with_clients(MayanClient::new(MockClient::new()), MayanClient::new(MockClient::new()), Arc::new(ProviderMock::new("{}".to_string())));
         let token = QuotedRoute {
             wallet: Pubkey::from_base58(USDT_USER).unwrap(),

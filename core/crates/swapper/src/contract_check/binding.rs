@@ -17,8 +17,8 @@ fn verify_contracts(quote: &Quote, from_asset: &AssetId, contracts: &Contracts, 
         return Err(SwapperError::InvalidRoute);
     }
     match (QuoteData::of(from_asset.chain.chain_type()), &data.data_type) {
-        (QuoteData::SolanaTransaction, _) => verify_solana(&data.data, &quote.request.wallet_address, &contracts.targets),
-        (QuoteData::TonMessages, _) => verify_ton_messages(&data.data, &contracts.targets),
+        (QuoteData::SolanaTransaction, SwapQuoteDataType::Transfer | SwapQuoteDataType::Contract) => verify_solana(&data.data, &quote.request.wallet_address, &contracts.targets),
+        (QuoteData::TonMessages, SwapQuoteDataType::Transfer | SwapQuoteDataType::Contract) => verify_ton_messages(&data.data, &contracts.targets),
         (QuoteData::EvmCall | QuoteData::Unread, SwapQuoteDataType::Transfer) => match Deployment::contains(from_asset.chain, &contracts.targets, &data.to) {
             true => Ok(()),
             false => Err(SwapperError::InvalidRoute),
