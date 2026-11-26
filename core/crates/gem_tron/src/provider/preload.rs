@@ -53,10 +53,10 @@ impl<C: Client> ChainTransactionLoad for TronProvider<C> {
             account_usage: &account_usage,
             is_new_account,
         };
-        let has_memo = input.get_memo().is_some();
+        let memo_data_bytes = input.get_memo().map(|memo| memo.len() as u64);
         let fee = match &input.input_type {
             TransactionInputType::Transfer { asset } | TransactionInputType::Withdrawal { asset } | TransactionInputType::TransferNft { asset, .. } | TransactionInputType::Account { asset, .. } => match &asset.id.token_id {
-                None => native_transfer_fee(&fee_context, has_memo)?,
+                None => native_transfer_fee(&fee_context, memo_data_bytes)?,
                 Some(token_id) => {
                     let call = TronTriggerSmartContract::token_transfer(TronAddress::parse(&input.sender_address)?, token_id, &input.destination_address, &input.value)?;
                     self.estimate_token_transfer_fee(&call, &fee_context, input.get_memo()).await?
@@ -65,9 +65,9 @@ impl<C: Client> ChainTransactionLoad for TronProvider<C> {
             TransactionInputType::Generic { extra, .. } | TransactionInputType::Payment { extra, .. } => match extra.output_action {
                 TransferDataOutputAction::Send => match self.estimate_fee_with_data(extra.data.as_deref(), &fee_context).await? {
                     Some(fee) => fee,
-                    None => native_transfer_fee(&fee_context, has_memo)?,
+                    None => native_transfer_fee(&fee_context, memo_data_bytes)?,
                 },
-                TransferDataOutputAction::Sign => native_transfer_fee(&fee_context, false)?,
+                TransferDataOutputAction::Sign => native_transfer_fee(&fee_context, None)?,
             },
             TransactionInputType::Stake { .. } => TransactionFee::new_from_fee(calculate_stake_fee_rate(&chain_parameters, &account_usage)?, AssetId::from_chain(Chain::Tron)),
             TransactionInputType::TokenApprove { approval_data: approval, .. } => {
@@ -75,7 +75,7 @@ impl<C: Client> ChainTransactionLoad for TronProvider<C> {
                 self.estimate_smart_contract_fee(call.trigger_smart_contract_data(None), &fee_context, None).await?
             }
             TransactionInputType::Swap { from_asset, swap_data, .. } => self.estimate_swap_fee(&input, from_asset, swap_data, &fee_context, input.get_memo()).await?,
-            _ => native_transfer_fee(&fee_context, has_memo)?,
+            _ => native_transfer_fee(&fee_context, memo_data_bytes)?,
         };
 
         Ok(TransactionLoadData { fee, metadata })
@@ -84,10 +84,6 @@ impl<C: Client> ChainTransactionLoad for TronProvider<C> {
     async fn get_transaction_fee_rates(&self, _input_type: TransactionInputType) -> Result<Vec<FeeRate>, Box<dyn Error + Send + Sync>> {
         Ok(vec![FeeRate::new(FeePriority::Normal, GasPriceType::regular(BigInt::from(1)))])
     }
-}
-
-fn has_swap_quote_memo(input_memo: Option<&str>, data: &SwapQuoteData) -> bool {
-    input_memo.is_some() || data.memo.as_deref().is_some_and(|memo| !memo.is_empty())
 }
 
 fn swap_contract_memo_data_bytes(input_memo: Option<&str>, data: &SwapQuoteData) -> Result<Option<u64>, Box<dyn Error + Send + Sync>> {
@@ -136,10 +132,10 @@ impl<C: Client> TronClient<C> {
     }
 
     async fn estimate_contract_swap_call_fee(&self, swap_contract: &TronContract, swap_data: &SwapData, fee_context: &FeeEstimateContext<'_>, input_memo: Option<&str>) -> Result<TransactionFee, Box<dyn Error + Send + Sync>> {
-        let TronContract::TriggerSmart(call) = swap_contract else {
-            return native_transfer_fee(fee_context, has_swap_quote_memo(input_memo, &swap_data.data));
-        };
         let memo_data_bytes = swap_contract_memo_data_bytes(input_memo, &swap_data.data)?;
+        let TronContract::TriggerSmart(call) = swap_contract else {
+            return native_transfer_fee(fee_context, memo_data_bytes);
+        };
         if let Some(estimated_energy) = needs_approval_energy_estimate(&swap_data.data) {
             let caller_energy = self.caller_energy(&self.get_contract(&call.contract.to_string()).await?, estimated_energy).await?;
             return contract_fee_from_energy(fee_context.chain_parameters, fee_context.account_usage, (caller_energy, estimated_energy), call.data.len() as u64, memo_data_bytes);
@@ -149,7 +145,7 @@ impl<C: Client> TronClient<C> {
 
     async fn estimate_transfer_swap_fee(&self, input: &TransactionLoadInput, from_asset: &Asset, swap_data: &SwapData, fee_context: &FeeEstimateContext<'_>, input_memo: Option<&str>) -> Result<TransactionFee, Box<dyn Error + Send + Sync>> {
         match &from_asset.id.token_id {
-            None => native_transfer_fee(fee_context, has_swap_quote_memo(input_memo, &swap_data.data)),
+            None => native_transfer_fee(fee_context, swap_data.data.memo.as_deref().non_empty().or(input_memo).map(|memo| memo.len() as u64)),
             Some(token_id) => {
                 let call = TronTriggerSmartContract::token_transfer(TronAddress::parse(&input.sender_address)?, token_id, &swap_data.data.to, &input.value)?;
                 self.estimate_token_transfer_fee(&call, fee_context, input_memo).await
@@ -250,7 +246,7 @@ fn contract_fee_from_energy(
 
 #[cfg(test)]
 mod tests {
-    use super::{has_swap_quote_memo, swap_contract_memo_data_bytes};
+    use super::swap_contract_memo_data_bytes;
     use crate::models::TriggerSmartContractRequest;
     use crate::rpc::TronProvider;
     use chain_traits::ChainTransactionLoad;
@@ -308,19 +304,13 @@ mod tests {
     fn test_swap_memo_fee_preload_uses_quote_memo_bytes() {
         let mut data = SwapQuoteData::new_contract("TDMakP1fbWc7XXoSWZpujpjRAuePPEn4oi".to_string(), BigUint::from(0u64), String::new(), None, None);
 
-        assert!(!has_swap_quote_memo(None, &data));
         assert_eq!(swap_contract_memo_data_bytes(None, &data).unwrap(), None);
-
-        assert!(has_swap_quote_memo(Some("memo"), &data));
         assert_eq!(swap_contract_memo_data_bytes(Some("memo"), &data).unwrap(), Some(4));
 
         data.memo = Some(String::new());
-        assert!(!has_swap_quote_memo(None, &data));
         assert_eq!(swap_contract_memo_data_bytes(None, &data).unwrap(), None);
 
         data.memo = Some("0x010203".to_string());
-        assert!(has_swap_quote_memo(None, &data));
-        assert!(has_swap_quote_memo(Some("memo"), &data));
         assert_eq!(swap_contract_memo_data_bytes(Some("memo"), &data).unwrap(), Some(3));
 
         data.memo = Some("0xzz".to_string());

@@ -21,28 +21,29 @@ pub(crate) struct FeeEstimateContext<'a> {
     pub(crate) is_new_account: bool,
 }
 
-pub(crate) fn native_transfer_fee(context: &FeeEstimateContext<'_>, has_memo: bool) -> Result<TransactionFee, Box<dyn Error + Send + Sync>> {
+pub(crate) fn native_transfer_fee(context: &FeeEstimateContext<'_>, memo_data_bytes: Option<u64>) -> Result<TransactionFee, Box<dyn Error + Send + Sync>> {
     Ok(TransactionFee::new_from_fee(
-        calculate_transfer_fee_rate(context.chain_parameters, context.account_usage, context.is_new_account, has_memo)?,
+        calculate_transfer_fee_rate(context.chain_parameters, context.account_usage, context.is_new_account, memo_data_bytes)?,
         AssetId::from_chain(Chain::Tron),
     ))
 }
 
-pub fn calculate_transfer_fee_rate(chain_parameters: &[ChainParameter], account_usage: &TronAccountUsage, is_new_account: bool, has_memo: bool) -> Result<BigInt, Box<dyn Error + Send + Sync>> {
+pub fn calculate_transfer_fee_rate(chain_parameters: &[ChainParameter], account_usage: &TronAccountUsage, is_new_account: bool, memo_data_bytes: Option<u64>) -> Result<BigInt, Box<dyn Error + Send + Sync>> {
     let bandwidth_price = get_chain_parameter_value(chain_parameters, GET_TRANSACTION_FEE)?;
-    let memo_fee = if has_memo { get_chain_parameter_value(chain_parameters, GET_MEMO_FEE)? } else { 0 };
+    let memo_fee = if memo_data_bytes.is_some() { get_chain_parameter_value(chain_parameters, GET_MEMO_FEE)? } else { 0 };
+    let bandwidth_bytes = DEFAULT_BANDWIDTH_BYTES.saturating_add(memo_data_bytes.unwrap_or(0));
 
     let base_fee: i64 = if is_new_account {
         let activation_fee = get_chain_parameter_value(chain_parameters, GET_CREATE_NEW_ACCOUNT_FEE_IN_SYSTEM_CONTRACT)?;
         let new_account_bandwidth_fee = get_chain_parameter_value(chain_parameters, GET_CREATE_ACCOUNT_FEE)?;
 
-        if account_usage.available_staked_bandwidth() >= DEFAULT_BANDWIDTH_BYTES {
+        if account_usage.available_staked_bandwidth() >= bandwidth_bytes {
             activation_fee
         } else {
             activation_fee + new_account_bandwidth_fee
         }
     } else {
-        bandwidth_fee(account_usage, DEFAULT_BANDWIDTH_BYTES, bandwidth_price as u64) as i64
+        bandwidth_fee(account_usage, bandwidth_bytes, bandwidth_price as u64) as i64
     };
 
     Ok(BigInt::from(base_fee + memo_fee))
@@ -77,7 +78,7 @@ pub(crate) fn map_transaction_fee_estimates(chain_parameters: &[ChainParameter])
     let swap = calculate_token_fee_rate_with_data(chain_parameters, &account_usage, SWAP_ENERGY_ESTIMATE, SWAP_DATA_BYTES_ESTIMATE, false, SMART_CONTRACT_FEE_LIMIT_BUFFER_PERCENT)?;
     Ok(TransactionFeeEstimates {
         fee_asset: AssetId::from_chain(Chain::Tron),
-        transfer: normal_fee_estimates(get_chain_parameter_value(chain_parameters, GET_TRANSACTION_FEE)?, calculate_transfer_fee_rate(chain_parameters, &account_usage, false, false)?),
+        transfer: normal_fee_estimates(get_chain_parameter_value(chain_parameters, GET_TRANSACTION_FEE)?, calculate_transfer_fee_rate(chain_parameters, &account_usage, false, None)?),
         token_transfer: Some(normal_fee_estimates(token_transfer.energy_price, token_transfer.fee)),
         swap: Some(normal_fee_estimates(swap.energy_price, swap.fee)),
     })
@@ -383,13 +384,21 @@ mod tests {
         let params = vec![ChainParameter::mock(GET_TRANSACTION_FEE, 1000), ChainParameter::mock(GET_MEMO_FEE, 1_000_000)];
 
         let with_bandwidth = TronAccountUsage::mock(DEFAULT_BANDWIDTH_BYTES, 0, 0);
-        assert_eq!(calculate_transfer_fee_rate(&params, &with_bandwidth, false, false).unwrap(), BigInt::from(0));
-        assert_eq!(calculate_transfer_fee_rate(&params, &with_bandwidth, false, true).unwrap(), BigInt::from(1_000_000),);
+        assert_eq!(calculate_transfer_fee_rate(&params, &with_bandwidth, false, None).unwrap(), BigInt::from(0));
+        assert_eq!(
+            calculate_transfer_fee_rate(&params, &with_bandwidth, false, Some(64)).unwrap(),
+            BigInt::from((DEFAULT_BANDWIDTH_BYTES + 64) * 1000 + 1_000_000),
+            "a pool that covers a plain transfer but not the memo burns TRX for the whole transaction"
+        );
+        assert_eq!(
+            calculate_transfer_fee_rate(&params, &TronAccountUsage::mock(DEFAULT_BANDWIDTH_BYTES + 64, 0, 0), false, Some(64)).unwrap(),
+            BigInt::from(1_000_000)
+        );
 
         let without_bandwidth = TronAccountUsage::mock(100, 0, 0);
         let burn_bandwidth = DEFAULT_BANDWIDTH_BYTES * 1000;
-        assert_eq!(calculate_transfer_fee_rate(&params, &without_bandwidth, false, false).unwrap(), BigInt::from(burn_bandwidth),);
-        assert_eq!(calculate_transfer_fee_rate(&params, &without_bandwidth, false, true).unwrap(), BigInt::from(burn_bandwidth + 1_000_000),);
+        assert_eq!(calculate_transfer_fee_rate(&params, &without_bandwidth, false, None).unwrap(), BigInt::from(burn_bandwidth));
+        assert_eq!(calculate_transfer_fee_rate(&params, &without_bandwidth, false, Some(64)).unwrap(), BigInt::from(burn_bandwidth + 64 * 1000 + 1_000_000));
     }
 
     #[test]
@@ -402,14 +411,19 @@ mod tests {
         ];
 
         let without_bandwidth = TronAccountUsage::mock(0, 0, 0);
-        assert_eq!(calculate_transfer_fee_rate(&params, &without_bandwidth, true, false).unwrap(), BigInt::from(1_100_000),);
-        assert_eq!(calculate_transfer_fee_rate(&params, &without_bandwidth, true, true).unwrap(), BigInt::from(2_100_000),);
+        assert_eq!(calculate_transfer_fee_rate(&params, &without_bandwidth, true, None).unwrap(), BigInt::from(1_100_000));
+        assert_eq!(calculate_transfer_fee_rate(&params, &without_bandwidth, true, Some(64)).unwrap(), BigInt::from(2_100_000));
 
         let with_free_bandwidth = TronAccountUsage::mock(DEFAULT_BANDWIDTH_BYTES, 0, 0);
-        assert_eq!(calculate_transfer_fee_rate(&params, &with_free_bandwidth, true, false).unwrap(), BigInt::from(1_100_000),);
+        assert_eq!(calculate_transfer_fee_rate(&params, &with_free_bandwidth, true, None).unwrap(), BigInt::from(1_100_000));
 
         let with_staked_bandwidth = TronAccountUsage::mock(0, DEFAULT_BANDWIDTH_BYTES, 0);
-        assert_eq!(calculate_transfer_fee_rate(&params, &with_staked_bandwidth, true, false).unwrap(), BigInt::from(1_000_000),);
+        assert_eq!(calculate_transfer_fee_rate(&params, &with_staked_bandwidth, true, None).unwrap(), BigInt::from(1_000_000));
+        assert_eq!(
+            calculate_transfer_fee_rate(&params, &with_staked_bandwidth, true, Some(64)).unwrap(),
+            BigInt::from(2_100_000),
+            "staked bandwidth too small for the memo leaves the account creation fee to be burned"
+        );
     }
 
     #[test]
