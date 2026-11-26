@@ -115,11 +115,11 @@ fn delegation_actions(wallet_type: WalletType, delegation: &Delegation) -> Vec<G
             let Some(config) = delegation.base.asset_id.chain.stake_config() else {
                 return vec![];
             };
+            let redelegate = (config.can_redelegate && (!config.redelegate_requires_minimum || delegation.base.balance >= BigUint::from(config.min_stake_amount))).then_some(GemDelegationAction::Redelegate);
             match state {
-                DelegationState::Active if config.can_redelegate => vec![GemDelegationAction::Stake, GemDelegationAction::Unstake, GemDelegationAction::Redelegate],
+                DelegationState::Active if config.can_redelegate => [GemDelegationAction::Stake, GemDelegationAction::Unstake].into_iter().chain(redelegate).collect(),
                 DelegationState::Active => vec![GemDelegationAction::Unstake],
-                DelegationState::Inactive if config.can_redelegate => vec![GemDelegationAction::Unstake, GemDelegationAction::Redelegate],
-                DelegationState::Inactive => vec![GemDelegationAction::Unstake],
+                DelegationState::Inactive => [GemDelegationAction::Unstake].into_iter().chain(redelegate).collect(),
                 DelegationState::AwaitingWithdrawal if config.can_withdraw => vec![GemDelegationAction::Withdraw],
                 DelegationState::AwaitingWithdrawal | DelegationState::Pending | DelegationState::Activating | DelegationState::Deactivating => vec![],
             }
@@ -1533,6 +1533,22 @@ mod tests {
             delegation_actions(WalletType::Multicoin, &Delegation::mock_with(Chain::Ethereum, StakeProviderType::Earn, DelegationState::Inactive, 0)),
             vec![Withdraw]
         );
+    }
+
+    #[test]
+    fn test_redelegate_needs_the_minimum_where_the_chain_requires_it() {
+        use GemDelegationAction::*;
+        let actions = |chain: Chain, state: DelegationState, balance: u64| {
+            let mut delegation = Delegation::mock_with(chain, StakeProviderType::Stake, state, 0);
+            delegation.base.balance = BigUint::from(balance);
+            delegation_actions(WalletType::Multicoin, &delegation)
+        };
+        let minimum = Chain::SmartChain.stake_config().unwrap().min_stake_amount;
+
+        assert_eq!(actions(Chain::SmartChain, DelegationState::Active, minimum - 1), vec![Stake, Unstake]);
+        assert_eq!(actions(Chain::SmartChain, DelegationState::Inactive, minimum - 1), vec![Unstake]);
+        assert_eq!(actions(Chain::SmartChain, DelegationState::Active, minimum), vec![Stake, Unstake, Redelegate]);
+        assert_eq!(actions(Chain::Cosmos, DelegationState::Active, 1), vec![Stake, Unstake, Redelegate]);
     }
 
     #[test]
