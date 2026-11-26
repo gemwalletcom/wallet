@@ -9,18 +9,6 @@ pub fn map_coin_balance(balance: &SolanaBalance) -> AssetBalance {
     AssetBalance::new(asset_id, BigUint::from(balance.value))
 }
 
-pub fn map_token_balances(accounts: &ValueResult<Vec<TokenAccountInfo>>, token_ids: &[String]) -> Vec<AssetBalance> {
-    accounts
-        .value
-        .iter()
-        .zip(token_ids.iter())
-        .map(|(account, token_id)| {
-            let balance_amount = account.account.data.parsed.info.token_amount.as_ref().map(|ta| ta.amount.clone()).unwrap_or_else(|| BigUint::from(0u32));
-            AssetBalance::new(AssetId::from_token(Chain::Solana, token_id), balance_amount)
-        })
-        .collect()
-}
-
 pub fn map_single_token_balance(account: &TokenAccountInfo, token_id: &str) -> AssetBalance {
     let balance_amount = account.account.data.parsed.info.token_amount.as_ref().map(|ta| ta.amount.clone()).unwrap_or_else(|| BigUint::from(0u32));
     AssetBalance::new(AssetId::from_token(Chain::Solana, token_id), balance_amount)
@@ -32,6 +20,20 @@ pub fn map_token_accounts(accounts: &ValueResult<Vec<TokenAccountInfo>>, token_i
     } else {
         vec![AssetBalance::new(AssetId::from_token(Chain::Solana, token_id), BigUint::from(0u32))]
     }
+}
+
+pub fn map_balance_assets(results: Vec<ValueResult<Vec<TokenAccountInfo>>>) -> Vec<AssetBalance> {
+    results
+        .into_iter()
+        .flat_map(|result| result.value)
+        .filter_map(|account| {
+            let info = account.account.data.parsed.info;
+            let (Some(token_amount), Some(mint)) = (info.token_amount, info.mint) else {
+                return None;
+            };
+            (token_amount.amount > BigUint::ZERO).then(|| AssetBalance::new(AssetId::from_token(Chain::Solana, &mint), token_amount.amount))
+        })
+        .collect()
 }
 
 pub fn map_balance_staking(stake_accounts: Vec<TokenAccountInfo>) -> Option<AssetBalance> {
@@ -65,18 +67,6 @@ mod tests {
 
         assert_eq!(balance_result.asset_id.chain, Chain::Solana);
         assert_eq!(balance_result.balance.available, BigUint::from(75071408_u64));
-    }
-
-    #[test]
-    fn test_map_token_balances() {
-        let result: JsonRpcResult<ValueResult<Vec<TokenAccountInfo>>> = serde_json::from_str(include_str!("../../testdata/balance_spl_token.json")).unwrap();
-
-        let token_ids = vec!["2zMMhcVQEXDtdE6vsFS7S7D5oUodfJHE8vd1gnBouauv".to_string()];
-        let balances = map_token_balances(&result.result, &token_ids);
-
-        assert_eq!(balances.len(), 1);
-        assert_eq!(balances[0].asset_id.chain, Chain::Solana);
-        assert_eq!(balances[0].balance.available, BigUint::from(75071408_u64));
     }
 
     #[test]
