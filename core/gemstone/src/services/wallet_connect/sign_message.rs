@@ -4,7 +4,7 @@ use primitives::{Account, ApplicationMetadata, Asset, Chain, OptionStringExt, Wa
 
 use crate::application;
 use crate::keystore::{GemKeystore, decode_password, keystore_id_for_wallet};
-use crate::message::sign_type::{MessageType, SignMessage};
+use crate::message::sign_type::SignMessage;
 use crate::message::signer::MessageSigner;
 use crate::models::copy::address_copy;
 use crate::models::list::{GemGroup, GemListRow, GemListRowTitle};
@@ -75,18 +75,17 @@ impl GemSignMessageService {
             assets,
             ..
         } = request;
-        let signer = MessageSigner::new(message);
         let has_critical_warning = simulation.has_critical_warning();
         let warnings = warning_rows(&simulation.warnings);
         let header = GemSimulationValue::from_simulation(&simulation, &assets);
         let fields = payload_fields(simulation.payload, header.is_some());
         let address_url = |chain, address| self.explorer.get_address_url(chain, address);
-        let payload = signer.payload_preview(fields, address_url).ok().flatten();
+        let review = MessageSigner::new(message).review(fields, address_url);
         GemSignMessagePreview {
-            title: payload.as_ref().map(|preview| preview.message_type).unwrap_or(MessageType::Text).title(),
-            text: signer.plain_preview(),
-            primary_fields: payload.as_ref().map(|preview| preview.primary.clone()).unwrap_or_default(),
-            secondary_fields: payload.map(|preview| preview.secondary).unwrap_or_default(),
+            title: review.title,
+            text: review.text,
+            primary_fields: review.primary,
+            secondary_fields: review.secondary,
             has_critical_warning,
             rows: review_rows(chain, &wallet, &account, &session.metadata, header.is_some(), address_url),
             warnings,
@@ -125,12 +124,12 @@ fn authentication_preview(
         sign_type: SignDigestType::Siwe,
         data: message.message.as_bytes().to_vec(),
     };
-    let payload = MessageSigner::new(sign_message.clone()).payload_preview(Vec::new(), address_url).ok().flatten();
+    let review = MessageSigner::new(sign_message.clone()).review(Vec::new(), address_url);
     GemAuthenticationPreview {
-        title: payload.as_ref().map(|preview| preview.message_type).unwrap_or(MessageType::Text).title(),
-        text: message.message,
-        primary_fields: payload.as_ref().map(|preview| preview.primary.clone()).unwrap_or_default(),
-        secondary_fields: payload.map(|preview| preview.secondary).unwrap_or_default(),
+        title: review.title,
+        text: review.text,
+        primary_fields: review.primary,
+        secondary_fields: review.secondary,
         sections: authentication_sections(proposal, wallet_id, chain, status),
         message: sign_message,
     }

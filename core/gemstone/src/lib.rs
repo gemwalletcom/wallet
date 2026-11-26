@@ -33,7 +33,6 @@ pub(crate) mod testkit;
 pub mod transaction_state;
 pub mod transfer_amount;
 pub mod url_action;
-pub mod wallet_connect;
 
 use alien::AlienError;
 
