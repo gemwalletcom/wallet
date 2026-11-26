@@ -57,10 +57,6 @@ class GemstoneAssetStore(private val assetsDao: AssetsDao) : GemAssetStore {
         assetsDao.setSellableAssets(assetIds)
     }
 
-    override suspend fun setSwappableAssets(assetIds: List<String>) = withContext(Dispatchers.IO) {
-        assetsDao.setSwappableAssets(assetIds)
-    }
-
     override suspend fun setStakeableAssets(assetIds: List<String>) = withContext(Dispatchers.IO) {
         assetsDao.setStakeEnabled(assetIds)
     }

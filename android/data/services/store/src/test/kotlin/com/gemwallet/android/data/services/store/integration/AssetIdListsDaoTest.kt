@@ -36,7 +36,7 @@ class AssetIdListsDaoTest {
         database.walletsDao().insert(DbWallet(id = wallet, name = wallet, domainName = null, type = WalletType.Multicoin, position = 0, pinned = false, index = 0, source = WalletSource.Import))
         database.assetsDao().insert(
             (stored + unlisted).map { id ->
-                DbAsset(id = id, chain = Chain.Ethereum, name = id, symbol = id, decimals = 18, type = AssetType.ERC20, isSwapEnabled = id == unlisted, isBuyEnabled = id == unlisted, isSellEnabled = id == unlisted)
+                DbAsset(id = id, chain = Chain.Ethereum, name = id, symbol = id, decimals = 18, type = AssetType.ERC20, isBuyEnabled = id == unlisted, isSellEnabled = id == unlisted)
             },
         )
         database.balancesDao().insert(stored.map { DbBalance(assetId = it, walletId = wallet, isVisible = true, updatedAt = 0) })
@@ -50,13 +50,11 @@ class AssetIdListsDaoTest {
     fun onlyTheListedAssetsStayEnabled() = runBlocking(Dispatchers.IO) {
         val assets = database.assetsDao()
 
-        assets.setSwappableAssets(listed)
         assets.setBuyableAssets(listed)
         assets.setSellableAssets(listed)
 
         val rows = assets.getAssetsByIds(listed + unlisted)
         assertEquals(stored + unlisted, rows.map { it.id }.toSet())
-        assertEquals(stored, rows.filter { it.isSwapEnabled }.map { it.id }.toSet())
         assertEquals(stored, rows.filter { it.isBuyEnabled }.map { it.id }.toSet())
         assertEquals(stored, rows.filter { it.isSellEnabled }.map { it.id }.toSet())
     }
