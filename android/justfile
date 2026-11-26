@@ -106,6 +106,13 @@ test-all *ARGS:
 lint:
     @./gradlew lint -x :gemstone:lintDebug
 
+lock:
+    @rm -f app/gradle.lockfile buildscript-gradle.lockfile
+    @./gradlew :app:dependencies --write-locks --quiet > /dev/null
+
+lock-check: lock
+    @git diff --exit-code -- app/gradle.lockfile buildscript-gradle.lockfile
+
 provision-emulator:
     @bash ./scripts/android_emulator.sh provision
 

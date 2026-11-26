@@ -20,6 +20,12 @@ buildscript {
             ).forEach { classpath(it) { because("Android Gradle plugin resolves a version with published advisories") } }
         }
     }
+    configurations.classpath {
+        resolutionStrategy.activateDependencyLocking()
+    }
+    dependencyLocking {
+        lockMode = LockMode.STRICT
+    }
 }
 
 plugins {
@@ -37,16 +43,9 @@ allprojects {
         google()
         mavenCentral()
     }
-
-    dependencyLocking {
-        lockAllConfigurations()
-    }
 }
 
 subprojects {
-    configurations.configureEach {
-        resolutionStrategy.activateDependencyLocking()
-    }
     tasks.withType<Test>().configureEach {
         dependsOn(":gemstone:buildGemstoneHost")
         inputs.file(gemstoneHostLibrary)
