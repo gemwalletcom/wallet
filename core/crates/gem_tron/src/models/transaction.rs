@@ -93,6 +93,8 @@ pub struct TransactionReceiptData {
     pub receipt: TransactionReceipt,
     pub log: Option<Vec<TronLog>>,
     pub internal_transactions: Option<Vec<InternalTransaction>>,
+    pub withdraw_amount: Option<u64>,
+    pub withdraw_expire_amount: Option<u64>,
 }
 
 impl TransactionReceiptData {

@@ -177,6 +177,8 @@ impl TransactionReceiptData {
             receipt: TransactionReceipt { result: Some(result.to_string()) },
             log: None,
             internal_transactions: None,
+            withdraw_amount: None,
+            withdraw_expire_amount: None,
         }
     }
 }
