@@ -27,6 +27,7 @@ flowchart LR
 | The user taps a delegation awaiting withdrawal, in a wallet that can sign | straight to Withdraw | |
 | The user delegates to a validator Gem does not recommend | the delegation shows the state the network reports for that validator | |
 | No other active validator exists | no Redelegate | |
+| A BNB Smart Chain delegation holds less than 1 BNB, as a partial unstake can leave it | no Redelegate | the network redelegates at least 1 BNB |
 | The user redelegates | never to the validator being left | |
 | The delegation is awaiting withdrawal | Withdraw is offered | |
 | Several unstakes are ready to withdraw from one BNB Smart Chain validator, or several TRX unfreezes on TRON | one delegation awaiting withdrawal shows their total, and Withdraw shows that total | the network withdraws all of them at once |
