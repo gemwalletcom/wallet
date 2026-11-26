@@ -20,4 +20,5 @@ pub struct AccountState {
     pub pending_deposited_balance: BigUint,
     pub withdraw_request: WithdrawRequest,
     pub restaked_reward: BigUint,
+    pub autocompound_balance: BigUint,
 }

@@ -44,8 +44,8 @@ impl<C: Client + Clone> EvmStakingClient for EverstakeStakingClient<C> {
     }
 
     async fn get_staking_balance(&self, address: &str) -> Result<Option<AssetBalance>, Box<dyn Error + Sync + Send>> {
-        let delegations = self.get_staking_delegations(address).await?;
-        Ok(Some(AssetBalance::new_balance(AssetId::from_chain(Chain::Ethereum), map_staking_balance(&delegations))))
+        let state = account_state(&self.client, address).await?;
+        Ok(Some(AssetBalance::new_balance(AssetId::from_chain(Chain::Ethereum), map_staking_balance(&state))))
     }
 
     fn encode_stake(&self, stake_type: &StakeType, value: &BigInt) -> Result<TransactionParams, Box<dyn Error + Sync + Send>> {
