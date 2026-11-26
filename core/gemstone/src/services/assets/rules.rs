@@ -75,13 +75,6 @@ pub fn asset_ids(ids: &[String]) -> Vec<AssetId> {
     ids.iter().filter_map(|id| AssetId::new(id)).collect()
 }
 
-pub fn swappable_asset_ids(listed: Vec<AssetId>) -> Vec<AssetId> {
-    let natives = Chain::all().into_iter().filter(Chain::is_swap_supported).map(AssetId::from_chain);
-    let mut asset_ids = listed;
-    asset_ids.extend(natives.filter(|native| !asset_ids.contains(native)).collect::<Vec<_>>());
-    asset_ids
-}
-
 pub fn asset_prices(assets: &[AssetBasic]) -> Vec<AssetPrice> {
     assets
         .iter()
@@ -1707,18 +1700,6 @@ mod tests {
         let ids = asset_ids(&["bitcoin".to_string(), String::new(), "ethereum_0x1234".to_string()]);
 
         assert_eq!(ids, vec![AssetId::from_chain(Chain::Bitcoin), AssetId::from_token(Chain::Ethereum, "0x1234")]);
-    }
-
-    #[test]
-    fn test_the_swap_list_adds_swap_supported_natives_once() {
-        let listed = vec![AssetId::from_token(Chain::Ethereum, "0x1234"), AssetId::from_chain(Chain::Ethereum)];
-        let added: Vec<AssetId> = Chain::all()
-            .into_iter()
-            .filter(|chain| chain.is_swap_supported() && *chain != Chain::Ethereum)
-            .map(AssetId::from_chain)
-            .collect();
-
-        assert_eq!(swappable_asset_ids(listed.clone()), [listed, added].concat());
     }
 
     fn state(wallet_type: WalletType, metadata: &AssetMetaData, banner_events: &[BannerEvent]) -> GemAssetDetailsState {

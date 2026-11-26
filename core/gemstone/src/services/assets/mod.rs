@@ -198,9 +198,9 @@ impl GemAssetsService {
         match list {
             AssetList::Buy => self.store.set_buyable_assets(asset_ids).await?,
             AssetList::Sell => self.store.set_sellable_assets(asset_ids).await?,
-            AssetList::Swap => self.store.set_swappable_assets(rules::swappable_asset_ids(asset_ids)).await?,
+            AssetList::Swap => {}
         }
-        self.preferences.set_assets_version(list, Some(assets.version.to_string()))
+        self.preferences.set_assets_version(list, assets.version.to_string())
     }
 
     pub async fn search_tokens(&self, token_id: String, chains: Vec<Chain>) -> Result<Vec<AssetBasic>, GemServiceError> {
@@ -239,7 +239,7 @@ impl GemAssetsService {
             return Ok(());
         }
         self.store.save_assets(missing).await?;
-        AssetList::iter().try_for_each(|list| self.preferences.set_assets_version(list, None))
+        AssetList::iter().try_for_each(|list| self.preferences.remove_assets_version(list))
     }
 
     pub async fn get_fiat_assets(&self, quote_type: FiatQuoteType) -> Result<FiatAssets, GemApiError> {
@@ -297,7 +297,7 @@ mod tests {
                 ..MemoryAssetStore::default()
             });
             let service = GemAssetsService::mock(Arc::new(TestAlienProvider::offline()), store);
-            let store_versions = || AssetList::iter().for_each(|list| service.preferences.set_assets_version(list, Some("1".to_string())).unwrap());
+            let store_versions = || AssetList::iter().for_each(|list| service.preferences.set_assets_version(list, "1".to_string()).unwrap());
             let stored_versions = || AssetList::iter().map(|list| service.preferences.get_assets_version(list)).collect::<Vec<_>>();
             store_versions();
 
