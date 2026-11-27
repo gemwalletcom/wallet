@@ -47,10 +47,10 @@ impl<C: Client> HyperCoreClient<C> {
         Ok(map_positions(positions, address.to_string(), &orders))
     }
 
-    async fn answered_dexes<T, F: Future<Output = Result<T, Box<dyn Error + Sync + Send>>>>(&self, fetch: impl Fn(PerpDex) -> F) -> Result<Vec<(PerpDex, T)>, Box<dyn Error + Sync + Send>> {
+    async fn answered_dexes<T, F: Future<Output = Result<T, Box<dyn Error + Sync + Send>>>>(&self, request: impl Fn(PerpDex) -> F) -> Result<Vec<(PerpDex, T)>, Box<dyn Error + Sync + Send>> {
         let dexes = &self.config.perp_dexes;
         let mut answered = Vec::new();
-        for (dex, result) in dexes.iter().copied().zip(join_all(dexes.iter().map(|dex| fetch(*dex))).await) {
+        for (dex, result) in dexes.iter().copied().zip(join_all(dexes.iter().map(|dex| request(*dex))).await) {
             match result {
                 Ok(value) => answered.push((dex, value)),
                 Err(error) if dex == PerpDex::Main => return Err(error),

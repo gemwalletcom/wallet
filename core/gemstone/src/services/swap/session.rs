@@ -1473,7 +1473,7 @@ mod tests {
     }
 
     #[test]
-    fn test_a_new_fetch_drops_the_answers_of_the_one_before() {
+    fn test_a_new_request_drops_the_answers_of_the_one_before() {
         let restarted = two_of_three().on_fetch_started(GemSwapRequest::mock());
         let late = restarted.on_provider_answer(GemSwapRequest::mock(), failed_answer(SwapperProvider::NearIntents, SwapperError::NoQuoteAvailable));
         assert_eq!(late, restarted, "an answer from the fetch before is not counted");

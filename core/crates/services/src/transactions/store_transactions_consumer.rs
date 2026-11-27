@@ -65,7 +65,7 @@ impl StoreTransactionsConsumer {
         }
         self.vault_client.add_deposit_ids(in_transit_deposit_ids(&transactions, &deposit_addresses)).await?;
 
-        let assets = self.get_existing_assets_and_fetch_missing(config, &transactions).await?;
+        let assets = self.get_existing_assets_and_queue_missing(config, &transactions).await?;
         let subscribed_transactions = Self::subscribed_transactions(config, &subscriptions, &transactions, &assets);
         let transactions_map = subscribed_transactions.iter().map(|(_, transaction)| (transaction.id.clone(), (*transaction).clone())).collect::<HashMap<_, _>>();
         if transactions_map.is_empty() {
@@ -142,7 +142,7 @@ impl StoreTransactionsConsumer {
             .collect()
     }
 
-    async fn get_existing_assets_and_fetch_missing(&self, config: &StoreTransactionsConsumerConfig, transactions: &[Transaction]) -> Result<HashMap<AssetId, AssetPriceMetadata>, Box<dyn Error + Send + Sync>> {
+    async fn get_existing_assets_and_queue_missing(&self, config: &StoreTransactionsConsumerConfig, transactions: &[Transaction]) -> Result<HashMap<AssetId, AssetPriceMetadata>, Box<dyn Error + Send + Sync>> {
         let asset_ids: Vec<AssetId> = transactions.iter().flat_map(Transaction::asset_ids).collect::<HashSet<_>>().into_iter().collect();
         let nft_asset_ids: Vec<NFTAssetId> = transactions.iter().filter_map(Transaction::nft_asset_id).collect::<HashSet<_>>().into_iter().collect();
 

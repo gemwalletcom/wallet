@@ -16,7 +16,7 @@ use gem_sui::{
     ESTIMATION_GAS_BUDGET, SuiClient,
     models::{Coin, OwnedCoins, TxOutput},
     sui_clock_object_input,
-    tx_builder::{ObjectResolver, PrefetchedTransactionData, TransactionBuilderInput, balance_value, balance_zero, build_input_coin, destroy_zero_balance, finish_transaction, from_balance, into_balance, move_call},
+    tx_builder::{ObjectResolver, TransactionBuilderInput, TransactionContext, balance_value, balance_zero, build_input_coin, destroy_zero_balance, finish_transaction, from_balance, into_balance, move_call},
 };
 use std::{collections::HashMap, fmt::Display};
 
@@ -45,7 +45,7 @@ pub(super) async fn build_quote_data(client: &SuiClient, quote: &Quote, route: &
         pinned.insert(hop.pool_id.clone(), hop.pool_init_version);
         object_ids.push(hop.pool_id.clone());
     }
-    let PrefetchedTransactionData { transaction, input_coins, resolver, .. } = PrefetchedTransactionData::prefetch(client, sender, route.input_coin_type(), None, object_ids, &pinned, ESTIMATION_GAS_BUDGET)
+    let TransactionContext { transaction, input_coins, resolver, .. } = TransactionContext::load(client, sender, route.input_coin_type(), None, object_ids, &pinned, ESTIMATION_GAS_BUDGET)
         .await
         .map_err(SwapperError::transaction_error)?;
 

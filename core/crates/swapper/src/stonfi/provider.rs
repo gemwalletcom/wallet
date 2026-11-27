@@ -308,12 +308,12 @@ where
         amount: &BigUint,
         (slippage_bps, referral_bps): (u32, u32),
     ) -> Result<(DiscoveredPool, SwapSimulation), SwapperError> {
-        let fetched_pool_data;
+        let pool_data_response;
         let pool_data = match pool_data {
             Some(pool_data) => pool_data,
             None => {
-                fetched_pool_data = self.client.get_pool_data(&candidate.pool_address).await?;
-                &fetched_pool_data
+                pool_data_response = self.client.get_pool_data(&candidate.pool_address).await?;
+                &pool_data_response
             }
         };
         if pool_data.is_locked {

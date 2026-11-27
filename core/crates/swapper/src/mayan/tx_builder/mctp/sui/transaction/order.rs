@@ -20,7 +20,7 @@ use gem_sui::tx_builder::{Argument, TransactionBuilder};
 use gem_sui::types::Address;
 use gem_sui::{address::SuiAddress, tx_builder::move_call};
 
-use super::super::prefetch::PrefetchedSuiData;
+use super::super::context::MctpSuiContext;
 
 const MCTP_INIT_ORDER_PAYLOAD_ID: u8 = 1;
 
@@ -28,23 +28,23 @@ pub(super) fn add_init_order_move_calls(
     txb: &mut TransactionBuilder,
     route: &MayanMctpQuote,
     quote: &Quote,
-    prefetched: &PrefetchedSuiData,
+    context: &MctpSuiContext,
     input_coin: Argument,
     wh_fee_coin: WormholeFeeCoin,
     destination_address: &str,
 ) -> Result<(), SwapperError> {
     let destination_chain_id = wormhole_chain_id(&route.to_chain)?;
-    let mctp_input_contract = prefetched.mctp_input_contract.as_str();
-    let fee_manager_package_id = prefetched.fee_manager_package_id.as_deref().ok_or(SwapperError::InvalidRoute)?;
+    let mctp_input_contract = context.mctp_input_contract.as_str();
+    let fee_manager_package_id = context.fee_manager_package_id.as_deref().ok_or(SwapperError::InvalidRoute)?;
     let referrer = referrer_bytes(&route.to_chain)?;
     let amount_out_min = min_amount_out(&route.min_amount_out, route.to_token.decimals, &route.to_chain, &QuoteType::Mctp)?;
     let gas_drop = gas_drop_amount(&route.gas_drop, &route.to_chain, &QuoteType::Mctp, false)?;
     let cctp_domain = domain_for_wormhole_chain(&route.to_chain)?.id();
     let fee_manager_package = package_address(fee_manager_package_id)?;
-    let mctp_package = package_address(&prefetched.mctp_package_id)?;
+    let mctp_package = package_address(&context.mctp_package_id)?;
 
     let common_arguments = vec![
-        txb.object(prefetched.objects[&prefetched.mctp_verified_input_address].input(false)),
+        txb.object(context.objects[&context.mctp_verified_input_address].input(false)),
         txb.pure(&MCTP_INIT_ORDER_PAYLOAD_ID),
         txb.pure(&Address::from(SuiAddress::parse(&quote.request.wallet_address).map_err(sui_error)?)),
         input_coin,
@@ -59,16 +59,16 @@ pub(super) fn add_init_order_move_calls(
         txb.pure(&optional_bps_u8(route.referrer_bps)?),
     ];
     let fee_ticket = move_call(txb, fee_manager_package, "calculate_mctp_fee", "prepare_calc_mctp_fee", &[mctp_input_contract], common_arguments.clone()).map_err(sui_error)?;
-    let fee_manager_state = txb.object(prefetched.objects[SUI_MCTP_FEE_MANAGER_STATE].input(false));
+    let fee_manager_state = txb.object(context.objects[SUI_MCTP_FEE_MANAGER_STATE].input(false));
     let fee_params = move_call(txb, fee_manager_package, "calculate_mctp_fee", "calculate_mctp_fee", &[], vec![fee_manager_state, fee_ticket]).map_err(sui_error)?;
 
     let mut init_arguments = common_arguments[1..].to_vec();
     init_arguments.push(txb.pure(&cctp_domain));
     init_arguments.push(txb.pure(&bridge_amount(route, route.min_middle_amount.as_ref(), mctp_input_contract)?));
     let init_ticket = move_call(txb, mctp_package, "init_order", "prepare_initialize_order", &[mctp_input_contract], init_arguments).map_err(sui_error)?;
-    let mctp_state = txb.object(prefetched.objects[SUI_MCTP_STATE].input(true));
-    let cctp_core_state = txb.object(prefetched.objects[SUI_CCTP_CORE_STATE].input(true));
-    let verified_input = txb.object(prefetched.objects[&prefetched.mctp_verified_input_address].input(false));
+    let mctp_state = txb.object(context.objects[SUI_MCTP_STATE].input(true));
+    let cctp_core_state = txb.object(context.objects[SUI_CCTP_CORE_STATE].input(true));
+    let verified_input = txb.object(context.objects[&context.mctp_verified_input_address].input(false));
     let initialize_result = move_call(
         txb,
         mctp_package,
@@ -81,9 +81,9 @@ pub(super) fn add_init_order_move_calls(
     let initialize_result = initialize_result.to_nested(2);
     let burn_request = initialize_result[0];
     let deposit_ticket = initialize_result[1];
-    let cctp_message = deposit_for_burn_with_auth(txb, prefetched, "init_order", deposit_ticket)?.to_nested(2)[1];
-    let mctp_state = txb.object(prefetched.objects[SUI_MCTP_STATE].input(true));
+    let cctp_message = deposit_for_burn_with_auth(txb, context, "init_order", deposit_ticket)?.to_nested(2)[1];
+    let mctp_state = txb.object(context.objects[SUI_MCTP_STATE].input(true));
     let wormhole_message = move_call(txb, mctp_package, "init_order", "publish_init_order", &[], vec![mctp_state, burn_request, cctp_message]).map_err(sui_error)?;
-    add_publish_wormhole_message(txb, prefetched, wormhole_message, bridge_fee(route)?, wh_fee_coin)?;
+    add_publish_wormhole_message(txb, context, wormhole_message, bridge_fee(route)?, wh_fee_coin)?;
     Ok(())
 }

@@ -52,7 +52,7 @@ mod tests {
     use super::*;
 
     #[tokio::test]
-    async fn test_get_transactions_by_block_fetches_block_only() {
+    async fn test_get_transactions_by_block_requests_block_only() {
         let mut transparent: Value = from_str(include_str!("../../testdata/transaction_shielded_receive.json")).unwrap();
         let spend: Value = from_str(include_str!("../../testdata/transaction_joinsplit.json")).unwrap();
         transparent["vin"] = spend["vin"].clone();

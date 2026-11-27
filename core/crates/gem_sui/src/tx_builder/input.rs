@@ -36,7 +36,7 @@ impl TransactionBuilderInput {
     }
 
     #[cfg(feature = "rpc")]
-    pub async fn prefetch(client: &SuiClient, sender: &str, gas_budget: u64) -> Result<Self, SuiError> {
+    pub async fn load(client: &SuiClient, sender: &str, gas_budget: u64) -> Result<Self, SuiError> {
         let gas_price = async { client.get_gas_price().await.map_err(SuiError::from_display) };
         let gas_coins = async { client.get_gas_coins(sender).await.map_err(SuiError::from_display) };
         let (gas_price, gas_coins) = try_join!(gas_price, gas_coins)?;

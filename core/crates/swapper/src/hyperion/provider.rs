@@ -52,7 +52,7 @@ mod swap_integration_tests {
     const TEST_WALLET: &str = "0x4eb20e735591a85bb58921ef2e6b55c385bba10e817ffe1e02e50deb6c594aef";
 
     #[tokio::test]
-    async fn test_hyperion_fetch_quote_and_quote_data() -> Result<(), SwapperError> {
+    async fn test_hyperion_get_quote_and_quote_data() -> Result<(), SwapperError> {
         let provider = Hyperion::new(Arc::new(NativeProvider::default())).unwrap();
         let request = QuoteRequest {
             from_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Aptos)),
@@ -77,7 +77,7 @@ mod swap_integration_tests {
     }
 
     #[tokio::test]
-    async fn test_hyperion_fetch_quote_usdt_to_usdc() -> Result<(), SwapperError> {
+    async fn test_hyperion_get_quote_usdt_to_usdc() -> Result<(), SwapperError> {
         let provider = Hyperion::new(Arc::new(NativeProvider::default())).unwrap();
         let request = QuoteRequest {
             from_asset: SwapperQuoteAsset::from(APTOS_USDT_ASSET_ID.clone()),

@@ -19,7 +19,7 @@ use gem_sui::tx_builder::move_call;
 use gem_sui::tx_builder::{Argument, TransactionBuilder};
 use gem_sui::types::Address;
 
-use super::super::prefetch::PrefetchedSuiData;
+use super::super::context::MctpSuiContext;
 use super::sui_error;
 
 const MCTP_PAYLOAD_TYPE_DEFAULT: u8 = 1;
@@ -47,11 +47,11 @@ impl BridgeParams {
     }
 }
 
-pub(super) fn add_bridge_with_fee_move_calls(txb: &mut TransactionBuilder, route: &MayanMctpQuote, prefetched: &PrefetchedSuiData, input_coin: Argument, wh_fee_coin: WormholeFeeCoin, destination_address: &str) -> Result<(), SwapperError> {
-    let mctp_input_contract = prefetched.mctp_input_contract.as_str();
+pub(super) fn add_bridge_with_fee_move_calls(txb: &mut TransactionBuilder, route: &MayanMctpQuote, context: &MctpSuiContext, input_coin: Argument, wh_fee_coin: WormholeFeeCoin, destination_address: &str) -> Result<(), SwapperError> {
+    let mctp_input_contract = context.mctp_input_contract.as_str();
     let bridge = BridgeParams::new(route, mctp_input_contract, destination_address)?;
     let payload = Vec::<u8>::new();
-    let mctp_package = package_address(&prefetched.mctp_package_id)?;
+    let mctp_package = package_address(&context.mctp_package_id)?;
     let bridge_arguments = vec![
         txb.pure(&MCTP_PAYLOAD_TYPE_DEFAULT),
         input_coin,
@@ -63,17 +63,17 @@ pub(super) fn add_bridge_with_fee_move_calls(txb: &mut TransactionBuilder, route
         txb.pure(&payload),
     ];
     let bridge_ticket = move_call(txb, mctp_package, BRIDGE_WITH_FEE_MODULE, "prepare_bridge_with_fee", &[mctp_input_contract], bridge_arguments).map_err(sui_error)?;
-    let (burn_request, cctp_message) = complete_bridge(txb, prefetched, mctp_input_contract, BRIDGE_WITH_FEE_MODULE, bridge_ticket)?;
-    let mctp_state = txb.object(prefetched.objects[SUI_MCTP_STATE].input(true));
+    let (burn_request, cctp_message) = complete_bridge(txb, context, mctp_input_contract, BRIDGE_WITH_FEE_MODULE, bridge_ticket)?;
+    let mctp_state = txb.object(context.objects[SUI_MCTP_STATE].input(true));
     let wormhole_message = move_call(txb, mctp_package, BRIDGE_WITH_FEE_MODULE, "publish_bridge_with_fee", &[], vec![mctp_state, burn_request, cctp_message]).map_err(sui_error)?;
-    add_publish_wormhole_message(txb, prefetched, wormhole_message, bridge_fee(route)?, wh_fee_coin)?;
+    add_publish_wormhole_message(txb, context, wormhole_message, bridge_fee(route)?, wh_fee_coin)?;
     Ok(())
 }
 
-pub(super) fn add_bridge_locked_fee_move_calls(txb: &mut TransactionBuilder, route: &MayanMctpQuote, prefetched: &PrefetchedSuiData, input_coin: Argument, destination_address: &str) -> Result<(), SwapperError> {
-    let mctp_input_contract = prefetched.mctp_input_contract.as_str();
+pub(super) fn add_bridge_locked_fee_move_calls(txb: &mut TransactionBuilder, route: &MayanMctpQuote, context: &MctpSuiContext, input_coin: Argument, destination_address: &str) -> Result<(), SwapperError> {
+    let mctp_input_contract = context.mctp_input_contract.as_str();
     let bridge = BridgeParams::new(route, mctp_input_contract, destination_address)?;
-    let mctp_package = package_address(&prefetched.mctp_package_id)?;
+    let mctp_package = package_address(&context.mctp_package_id)?;
     let bridge_arguments = vec![
         input_coin,
         txb.pure(&bridge.amount_in),
@@ -83,9 +83,9 @@ pub(super) fn add_bridge_locked_fee_move_calls(txb: &mut TransactionBuilder, rou
         txb.pure(&bridge.redeem_fee),
     ];
     let bridge_ticket = move_call(txb, mctp_package, BRIDGE_LOCKED_FEE_MODULE, "prepare_bridge_locked_fee", &[mctp_input_contract], bridge_arguments).map_err(sui_error)?;
-    let (burn_request, cctp_message) = complete_bridge(txb, prefetched, mctp_input_contract, BRIDGE_LOCKED_FEE_MODULE, bridge_ticket)?;
-    let mctp_state = txb.object(prefetched.objects[SUI_MCTP_STATE].input(true));
-    let verified_input = txb.object(prefetched.objects[&prefetched.mctp_verified_input_address].input(false));
+    let (burn_request, cctp_message) = complete_bridge(txb, context, mctp_input_contract, BRIDGE_LOCKED_FEE_MODULE, bridge_ticket)?;
+    let mctp_state = txb.object(context.objects[SUI_MCTP_STATE].input(true));
+    let verified_input = txb.object(context.objects[&context.mctp_verified_input_address].input(false));
     move_call(
         txb,
         mctp_package,
@@ -98,15 +98,15 @@ pub(super) fn add_bridge_locked_fee_move_calls(txb: &mut TransactionBuilder, rou
     Ok(())
 }
 
-fn complete_bridge(txb: &mut TransactionBuilder, prefetched: &PrefetchedSuiData, mctp_input_contract: &str, module: &str, bridge_ticket: Argument) -> Result<(Argument, Argument), SwapperError> {
-    let mctp_package = package_address(&prefetched.mctp_package_id)?;
-    let mctp_state = txb.object(prefetched.objects[SUI_MCTP_STATE].input(true));
-    let cctp_core_state = txb.object(prefetched.objects[SUI_CCTP_CORE_STATE].input(true));
-    let verified_input = txb.object(prefetched.objects[&prefetched.mctp_verified_input_address].input(false));
+fn complete_bridge(txb: &mut TransactionBuilder, context: &MctpSuiContext, mctp_input_contract: &str, module: &str, bridge_ticket: Argument) -> Result<(Argument, Argument), SwapperError> {
+    let mctp_package = package_address(&context.mctp_package_id)?;
+    let mctp_state = txb.object(context.objects[SUI_MCTP_STATE].input(true));
+    let cctp_core_state = txb.object(context.objects[SUI_CCTP_CORE_STATE].input(true));
+    let verified_input = txb.object(context.objects[&context.mctp_verified_input_address].input(false));
     let bridge_result = move_call(txb, mctp_package, module, module, &[mctp_input_contract], vec![mctp_state, cctp_core_state, verified_input, bridge_ticket]).map_err(sui_error)?;
     let bridge_result = bridge_result.to_nested(2);
     let burn_request = bridge_result[0];
     let deposit_ticket = bridge_result[1];
-    let cctp_message = deposit_for_burn_with_auth(txb, prefetched, module, deposit_ticket)?.to_nested(2)[1];
+    let cctp_message = deposit_for_burn_with_auth(txb, context, module, deposit_ticket)?.to_nested(2)[1];
     Ok((burn_request, cctp_message))
 }

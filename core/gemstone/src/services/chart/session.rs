@@ -415,7 +415,7 @@ mod tests {
     }
 
     #[test]
-    fn test_a_chart_load_refreshes_the_rate_it_fetched() {
+    fn test_a_chart_load_refreshes_its_rate() {
         let session = rated(ChartPeriod::Day, Currency::EUR);
         let result = GemChartResult {
             rate: Some(0.9),

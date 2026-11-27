@@ -157,17 +157,17 @@ mod tests {
 
     #[test]
     fn test_loading_a_transaction_the_wallet_lacks_stores_what_the_server_returns() {
-        let fetched = Transaction {
+        let transaction = Transaction {
             state: TransactionState::Pending,
             ..Transaction::mock()
         };
-        let path = format!("/v1/devices/transactions/{}", fetched.id);
-        let provider = TestAlienProvider::with_json_by_path(200, &[(path.as_str(), &serde_json::to_string(&fetched).unwrap())]);
-        let (state, testkit) = load_transaction(provider, None, fetched.id.clone());
+        let path = format!("/v1/devices/transactions/{}", transaction.id);
+        let provider = TestAlienProvider::with_json_by_path(200, &[(path.as_str(), &serde_json::to_string(&transaction).unwrap())]);
+        let (state, testkit) = load_transaction(provider, None, transaction.id.clone());
 
         assert_eq!(state, GemLoadState::Data);
-        assert_eq!(*testkit.transaction_store.added.lock().unwrap(), vec![(Wallet::mock().id, vec![fetched.clone()])]);
-        assert_eq!(*testkit.transaction_status.tracked.lock().unwrap(), vec![vec![fetched]], "a pending transaction is tracked once it is stored");
+        assert_eq!(*testkit.transaction_store.added.lock().unwrap(), vec![(Wallet::mock().id, vec![transaction.clone()])]);
+        assert_eq!(*testkit.transaction_status.tracked.lock().unwrap(), vec![vec![transaction]], "a pending transaction is tracked once it is stored");
     }
 
     #[test]

@@ -30,7 +30,7 @@ pub(in crate::mayan::tx_builder) struct SuiClientSwapReplay {
 }
 
 impl SuiClientSwapReplay {
-    pub(in crate::mayan::tx_builder) async fn fetch<C>(client: &MayanClient<C>, sui_client: &SuiClient, params: GetSwapSuiParams) -> Result<Self, SwapperError>
+    pub(in crate::mayan::tx_builder) async fn get<C>(client: &MayanClient<C>, sui_client: &SuiClient, params: GetSwapSuiParams) -> Result<Self, SwapperError>
     where
         C: Client + Clone + Send + Sync + Debug + 'static,
     {
@@ -105,7 +105,7 @@ pub(in crate::mayan::tx_builder) async fn get_sui_objects(client: &SuiClient, ob
     let object_ids: Vec<String> = object_ids.into_iter().collect::<BTreeSet<_>>().into_iter().collect();
     let objects = ResolvedObjectInput::get_multiple(client, object_ids.clone()).await.map_err(sui_error)?;
     if objects.len() != object_ids.len() {
-        return Err(SwapperError::transaction_error("Failed to prefetch all Mayan Sui objects"));
+        return Err(SwapperError::transaction_error("Failed to load all Mayan Sui objects"));
     }
     Ok(object_ids.into_iter().zip(objects).collect())
 }

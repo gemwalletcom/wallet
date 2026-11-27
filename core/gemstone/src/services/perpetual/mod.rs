@@ -807,7 +807,7 @@ mod tests {
     }
 
     #[test]
-    fn test_connection_fetches_only_the_account_mode_before_opening_the_socket() {
+    fn test_connection_loads_only_the_account_mode_before_opening_the_socket() {
         block_on(async {
             for chains in [[Chain::Arbitrum, Chain::HyperCore], [Chain::Hyperliquid, Chain::HyperCore], [Chain::HyperCore, Chain::Arbitrum]] {
                 let testkit = PerpetualTestkit::with_unified_balance().await;

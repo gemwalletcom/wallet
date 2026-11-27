@@ -103,7 +103,7 @@ mod swap_integration_tests {
     }
 
     #[tokio::test]
-    async fn test_cetus_clmm_provider_fetch_quote_and_data() -> Result<(), SwapperError> {
+    async fn test_cetus_clmm_provider_get_quote_and_data() -> Result<(), SwapperError> {
         let rpc_provider = Arc::new(NativeProvider::default());
         let provider = CetusClmm::new(rpc_provider).unwrap();
         let request = QuoteRequest {
@@ -129,7 +129,7 @@ mod swap_integration_tests {
     }
 
     #[tokio::test]
-    async fn test_cetus_clmm_provider_fetch_quote_usdc_to_sui() -> Result<(), SwapperError> {
+    async fn test_cetus_clmm_provider_get_quote_usdc_to_sui() -> Result<(), SwapperError> {
         let rpc_provider = Arc::new(NativeProvider::default());
         let provider = CetusClmm::new(rpc_provider).unwrap();
         for wallet in [TEST_SUI_WALLET, TEST_SUI_SMALL_GAS_BALANCE_WALLET] {

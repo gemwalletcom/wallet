@@ -1426,7 +1426,7 @@ mod tests {
     }
 
     #[test]
-    fn test_pinned_rows_in_the_fetched_window_still_offer_more() {
+    fn test_pinned_rows_in_a_full_window_still_offer_more() {
         let view = |query: &str, rows: usize, pinned: usize| {
             let ids = token_ids(rows);
             wallet_search_view(
@@ -1442,11 +1442,11 @@ mod tests {
         };
 
         for query in ["", "usd"] {
-            let fetch = wallet_search_limits(query).fetch;
-            assert!(view(query, fetch, 0).has_more_assets, "a full window offers more");
-            assert!(view(query, fetch, 1).has_more_assets, "a pinned row shares the window, so a full window still offers more");
-            assert!(view(query, fetch, fetch).has_more_assets, "a window full of pinned rows can hide the rest");
-            assert!(!view(query, fetch - 1, 2).has_more_assets, "a window the store could not fill has nothing more");
+            let limit = wallet_search_limits(query).fetch;
+            assert!(view(query, limit, 0).has_more_assets, "a full window offers more");
+            assert!(view(query, limit, 1).has_more_assets, "a pinned row shares the window, so a full window still offers more");
+            assert!(view(query, limit, limit).has_more_assets, "a window full of pinned rows can hide the rest");
+            assert!(!view(query, limit - 1, 2).has_more_assets, "a window the store could not fill has nothing more");
         }
     }
 
@@ -1558,7 +1558,7 @@ mod tests {
     }
 
     #[test]
-    fn test_wallet_search_limits_widen_while_searching_and_fetch_one_more_than_shown() {
+    fn test_wallet_search_limits_widen_while_searching_and_load_one_more_than_shown() {
         assert_eq!(wallet_search_limits("  "), GemWalletSearchLimits { fetch: 13, results: 100 });
         assert_eq!(wallet_search_limits("btc"), GemWalletSearchLimits { fetch: 26, results: 100 });
     }

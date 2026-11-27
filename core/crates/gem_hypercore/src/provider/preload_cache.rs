@@ -165,7 +165,7 @@ impl HyperCoreCache {
         self.preferences.set_i64_with_ttl(&spot_cache_key, (fee_rates.spot_cross * Self::USER_FEE_RATE_SCALE).round() as i64, Self::USER_FEES_TTL)
     }
 
-    pub(crate) async fn get_user_fee_rates<F>(&self, address: &str, fetcher: F) -> Result<UserFeeRateOptions, Box<dyn Error + Send + Sync>>
+    pub(crate) async fn get_user_fee_rates<F>(&self, address: &str, request: F) -> Result<UserFeeRateOptions, Box<dyn Error + Send + Sync>>
     where
         F: Future<Output = Result<UserFee, Box<dyn Error + Send + Sync>>>,
     {
@@ -176,7 +176,7 @@ impl HyperCoreCache {
             return Ok(UserFeeRateOptions { current, referral });
         }
 
-        let user_fees = fetcher.await?;
+        let user_fees = request.await?;
         let current = UserFeeRates::discounted(&user_fees, user_fees.active_referral_discount);
         let referral = UserFeeRates::discounted(&user_fees, user_fees.fee_schedule.referral_discount);
         self.set_cached_fee_rates(address, Self::USER_PERPETUAL_FEE_RATE_KEY, Self::USER_SPOT_FEE_RATE_KEY, current)?;

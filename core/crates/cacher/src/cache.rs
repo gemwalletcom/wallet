@@ -52,7 +52,7 @@ impl CacherClient {
         Ok(self.get_many::<StoredValue<T>>(keys).await?.into_iter().filter_map(StoredValue::cached).map(|cached| cached.value).collect())
     }
 
-    pub(crate) async fn get_or_fetch_with_fallback<T, F>(&self, key: CacheKey<'_>, duration: Duration, fetch: F) -> Result<T, Box<dyn Error + Send + Sync>>
+    pub(crate) async fn get_or_set_with_fallback<T, F>(&self, key: CacheKey<'_>, duration: Duration, request: F) -> Result<T, Box<dyn Error + Send + Sync>>
     where
         T: DeserializeOwned + Serialize,
         F: Future<Output = Result<T, Box<dyn Error + Send + Sync>>>,
@@ -61,7 +61,7 @@ impl CacherClient {
             Some(cached) if cached.is_fresh(duration) => return Ok(cached.value),
             previous => previous,
         };
-        match fetch.await {
+        match request.await {
             Ok(value) => {
                 let cached = Cached { value, updated_at: SystemTime::now() };
                 if let Err(error) = self.set(key, &cached).await {

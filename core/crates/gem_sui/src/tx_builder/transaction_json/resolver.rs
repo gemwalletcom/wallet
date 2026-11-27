@@ -73,7 +73,7 @@ pub(super) async fn object_inputs(client: &SuiClient, inputs: &[TransactionInput
         .collect::<HashSet<_>>()
         .into_iter()
         .collect::<Vec<_>>();
-    let fetched = if object_ids.is_empty() {
+    let rpc_objects = if object_ids.is_empty() {
         Vec::new()
     } else {
         client
@@ -81,9 +81,9 @@ pub(super) async fn object_inputs(client: &SuiClient, inputs: &[TransactionInput
             .await
             .map_err(|err| SuiError::invalid_input(format!("Failed to fetch Sui transaction objects: {err}")))?
     };
-    let fetched = object_ids
+    let objects = object_ids
         .into_iter()
-        .zip(fetched)
+        .zip(rpc_objects)
         .map(|(object_id, object)| Ok((object_id, ResolvedObjectInput::from_rpc_object(object)?)))
         .collect::<Result<HashMap<_, _>, SuiError>>()?;
 
@@ -91,7 +91,7 @@ pub(super) async fn object_inputs(client: &SuiClient, inputs: &[TransactionInput
         .iter()
         .enumerate()
         .filter_map(|(index, input)| match input {
-            TransactionInput::UnresolvedObject { object } => Some(object_input_from_fetched(index, &object.object_id, &fetched, input_mutability)),
+            TransactionInput::UnresolvedObject { object } => Some(object_input(index, &object.object_id, &objects, input_mutability)),
             TransactionInput::Pure { .. } | TransactionInput::Object { .. } | TransactionInput::FundsWithdrawal { .. } | TransactionInput::UnresolvedPure { .. } => None,
         })
         .collect()
@@ -101,8 +101,8 @@ fn is_mutable_parameter(parameter: &OpenSignature) -> bool {
     parameter.reference.and_then(|reference| Reference::try_from(reference).ok()) == Some(Reference::Mutable)
 }
 
-fn object_input_from_fetched(index: usize, object_id: &str, fetched: &HashMap<String, ResolvedObjectInput>, input_mutability: &HashMap<usize, bool>) -> Result<(usize, ObjectInput), SuiError> {
-    let object = fetched.get(object_id).ok_or_else(|| SuiError::invalid_input(format!("Sui object was not returned by RPC: {object_id}")))?;
+fn object_input(index: usize, object_id: &str, objects: &HashMap<String, ResolvedObjectInput>, input_mutability: &HashMap<usize, bool>) -> Result<(usize, ObjectInput), SuiError> {
+    let object = objects.get(object_id).ok_or_else(|| SuiError::invalid_input(format!("Sui object was not returned by RPC: {object_id}")))?;
     Ok((index, object.input(input_mutability.get(&index).copied().unwrap_or(false))))
 }
 

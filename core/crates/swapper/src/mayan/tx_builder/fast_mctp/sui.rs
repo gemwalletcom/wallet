@@ -35,15 +35,15 @@ const BRIDGE_MODULE: &str = "bridge";
 const CREATE_ORDER_MODULE: &str = "create_order";
 const DEPOSIT_FOR_BURN_MODULE: &str = "deposit_for_burn";
 
-struct PrefetchedFastMctpData {
+struct FastMctpSuiContext {
     transaction: TransactionBuilderInput,
     input_coins: OwnedCoins<Coin>,
     objects: HashMap<String, ResolvedObjectInput>,
     package_id: String,
 }
 
-impl PrefetchedFastMctpData {
-    async fn prefetch(client: &SuiClient, sender: &str, route: &MayanFastMctpQuote, package_id_cache: &Cache<&'static str, String>) -> Result<Self, SwapperError> {
+impl FastMctpSuiContext {
+    async fn load(client: &SuiClient, sender: &str, route: &MayanFastMctpQuote, package_id_cache: &Cache<&'static str, String>) -> Result<Self, SwapperError> {
         let input_contract = fast_mctp_input_contract(route)?;
         let object_ids = [
             SUI_FAST_MCTP_STATE,
@@ -57,7 +57,7 @@ impl PrefetchedFastMctpData {
         ]
         .map(str::to_string)
         .to_vec();
-        let transaction = async { TransactionBuilderInput::prefetch(client, sender, ESTIMATION_GAS_BUDGET).await.map_err(sui_error) };
+        let transaction = async { TransactionBuilderInput::load(client, sender, ESTIMATION_GAS_BUDGET).await.map_err(sui_error) };
         let input_coins = get_sui_input_coins(client, sender, route, input_contract);
         let objects = get_sui_objects(client, object_ids);
         let package_id = get_package_id(client, SUI_FAST_MCTP_STATE, package_id_cache);
@@ -72,7 +72,7 @@ impl PrefetchedFastMctpData {
     }
 
     fn object(&self, txb: &mut TransactionBuilder, object_id: &str, mutable: bool) -> Result<Argument, SwapperError> {
-        let object = self.objects.get(object_id).ok_or_else(|| SwapperError::transaction_error(format!("Mayan Sui object was not prefetched: {object_id}")))?;
+        let object = self.objects.get(object_id).ok_or_else(|| SwapperError::transaction_error(format!("Mayan Sui object was not context: {object_id}")))?;
         Ok(txb.object(object.input(mutable)))
     }
 }
@@ -82,14 +82,11 @@ where
     C: Client + Clone + Send + Sync + Debug + 'static,
 {
     let sui_client = create_sui_client(rpc_provider)?;
-    let prefetched = PrefetchedFastMctpData::prefetch(&sui_client, &quote.request.wallet_address, route, package_id_cache);
+    let context = FastMctpSuiContext::load(&sui_client, &quote.request.wallet_address, route, package_id_cache);
     let swap = get_swap_transaction(client, &sui_client, quote, route);
-    let (prefetched, swap) = try_join!(prefetched, swap)?;
+    let (context, swap) = try_join!(context, swap)?;
 
-    sui_swap::build_quote_data(&sui_client, prefetched.transaction.gas_coin_total, |gas_budget| {
-        build_fast_mctp_transaction(quote, route, &prefetched, swap.as_ref(), gas_budget)
-    })
-    .await
+    sui_swap::build_quote_data(&sui_client, context.transaction.gas_coin_total, |gas_budget| build_fast_mctp_transaction(quote, route, &context, swap.as_ref(), gas_budget)).await
 }
 
 async fn get_swap_transaction<C>(client: &MayanClient<C>, sui_client: &SuiClient, quote: &Quote, route: &MayanFastMctpQuote) -> Result<Option<SuiClientSwapReplay>, SwapperError>
@@ -101,26 +98,26 @@ where
     }
 
     let params = GetSwapSuiParams::new(route, quote.request.wallet_address.clone(), fast_mctp_input_contract(route)?.to_string(), false, route.destination_referrer_address()?);
-    SuiClientSwapReplay::fetch(client, sui_client, params).await.map(Some)
+    SuiClientSwapReplay::get(client, sui_client, params).await.map(Some)
 }
 
-fn build_fast_mctp_transaction(quote: &Quote, route: &MayanFastMctpQuote, prefetched: &PrefetchedFastMctpData, swap: Option<&SuiClientSwapReplay>, gas_budget: u64) -> Result<TxOutput, SwapperError> {
+fn build_fast_mctp_transaction(quote: &Quote, route: &MayanFastMctpQuote, context: &FastMctpSuiContext, swap: Option<&SuiClientSwapReplay>, gas_budget: u64) -> Result<TxOutput, SwapperError> {
     let input_contract = fast_mctp_input_contract(route)?;
-    let SuiInputCoin { mut txb, coin: input_coin, .. } = build_sui_input_coin(swap, input_contract, route.effective_amount_in64.parse::<u64>()?, &prefetched.input_coins, prefetched.transaction.address_balance)?;
-    let package = package_address(&prefetched.package_id)?;
+    let SuiInputCoin { mut txb, coin: input_coin, .. } = build_sui_input_coin(swap, input_contract, route.effective_amount_in64.parse::<u64>()?, &context.input_coins, context.transaction.address_balance)?;
+    let package = package_address(&context.package_id)?;
 
     let burn_ticket = if route.has_auction == Some(true) {
-        add_create_order_move_calls(&mut txb, quote, route, prefetched, package, input_coin)?
+        add_create_order_move_calls(&mut txb, quote, route, context, package, input_coin)?
     } else {
-        add_bridge_move_calls(&mut txb, quote, route, prefetched, package, input_coin)?
+        add_bridge_move_calls(&mut txb, quote, route, context, package, input_coin)?
     };
-    add_circle_burn_move_calls(&mut txb, route, prefetched, burn_ticket)?;
-    log_initialize_fast_mctp(&mut txb, route, prefetched, package)?;
+    add_circle_burn_move_calls(&mut txb, route, context, burn_ticket)?;
+    log_initialize_fast_mctp(&mut txb, route, context, package)?;
 
-    finish_transaction(txb, prefetched.transaction.with_gas_budget(gas_budget)).map_err(sui_error)
+    finish_transaction(txb, context.transaction.with_gas_budget(gas_budget)).map_err(sui_error)
 }
 
-fn add_bridge_move_calls(txb: &mut TransactionBuilder, quote: &Quote, route: &MayanFastMctpQuote, prefetched: &PrefetchedFastMctpData, package: Address, input_coin: Argument) -> Result<Argument, SwapperError> {
+fn add_bridge_move_calls(txb: &mut TransactionBuilder, quote: &Quote, route: &MayanFastMctpQuote, context: &FastMctpSuiContext, package: Address, input_coin: Argument) -> Result<Argument, SwapperError> {
     let arguments = vec![
         txb.pure(&FAST_MCTP_PAYLOAD_TYPE_DEFAULT),
         input_coin,
@@ -136,10 +133,10 @@ fn add_bridge_move_calls(txb: &mut TransactionBuilder, quote: &Quote, route: &Ma
         txb.pure(&Vec::<u8>::new()),
     ];
     let bridge_ticket = move_call(txb, package, BRIDGE_MODULE, "prepare_bridge", &[fast_mctp_input_contract(route)?], arguments).map_err(sui_error)?;
-    add_burn_ticket_move_call(txb, route, prefetched, package, BRIDGE_MODULE, "bridge", bridge_ticket)
+    add_burn_ticket_move_call(txb, route, context, package, BRIDGE_MODULE, "bridge", bridge_ticket)
 }
 
-fn add_create_order_move_calls(txb: &mut TransactionBuilder, quote: &Quote, route: &MayanFastMctpQuote, prefetched: &PrefetchedFastMctpData, package: Address, input_coin: Argument) -> Result<Argument, SwapperError> {
+fn add_create_order_move_calls(txb: &mut TransactionBuilder, quote: &Quote, route: &MayanFastMctpQuote, context: &FastMctpSuiContext, package: Address, input_coin: Argument) -> Result<Argument, SwapperError> {
     let arguments = vec![
         input_coin,
         txb.pure(&bridge_amount(route, route.min_middle_amount.as_ref(), fast_mctp_input_contract(route)?)?),
@@ -157,22 +154,22 @@ fn add_create_order_move_calls(txb: &mut TransactionBuilder, quote: &Quote, rout
         txb.pure(&fast_mctp_min_finality(route)?),
     ];
     let order_ticket = move_call(txb, package, CREATE_ORDER_MODULE, "prepare_create_order", &[fast_mctp_input_contract(route)?], arguments).map_err(sui_error)?;
-    add_burn_ticket_move_call(txb, route, prefetched, package, CREATE_ORDER_MODULE, "create_order", order_ticket)
+    add_burn_ticket_move_call(txb, route, context, package, CREATE_ORDER_MODULE, "create_order", order_ticket)
 }
 
-fn add_burn_ticket_move_call(txb: &mut TransactionBuilder, route: &MayanFastMctpQuote, prefetched: &PrefetchedFastMctpData, package: Address, module: &str, function: &str, ticket: Argument) -> Result<Argument, SwapperError> {
-    let state = prefetched.object(txb, SUI_FAST_MCTP_STATE, false)?;
-    let input_currency = prefetched.object(txb, input_currency_id(route)?, false)?;
+fn add_burn_ticket_move_call(txb: &mut TransactionBuilder, route: &MayanFastMctpQuote, context: &FastMctpSuiContext, package: Address, module: &str, function: &str, ticket: Argument) -> Result<Argument, SwapperError> {
+    let state = context.object(txb, SUI_FAST_MCTP_STATE, false)?;
+    let input_currency = context.object(txb, input_currency_id(route)?, false)?;
     move_call(txb, package, module, function, &[fast_mctp_input_contract(route)?], vec![state, input_currency, ticket]).map_err(sui_error)
 }
 
-fn add_circle_burn_move_calls(txb: &mut TransactionBuilder, route: &MayanFastMctpQuote, prefetched: &PrefetchedFastMctpData, burn_ticket: Argument) -> Result<(), SwapperError> {
+fn add_circle_burn_move_calls(txb: &mut TransactionBuilder, route: &MayanFastMctpQuote, context: &FastMctpSuiContext, burn_ticket: Argument) -> Result<(), SwapperError> {
     let input_contract = fast_mctp_input_contract(route)?;
     let token_package = package_address(SUI_CCTP_V2_TOKEN_PACKAGE_ID)?;
     let handler_package = package_address(SUI_CCTP_V2_HANDLER_PACKAGE_ID)?;
 
-    let circle_auth = format!("{}::circle_auth::CircleAuth", prefetched.package_id);
-    let token_state = prefetched.object(txb, SUI_CCTP_V2_TOKEN_STATE, false)?;
+    let circle_auth = format!("{}::circle_auth::CircleAuth", context.package_id);
+    let token_state = context.object(txb, SUI_CCTP_V2_TOKEN_STATE, false)?;
     let burn = move_call(
         txb,
         token_package,
@@ -184,14 +181,14 @@ fn add_circle_burn_move_calls(txb: &mut TransactionBuilder, route: &MayanFastMct
     .map_err(sui_error)?
     .to_nested(2);
 
-    let handler_state = prefetched.object(txb, SUI_CCTP_V2_HANDLER_STATE, false)?;
-    let deny_list = prefetched.object(txb, SUI_CCTP_DENY_LIST, false)?;
-    let treasury = prefetched.object(txb, SUI_USDC_TREASURY, true)?;
+    let handler_state = context.object(txb, SUI_CCTP_V2_HANDLER_STATE, false)?;
+    let deny_list = context.object(txb, SUI_CCTP_DENY_LIST, false)?;
+    let treasury = context.object(txb, SUI_USDC_TREASURY, true)?;
     let complete_burn_ticket = move_call(txb, handler_package, "handler", "burn", &[], vec![handler_state, burn[0], burn[1], deny_list, treasury]).map_err(sui_error)?;
 
     let handler_auth = format!("{SUI_CCTP_V2_HANDLER_PACKAGE_ID}::handler::Auth");
-    let token_state = prefetched.object(txb, SUI_CCTP_V2_TOKEN_STATE, false)?;
-    let core_state = prefetched.object(txb, SUI_CCTP_V2_CORE_STATE, false)?;
+    let token_state = context.object(txb, SUI_CCTP_V2_TOKEN_STATE, false)?;
+    let core_state = context.object(txb, SUI_CCTP_V2_CORE_STATE, false)?;
     move_call(
         txb,
         token_package,
@@ -204,9 +201,9 @@ fn add_circle_burn_move_calls(txb: &mut TransactionBuilder, route: &MayanFastMct
     Ok(())
 }
 
-fn log_initialize_fast_mctp(txb: &mut TransactionBuilder, route: &MayanFastMctpQuote, prefetched: &PrefetchedFastMctpData, package: Address) -> Result<(), SwapperError> {
+fn log_initialize_fast_mctp(txb: &mut TransactionBuilder, route: &MayanFastMctpQuote, context: &FastMctpSuiContext, package: Address) -> Result<(), SwapperError> {
     let amount = txb.pure(&route.effective_amount_in64.parse::<u64>()?);
-    let from_currency = prefetched.object(txb, from_token_currency_id(route)?, false)?;
+    let from_currency = context.object(txb, from_token_currency_id(route)?, false)?;
     let payload = txb.pure(&Vec::<u8>::new());
     move_call(txb, package, BRIDGE_MODULE, "log_initialize_fast_mctp", &[&route.from_token.contract], vec![amount, from_currency, payload]).map_err(sui_error)?;
     Ok(())

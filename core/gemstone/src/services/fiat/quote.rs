@@ -67,7 +67,7 @@ impl GemFiatQuoteService {
     }
 
     pub async fn quotes(&self, request: GemFiatQuoteRequest, asset_id: AssetId) -> GemFiatQuotesResult {
-        let (quotes, error) = match self.fetch_quotes(request.quote_type, asset_id, request.amount).await {
+        let (quotes, error) = match self.get_quotes(request.quote_type, asset_id, request.amount).await {
             Ok(quotes) => (quotes, None),
             Err(error) => (vec![], Some(error)),
         };
@@ -83,7 +83,7 @@ impl GemFiatQuoteService {
 }
 
 impl GemFiatQuoteService {
-    async fn fetch_quotes(&self, quote_type: FiatQuoteType, asset_id: AssetId, amount: f64) -> Result<Vec<FiatQuote>, GemServiceError> {
+    async fn get_quotes(&self, quote_type: FiatQuoteType, asset_id: AssetId, amount: f64) -> Result<Vec<FiatQuote>, GemServiceError> {
         let wallet_id = self.session.current_wallet_id()?;
         if let Ok(asset) = self.fiat.asset(asset_id.clone()).await {
             let _ = self.recent_activity.add_recent(rules::quote_action(&quote_type), asset).await;

@@ -6,15 +6,15 @@ use crate::{
 use futures::try_join;
 use std::collections::HashMap;
 
-pub struct PrefetchedTransactionData {
+pub struct TransactionContext {
     pub transaction: TransactionBuilderInput,
     pub input_coins: OwnedCoins<Coin>,
     pub output_coin: Option<Coin>,
     pub resolver: ObjectResolver,
 }
 
-impl PrefetchedTransactionData {
-    pub async fn prefetch(client: &SuiClient, sender: &str, input_coin_type: &str, output_coin_type: Option<&str>, object_ids: Vec<String>, pinned: &HashMap<String, u64>, gas_budget: u64) -> Result<Self, SuiError> {
+impl TransactionContext {
+    pub async fn load(client: &SuiClient, sender: &str, input_coin_type: &str, output_coin_type: Option<&str>, object_ids: Vec<String>, pinned: &HashMap<String, u64>, gas_budget: u64) -> Result<Self, SuiError> {
         let output_coins_fut = async {
             match output_coin_type {
                 Some(coin_type) => get_user_coins(client, sender, coin_type).await,
@@ -22,10 +22,10 @@ impl PrefetchedTransactionData {
             }
         };
         let (transaction, input_coins, output_owned, resolver) = try_join!(
-            TransactionBuilderInput::prefetch(client, sender, gas_budget),
+            TransactionBuilderInput::load(client, sender, gas_budget),
             get_user_coins(client, sender, input_coin_type),
             output_coins_fut,
-            ObjectResolver::prefetch(client, object_ids, pinned),
+            ObjectResolver::load(client, object_ids, pinned),
         )?;
         let input_coins = if is_sui_coin(input_coin_type) { OwnedCoins::sui_address_balance(transaction.address_balance) } else { input_coins };
 

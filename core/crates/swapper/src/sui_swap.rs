@@ -52,7 +52,7 @@ pub(crate) async fn lookup_pools<Probe>(client: &SuiClient, lookups: Vec<(Probe,
     .filter_map(Result::ok)
     .collect::<Vec<_>>();
     let pool_ids = results.iter().filter_map(|(_, pool_id)| pool_id.clone()).collect();
-    let Ok(resolver) = ObjectResolver::prefetch(client, pool_ids, pinned).await else {
+    let Ok(resolver) = ObjectResolver::load(client, pool_ids, pinned).await else {
         return results.into_iter().filter(|(_, pool_id)| pool_id.is_none()).map(|(probe, _)| (probe, None)).collect();
     };
     results

@@ -146,12 +146,12 @@ impl<P: DexProtocol, C: Client + Clone + Send + Sync + 'static> SolanaDex<P, C> 
         if self.queried_pools.missing_probes(input_mint, output_mint, &[()]).is_empty() {
             return Ok(());
         }
-        let pools = deepest_pools(self.fetch_pool_depths(query).await?);
+        let pools = deepest_pools(self.get_pool_depths(query).await?);
         self.queried_pools.record_discovery(input_mint, output_mint, [((), (!pools.is_empty()).then_some(pools))]);
         Ok(())
     }
 
-    async fn fetch_pool_depths(&self, query: PoolQuery) -> Result<Vec<(Pubkey, u128)>, SwapperError> {
+    async fn get_pool_depths(&self, query: PoolQuery) -> Result<Vec<(Pubkey, u128)>, SwapperError> {
         let slice = query.depth;
         let requests = query
             .filters
@@ -170,7 +170,7 @@ impl<P: DexProtocol, C: Client + Clone + Send + Sync + 'static> SolanaDex<P, C> 
                 PoolDepth::Value(_) => vec![],
             })
             .collect::<Vec<_>>();
-        let amounts = self.fetch_token_amounts(reserves).await?;
+        let amounts = self.get_token_amounts(reserves).await?;
         let amount = |reserve: &Pubkey| u128::from(amounts.get(reserve).copied().unwrap_or_default());
         Ok(pools
             .into_iter()
@@ -181,7 +181,7 @@ impl<P: DexProtocol, C: Client + Clone + Send + Sync + 'static> SolanaDex<P, C> 
             .collect())
     }
 
-    async fn fetch_token_amounts(&self, accounts: Vec<Pubkey>) -> Result<HashMap<Pubkey, u64>, SwapperError> {
+    async fn get_token_amounts(&self, accounts: Vec<Pubkey>) -> Result<HashMap<Pubkey, u64>, SwapperError> {
         let requests = accounts.chunks(MAX_ACCOUNTS_PER_REQUEST).map(|chunk| async move {
             let response: AccountsResult = self.client.request(SolanaRpc::GetMultipleAccountsSlice(chunk.iter().map(Pubkey::to_base58).collect(), TokenAccount::AMOUNT_SLICE)).await?;
             Ok::<_, SwapperError>(chunk.iter().copied().zip(response.value).collect::<Vec<_>>())
@@ -375,16 +375,16 @@ impl<P: DexProtocol, C: Client + Clone + Send + Sync + 'static> SolanaDex<P, C> 
     }
 
     async fn load_accounts(&self, addresses: Vec<Pubkey>, constants: &HashSet<Pubkey>) -> Result<Accounts, SwapperError> {
-        let (cached, missing): (Vec<_>, Vec<_>) = addresses.into_iter().map(|address| (address, self.constant_accounts.get(&address))).partition(|(_, account)| account.is_some());
-        let fetched = self.fetch_accounts(missing.into_iter().map(|(address, _)| address).collect()).await?;
-        fetched
+        let (hits, misses): (Vec<_>, Vec<_>) = addresses.into_iter().map(|address| (address, self.constant_accounts.get(&address))).partition(|(_, account)| account.is_some());
+        let accounts = self.get_accounts(misses.into_iter().map(|(address, _)| address).collect()).await?;
+        accounts
             .iter()
             .filter(|(address, _)| constants.contains(address))
             .for_each(|(address, account)| self.constant_accounts.put(*address, account.clone()));
-        Ok(cached.into_iter().filter_map(|(address, account)| Some((address, account?))).chain(fetched).collect())
+        Ok(hits.into_iter().filter_map(|(address, account)| Some((address, account?))).chain(accounts).collect())
     }
 
-    async fn fetch_accounts(&self, addresses: Vec<Pubkey>) -> Result<Accounts, SwapperError> {
+    async fn get_accounts(&self, addresses: Vec<Pubkey>) -> Result<Accounts, SwapperError> {
         let addresses = addresses.into_iter().collect::<BTreeSet<_>>().into_iter().collect::<Vec<_>>();
         let requests = addresses.chunks(MAX_ACCOUNTS_PER_REQUEST).map(|chunk| async move {
             let response: AccountsResult = self.client.request(accounts_request(chunk)).await?;
@@ -396,8 +396,8 @@ impl<P: DexProtocol, C: Client + Clone + Send + Sync + 'static> SolanaDex<P, C> 
         Ok(try_join_all(requests).await?.into_iter().flatten().collect())
     }
 
-    async fn fetch_pools(&self, addresses: Vec<Pubkey>) -> Result<Vec<(Pubkey, P::Pool)>, SwapperError> {
-        let accounts = self.fetch_accounts(addresses.clone()).await?;
+    async fn get_pools(&self, addresses: Vec<Pubkey>) -> Result<Vec<(Pubkey, P::Pool)>, SwapperError> {
+        let accounts = self.get_accounts(addresses.clone()).await?;
         addresses
             .into_iter()
             .map(|address| {
@@ -531,7 +531,7 @@ impl<P: DexProtocol, C: Client + Clone + Send + Sync + 'static> Swapper for Sola
             return Err(SwapperError::InvalidRoute);
         }
         let authority = Pubkey::from_base58(&quote.request.wallet_address).map_err(|_| SwapperError::transaction_error(INVALID_ADDRESS))?;
-        let pools = self.fetch_pools(route.hops.iter().map(|hop| hop.pool).collect()).await?;
+        let pools = self.get_pools(route.hops.iter().map(|hop| hop.pool).collect()).await?;
         let transaction = self.transaction(&route, &pools, &input, &output, authority, quote.data.slippage_bps)?;
 
         Ok(SwapperQuoteData::new_contract(

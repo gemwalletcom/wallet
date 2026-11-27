@@ -9,7 +9,7 @@ use crate::{
 };
 use async_trait::async_trait;
 use futures::future::join_all;
-use gem_sui::{ESTIMATION_GAS_BUDGET, tx_builder::PrefetchedTransactionData};
+use gem_sui::{ESTIMATION_GAS_BUDGET, tx_builder::TransactionContext};
 use num_bigint::BigUint;
 use primitives::{AssetId, Chain};
 use std::collections::HashMap;
@@ -63,7 +63,7 @@ impl Swapper for Deepbook {
         let route: Route = quote.route_data()?;
         let sender = quote.request.wallet_address.as_str();
         let input_coin_type = coin_type(&quote.request.from_asset.asset_id());
-        let PrefetchedTransactionData { transaction, input_coins, .. } = PrefetchedTransactionData::prefetch(&self.sui_client, sender, &input_coin_type, None, vec![], &HashMap::new(), ESTIMATION_GAS_BUDGET)
+        let TransactionContext { transaction, input_coins, .. } = TransactionContext::load(&self.sui_client, sender, &input_coin_type, None, vec![], &HashMap::new(), ESTIMATION_GAS_BUDGET)
             .await
             .map_err(SwapperError::transaction_error)?;
         let referral_fee = quote.request.on_chain_referral_fee();

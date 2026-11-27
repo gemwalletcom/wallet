@@ -1,8 +1,8 @@
 pub const MAX_QUERY_LIMIT: usize = 100;
 pub const TRANSACTIONS_LIMIT: usize = 1000;
 
-pub fn transactions_page_limit(fetched: usize) -> Option<usize> {
-    let remaining = TRANSACTIONS_LIMIT.saturating_sub(fetched);
+pub fn transactions_page_limit(count: usize) -> Option<usize> {
+    let remaining = TRANSACTIONS_LIMIT.saturating_sub(count);
     (remaining > 0).then_some(remaining.min(MAX_QUERY_LIMIT))
 }
 

@@ -30,7 +30,7 @@ pub struct Parser {
     reporter: ParserReporter,
     options: ParserOptions,
     shutdown: ShutdownReceiver,
-    fetched_blocks: Mutex<BTreeMap<u64, Vec<Transaction>>>,
+    block_transactions: Mutex<BTreeMap<u64, Vec<Transaction>>>,
 }
 
 impl Parser {
@@ -45,7 +45,7 @@ impl Parser {
             reporter,
             options,
             shutdown,
-            fetched_blocks: Mutex::default(),
+            block_transactions: Mutex::default(),
         }
     }
 
@@ -209,16 +209,16 @@ impl Parser {
     }
 
     async fn parse_blocks(&self, blocks: Vec<u64>) -> Result<usize, Box<dyn Error + Send + Sync>> {
-        let missing = missing_blocks(&self.fetched_blocks.lock().unwrap(), &blocks);
+        let missing = missing_blocks(&self.block_transactions.lock().unwrap(), &blocks);
         let results = self.provider.get_transactions_in_blocks(missing).await;
 
         let transactions = {
-            let mut fetched_blocks = self.fetched_blocks.lock().unwrap();
+            let mut block_transactions = self.block_transactions.lock().unwrap();
             let mut failure = None;
             for (block, result) in results {
                 match result {
                     Ok(transactions) => {
-                        fetched_blocks.insert(block, transactions);
+                        block_transactions.insert(block, transactions);
                     }
                     Err(error) => failure = failure.or(Some(error)),
                 }
@@ -226,7 +226,7 @@ impl Parser {
             if let Some(error) = failure {
                 return Err(error);
             }
-            take_blocks(&mut fetched_blocks, &blocks)
+            take_blocks(&mut block_transactions, &blocks)
         };
         self.reporter.record_transactions(&transactions);
         let payload = TransactionsPayload::new_with_notify(self.chain, blocks, transactions);
@@ -234,14 +234,14 @@ impl Parser {
     }
 }
 
-fn missing_blocks<T>(fetched: &BTreeMap<u64, T>, blocks: &[u64]) -> Vec<u64> {
-    blocks.iter().copied().filter(|block| !fetched.contains_key(block)).collect()
+fn missing_blocks<T>(block_transactions: &BTreeMap<u64, T>, blocks: &[u64]) -> Vec<u64> {
+    blocks.iter().copied().filter(|block| !block_transactions.contains_key(block)).collect()
 }
 
-fn take_blocks<T>(fetched: &mut BTreeMap<u64, Vec<T>>, blocks: &[u64]) -> Vec<T> {
-    let items = blocks.iter().filter_map(|block| fetched.remove(block)).flatten().collect();
+fn take_blocks<T>(block_transactions: &mut BTreeMap<u64, Vec<T>>, blocks: &[u64]) -> Vec<T> {
+    let items = blocks.iter().filter_map(|block| block_transactions.remove(block)).flatten().collect();
     if let Some(last) = blocks.iter().max() {
-        fetched.retain(|block, _| block > last);
+        block_transactions.retain(|block, _| block > last);
     }
     items
 }
@@ -334,17 +334,17 @@ mod tests {
     use super::*;
 
     #[test]
-    fn test_missing_blocks_skips_fetched() {
-        let fetched = BTreeMap::from([(11, vec!["b"])]);
+    fn test_missing_blocks_skips_blocks_in_memory() {
+        let block_transactions = BTreeMap::from([(11, vec!["b"])]);
 
-        assert_eq!(missing_blocks(&fetched, &[10, 11, 12]), vec![10, 12]);
+        assert_eq!(missing_blocks(&block_transactions, &[10, 11, 12]), vec![10, 12]);
     }
 
     #[test]
     fn test_take_blocks_in_block_order_and_drops_older() {
-        let mut fetched = BTreeMap::from([(8, vec!["stale"]), (12, vec!["c"]), (10, vec!["a"]), (11, vec!["b1", "b2"]), (13, vec!["next"])]);
+        let mut block_transactions = BTreeMap::from([(8, vec!["stale"]), (12, vec!["c"]), (10, vec!["a"]), (11, vec!["b1", "b2"]), (13, vec!["next"])]);
 
-        assert_eq!(take_blocks(&mut fetched, &[10, 11, 12]), vec!["a", "b1", "b2", "c"]);
-        assert_eq!(fetched, BTreeMap::from([(13, vec!["next"])]));
+        assert_eq!(take_blocks(&mut block_transactions, &[10, 11, 12]), vec!["a", "b1", "b2", "c"]);
+        assert_eq!(block_transactions, BTreeMap::from([(13, vec!["next"])]));
     }
 }

@@ -430,7 +430,7 @@ mod tests {
     }
 
     #[test]
-    fn test_a_toggle_reports_a_failed_first_balance_fetch_and_a_side_effect_enable_does_not() {
+    fn test_a_toggle_reports_a_failed_first_balance_load_and_a_side_effect_enable_does_not() {
         block_on(async {
             let wallet = Wallet::mock_with_chains(&[Chain::Ethereum]);
             let ethereum = AssetId::from_chain(Chain::Ethereum);

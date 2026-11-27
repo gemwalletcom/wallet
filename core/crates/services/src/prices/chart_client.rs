@@ -44,11 +44,11 @@ impl ChartClient {
             return Ok(vec![]);
         };
         let price_id = price.id.id();
-        let fetch = async move {
+        let request = async move {
             self.consume_candles_limit(ip_address).await?;
             provider.get_candles(&price.provider_price_id, period).await
         };
-        let candles = self.cacher.get_or_fetch_candles(&price_id, period, candles_max_age(period), Box::pin(fetch)).await?;
+        let candles = self.cacher.get_or_set_candles(&price_id, period, candles_max_age(period), Box::pin(request)).await?;
         Ok(candles.merged(self.config.get_usize(ConfigKey::PriceChartsMaxCandles).await?))
     }
 

@@ -209,7 +209,7 @@ mod swap_integration_tests {
     use std::sync::Arc;
 
     #[tokio::test]
-    async fn test_jupiter_provider_fetch_quote() -> Result<(), SwapperError> {
+    async fn test_jupiter_provider_get_quote() -> Result<(), SwapperError> {
         let rpc_provider = Arc::new(NativeProvider::default());
         let provider = Jupiter::new(rpc_provider).unwrap();
 
