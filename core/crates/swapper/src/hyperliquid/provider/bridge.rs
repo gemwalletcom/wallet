@@ -6,7 +6,7 @@ use gem_hypercore::core::{actions::user::send_asset::SendAsset, hypercore::send_
 use number_formatter::BigNumberFormatter;
 
 use primitives::{
-    AssetId, Chain,
+    Chain,
     asset_constants::HYPERCORE_CORE_HYPE_TOKEN_ID,
     contract_constants::HYPERCORE_SYSTEM_ADDRESS,
     known_assets::{HYPERCORE_HYPE, HYPEREVM_HYPE},
@@ -53,7 +53,7 @@ impl Swapper for HyperCoreBridge {
         ]
     }
 
-    fn binding(&self, _from_asset: &AssetId) -> Binding {
+    fn binding(&self, _quote: &Quote) -> Binding {
         Binding::BuiltOnDevice
     }
 

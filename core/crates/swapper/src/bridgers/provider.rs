@@ -137,7 +137,8 @@ impl Swapper for Bridgers {
         SwapAmountMode::Fixed
     }
 
-    fn binding(&self, from_asset: &AssetId) -> Binding {
+    fn binding(&self, quote: &Quote) -> Binding {
+        let from_asset = &quote.request.from_asset.asset_id();
         if from_asset.chain == Chain::Ton && from_asset.token_id.is_some() {
             return Binding::BuiltOnDevice;
         }
@@ -205,9 +206,16 @@ mod tests {
     fn test_binding() {
         let provider = Bridgers::new(Arc::new(ProviderMock::new(String::new())));
 
-        assert_eq!(provider.binding(&AssetId::from_chain(Chain::Ton)), Binding::Contracts(Contracts::new(vec!["EQCqTuPS-cMN9SSRhaFrwJOGL7dKkFF8C0a05g2WzI9uRJ19"])));
-        assert_eq!(provider.binding(&TON_USDT_ASSET_ID), Binding::BuiltOnDevice, "a jetton swap pays the user's own jetton wallet, which is not a shipped contract");
-        assert_eq!(provider.binding(&AssetId::from_chain(Chain::Tron)), Binding::Contracts(Contracts::default()), "Bridgers has no Tron router");
+        assert_eq!(
+            provider.binding(&Quote::mock_from(&AssetId::from_chain(Chain::Ton))),
+            Binding::Contracts(Contracts::new(vec!["EQCqTuPS-cMN9SSRhaFrwJOGL7dKkFF8C0a05g2WzI9uRJ19"]))
+        );
+        assert_eq!(
+            provider.binding(&Quote::mock_from(&TON_USDT_ASSET_ID)),
+            Binding::BuiltOnDevice,
+            "a jetton swap pays the user's own jetton wallet, which is not a shipped contract"
+        );
+        assert_eq!(provider.binding(&Quote::mock_from(&AssetId::from_chain(Chain::Tron))), Binding::Contracts(Contracts::default()), "Bridgers has no Tron router");
     }
 }
 

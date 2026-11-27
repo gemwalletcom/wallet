@@ -103,6 +103,10 @@ impl Quote {
         }
     }
 
+    pub fn mock_from(asset: &AssetId) -> Self {
+        Self::mock(asset.chain, asset.token_id.as_deref())
+    }
+
     pub fn mock_with_request(request: &QuoteRequest) -> Self {
         Quote {
             from_value: request.value.clone(),
@@ -258,7 +262,7 @@ impl Swapper for MockSwapper {
         self.amount_mode
     }
 
-    fn binding(&self, _from_asset: &AssetId) -> Binding {
+    fn binding(&self, _quote: &Quote) -> Binding {
         self.binding.clone()
     }
 

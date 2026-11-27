@@ -24,7 +24,7 @@ fn verify_contracts(quote: &Quote, from_asset: &AssetId, contracts: &Contracts, 
     }
     match (DataFormat::of(from_asset.chain.chain_type()), &data.data_type) {
         (DataFormat::SolanaTransaction, SwapQuoteDataType::Transfer | SwapQuoteDataType::Contract) => verify_solana(&data.data, &quote.request.wallet_address, &contracts.targets, &fee_limits(quote)?),
-        (DataFormat::TonMessages, SwapQuoteDataType::Transfer | SwapQuoteDataType::Contract) => verify_ton_messages(&data.data, &contracts.targets),
+        (DataFormat::TonMessages, SwapQuoteDataType::Transfer | SwapQuoteDataType::Contract) => verify_ton_messages(&data.data, &contracts.targets, &quote.from_value),
         (DataFormat::EvmCall | DataFormat::Unread, SwapQuoteDataType::Transfer) => match Deployment::contains(from_asset.chain, &contracts.targets, &data.to) {
             true => Ok(()),
             false => Err(SwapperError::InvalidRoute),

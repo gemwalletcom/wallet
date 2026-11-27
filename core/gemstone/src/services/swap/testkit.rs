@@ -174,7 +174,7 @@ impl Swapper for SilentSwapper {
         vec![SwapperChainAsset::All(Chain::Ethereum)]
     }
 
-    fn binding(&self, _from_asset: &AssetId) -> Binding {
+    fn binding(&self, _quote: &Quote) -> Binding {
         Binding::BuiltOnDevice
     }
 

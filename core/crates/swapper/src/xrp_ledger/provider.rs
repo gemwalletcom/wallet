@@ -8,7 +8,7 @@ use gem_xrp::{
 };
 use num_bigint::BigUint;
 use primitives::{
-    AssetId, Chain,
+    Chain,
     asset_constants::{XRP_RLUSD_ASSET_ID, XRP_USDC_ASSET_ID},
     swap::XRP_REFERRAL_FEE_ASSET_IDS,
 };
@@ -53,7 +53,7 @@ where
         vec![SwapperChainAsset::assets(Chain::Xrp, [XRP_RLUSD_ASSET_ID.clone(), XRP_USDC_ASSET_ID.clone()])]
     }
 
-    fn binding(&self, _from_asset: &AssetId) -> Binding {
+    fn binding(&self, _quote: &Quote) -> Binding {
         Binding::BuiltOnDevice
     }
 

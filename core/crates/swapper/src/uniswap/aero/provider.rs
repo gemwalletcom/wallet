@@ -116,8 +116,8 @@ impl Swapper for Aero {
         SwapAmountMode::Fixed
     }
 
-    fn binding(&self, from_asset: &AssetId) -> Binding {
-        Binding::Contracts(get_factory_by_chain(&from_asset.chain).map(|_| Contracts::new(vec![METAROUTER])).unwrap_or_default())
+    fn binding(&self, quote: &Quote) -> Binding {
+        Binding::Contracts(get_factory_by_chain(&quote.request.from_asset.chain()).map(|_| Contracts::new(vec![METAROUTER])).unwrap_or_default())
     }
 
     async fn preload_routes(&self, from_asset: &AssetId, to_asset: &AssetId) {

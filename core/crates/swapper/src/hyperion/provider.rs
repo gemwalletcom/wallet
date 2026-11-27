@@ -15,7 +15,7 @@ impl<C: Client + 'static> Swapper for Hyperion<C> {
         vec![SwapperChainAsset::All(Chain::Aptos)]
     }
 
-    fn binding(&self, _from_asset: &AssetId) -> Binding {
+    fn binding(&self, _quote: &Quote) -> Binding {
         Binding::BuiltOnDevice
     }
 

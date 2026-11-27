@@ -9,7 +9,6 @@ use crate::{
     Binding, Contracts, QuoteDataInput, ProviderType, Quote, QuoteRequest, RpcClient, RpcProvider, SwapAmountMode, SwapResult, SwapResultRequest, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData,
     config::get_swap_proxy_url,
 };
-use primitives::AssetId;
 
 #[derive(Debug)]
 pub struct Squid<C>
@@ -42,7 +41,7 @@ where
         vec![]
     }
 
-    fn binding(&self, _from_asset: &AssetId) -> Binding {
+    fn binding(&self, _quote: &Quote) -> Binding {
         Binding::Contracts(Contracts::default())
     }
 

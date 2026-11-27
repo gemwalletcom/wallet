@@ -14,7 +14,6 @@ use crate::{
 use async_trait::async_trait;
 use gem_client::{Client, ClientExt};
 use num_bigint::BigUint;
-use primitives::AssetId;
 use std::str::FromStr;
 use std::{fmt::Debug, sync::Arc};
 
@@ -62,8 +61,8 @@ where
         SwapAmountMode::Fixed
     }
 
-    fn binding(&self, from_asset: &AssetId) -> Binding {
-        Binding::Contracts(constants::contracts(from_asset.chain))
+    fn binding(&self, quote: &Quote) -> Binding {
+        Binding::Contracts(constants::contracts(quote.request.from_asset.chain()))
     }
 
     async fn get_quote(&self, request: &QuoteRequest) -> Result<Quote, SwapperError> {
@@ -121,10 +120,19 @@ mod tests {
     fn test_binding() {
         let provider = OkxProvider::mock(MockClient::new(), "{}");
 
-        assert_eq!(provider.binding(&ETHEREUM_USDC_ASSET_ID), provider.binding(&AssetId::from_chain(Chain::Ethereum)), "a token swap is bound like a coin swap");
-        assert_eq!(provider.binding(&AssetId::from_chain(Chain::Bitcoin)), Binding::Contracts(Contracts::default()));
+        assert_eq!(
+            provider.binding(&Quote::mock_from(&ETHEREUM_USDC_ASSET_ID)),
+            provider.binding(&Quote::mock_from(&AssetId::from_chain(Chain::Ethereum))),
+            "a token swap is bound like a coin swap"
+        );
+        assert_eq!(provider.binding(&Quote::mock_from(&AssetId::from_chain(Chain::Bitcoin))), Binding::Contracts(Contracts::default()));
         for asset in support_assets() {
-            assert_ne!(provider.binding(&asset.get_chain().as_asset_id()), Binding::Contracts(Contracts::default()), "{:?} ships no contracts", asset.get_chain());
+            assert_ne!(
+                provider.binding(&Quote::mock_from(&asset.get_chain().as_asset_id())),
+                Binding::Contracts(Contracts::default()),
+                "{:?} ships no contracts",
+                asset.get_chain()
+            );
         }
     }
 

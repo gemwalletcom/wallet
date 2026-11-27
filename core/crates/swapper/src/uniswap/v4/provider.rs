@@ -121,9 +121,9 @@ impl Swapper for UniswapV4 {
         Chain::all().iter().filter(|x| self.support_chain(x)).map(|x| SwapperChainAsset::All(*x)).collect()
     }
 
-    fn binding(&self, from_asset: &AssetId) -> Binding {
+    fn binding(&self, quote: &Quote) -> Binding {
         Binding::Contracts(
-            get_uniswap_deployment_by_chain(&from_asset.chain)
+            get_uniswap_deployment_by_chain(&quote.request.from_asset.chain())
                 .map(|deployment| Contracts::universal_router(deployment.universal_router, deployment.permit2))
                 .unwrap_or_default(),
         )

@@ -156,7 +156,7 @@ where
         SwapsXyzChain::ALL.iter().map(|chain| SwapperChainAsset::assets(chain.chain, [])).collect()
     }
 
-    fn binding(&self, _from_asset: &AssetId) -> Binding {
+    fn binding(&self, _quote: &Quote) -> Binding {
         Binding::DepositAddress
     }
 

@@ -252,10 +252,10 @@ impl Swapper for UniswapV3 {
         Chain::all().iter().filter(|x| self.support_chain(x)).map(|x| SwapperChainAsset::All(*x)).collect()
     }
 
-    fn binding(&self, from_asset: &AssetId) -> Binding {
+    fn binding(&self, quote: &Quote) -> Binding {
         Binding::Contracts(
             self.provider
-                .get_deployment_by_chain(&from_asset.chain)
+                .get_deployment_by_chain(&quote.request.from_asset.chain())
                 .map(|deployment| Contracts::universal_router(deployment.universal_router, deployment.permit2))
                 .unwrap_or_default(),
         )

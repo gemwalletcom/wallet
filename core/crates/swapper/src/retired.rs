@@ -1,6 +1,5 @@
 use crate::{Binding, Contracts, QuoteDataInput, ProviderType, Quote, QuoteRequest, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData};
 use async_trait::async_trait;
-use primitives::AssetId;
 
 /// Providers that no longer quote. They stay registered so lookups by provider still find them.
 pub const RETIRED_PROVIDERS: [SwapperProvider; 2] = [SwapperProvider::Panora, SwapperProvider::Mayachain];
@@ -26,7 +25,7 @@ impl Swapper for RetiredSwapper {
         vec![]
     }
 
-    fn binding(&self, _from_asset: &AssetId) -> Binding {
+    fn binding(&self, _quote: &Quote) -> Binding {
         Binding::Contracts(Contracts::default())
     }
 

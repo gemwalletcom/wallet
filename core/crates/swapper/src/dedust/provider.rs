@@ -17,7 +17,7 @@ use futures::{TryStreamExt, future::join_all, stream};
 use gem_client::Client;
 use gem_ton::{address::Address, models::TonConnectMessage, rpc::client::TonClient};
 use num_bigint::BigUint;
-use primitives::{AssetId, Chain, asset_constants::TON_USDT_ASSET_ID};
+use primitives::{Chain, asset_constants::TON_USDT_ASSET_ID};
 use std::{fmt::Debug, iter::once, sync::Arc};
 
 #[derive(Debug)]
@@ -98,7 +98,7 @@ where
         vec![SwapperChainAsset::All(Chain::Ton)]
     }
 
-    fn binding(&self, _from_asset: &AssetId) -> Binding {
+    fn binding(&self, _quote: &Quote) -> Binding {
         Binding::BuiltOnDevice
     }
 

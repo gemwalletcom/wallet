@@ -9,7 +9,7 @@ use gem_solana::{
     models::{AccountData, Clock, ProgramAccount, TokenAccount, ValueResult},
 };
 use num_bigint::BigUint;
-use primitives::{AssetId, Chain, DAY};
+use primitives::{Chain, DAY};
 use std::{
     cmp::Reverse,
     collections::{BTreeMap, BTreeSet, HashMap, HashSet},
@@ -488,7 +488,7 @@ impl<P: DexProtocol, C: Client + Clone + Send + Sync + 'static> Swapper for Sola
         vec![SwapperChainAsset::All(Chain::Solana)]
     }
 
-    fn binding(&self, _from_asset: &AssetId) -> Binding {
+    fn binding(&self, _quote: &Quote) -> Binding {
         Binding::Contracts(Contracts::new(vec![P::PROGRAM]))
     }
 

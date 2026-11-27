@@ -241,8 +241,12 @@ impl Swapper for Across {
             .collect()
     }
 
-    fn binding(&self, from_asset: &AssetId) -> Binding {
-        Binding::Contracts(AcrossDeployment::deployment_by_chain(&from_asset.chain).map(|deployment| Contracts::new(vec![deployment.spoke_pool])).unwrap_or_default())
+    fn binding(&self, quote: &Quote) -> Binding {
+        Binding::Contracts(
+            AcrossDeployment::deployment_by_chain(&quote.request.from_asset.chain())
+                .map(|deployment| Contracts::new(vec![deployment.spoke_pool]))
+                .unwrap_or_default(),
+        )
     }
 
     fn amount_mode(&self, _request: &QuoteRequest) -> SwapAmountMode {

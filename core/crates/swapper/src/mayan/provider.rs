@@ -24,7 +24,7 @@ use gem_client::Client;
 use gem_evm::rpc::client::FUNCTION_ERC20_DECIMALS;
 use num_bigint::BigUint;
 use primitives::{
-    AssetId, Chain, ChainType, HOUR,
+    Chain, ChainType, HOUR,
     contract_constants::{EVM_ZERO_ADDRESS, SOLANA_JUPITER_PROGRAM_ID},
     decode_hex,
     swap::SlippageMode,
@@ -139,8 +139,8 @@ where
         SwapAmountMode::Fixed
     }
 
-    fn binding(&self, from_asset: &AssetId) -> Binding {
-        match from_asset.chain.chain_type() {
+    fn binding(&self, quote: &Quote) -> Binding {
+        match quote.request.from_asset.chain().chain_type() {
             ChainType::Ethereum => Binding::Contracts(Contracts::new(vec![MAYAN_FORWARDER])),
             ChainType::Solana => Binding::Contracts(Contracts::new(vec![
                 MAYAN_CPI_PROXY_PROGRAM_ID,
@@ -359,12 +359,16 @@ mod tests {
         let provider = Mayan::with_clients(MayanClient::new(MockClient::new()), MayanClient::new(MockClient::new()), Arc::new(ProviderMock::new("{}".to_string())));
 
         assert_eq!(
-            provider.binding(&AssetId::from_chain(Chain::Base)),
+            provider.binding(&Quote::mock_from(&AssetId::from_chain(Chain::Base))),
             Binding::Contracts(Contracts::new(vec![MAYAN_FORWARDER])),
             "every EVM network calls the forwarder"
         );
-        assert_eq!(provider.binding(&AssetId::from_chain(Chain::Sui)), Binding::BuiltOnDevice, "a Sui transaction carries its packages inside");
-        assert_eq!(provider.binding(&AssetId::from_chain(Chain::Tron)), Binding::Contracts(Contracts::default()), "a network Mayan does not swap from is refused");
+        assert_eq!(provider.binding(&Quote::mock_from(&AssetId::from_chain(Chain::Sui))), Binding::BuiltOnDevice, "a Sui transaction carries its packages inside");
+        assert_eq!(
+            provider.binding(&Quote::mock_from(&AssetId::from_chain(Chain::Tron))),
+            Binding::Contracts(Contracts::default()),
+            "a network Mayan does not swap from is refused"
+        );
     }
 
     #[test]

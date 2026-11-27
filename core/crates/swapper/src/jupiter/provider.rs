@@ -94,7 +94,7 @@ where
         SwapAmountMode::Fixed
     }
 
-    fn binding(&self, _from_asset: &AssetId) -> Binding {
+    fn binding(&self, _quote: &Quote) -> Binding {
         Binding::Contracts(Contracts::new(vec![JUPITER_PROGRAM_ID]))
     }
 

@@ -74,8 +74,8 @@ where
         RelayChain::from_chain(&request.from_asset.chain()).map_or(SwapAmountMode::Fixed, |chain| chain.amount_mode())
     }
 
-    fn binding(&self, from_asset: &AssetId) -> Binding {
-        match from_asset.chain {
+    fn binding(&self, quote: &Quote) -> Binding {
+        match quote.request.from_asset.chain() {
             Chain::Bitcoin => Binding::DepositAddress,
             chain => Binding::Contracts(contracts::contracts(chain)),
         }

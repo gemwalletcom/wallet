@@ -51,7 +51,7 @@ impl<C: Client> Swapper for StellarDex<C> {
         vec![SwapperChainAsset::All(Chain::Stellar)]
     }
 
-    fn binding(&self, _from_asset: &AssetId) -> Binding {
+    fn binding(&self, _quote: &Quote) -> Binding {
         Binding::BuiltOnDevice
     }
 

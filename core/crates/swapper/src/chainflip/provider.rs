@@ -228,7 +228,8 @@ where
         }
     }
 
-    fn binding(&self, from_asset: &AssetId) -> Binding {
+    fn binding(&self, quote: &Quote) -> Binding {
+        let from_asset = &quote.request.from_asset.asset_id();
         match is_vault_swap(from_asset.chain) {
             Ok(true) => Binding::Contracts(Deployment::contracts(VAULT_ADDRESSES, from_asset.chain)),
             Ok(false) => Binding::DepositAddress,
@@ -379,9 +380,13 @@ mod tests {
     fn test_binding() {
         let provider = ChainflipProvider::with_clients(ChainflipClient::new(MockClient::new()), BrokerClient::new(MockClient::new(), MockClient::new()), Arc::new(ProviderMock::new(String::new())));
 
-        assert_eq!(provider.binding(&AssetId::from_chain(Chain::Ethereum)), Binding::Contracts(Contracts::new(vec![ETHEREUM_VAULT])));
-        assert_eq!(provider.binding(&AssetId::from_chain(Chain::Polkadot)), Binding::DepositAddress, "a deposit channel address is made per swap");
-        assert_eq!(provider.binding(&AssetId::from_chain(Chain::Bitcoin)), Binding::Contracts(Contracts::default()), "Bitcoin is not a source");
+        assert_eq!(provider.binding(&Quote::mock_from(&AssetId::from_chain(Chain::Ethereum))), Binding::Contracts(Contracts::new(vec![ETHEREUM_VAULT])));
+        assert_eq!(
+            provider.binding(&Quote::mock_from(&AssetId::from_chain(Chain::Polkadot))),
+            Binding::DepositAddress,
+            "a deposit channel address is made per swap"
+        );
+        assert_eq!(provider.binding(&Quote::mock_from(&AssetId::from_chain(Chain::Bitcoin))), Binding::Contracts(Contracts::default()), "Bitcoin is not a source");
     }
 
     #[test]

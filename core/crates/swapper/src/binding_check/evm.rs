@@ -1,28 +1,23 @@
 use alloy_sol_types::SolCall;
 use gem_evm::contracts::IERC20;
-use gem_tron::address::TronAddress;
-use primitives::{AssetId, ChainType, decode_hex};
+use primitives::{AssetId, decode_hex};
 
-use crate::{Contracts, Deployment, SwapperError, SwapperQuoteData};
+use crate::{Contracts, Deployment, SwapperError, SwapperQuoteData, eth_address};
 
 pub(super) fn verify_evm_call(from_asset: &AssetId, contracts: &Contracts, data: &SwapperQuoteData) -> Result<(), SwapperError> {
     let chain = from_asset.chain;
     let is_contract = |address: &str| Deployment::contains(chain, &contracts.targets, address);
     let is_spender = |address: &str| Deployment::contains(chain, &contracts.spenders, address);
     let pays_deposit_contract = token_transfer(from_asset, data)
-        .map(|transfer| recipient(from_asset, &transfer))
+        .map(|transfer| eth_address::token_id(chain, &transfer.to))
         .is_some_and(|recipient| is_contract(&recipient) && is_spender(&recipient));
-    if !is_contract(&data.to) && !pays_deposit_contract {
-        return Err(SwapperError::InvalidRoute);
-    }
-    if let Some(approval) = &data.approval
-        && !is_spender(&approval.spender)
-    {
-        return Err(SwapperError::InvalidRoute);
-    }
-    if let Some(permit2) = &data.permit2
-        && !is_spender(&permit2.spender)
-    {
+    let approves_spenders = data
+        .approval
+        .iter()
+        .map(|approval| approval.spender.as_str())
+        .chain(data.permit2.iter().map(|permit2| permit2.spender.as_str()))
+        .all(is_spender);
+    if (!is_contract(&data.to) && !pays_deposit_contract) || !approves_spenders {
         return Err(SwapperError::InvalidRoute);
     }
     Ok(())
@@ -33,30 +28,11 @@ pub(super) fn token_transfer(from_asset: &AssetId, data: &SwapperQuoteData) -> O
     IERC20::transferCall::abi_decode(&decode_hex(&data.data).ok()?).ok()
 }
 
-fn recipient(from_asset: &AssetId, transfer: &IERC20::transferCall) -> String {
-    match from_asset.chain.chain_type() {
-        ChainType::Tron => TronAddress::from(transfer.to).to_string(),
-        ChainType::Ethereum
-        | ChainType::Bitcoin
-        | ChainType::Solana
-        | ChainType::Cosmos
-        | ChainType::Ton
-        | ChainType::Aptos
-        | ChainType::Sui
-        | ChainType::Xrp
-        | ChainType::Near
-        | ChainType::Stellar
-        | ChainType::Algorand
-        | ChainType::Polkadot
-        | ChainType::Cardano
-        | ChainType::HyperCore => format!("{:#x}", transfer.to),
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
     use alloy_primitives::{Address, U256};
+    use gem_tron::address::TronAddress;
     use num_bigint::BigUint;
     use primitives::{
         Chain,

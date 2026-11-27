@@ -11,7 +11,7 @@ use gem_hypercore::{
 use num_bigint::BigUint;
 use number_formatter::{BigNumberFormatter, Decimal, NumberFormatterError};
 use primitives::{
-    AssetId, Chain, HOUR,
+    Chain, HOUR,
     asset_constants::{HYPERCORE_SPOT_HYPE_ASSET_ID, HYPERCORE_SPOT_UBTC_ASSET_ID, HYPERCORE_SPOT_USDC_ASSET_ID},
     known_assets::{HYPERCORE_HYPE, HYPERCORE_SPOT_HYPE, HYPERCORE_SPOT_UBTC, HYPERCORE_SPOT_USDC},
 };
@@ -132,7 +132,7 @@ impl Swapper for HyperCoreSpot {
         vec![SwapperChainAsset::Assets(Chain::HyperCore, vec![HYPERCORE_SPOT_USDC.id.clone(), HYPERCORE_SPOT_UBTC.id.clone()])]
     }
 
-    fn binding(&self, _from_asset: &AssetId) -> Binding {
+    fn binding(&self, _quote: &Quote) -> Binding {
         Binding::BuiltOnDevice
     }
 

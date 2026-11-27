@@ -1,3 +1,4 @@
+use gem_tron::address::TronAddress;
 use primitives::{Chain, ChainType};
 
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
@@ -66,7 +67,20 @@ impl Deployment {
     pub fn contains(chain: Chain, contracts: &[&str], address: &str) -> bool {
         contracts.iter().any(|contract| match chain.chain_type() {
             ChainType::Ethereum => contract.eq_ignore_ascii_case(address),
-            _ => *contract == address,
+            ChainType::Tron => TronAddress::from_hex_or_base58(contract).is_some_and(|contract| TronAddress::from_hex_or_base58(address) == Some(contract)),
+            ChainType::Bitcoin
+            | ChainType::Solana
+            | ChainType::Cosmos
+            | ChainType::Ton
+            | ChainType::Aptos
+            | ChainType::Sui
+            | ChainType::Xrp
+            | ChainType::Near
+            | ChainType::Stellar
+            | ChainType::Algorand
+            | ChainType::Polkadot
+            | ChainType::Cardano
+            | ChainType::HyperCore => *contract == address,
         })
     }
 }
@@ -74,6 +88,7 @@ impl Deployment {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use primitives::contract_constants::TRON_SUNSWAP_PERMIT2_CONTRACT;
 
     #[test]
     fn test_contracts() {
@@ -95,5 +110,9 @@ mod tests {
         assert!(Deployment::contains(Chain::Ethereum, &["0xRouter"], "0xROUTER"));
         assert!(!Deployment::contains(Chain::Solana, &["program"], "PROGRAM"));
         assert!(!Deployment::contains(Chain::Ethereum, &[], "0xRouter"));
+        let permit2_hex = alloy_primitives::Address::from(TronAddress::parse(TRON_SUNSWAP_PERMIT2_CONTRACT).unwrap()).to_checksum(None);
+        assert!(Deployment::contains(Chain::Tron, &[TRON_SUNSWAP_PERMIT2_CONTRACT], &permit2_hex), "a Tron contract matches in base58 or hex");
+        assert!(!Deployment::contains(Chain::Tron, &[TRON_SUNSWAP_PERMIT2_CONTRACT], "TXtEs6t2oUWQsNos7m68gbHdE9Q5n6x2oN"));
+        assert!(!Deployment::contains(Chain::Tron, &[TRON_SUNSWAP_PERMIT2_CONTRACT], "not an address"));
     }
 }

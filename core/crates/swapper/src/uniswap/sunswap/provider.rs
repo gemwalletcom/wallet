@@ -122,7 +122,7 @@ impl Swapper for SunSwap {
         vec![SwapperChainAsset::All(Chain::Tron)]
     }
 
-    fn binding(&self, _from_asset: &AssetId) -> Binding {
+    fn binding(&self, _quote: &Quote) -> Binding {
         Binding::Contracts(Contracts::universal_router(TRON_SUNSWAP_UNIVERSAL_ROUTER_CONTRACT, TRON_SUNSWAP_PERMIT2_CONTRACT))
     }
 

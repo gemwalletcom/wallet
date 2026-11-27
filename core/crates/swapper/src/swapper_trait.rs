@@ -18,7 +18,7 @@ pub trait Swapper: Send + Sync + Debug {
     fn native_attachment(&self) -> Option<BigUint> {
         None
     }
-    fn binding(&self, from_asset: &AssetId) -> Binding;
+    fn binding(&self, quote: &Quote) -> Binding;
     async fn preload_routes(&self, _from_asset: &AssetId, _to_asset: &AssetId) {}
     async fn get_quote(&self, request: &QuoteRequest) -> Result<Quote, SwapperError>;
     async fn get_quote_data(&self, quote: &Quote, data: QuoteDataInput) -> Result<SwapperQuoteData, SwapperError>;
@@ -40,6 +40,6 @@ impl<'a> dyn Swapper + 'a {
     }
 
     pub fn verify_binding(&self, quote: &Quote, data: &SwapperQuoteData) -> Result<(), SwapperError> {
-        binding_check::verify(quote, &self.binding(&quote.request.from_asset.asset_id()), data)
+        binding_check::verify(quote, &self.binding(quote), data)
     }
 }

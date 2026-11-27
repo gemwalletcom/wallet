@@ -18,7 +18,7 @@ impl Swapper for CetusClmm {
         vec![SwapperChainAsset::All(Chain::Sui)]
     }
 
-    fn binding(&self, _from_asset: &AssetId) -> Binding {
+    fn binding(&self, _quote: &Quote) -> Binding {
         Binding::BuiltOnDevice
     }
 

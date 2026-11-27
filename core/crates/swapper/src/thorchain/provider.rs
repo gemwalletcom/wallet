@@ -90,7 +90,8 @@ where
         }
     }
 
-    fn binding(&self, from_asset: &AssetId) -> Binding {
+    fn binding(&self, quote: &Quote) -> Binding {
+        let from_asset = &quote.request.from_asset.asset_id();
         match THORChainAsset::from_id(from_asset).is_some_and(|asset| asset.use_evm_router()) {
             true => Binding::Contracts(Deployment::contracts(THORCHAIN_ROUTERS, from_asset.chain)),
             false => Binding::DepositAddress,
@@ -355,12 +356,20 @@ mod tests {
         let swapper = ThorChain::new(Arc::new(ProviderMock::new(String::new()))).unwrap();
 
         assert_eq!(
-            swapper.binding(&AssetId::from_token(Chain::Ethereum, ETHEREUM_USDC_TOKEN_ID)),
+            swapper.binding(&Quote::mock_from(&AssetId::from_token(Chain::Ethereum, ETHEREUM_USDC_TOKEN_ID))),
             Binding::Contracts(Contracts::new(vec!["0xD37BbE5744D730a1d98d8DC97c42F0Ca46aD7146", "0x00dc6100103BC402d490aEE3F9a5560cBd91f1d4"])),
             "the live V4 router and the V6.1 router THORChain will switch to"
         );
-        assert_eq!(swapper.binding(&Chain::Ethereum.as_asset_id()), Binding::DepositAddress, "a coin deposit goes to the vault the network names");
-        assert_eq!(swapper.binding(&AssetId::from_token(Chain::Tron, TRON_USDT_TOKEN_ID)), Binding::DepositAddress, "a Tron token goes to the vault, not a router");
+        assert_eq!(
+            swapper.binding(&Quote::mock_from(&Chain::Ethereum.as_asset_id())),
+            Binding::DepositAddress,
+            "a coin deposit goes to the vault the network names"
+        );
+        assert_eq!(
+            swapper.binding(&Quote::mock_from(&AssetId::from_token(Chain::Tron, TRON_USDT_TOKEN_ID))),
+            Binding::DepositAddress,
+            "a Tron token goes to the vault, not a router"
+        );
     }
 
     #[tokio::test]

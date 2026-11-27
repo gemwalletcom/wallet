@@ -213,8 +213,9 @@ Before Confirm signs, the app checks every swap, however it is bound:
 For a provider bound to contracts it also checks:
 
 - On EVM and Tron, the contract called and every spender. A plain token transfer counts as the deposit only into a contract the app both calls and approves for that provider.
-- On TON, every message.
+- On TON, every message, and together they attach no more TON than the amount quoted.
 - For a plain transfer, the address it pays.
+- For a provider that shows several pool types as one, only the contracts of the pool type that gave the quote.
 - On Solana, every instruction. Besides the provider's own programs, only the standard steps pass: setting the network fee under a limit, creating token accounts, wrapping SOL into the wallet's own account, paying Gem's fee, and closing accounts back to the wallet. Gem's fee is in the token swapped or the token received, and no more than the amount quoted. SOL sent anywhere the check cannot tie to the wallet or to Gem is limited to the rent of two token accounts.
 
 A provider that names anything else is refused at Confirm, and left out of the quote list where its quote already names the contract. When a provider upgrades a contract, its swaps stop until the app update that ships the new address.
@@ -227,7 +228,7 @@ A provider that names anything else is refused at Confirm, and left out of the q
 | OKX | Solana | Its program | At Confirm |
 | Relay | EVM | Its deposit contract, approval proxies and routers; only the deposit contract and approval proxies as spenders | In the quote list and at Confirm |
 | Relay | Tron | Its depository | In the quote list and at Confirm |
-| Relay | TON | Its depository, with no more TON than the amount quoted | In the quote list and at Confirm |
+| Relay | TON | Its depository | In the quote list and at Confirm |
 | Relay | XRP Ledger | Its depository, with exactly the amount quoted | In the quote list and at Confirm |
 | Relay | Solana | Its depository and forwarder programs, and Jupiter's; the deposit, and a swap before it, spend only the asset quoted and no more than the amount quoted; the swap spends from the wallet's own account of that token and pays into the account Relay's forwarder deposits; a swap whose amount the app cannot read is left out | In the quote list and at Confirm |
 | Chainflip | EVM, Tron, Solana | The vault, exactly the amount and token quoted, the asset, network and address the swap pays out to, and the refund address, minimum price, and a refund sent as a plain transfer, with no contract message; no oracle price limit, the chunks and boost fee the quote chose, and a commission no higher than the one quoted | At Confirm |
