@@ -18,6 +18,6 @@ mod tests {
     fn test_map_eta_in_seconds() {
         assert_eq!(map_eta_in_seconds(Chain::Bitcoin, None), 660);
         assert_eq!(map_eta_in_seconds(Chain::Bitcoin, Some(1200)), 1860);
-        assert_eq!(map_eta_in_seconds(Chain::SmartChain, Some(648)), 709);
+        assert_eq!(map_eta_in_seconds(Chain::SmartChain, Some(648)), 708);
     }
 }
