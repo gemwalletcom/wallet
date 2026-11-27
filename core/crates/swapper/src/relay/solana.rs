@@ -36,6 +36,7 @@ struct QuotedDeposit {
     wallet: Pubkey,
     mint: Option<Pubkey>,
     amount: u64,
+    slippage_bps: u32,
 }
 
 enum RelayStep<'a> {
@@ -47,7 +48,10 @@ enum RelayStep<'a> {
 }
 
 pub fn quoted_transaction(request: &QuoteRequest, value: &BigUint, response: &RelayQuoteResponse) -> Result<SolanaTransaction, SwapperError> {
-    transaction(response.get_solana_step().ok_or(SwapperError::InvalidRoute)?, &QuotedDeposit::new(request, value)?)
+    transaction(
+        response.get_solana_step().ok_or(SwapperError::InvalidRoute)?,
+        &QuotedDeposit::new(request, value, response.details.slippage_bps(request.options.slippage.bps))?,
+    )
 }
 
 fn transaction(step: &SolanaStepData, quoted: &QuotedDeposit) -> Result<SolanaTransaction, SwapperError> {
@@ -59,11 +63,12 @@ fn transaction(step: &SolanaStepData, quoted: &QuotedDeposit) -> Result<SolanaTr
 }
 
 impl QuotedDeposit {
-    fn new(request: &QuoteRequest, value: &BigUint) -> Result<Self, SwapperError> {
+    fn new(request: &QuoteRequest, value: &BigUint, slippage_bps: u32) -> Result<Self, SwapperError> {
         Ok(Self {
             wallet: Pubkey::from_base58(&request.wallet_address).map_err(SwapperError::transaction_error)?,
             mint: request.from_asset.asset_id().token_id.as_deref().map(Pubkey::from_base58).transpose().map_err(SwapperError::transaction_error)?,
             amount: u64::try_from(value).map_err(SwapperError::transaction_error)?,
+            slippage_bps,
         })
     }
 
@@ -71,7 +76,7 @@ impl QuotedDeposit {
         let input_mint = self.mint.unwrap_or_else(wrapped_sol::wrapped_sol_mint);
         let spent = steps.iter().try_fold(0u64, |total, step| match step {
             RelayStep::Deposit { mint, amount } if *mint == self.mint.as_ref() => Ok(total.saturating_add(*amount)),
-            RelayStep::Swap(route) if route.spends_from(&self.wallet, &input_mint) && steps.iter().any(|forward| forward.forwards(&route.destination)) => Ok(total.saturating_add(route.arguments.in_amount)),
+            RelayStep::Swap(route) if self.is_quoted(route, &input_mint) && steps.iter().any(|forward| forward.forwards(&route.destination)) => Ok(total.saturating_add(route.arguments.in_amount)),
             RelayStep::Forward { .. } | RelayStep::Other => Ok(total),
             RelayStep::Deposit { .. } | RelayStep::Swap(_) | RelayStep::Unsupported => Err(SwapperError::InvalidRoute),
         })?;
@@ -79,6 +84,10 @@ impl QuotedDeposit {
             return Err(SwapperError::InvalidRoute);
         }
         Ok(())
+    }
+
+    fn is_quoted(&self, route: &JupiterRoute, input_mint: &Pubkey) -> bool {
+        route.spends_from(&self.wallet, input_mint) && u32::from(route.arguments.slippage_bps) <= self.slippage_bps && route.arguments.platform_fee_bps == 0 && route.arguments.positive_slippage_bps == 0
     }
 }
 
@@ -114,6 +123,7 @@ mod tests {
     use crate::{
         SwapperQuoteAsset,
         binding_check::solana::verify_solana,
+        jupiter::RouteArguments,
         testkit::{TEST_SOLANA_PAYER, mock_quote},
     };
     use gem_solana::{AddressLookupTableAccount, anchor::global_discriminator, decode_transaction};
@@ -151,7 +161,7 @@ mod tests {
         let mut other_instruction = step.clone();
         other_instruction.instructions[0].data = hex::encode([global_discriminator("withdraw").as_slice(), &instructions[0].data[8..]].concat());
         assert_eq!(
-            transaction(&other_instruction, &QuotedDeposit::new(&request, &request.value).unwrap()).err(),
+            transaction(&other_instruction, &QuotedDeposit::new(&request, &request.value, request.options.slippage.bps).unwrap()).err(),
             Some(SwapperError::InvalidRoute),
             "an instruction of Relay's programs the check does not read"
         );
@@ -225,7 +235,7 @@ mod tests {
                 SwapperQuoteAsset::from(BASE_USDC_ASSET_ID.clone()),
             )
         };
-        let quoted = QuotedDeposit::new(&request, &request.value).unwrap();
+        let quoted = QuotedDeposit::new(&request, &request.value, 200).unwrap();
 
         let quote_data = transaction(step, &quoted).unwrap().encode(TEST_SOLANA_PAYER, &[lookup_table]).unwrap();
         verify_solana(&quote_data.data, TEST_SOLANA_PAYER, &contracts(Chain::Solana).targets, &[]).unwrap();
@@ -264,11 +274,44 @@ mod tests {
             (&other_authority, &quoted, "a route another account signs"),
             (
                 with_parameters.get_solana_step().unwrap(),
-                &QuotedDeposit::new(&cbbtc, &cbbtc.value).unwrap(),
+                &QuotedDeposit::new(&cbbtc, &cbbtc.value, 200).unwrap(),
                 "a route whose steps carry parameters, so the amount it spends cannot be read",
             ),
         ] {
             assert_eq!(transaction(step, quoted).err(), Some(SwapperError::InvalidRoute), "{reason}");
+        }
+
+        let input_mint = quoted.mint.unwrap();
+        let decoded = || JupiterRoute::decode(&instructions[4]).unwrap();
+        assert_eq!(decoded().arguments.slippage_bps, 200);
+        assert!(quoted.is_quoted(&decoded(), &input_mint));
+        for (route, reason) in [
+            (
+                JupiterRoute {
+                    arguments: RouteArguments { slippage_bps: 201, ..decoded().arguments },
+                    ..decoded()
+                },
+                "a route that allows more slippage than the quote shows",
+            ),
+            (
+                JupiterRoute {
+                    arguments: RouteArguments { platform_fee_bps: 1, ..decoded().arguments },
+                    ..decoded()
+                },
+                "a route that takes a platform fee",
+            ),
+            (
+                JupiterRoute {
+                    arguments: RouteArguments {
+                        positive_slippage_bps: 1,
+                        ..decoded().arguments
+                    },
+                    ..decoded()
+                },
+                "a route that keeps part of a better price",
+            ),
+        ] {
+            assert!(!quoted.is_quoted(&route, &input_mint), "{reason}");
         }
     }
 }

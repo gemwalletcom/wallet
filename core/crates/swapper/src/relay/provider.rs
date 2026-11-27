@@ -119,7 +119,7 @@ where
 
         let to_value = BigUint::from_str(&response.details.currency_out.amount).map_err(SwapperError::compute_quote_error)?;
 
-        let slippage_bps = response.details.slippage_bps().unwrap_or(request.options.slippage.bps);
+        let slippage_bps = response.details.slippage_bps(request.options.slippage.bps);
         Ok(Quote {
             from_value,
             ..Quote::from_route(request, self.provider(), to_value, slippage_bps, &response, response.details.eta_in_seconds())?

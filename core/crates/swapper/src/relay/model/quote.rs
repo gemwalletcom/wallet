@@ -205,8 +205,8 @@ pub struct RelaySlippageTolerance {
 }
 
 impl QuoteDetails {
-    pub fn slippage_bps(&self) -> Option<u32> {
-        self.slippage_tolerance.as_ref()?.total.parse().ok()
+    pub fn slippage_bps(&self, requested: u32) -> u32 {
+        self.slippage_tolerance.as_ref().and_then(|tolerance| tolerance.total.parse().ok()).unwrap_or(requested)
     }
 
     pub fn eta_in_seconds(&self) -> Option<u32> {
