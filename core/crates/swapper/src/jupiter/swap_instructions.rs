@@ -53,7 +53,7 @@ impl SwapInstructions {
             return Err(SwapperError::InvalidRoute);
         }
         let steps: Vec<StandardInstruction> = self.compute_budget.iter().chain(&self.setup).chain(&self.cleanup).map(StandardInstruction::new).collect();
-        verify_steps(&steps, &quoted.wallet, &[])
+        verify_steps(&steps, &quoted.wallet, &[], &[(quoted.input_mint, quoted.amount)])
     }
 
     pub(crate) fn wraps_native_sol(&self, wallet: &Pubkey) -> Result<bool, SwapperError> {

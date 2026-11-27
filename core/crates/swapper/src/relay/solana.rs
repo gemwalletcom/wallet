@@ -53,7 +53,7 @@ pub fn quoted_transaction(request: &QuoteRequest, value: &BigUint, response: &Re
 fn transaction(step: &SolanaStepData, quoted: &QuotedDeposit) -> Result<SolanaTransaction, SwapperError> {
     let instructions = decode_instructions::<HexInstructionData>(step.instructions.clone()).map_err(SwapperError::transaction_error)?;
     let steps: Vec<StandardInstruction> = instructions.iter().map(StandardInstruction::new).collect();
-    verify_steps(&steps, &quoted.wallet, &contracts(Chain::Solana).targets)?;
+    verify_steps(&steps, &quoted.wallet, &contracts(Chain::Solana).targets, &[(quoted.mint.unwrap_or_else(wrapped_sol::wrapped_sol_mint), quoted.amount)])?;
     quoted.verify(&instructions.iter().map(RelayStep::decode).collect::<Vec<_>>())?;
     Ok(SolanaTransaction::new(instructions, step.address_lookup_table_addresses.clone()))
 }
@@ -131,7 +131,7 @@ mod tests {
         };
 
         let quote_data = quoted_transaction(&request, &request.value, &response).unwrap().encode(&request.wallet_address, &[]).unwrap();
-        verify_solana(&quote_data.data, &request.wallet_address, &contracts(Chain::Solana).targets).unwrap();
+        verify_solana(&quote_data.data, &request.wallet_address, &contracts(Chain::Solana).targets, &[]).unwrap();
 
         let transaction_data = decode_transaction(&quote_data.data).unwrap();
         assert_eq!(transaction_data.num_required_signatures(), 1);
@@ -224,7 +224,7 @@ mod tests {
         let quoted = QuotedDeposit::new(&request, &request.value).unwrap();
 
         let quote_data = transaction(step, &quoted).unwrap().encode(TEST_SOLANA_PAYER, &[lookup_table]).unwrap();
-        verify_solana(&quote_data.data, TEST_SOLANA_PAYER, &contracts(Chain::Solana).targets).unwrap();
+        verify_solana(&quote_data.data, TEST_SOLANA_PAYER, &contracts(Chain::Solana).targets, &[]).unwrap();
 
         let route = JupiterRoute::decode(&instructions[4]).unwrap();
         let mut to_user_destination = instructions[4].clone();

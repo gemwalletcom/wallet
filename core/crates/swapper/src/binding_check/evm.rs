@@ -9,7 +9,10 @@ pub(super) fn verify_evm_call(from_asset: &AssetId, contracts: &Contracts, data:
     let chain = from_asset.chain;
     let is_contract = |address: &str| Deployment::contains(chain, &contracts.targets, address);
     let is_spender = |address: &str| Deployment::contains(chain, &contracts.spenders, address);
-    if !is_contract(&data.to) && !token_transfer(from_asset, data).is_some_and(|transfer| is_spender(&recipient(from_asset, &transfer))) {
+    let pays_deposit_contract = token_transfer(from_asset, data)
+        .map(|transfer| recipient(from_asset, &transfer))
+        .is_some_and(|recipient| is_contract(&recipient) && is_spender(&recipient));
+    if !is_contract(&data.to) && !pays_deposit_contract {
         return Err(SwapperError::InvalidRoute);
     }
     if let Some(approval) = &data.approval
@@ -111,6 +114,15 @@ mod tests {
             verify_evm_call(&usdt, &routed, &transfer(router)),
             Err(SwapperError::InvalidRoute),
             "a token sent to a contract that only runs calls is not a deposit"
+        );
+        let approved = Contracts {
+            targets: vec![router],
+            spenders: vec![vault],
+        };
+        assert_eq!(
+            verify_evm_call(&usdt, &approved, &transfer(vault)),
+            Err(SwapperError::InvalidRoute),
+            "a token sent to a contract that only takes approvals is not a deposit"
         );
         assert_eq!(verify_evm_call(&usdt, &Contracts::new(vec![vault]), &transfer("TDMakP1fbWc7XXoSWZpujpjRAuePPEn4oi")), Err(SwapperError::InvalidRoute));
         assert_eq!(

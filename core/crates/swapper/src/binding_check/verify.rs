@@ -1,6 +1,12 @@
 use primitives::{AssetId, swap::SwapQuoteDataType};
 
-use super::{amounts::verify_amounts, data_format::DataFormat, evm::verify_evm_call, solana::verify_solana, ton::verify_ton_messages};
+use super::{
+    amounts::verify_amounts,
+    data_format::DataFormat,
+    evm::verify_evm_call,
+    solana::{fee_limits, verify_solana},
+    ton::verify_ton_messages,
+};
 use crate::{Binding, Contracts, Deployment, Quote, SwapperError, SwapperQuoteData};
 
 pub(crate) fn verify(quote: &Quote, binding: &Binding, data: &SwapperQuoteData) -> Result<(), SwapperError> {
@@ -17,7 +23,7 @@ fn verify_contracts(quote: &Quote, from_asset: &AssetId, contracts: &Contracts, 
         return Err(SwapperError::InvalidRoute);
     }
     match (DataFormat::of(from_asset.chain.chain_type()), &data.data_type) {
-        (DataFormat::SolanaTransaction, SwapQuoteDataType::Transfer | SwapQuoteDataType::Contract) => verify_solana(&data.data, &quote.request.wallet_address, &contracts.targets),
+        (DataFormat::SolanaTransaction, SwapQuoteDataType::Transfer | SwapQuoteDataType::Contract) => verify_solana(&data.data, &quote.request.wallet_address, &contracts.targets, &fee_limits(quote)?),
         (DataFormat::TonMessages, SwapQuoteDataType::Transfer | SwapQuoteDataType::Contract) => verify_ton_messages(&data.data, &contracts.targets),
         (DataFormat::EvmCall | DataFormat::Unread, SwapQuoteDataType::Transfer) => match Deployment::contains(from_asset.chain, &contracts.targets, &data.to) {
             true => Ok(()),
