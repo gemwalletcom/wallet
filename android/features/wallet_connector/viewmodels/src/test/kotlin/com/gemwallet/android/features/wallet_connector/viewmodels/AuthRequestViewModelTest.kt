@@ -47,6 +47,7 @@ import uniffi.gemstone.GemSignMessageServiceInterface
 import uniffi.gemstone.GemWalletConnectAuthMessage
 import uniffi.gemstone.GemWalletConnectEvent
 import uniffi.gemstone.GemWalletConnectException
+import uniffi.gemstone.GemWalletConnectRejectionReason
 import uniffi.gemstone.GemWalletConnectServiceInterface
 import uniffi.gemstone.SignDigestType
 import uniffi.gemstone.WalletConnectionVerificationStatus
@@ -137,7 +138,7 @@ class AuthRequestViewModelTest {
         model.onRequest(request) { error.complete(it) }
 
         assertEquals("Malicious origin", error.await())
-        verify { approve.rejectAuthentication(request, any(), any()) }
+        verify { approve.rejectAuthentication(request, GemWalletConnectRejectionReason.REFUSED, any(), any()) }
         assertTrue(model.state.value is AuthRequestUIState.Loading)
     }
 
@@ -211,7 +212,7 @@ class AuthRequestViewModelTest {
 
         assertTrue(model.awaitSettled() is AuthRequestUIState.Error)
         model.onReject()
-        verify(exactly = 1) { approve.rejectAuthentication(request, any(), any()) }
+        verify(exactly = 1) { approve.rejectAuthentication(request, GemWalletConnectRejectionReason.REFUSED, any(), any()) }
     }
 
     @Test
@@ -233,7 +234,7 @@ class AuthRequestViewModelTest {
         model.onReject()
 
         verify(exactly = 1) { approve.approveAuthentication(request, any(), "0xsignature", any(), any()) }
-        verify(exactly = 0) { approve.rejectAuthentication(any(), any(), any()) }
+        verify(exactly = 0) { approve.rejectAuthentication(any(), any(), any(), any()) }
     }
 
     @Test
@@ -279,7 +280,7 @@ class AuthRequestViewModelTest {
         dispatcher.scheduler.runCurrent()
         store.clear()
 
-        verify(exactly = 1) { approve.rejectAuthentication(request, any(), any()) }
+        verify(exactly = 1) { approve.rejectAuthentication(request, any(), any(), any()) }
         verify(exactly = 0) { approve.approveAuthentication(any(), any(), any(), any(), any()) }
     }
 
@@ -293,7 +294,7 @@ class AuthRequestViewModelTest {
         model.onReject()
         model.onReject()
 
-        verify(exactly = 1) { approve.rejectAuthentication(request, any(), any()) }
+        verify(exactly = 1) { approve.rejectAuthentication(request, GemWalletConnectRejectionReason.USER_REJECTED, any(), any()) }
         assertTrue(model.state.value is AuthRequestUIState.Loading)
     }
 }

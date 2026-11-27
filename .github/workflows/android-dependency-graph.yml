@@ -6,7 +6,7 @@ on:
     paths:
       - "android/**/*.gradle.kts"
       - "android/gradle/**"
-      - "android/settings-gradle.lockfile"
+      - "android/**/*.lockfile"
       - ".github/workflows/android-dependency-graph.yml"
   workflow_dispatch:
 

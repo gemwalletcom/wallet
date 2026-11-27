@@ -667,6 +667,7 @@ public extension GemErrorText {
         case .unsupportedChain: Localized.Errors.Connections.unsupportedChain
         case .maliciousOrigin: Localized.Errors.Connections.maliciousOrigin
         case .noSupportedWallets: Localized.Errors.Connections.noSupportedWallets
+        case .unsupportedFeatures: Localized.Errors.Connections.unsupportedFeatures
         case let .payment(status): status.errorText
         case .invalidSecretPhrase: Localized.Errors.Import.invalidSecretPhrase
         case let .invalidSecretPhraseWords(words): Localized.Errors.Import.invalidSecretPhraseWord(words.joined(separator: ", "))

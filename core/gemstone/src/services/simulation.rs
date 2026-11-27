@@ -30,8 +30,7 @@ use crate::{
     GemstoneError,
     alien::{AlienClient, AlienProvider, AlienProviderWrapper, coalescing_provider, new_alien_client},
     network::JsonRpcClient,
-    services::node::GemNodeService,
-    wallet_connect::simulation,
+    services::{node::GemNodeService, wallet_connect::simulation},
 };
 
 #[derive(uniffi::Object)]

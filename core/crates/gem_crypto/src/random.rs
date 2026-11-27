@@ -1,8 +1,12 @@
 use crate::CryptoError;
 
+pub fn fill(bytes: &mut [u8]) -> Result<(), CryptoError> {
+    getrandom::fill(bytes).map_err(|_| CryptoError::Random)
+}
+
 pub fn bytes<const N: usize>() -> Result<[u8; N], CryptoError> {
     let mut bytes = [0u8; N];
-    getrandom::fill(&mut bytes).map_err(|_| CryptoError::Random)?;
+    fill(&mut bytes)?;
     Ok(bytes)
 }
 
@@ -31,6 +35,16 @@ pub fn shuffle<T>(items: &mut [T]) -> Result<(), CryptoError> {
 mod tests {
     use super::*;
     use std::collections::HashSet;
+
+    #[test]
+    fn test_fill() {
+        let mut first = [0u8; 32];
+        let mut second = [0u8; 32];
+        assert_eq!(fill(&mut first), Ok(()));
+        assert_eq!(fill(&mut second), Ok(()));
+        assert_ne!(first, second);
+        assert_ne!(first, [0u8; 32]);
+    }
 
     #[test]
     fn test_index() {

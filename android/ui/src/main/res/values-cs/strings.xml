@@ -213,7 +213,8 @@
   <string name="errors_swap_no_quote_available">Není dostupná žádná nabídka.</string>
   <string name="errors_swap_not_supported_asset">Nepodporované aktivum.</string>
   <string name="errors_connections_no_supported_wallets">Nejsou k dispozici žádné podporované peněženky.</string>
-  <string name="errors_connections_unsupported_chain">Zadaný řetězec není podporován.</string>
+  <string name="errors_connections_unsupported_chain">Toto připojení vyžaduje síť, která není podporována.</string>
+  <string name="errors_connections_unsupported_features">Toto připojení vyžaduje funkce, které nejsou podporovány.</string>
   <string name="errors_authentication_unavailable">Ověřování není na tomto zařízení nastaveno. Zapněte biometrii nebo kód v nastavení zařízení.</string>
   <string name="errors_authentication_locked_out">Příliš mnoho neúspěšných pokusů. Zkuste to prosím později.</string>
   <string name="errors_authentication_failed">Ověření se nezdařilo. Zkuste to prosím znovu.</string>

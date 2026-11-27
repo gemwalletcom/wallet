@@ -1,11 +1,11 @@
-use crate::models::custom_types::{GemBigInt, GemBigUint};
+use crate::models::custom_types::GemBigUint;
 use crate::services::failures::StepFailure;
 use primitives::{AssetId, Chain, Transaction, TransactionId, TransactionState, WalletId};
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemTransactionStateUpdate {
     pub state: TransactionState,
-    pub fee: Option<GemBigInt>,
+    pub fee: Option<GemBigUint>,
     pub value: Option<GemBigUint>,
     pub block_number: Option<String>,
     pub metadata: Option<String>,

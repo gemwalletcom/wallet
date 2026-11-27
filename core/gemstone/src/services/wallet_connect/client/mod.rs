@@ -31,6 +31,7 @@ use wallet_connect_protocol::sign::{Metadata, Participant, ProposeResponse, Publ
 use wallet_connect_protocol::verify::{self, Attestation, Verification, VerifyPublicKey};
 use wallet_connect_protocol::{PairingUri, ProtocolError, envelope};
 
+use super::error::GemWalletConnectError;
 use super::model::{GemWalletConnectFailure, GemWalletConnectOutcome, GemWalletConnectRejectionReason, GemWalletConnectResponse, GemWalletConnectSessionRequest};
 use super::{GemWalletConnectService, rules};
 use crate::alien::{AlienHttpMethod, AlienProvider, AlienTarget};
@@ -249,7 +250,7 @@ impl GemWalletConnectClient {
                 if self.take_pairing_request(&proposal_id).is_some() {
                     self.reject_proposal(&pending, &reason).await?;
                 }
-                return Err(GemServiceError::Unsupported { msg: reason.message });
+                return Err(GemServiceError::WalletConnect { error: error.into() });
             }
         };
         let approved_chains = namespaces::approved_chains(&namespaces);
@@ -324,7 +325,7 @@ impl GemWalletConnectClient {
             return Ok(());
         };
         self.reject_proposal(&pending, &reason.into()).await?;
-        self.return_to_dapp(&pending.pairing_topic, &pending.proposal.proposer.metadata);
+        self.pairing_rejected(&pending.pairing_topic, &pending.proposal.proposer.metadata, reason);
         Ok(())
     }
 
@@ -430,14 +431,14 @@ impl GemWalletConnectClient {
         Ok(())
     }
 
-    pub async fn reject_authentication(&self, authentication_id: String) -> Result<(), GemServiceError> {
+    pub async fn reject_authentication(&self, authentication_id: String, reason: GemWalletConnectRejectionReason) -> Result<(), GemServiceError> {
         let Some(PairingRequest::Authentication(pending)) = self.take_pairing_request(&authentication_id) else {
             return Ok(());
         };
-        let response = payload::failure(pending.request_id, &Reason::user_rejected_session());
+        let response = payload::failure(pending.request_id, &Reason::from(reason));
         let rejection = authentication_answer(&pending, &crypto::generate_key()?, &response, Publish::AuthenticationRejection)?;
         self.store_and_send(rejection, |state| state.remove_pairing(&pending.pairing_topic)).await?;
-        self.return_to_dapp(&pending.pairing_topic, &pending.params.requester.metadata);
+        self.pairing_rejected(&pending.pairing_topic, &pending.params.requester.metadata, reason);
         Ok(())
     }
 }
@@ -621,6 +622,17 @@ impl GemWalletConnectClient {
             self.return_to_dapp(&session.topic, &session.peer);
         }
         Ok(())
+    }
+
+    fn pairing_rejected(&self, topic: &str, dapp: &Metadata, reason: GemWalletConnectRejectionReason) {
+        match reason {
+            GemWalletConnectRejectionReason::UserRejected => self.return_to_dapp(topic, dapp),
+            GemWalletConnectRejectionReason::Refused
+            | GemWalletConnectRejectionReason::UnsupportedChains
+            | GemWalletConnectRejectionReason::UnsupportedMethods
+            | GemWalletConnectRejectionReason::UnsupportedAccounts
+            | GemWalletConnectRejectionReason::UnsupportedEvents => self.forget_link(topic),
+        }
     }
 
     fn forget_link(&self, topic: &str) {
@@ -814,8 +826,8 @@ impl GemWalletConnectClient {
             return Err(invalid_origin());
         }
         let accounts = self.service.authentication_accounts(params.auth_payload.chains.clone(), wallet);
-        let selected = accounts.first().ok_or_else(|| GemServiceError::Unsupported {
-            msg: "Requested chains are not supported".to_string(),
+        let selected = accounts.first().ok_or(GemServiceError::WalletConnect {
+            error: GemWalletConnectError::UnsupportedWallets,
         })?;
         let supported_chains: Vec<String> = accounts.iter().map(|account| account.chain_id.clone()).collect();
         let payload = authenticate::narrowed_payload(&params.auth_payload, &supported_chains, &self.service.authentication_methods())?;
@@ -941,9 +953,7 @@ fn parse_request_id(request_id: &str) -> Result<u64, GemServiceError> {
 }
 
 fn invalid_origin() -> GemServiceError {
-    GemServiceError::InvalidInput {
-        msg: "WalletConnect origin does not match the app".to_string(),
-    }
+    GemServiceError::WalletConnect { error: GemWalletConnectError::InvalidOrigin }
 }
 
 fn not_found(item: &str) -> GemServiceError {
@@ -1122,7 +1132,9 @@ mod tests {
                     Some(reason) => client.reject_session(TEST_PEER_PUBLIC_KEY.to_string(), reason).await.unwrap(),
                     None => assert_eq!(
                         client.approve_session(TEST_PEER_PUBLIC_KEY.to_string(), wallet).await,
-                        Err(GemServiceError::Unsupported { msg: "Unsupported chains".to_string() })
+                        Err(GemServiceError::WalletConnect {
+                            error: GemWalletConnectError::UnsupportedChains
+                        })
                     ),
                 }
 
@@ -1161,11 +1173,12 @@ mod tests {
                 r#""url": "https://example.com","#,
                 r#""url": "https://example.com", "redirect": {"native": "example://wc", "universal": "https://example.com/app"},"#,
             );
-            for (proposal, link, approves, expected) in [
-                (TEST_PROPOSAL.to_string(), true, true, vec![return_to_example(None)]),
-                (with_redirect.clone(), true, true, vec![return_to_example(Some("example://wc"))]),
-                (with_redirect.clone(), true, false, vec![return_to_example(Some("example://wc"))]),
-                (with_redirect, false, true, vec![]),
+            for (proposal, link, rejection, expected) in [
+                (TEST_PROPOSAL.to_string(), true, None, vec![return_to_example(None)]),
+                (with_redirect.clone(), true, None, vec![return_to_example(Some("example://wc"))]),
+                (with_redirect.clone(), true, Some(GemWalletConnectRejectionReason::UserRejected), vec![return_to_example(Some("example://wc"))]),
+                (with_redirect.clone(), true, Some(GemWalletConnectRejectionReason::Refused), vec![]),
+                (with_redirect, false, None, vec![]),
             ] {
                 let dapp = TestDapp::new();
                 let wallet = Wallet::mock_with_chains(&[Chain::Ethereum]);
@@ -1178,13 +1191,40 @@ mod tests {
                 client.receive(TestDapp::frame(TEST_TOPIC, &test_key(TEST_SYM_KEY), &TestDapp::request(100, METHOD_SESSION_PROPOSE, &proposal))).await.unwrap();
                 assert!(return_events(&dapp).is_empty(), "nothing returns before the user answers");
 
-                if approves {
-                    client.approve_session(TEST_PEER_PUBLIC_KEY.to_string(), wallet).await.unwrap();
-                } else {
-                    client.reject_session(TEST_PEER_PUBLIC_KEY.to_string(), GemWalletConnectRejectionReason::UserRejected).await.unwrap();
+                match rejection {
+                    None => client.approve_session(TEST_PEER_PUBLIC_KEY.to_string(), wallet).await.unwrap(),
+                    Some(reason) => client.reject_session(TEST_PEER_PUBLIC_KEY.to_string(), reason).await.unwrap(),
                 }
 
-                assert_eq!(return_events(&dapp), expected, "a code scanned from another device stays in Gem");
+                assert_eq!(return_events(&dapp), expected, "a code scanned from another device or a proposal Gem refuses itself stays in Gem");
+                assert!(lock(&client.linked_topics).is_empty(), "the link is used once");
+            }
+        });
+    }
+
+    #[test]
+    fn test_a_sign_in_opened_from_another_app_returns_to_it_only_after_the_users_rejection() {
+        block_on(async {
+            for (reason, code, expected) in [
+                (GemWalletConnectRejectionReason::UserRejected, 5000, vec![return_to_example(None)]),
+                (GemWalletConnectRejectionReason::UnsupportedAccounts, 5103, vec![]),
+            ] {
+                let dapp = TestDapp::new();
+                let client = GemWalletConnectClient::mock(&dapp, Platform::IOS).await;
+                let uri = TestDapp::pairing_uri("wc_sessionPropose,wc_sessionAuthenticate");
+                client.link_opened(WalletConnectLink::Connect { uri: uri.clone() });
+                client.pair(uri).await.unwrap();
+                client
+                    .receive(TestDapp::frame(TEST_TOPIC, &test_key(TEST_SYM_KEY), &TestDapp::request(101, METHOD_SESSION_AUTHENTICATE, TEST_AUTHENTICATION)))
+                    .await
+                    .unwrap();
+
+                client.reject_authentication("101".to_string(), reason).await.unwrap();
+
+                let response = dapp.transport.published_with_sender_key(&TestDapp::requester_topic()).remove(0);
+                assert_eq!(response["error"]["code"], code, "{reason:?}: the dapp is told why");
+                assert_eq!(return_events(&dapp), expected, "{reason:?}: only the user's own rejection sends them back to the dapp");
+                assert!(lock(&client.linked_topics).is_empty(), "{reason:?}: the link is used once");
             }
         });
     }
@@ -1504,7 +1544,7 @@ mod tests {
             client.pair(TestDapp::pairing_uri("wc_sessionPropose")).await.unwrap();
             client.receive(TestDapp::frame(TEST_TOPIC, &pairing_key, &TestDapp::request(100, METHOD_SESSION_PROPOSE, TEST_PROPOSAL))).await.unwrap();
 
-            assert!(matches!(client.approve_session(TEST_PEER_PUBLIC_KEY.to_string(), wallet.clone()).await, Err(GemServiceError::InvalidInput { .. })));
+            assert_eq!(client.approve_session(TEST_PEER_PUBLIC_KEY.to_string(), wallet.clone()).await, Err(invalid_origin()));
             assert_eq!(dapp.transport.published(TEST_TOPIC, &pairing_key), vec![json(r#"{"id":100,"jsonrpc":"2.0","error":{"code":5000,"message":"User rejected."}}"#)]);
             assert!(!dapp.transport.sent().iter().any(|frame| frame["method"] == "wc_approveSession"), "a page that is not the app it names is never connected");
 
@@ -1515,9 +1555,10 @@ mod tests {
             assert_ne!(authentication, TEST_AUTHENTICATION);
             client.receive(TestDapp::frame(TEST_TOPIC, &pairing_key, &TestDapp::request(101, METHOD_SESSION_AUTHENTICATE, &authentication))).await.unwrap();
 
-            assert!(matches!(client.authentication_message("101".to_string(), wallet.clone()), Err(GemServiceError::InvalidInput { .. })));
-            assert!(
-                matches!(client.approve_authentication("101".to_string(), wallet, "0xsignature".to_string()).await, Err(GemServiceError::InvalidInput { .. })),
+            assert_eq!(client.authentication_message("101".to_string(), wallet.clone()).err(), Some(invalid_origin()));
+            assert_eq!(
+                client.approve_authentication("101".to_string(), wallet, "0xsignature".to_string()).await,
+                Err(invalid_origin()),
                 "a sign-in for another site is never signed or sent"
             );
             assert!(dapp.transport.published_with_sender_key(&TestDapp::requester_topic()).is_empty());

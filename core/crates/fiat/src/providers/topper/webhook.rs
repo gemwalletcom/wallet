@@ -1,9 +1,7 @@
 use std::error::Error;
 
 use gem_encoding::encode_base64_url;
-use jsonwebtoken::crypto::verify;
-use jsonwebtoken::jwk::Jwk;
-use jsonwebtoken::{Algorithm, DecodingKey};
+use gem_jwt::VerifyingKey;
 
 use crate::{FiatWebhookRequest, error::FiatQuoteError};
 
@@ -26,9 +24,8 @@ fn verify_signature(webhook_key: &str, signature: &str, raw_body: &str) -> Resul
     let Some((header, signature)) = signature.split_once("..") else {
         return Ok(false);
     };
-    let key = DecodingKey::from_jwk(&serde_json::from_str::<Jwk>(webhook_key)?)?;
     let message = format!("{header}.{}", encode_base64_url(raw_body.as_bytes()));
-    Ok(verify(signature, message.as_bytes(), &key, Algorithm::ES256)?)
+    Ok(VerifyingKey::es256(webhook_key)?.verify(message.as_bytes(), signature))
 }
 
 #[cfg(test)]

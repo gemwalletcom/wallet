@@ -91,8 +91,12 @@ impl<'de> Deserialize<'de> for QueryLimitParam {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use axum::extract::Query;
+    use axum::extract::rejection::QueryRejection;
+    use http::Uri;
     use serde::Deserialize;
+
+    use super::*;
 
     #[derive(Deserialize)]
     struct Params {
@@ -102,8 +106,8 @@ mod tests {
         limit: QueryLimitParam,
     }
 
-    fn parse(query: &str) -> Result<Params, serde_urlencoded::de::Error> {
-        serde_urlencoded::from_str(query)
+    fn parse(query: &str) -> Result<Params, QueryRejection> {
+        Query::try_from_uri(&format!("/?{query}").parse::<Uri>().unwrap()).map(|query| query.0)
     }
 
     #[test]

@@ -1,8 +1,10 @@
 mod client;
+mod connections;
 mod observer;
 mod price_handler;
 mod redis;
 
+pub use connections::Connections;
 pub use price_handler::StreamPricesConfig;
 
 use std::sync::Arc;
@@ -19,7 +21,6 @@ use http::StatusCode;
 use http_server::{ShutdownReceiver, catch_panic_layer, with_security_headers};
 use services::devices::{DeviceStreamClient, DevicesClient};
 use services::prices::PriceClient;
-use tokio_util::task::TaskTracker;
 
 use crate::auth::device::{AuthenticatedDevice, DeviceAuth, DeviceAuthConfig, DeviceAuthScheme, SignedPath, device_auth};
 use crate::error::ApiError;
@@ -44,7 +45,7 @@ pub struct StreamState {
     pub prices: Arc<PriceClient>,
     pub observer: Arc<StreamObserverConfig>,
     pub shutdown: ShutdownReceiver,
-    pub connections: TaskTracker,
+    pub connections: Connections,
 }
 
 impl FromRef<StreamState> for Arc<DevicesClient> {
@@ -91,7 +92,7 @@ async fn stream(device: AuthenticatedDevice, State(state): State<StreamState>, u
         .max_write_buffer_size(MAX_WRITE_BUFFER_BYTES)
         .on_failed_upgrade(|error: axum::Error| info_with_fields!("websocket upgrade failed", error = error.to_string()))
         .on_upgrade(move |socket: WebSocket| {
-            connections.track_future(async move {
+            connections.track(async move {
                 let mut observer = observer::StreamObserver::new(device_id, version, state.prices.clone(), state.observer.prices);
                 client::run(&state.observer.redis_url, &state.observer.device_stream, &mut observer, socket, state.shutdown.clone()).await;
             })

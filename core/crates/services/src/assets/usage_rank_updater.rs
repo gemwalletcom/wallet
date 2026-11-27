@@ -107,20 +107,16 @@ mod tests {
 
     #[test]
     fn test_calculate_usage_ranks_weighted() {
-        let counts_1h = vec![(Chain::Bitcoin.as_asset_id(), 2)];
-        let counts_24h = vec![(Chain::Ethereum.as_asset_id(), 25)];
-        let counts_7d = vec![(Chain::Solana.as_asset_id(), 300)];
-        let counts_30d = vec![(Chain::SmartChain.as_asset_id(), 4000)];
+        let bitcoin = Chain::Bitcoin.as_asset_id();
+        let solana = Chain::Solana.as_asset_id();
+        let ethereum = Chain::Ethereum.as_asset_id();
+        let counts_1h = vec![(bitcoin.clone(), 4)];
+        let counts_24h = vec![(bitcoin.clone(), 4), (solana.clone(), 10)];
+        let counts_7d = vec![(bitcoin.clone(), 4), (solana.clone(), 20)];
+        let counts_30d = vec![(bitcoin.clone(), 4), (solana.clone(), 20), (ethereum.clone(), 1000)];
+
         let result = calculate_usage_ranks(&counts_1h, &counts_24h, &counts_7d, &counts_30d);
 
-        let asset1_rank = result.iter().find(|(id, _)| *id == Chain::Bitcoin.as_asset_id()).map(|(_, r)| *r).unwrap();
-        let asset2_rank = result.iter().find(|(id, _)| *id == Chain::Ethereum.as_asset_id()).map(|(_, r)| *r).unwrap();
-        let asset3_rank = result.iter().find(|(id, _)| *id == Chain::Solana.as_asset_id()).map(|(_, r)| *r).unwrap();
-        let asset4_rank = result.iter().find(|(id, _)| *id == Chain::SmartChain.as_asset_id()).map(|(_, r)| *r).unwrap();
-
-        assert_eq!(asset1_rank, 25);
-        assert_eq!(asset2_rank, 50);
-        assert_eq!(asset3_rank, 75);
-        assert_eq!(asset4_rank, 100);
+        assert_eq!(result, vec![(ethereum, 33), (solana, 67), (bitcoin, 100)]);
     }
 }

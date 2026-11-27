@@ -41,6 +41,7 @@ import uniffi.gemstone.GemLocalizedText
 import uniffi.gemstone.GemSignMessageServiceInterface
 import uniffi.gemstone.GemWalletConnectAuthentication
 import uniffi.gemstone.GemWalletConnectException
+import uniffi.gemstone.GemWalletConnectRejectionReason
 import uniffi.gemstone.GemWalletConnectServiceInterface
 import uniffi.gemstone.GemWalletSection
 import uniffi.gemstone.WalletConnectionSessionProposal
@@ -82,7 +83,7 @@ class AuthRequestViewModel @Inject constructor(
                 if (!answer(request)) {
                     return@launch
                 }
-                approveWalletConnectAuthentication.rejectAuthentication(request)
+                approveWalletConnectAuthentication.rejectAuthentication(request, (err as? GemWalletConnectException)?.rejectionReason() ?: GemWalletConnectRejectionReason.REFUSED)
                 if (err is GemWalletConnectException.InvalidOrigin) {
                     onError(err.errorText().text(context))
                     finish(request)

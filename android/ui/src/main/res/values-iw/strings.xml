@@ -213,7 +213,8 @@
   <string name="errors_swap_no_quote_available">אין הצעת מחיר זמינה.</string>
   <string name="errors_swap_not_supported_asset">נכס לא נתמך.</string>
   <string name="errors_connections_no_supported_wallets">אין ארנקים נתמכים זמינים.</string>
-  <string name="errors_connections_unsupported_chain">השרשרת שסופקה אינה נתמכת.</string>
+  <string name="errors_connections_unsupported_chain">החיבור הזה דורש רשת שאינה נתמכת.</string>
+  <string name="errors_connections_unsupported_features">החיבור הזה דורש תכונות שאינן נתמכות.</string>
   <string name="errors_authentication_unavailable">אימות לא מוגדר במכשיר הזה. הפעל זיהוי ביומטרי או קוד גישה בהגדרות המכשיר.</string>
   <string name="errors_authentication_locked_out">יותר מדי ניסיונות כושלים. אנא נסה שוב מאוחר יותר.</string>
   <string name="errors_authentication_failed">האימות נכשל. אנא נסה שוב.</string>

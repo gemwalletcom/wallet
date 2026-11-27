@@ -10,6 +10,8 @@ pub struct Webhook {
 pub struct WebhookData {
     pub id: String,
     pub merchant_transaction_id: String,
+    #[serde(rename = "type")]
+    pub transaction_type: String,
     pub status: String,
     #[serde(deserialize_with = "deserialize_f64_from_str")]
     pub fiat_amount: f64,

@@ -1,4 +1,4 @@
-use num_bigint::{BigInt, BigUint};
+use num_bigint::{BigInt, BigUint, Sign};
 use primitives::{AssetId, SwapProvider, TransactionSwapMetadata};
 
 #[derive(Debug)]
@@ -44,7 +44,20 @@ impl SwapMapper {
 
     fn calculate_actual_value(amount: &BigInt, asset_id: &AssetId, fee: &BigUint, native_asset_id: &AssetId) -> BigUint {
         let magnitude = amount.magnitude();
-        if asset_id == native_asset_id && magnitude >= fee { magnitude - fee } else { magnitude.clone() }
+        if asset_id != native_asset_id {
+            return magnitude.clone();
+        }
+        match amount.sign() {
+            Sign::Minus => {
+                if magnitude >= fee {
+                    magnitude - fee
+                } else {
+                    magnitude.clone()
+                }
+            }
+            Sign::Plus => magnitude + fee,
+            Sign::NoSign => magnitude.clone(),
+        }
     }
 }
 
@@ -77,6 +90,31 @@ mod tests {
         assert_eq!(swap.to_asset, token_asset);
         assert_eq!(swap.to_value, BigUint::from(100u64));
         assert_eq!(swap.provider, Some(SwapProvider::UniswapV3.id().to_string()));
+    }
+
+    #[test]
+    fn test_detect_token_to_native_swap() {
+        let native_asset = AssetId::from_chain(Chain::Sui);
+        let token_asset = AssetId::from_token(Chain::Sui, "0x123::usdc::USDC");
+        let fee = BigUint::from(1u32);
+
+        let balance_diffs = vec![
+            BalanceDiff {
+                asset_id: token_asset.clone(),
+                diff: BigInt::from(-20),
+            },
+            BalanceDiff {
+                asset_id: native_asset.clone(),
+                diff: BigInt::from(9),
+            },
+        ];
+
+        let swap = SwapMapper::map_swap(&balance_diffs, &fee, &native_asset, Some(SwapProvider::CetusClmm)).unwrap();
+
+        assert_eq!(swap.from_asset, token_asset);
+        assert_eq!(swap.from_value, BigUint::from(20u64));
+        assert_eq!(swap.to_asset, native_asset);
+        assert_eq!(swap.to_value, BigUint::from(10u64));
     }
 
     #[test]

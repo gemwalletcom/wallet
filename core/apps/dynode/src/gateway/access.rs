@@ -16,10 +16,10 @@ pub(super) struct AccessLog<'a> {
 }
 
 impl<'a> AccessLog<'a> {
-    pub(super) fn new(source: &'a str, route: &'a Route, method: &'a Method, uri: &'a str) -> Self {
+    pub(super) fn new(source: &'a str, group: &'a str, route: &'a Route, method: &'a Method, uri: &'a str) -> Self {
         Self {
             source,
-            group: &route.group,
+            group,
             service: &route.service,
             method,
             uri,

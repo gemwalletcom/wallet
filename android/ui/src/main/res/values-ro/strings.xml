@@ -213,7 +213,8 @@
   <string name="errors_swap_no_quote_available">Nu există nicio cotație disponibilă.</string>
   <string name="errors_swap_not_supported_asset">Activ neacceptat.</string>
   <string name="errors_connections_no_supported_wallets">Nu sunt disponibile portofele acceptate.</string>
-  <string name="errors_connections_unsupported_chain">Lanțul furnizat nu este acceptat.</string>
+  <string name="errors_connections_unsupported_chain">Această conexiune necesită o rețea care nu este acceptată.</string>
+  <string name="errors_connections_unsupported_features">Această conexiune necesită funcții care nu sunt acceptate.</string>
   <string name="errors_authentication_unavailable">Autentificarea nu este configurată pe acest dispozitiv. Activați biometria sau un cod de acces din setările dispozitivului.</string>
   <string name="errors_authentication_locked_out">Prea multe încercări nereușite. Vă rugăm să încercați din nou mai târziu.</string>
   <string name="errors_authentication_failed">Autentificarea a eșuat. Vă rugăm să încercați din nou.</string>

@@ -83,7 +83,6 @@ pub fn permit2_data_to_eip712_json(chain: Chain, data: PermitSingle, contract: &
             version: None,
             chain_id: Some(chain.network_id_value().ok_or(SwapperError::NotSupportedChain)?),
             verifying_contract: Some(contract.to_string()),
-            salts: None,
         },
         types: Permit2Types::default(),
         primary_type: "PermitSingle".into(),

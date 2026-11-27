@@ -69,6 +69,9 @@ fn prepare(config: &mut Config, chains: &mut HashMap<Chain, ChainConfig>, mut ge
                 return Err(ConfigError::Message("proxy health interval must be greater than zero".into()));
             }
         }
+        if let Some(name) = config.routes.keys().find(|name| config.routes.values().any(|route| route.groups.contains(name))) {
+            return Err(ConfigError::Message(format!("route {name} is named like a group")));
+        }
         for route in config.routes.values_mut() {
             if route.endpoints.is_empty() {
                 return Err(ConfigError::Message("route must configure at least one endpoint".into()));
@@ -226,6 +229,9 @@ mod tests {
         assert_eq!(prepare(&mut config, &mut chains, |_| None).unwrap_err().to_string(), "invalid upstream URL");
         config.routes.as_mut().unwrap().routes.get_mut("fastnear_tx").unwrap().endpoints.clear();
         assert_eq!(prepare(&mut config, &mut chains, |_| None).unwrap_err().to_string(), "route must configure at least one endpoint");
+        let mut config = Config::mock();
+        config.routes.as_mut().unwrap().routes.get_mut("fastnear_tx").unwrap().groups.push("fastnear_transfers".to_string());
+        assert_eq!(prepare(&mut config, &mut chains, |_| None).unwrap_err().to_string(), "route fastnear_transfers is named like a group");
     }
 
     #[test]
@@ -257,7 +263,7 @@ mod tests {
         assert_eq!(chain_settings.cache.memory.max, 1024 * 1024);
         assert_eq!(route_settings.cache.memory.max, 64_000_000);
         assert_eq!(route_settings.routes.len(), 2);
-        assert_eq!(route_settings.routes["fastnear_tx"].group, "indexer");
+        assert_eq!(route_settings.routes["fastnear_tx"].groups, ["indexer"]);
         let expected_chains = FileConfig::builder()
             .add_source(File::from_str(include_str!("../../chains.yml"), FileFormat::Yaml))
             .build()
@@ -314,10 +320,17 @@ mod tests {
         let directory = env::temp_dir().join(format!("dynode-config-{}", gem_uuid::v4()));
         fs::create_dir(&directory).unwrap();
         fs::write(directory.join("config.yml"), include_str!("../../config.yml")).unwrap();
-        for routes in [include_str!("../../routes.yml").replace("routes:", "route:"), include_str!("../../routes.yml").replace("    group: indexer\n", "")] {
+        for routes in [
+            include_str!("../../routes.yml").replace("routes:", "route:"),
+            include_str!("../../routes.yml").replace("    group: indexer\n", ""),
+            include_str!("../../routes.yml").replace("    group: indexer\n", "    group: []\n"),
+        ] {
             fs::write(directory.join("routes.yml"), routes).unwrap();
             assert!(load_files(&directory.join("config.yml"), Environment::default().source(Some(HashMap::new()))).is_err());
         }
+        fs::write(directory.join("routes.yml"), include_str!("../../routes.yml").replace("    group: indexer\n", "    group: [indexer, nft]\n")).unwrap();
+        let (config, _) = load_files(&directory.join("config.yml"), Environment::default().source(Some(HashMap::new()))).unwrap();
+        assert_eq!(config.routes.unwrap().routes["fastnear_tx"].groups, ["indexer", "nft"]);
         fs::remove_dir_all(directory).unwrap();
     }
 }

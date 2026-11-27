@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use chain_traits::ChainBalances;
 use std::error::Error;
 
-use crate::provider::balances_mapper::{map_balance_staking, map_coin_balance, map_token_accounts};
+use crate::provider::balances_mapper::{map_balance_assets, map_balance_staking, map_coin_balance, map_token_accounts};
 use crate::rpc::SolanaProvider;
 use gem_client::Client;
 use primitives::AssetBalance;
@@ -28,26 +28,44 @@ impl<C: Client + Clone> ChainBalances for SolanaProvider<C> {
     }
 
     async fn get_balance_assets(&self, address: String) -> Result<Option<Vec<AssetBalance>>, Box<dyn Error + Send + Sync>> {
-        let token_accounts_result = self.get_token_accounts_by_owner(&address, crate::TOKEN_PROGRAM).await?;
-        let balances: Vec<AssetBalance> = token_accounts_result
-            .value
-            .into_iter()
-            .filter_map(|account| {
-                let token_info = &account.account.data.parsed.info;
-                if let (Some(token_amount), Some(mint)) = (&token_info.token_amount, &token_info.mint)
-                    && token_amount.amount > num_bigint::BigUint::from(0u32)
-                {
-                    let asset_id = primitives::AssetId {
-                        chain: primitives::Chain::Solana,
-                        token_id: Some(mint.clone()),
-                    };
-                    return Some(primitives::AssetBalance::new(asset_id, token_amount.amount.clone()));
-                }
-                None
-            })
-            .collect();
+        let (token_accounts, token_2022_accounts) = futures::try_join!(self.get_token_accounts_by_owner(&address, crate::TOKEN_PROGRAM), self.get_token_accounts_by_owner(&address, crate::TOKEN_PROGRAM_2022))?;
+        Ok(Some(map_balance_assets(token_accounts.value.into_iter().chain(token_2022_accounts.value).collect())))
+    }
+}
 
-        Ok(Some(balances))
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{PYUSD_TOKEN_MINT, TOKEN_PROGRAM, TOKEN_PROGRAM_2022, rpc::SolanaClient};
+    use gem_jsonrpc::testkit::mock_jsonrpc_client;
+    use num_bigint::BigUint;
+    use primitives::{
+        AssetId, Chain,
+        testkit::{json_rpc::load_json_rpc_result, signer_mock::TEST_SOLANA_SENDER},
+    };
+    use serde_json::Value;
+
+    #[tokio::test]
+    async fn test_get_balance_assets_includes_token_2022_accounts() {
+        let client = mock_jsonrpc_client(|_, params| {
+            let response = match params[1]["programId"].as_str() {
+                Some(TOKEN_PROGRAM) => include_str!("../../testdata/token_accounts_token_program.json"),
+                Some(TOKEN_PROGRAM_2022) => include_str!("../../testdata/token_accounts_token_2022_program.json"),
+                _ => unreachable!(),
+            };
+            Ok(load_json_rpc_result::<Value>(response))
+        });
+        let provider = SolanaProvider::new(SolanaClient::new(client));
+
+        let balances = provider.get_balance_assets(TEST_SOLANA_SENDER.to_string()).await.unwrap().unwrap();
+
+        assert_eq!(
+            balances,
+            vec![
+                AssetBalance::new(AssetId::from_token(Chain::Solana, "9yMP3WUodc5RmuHSmNzFQagA58cjqWr8oQMXvPYnUHtJ"), BigUint::from(14_000_000_000_000u64)),
+                AssetBalance::new(AssetId::from_token(Chain::Solana, PYUSD_TOKEN_MINT), BigUint::from(16_065_364_839u64)),
+            ]
+        );
     }
 }
 

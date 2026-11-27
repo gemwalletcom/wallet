@@ -1,12 +1,12 @@
 use crate::rpc::model::TransactionReceipt;
-use num_bigint::BigInt;
+use num_bigint::BigUint;
 use primitives::{TransactionChange, TransactionState, TransactionUpdate};
 
 pub fn map_transaction_status(receipt: &TransactionReceipt) -> TransactionUpdate {
-    map_transaction_status_with_fee(receipt, receipt.get_fee().into())
+    map_transaction_status_with_fee(receipt, receipt.get_fee())
 }
 
-pub fn map_transaction_status_with_fee(receipt: &TransactionReceipt, network_fee: BigInt) -> TransactionUpdate {
+pub fn map_transaction_status_with_fee(receipt: &TransactionReceipt, network_fee: BigUint) -> TransactionUpdate {
     let state = match receipt.get_state() {
         TransactionState::Confirmed => TransactionState::Confirmed,
         TransactionState::Reverted => TransactionState::Reverted,
@@ -20,7 +20,6 @@ pub fn map_transaction_status_with_fee(receipt: &TransactionReceipt, network_fee
 #[cfg(test)]
 mod tests {
     use super::*;
-    use num_bigint::{BigInt, BigUint};
 
     #[test]
     fn test_map_transaction_status() {
@@ -32,7 +31,7 @@ mod tests {
         let result = map_transaction_status(&receipt);
 
         assert_eq!(result.state, TransactionState::Confirmed);
-        assert_eq!(result.changes, vec![TransactionChange::BlockNumber("291".to_string()), TransactionChange::NetworkFee(BigInt::from(420000000000000u64))]);
+        assert_eq!(result.changes, vec![TransactionChange::BlockNumber("291".to_string()), TransactionChange::NetworkFee(BigUint::from(420000000000000u64))]);
 
         let result = map_transaction_status(&TransactionReceipt {
             status: "0x0".to_string(),
@@ -40,7 +39,7 @@ mod tests {
         });
 
         assert_eq!(result.state, TransactionState::Reverted);
-        assert_eq!(result.changes, vec![TransactionChange::BlockNumber("291".to_string()), TransactionChange::NetworkFee(BigInt::from(420000000000000u64))]);
+        assert_eq!(result.changes, vec![TransactionChange::BlockNumber("291".to_string()), TransactionChange::NetworkFee(BigUint::from(420000000000000u64))]);
 
         let result = map_transaction_status(&TransactionReceipt {
             status: "0x2".to_string(),
@@ -69,7 +68,7 @@ mod tests {
         });
 
         assert_eq!(result.state, TransactionState::Confirmed);
-        let expected_total = BigInt::from(21000u32) * BigInt::from(20000000000u64) + BigInt::from(5000000000000000u64);
+        let expected_total = BigUint::from(21000u32) * BigUint::from(20000000000u64) + BigUint::from(5000000000000000u64);
         assert_eq!(result.changes, vec![TransactionChange::BlockNumber("291".to_string()), TransactionChange::NetworkFee(expected_total)]);
     }
 }

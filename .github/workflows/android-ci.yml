@@ -60,5 +60,8 @@ jobs:
           just install-toolchains
           just install-ndk
 
+      - name: Check dependency locks
+        run: just lock-check
+
       - name: Build app and run unit and integration tests
         run: just test-all -x :gemstone:buildCargoNdk

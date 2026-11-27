@@ -12,8 +12,12 @@ use crate::metrics::Metrics;
 
 impl Route {
     pub(super) fn mock(group: &str, service: &str) -> Self {
+        Self::mock_groups(&[group], service)
+    }
+
+    pub(super) fn mock_groups(groups: &[&str], service: &str) -> Self {
         let config = RouteConfig {
-            group: group.to_string(),
+            groups: groups.iter().map(|group| group.to_string()).collect(),
             ..RouteConfig::mock()
         };
         Self::new(service.to_string(), config, &[429, 503], &[], &Client::new(), &HashMap::new()).unwrap()

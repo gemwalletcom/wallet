@@ -1,11 +1,14 @@
 use crate::services::error::GemServiceError;
 use crate::services::wallet_connect::model::GemWalletConnectRejectionReason;
+use wallet_connect_protocol::sign::namespaces::NamespaceError;
 
 #[derive(Debug, Clone, PartialEq, Eq, uniffi::Error)]
 pub enum GemWalletConnectError {
     UnsupportedChains,
     InvalidOrigin,
     UnsupportedWallets,
+    UnsupportedMethods,
+    UnsupportedEvents,
     Service { msg: String },
 }
 
@@ -15,7 +18,9 @@ impl GemWalletConnectError {
         match self {
             Self::UnsupportedChains => GemWalletConnectRejectionReason::UnsupportedChains,
             Self::UnsupportedWallets => GemWalletConnectRejectionReason::UnsupportedAccounts,
-            Self::InvalidOrigin | Self::Service { .. } => GemWalletConnectRejectionReason::UserRejected,
+            Self::UnsupportedMethods => GemWalletConnectRejectionReason::UnsupportedMethods,
+            Self::UnsupportedEvents => GemWalletConnectRejectionReason::UnsupportedEvents,
+            Self::InvalidOrigin | Self::Service { .. } => GemWalletConnectRejectionReason::Refused,
         }
     }
 }
@@ -26,12 +31,25 @@ impl std::fmt::Display for GemWalletConnectError {
             Self::UnsupportedChains => write!(f, "unsupported chains"),
             Self::InvalidOrigin => write!(f, "invalid origin"),
             Self::UnsupportedWallets => write!(f, "wallets unsupported"),
+            Self::UnsupportedMethods => write!(f, "unsupported methods"),
+            Self::UnsupportedEvents => write!(f, "unsupported events"),
             Self::Service { msg } => write!(f, "{msg}"),
         }
     }
 }
 
 impl std::error::Error for GemWalletConnectError {}
+
+impl From<NamespaceError> for GemWalletConnectError {
+    fn from(error: NamespaceError) -> Self {
+        match error {
+            NamespaceError::UnsupportedChains => Self::UnsupportedChains,
+            NamespaceError::UnsupportedAccounts => Self::UnsupportedWallets,
+            NamespaceError::UnsupportedMethods => Self::UnsupportedMethods,
+            NamespaceError::UnsupportedEvents => Self::UnsupportedEvents,
+        }
+    }
+}
 
 impl From<GemServiceError> for GemWalletConnectError {
     fn from(error: GemServiceError) -> Self {

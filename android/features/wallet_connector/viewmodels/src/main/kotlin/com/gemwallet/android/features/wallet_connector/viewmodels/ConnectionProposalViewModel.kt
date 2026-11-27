@@ -102,7 +102,7 @@ class ConnectionProposalViewModel @AssistedInject constructor(
             }.getOrElse { error ->
                 Log.e(TAG, "session proposal rejected: ${error.message}")
                 refusals.trySend(error.errorText().text(context))
-                reject((error as? GemWalletConnectException)?.rejectionReason() ?: GemWalletConnectRejectionReason.USER_REJECTED)
+                reject((error as? GemWalletConnectException)?.rejectionReason() ?: GemWalletConnectRejectionReason.REFUSED)
                 return@launch
             }
             if (state.value !is ConnectionProposalUIState.Init) {

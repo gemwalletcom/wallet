@@ -23,7 +23,6 @@ use crate::services::error::GemServiceError;
 use crate::services::error_text::GemErrorText;
 use crate::services::transfer::{GemRecipient, GemTransferData};
 use crate::services::wallet_connect::model::{GemSignerFailure, GemWalletConnectAuthAccount, GemWalletConnectOutcome, GemWalletConnectResponse, GemWalletConnectTransactionAction};
-use crate::wallet_connect::WalletConnect;
 use gem_wallet_connect::{EvmTransactionKind, WalletConnectResponseType, WalletConnectTransaction};
 use num_bigint::BigInt;
 use primitives::GasPriceType;
@@ -214,8 +213,7 @@ pub fn authentication_accounts(chain_ids: &[String], wallet: &Wallet) -> Vec<Gem
 }
 
 pub fn account_chains(accounts: &[String]) -> Vec<Chain> {
-    let wallet_connect = WalletConnect::new();
-    unique(accounts.iter().filter_map(|account| wallet_connect.parse_account(account.clone())).map(|address| address.chain))
+    unique(accounts.iter().filter_map(|account| WalletConnectCAIP2::parse_account(account.clone())).map(|address| address.chain))
 }
 
 pub fn application_metadata(name: String, description: String, url: String, icons: Vec<String>) -> ApplicationMetadata {

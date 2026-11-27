@@ -1,4 +1,3 @@
-use num_bigint::BigInt;
 use primitives::{TransactionChange, TransactionState, TransactionUpdate};
 
 use crate::models::transaction::StellarTransactionStatus;
@@ -6,11 +5,9 @@ use crate::models::transaction::StellarTransactionStatus;
 pub fn map_transaction_status(status: &StellarTransactionStatus) -> TransactionUpdate {
     let state = if status.successful { TransactionState::Confirmed } else { TransactionState::Failed };
 
-    let network_fee = BigInt::from(status.fee_charged.clone());
-
     TransactionUpdate {
         state,
-        changes: vec![TransactionChange::NetworkFee(network_fee)],
+        changes: vec![TransactionChange::NetworkFee(status.fee_charged.clone())],
     }
 }
 

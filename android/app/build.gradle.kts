@@ -45,6 +45,15 @@ repositories {
     mavenCentral()
 }
 
+dependencyLocking {
+    lockAllConfigurations()
+    lockMode = LockMode.STRICT
+}
+
+configurations.matching { it.name == "androidApis" }.configureEach {
+    resolutionStrategy.deactivateDependencyLocking()
+}
+
 android {
     namespace = "com.gemwallet.android"
     compileSdk = 37
@@ -57,8 +66,8 @@ android {
         applicationId = "com.gemwallet.android"
         minSdk = 28
         targetSdk = 37
-        versionCode = 916
-        versionName = "2.114.103"
+        versionCode = 917
+        versionName = "2.114.104"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {

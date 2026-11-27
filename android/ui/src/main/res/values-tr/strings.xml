@@ -213,7 +213,8 @@
   <string name="errors_swap_no_quote_available">Kullanılabilir teklif yok.</string>
   <string name="errors_swap_not_supported_asset">Desteklenmeyen varlık.</string>
   <string name="errors_connections_no_supported_wallets">Desteklenen cüzdan yok.</string>
-  <string name="errors_connections_unsupported_chain">Sağlanan zincir desteklenmiyor.</string>
+  <string name="errors_connections_unsupported_chain">Bu bağlantı desteklenmeyen bir ağ gerektiriyor.</string>
+  <string name="errors_connections_unsupported_features">Bu bağlantı desteklenmeyen özellikler gerektiriyor.</string>
   <string name="errors_authentication_unavailable">Bu cihazda kimlik doğrulama ayarlanmamış. Cihaz ayarlarından biyometriyi veya bir parolayı açın.</string>
   <string name="errors_authentication_locked_out">Çok fazla başarısız deneme. Lütfen daha sonra tekrar deneyin.</string>
   <string name="errors_authentication_failed">Kimlik doğrulama başarısız oldu. Lütfen tekrar deneyin.</string>

@@ -6,7 +6,6 @@ import com.gemwallet.android.testkit.NameServiceMock
 import com.gemwallet.android.testkit.mockGemContactAddressSession
 import com.gemwallet.android.testkit.mockGemContactScannedAddress
 import com.gemwallet.android.testkit.mockGemContactSession
-import com.gemwallet.android.testkit.mockGemRecipientValidation
 import com.wallet.core.primitives.Chain
 import io.mockk.every
 import io.mockk.mockk
@@ -19,8 +18,6 @@ import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import uniffi.gemstone.GemContactEditorServiceInterface
-import uniffi.gemstone.GemNameRecordState
-import uniffi.gemstone.GemNameServiceInterface
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ContactEditorViewModelTest {
@@ -33,18 +30,14 @@ class ContactEditorViewModelTest {
     private val service = mockk<GemContactEditorServiceInterface> {
         every { newSession(any(), any()) } returns mockGemContactSession()
         every { newAddressSession(any(), any()) } returns mockGemContactAddressSession(chain = Chain.Bitcoin.string)
-        every { scannedAddress(any()) } returns mockGemContactScannedAddress(address = "UQaddress", chain = Chain.Ton.string, memo = "1234567")
-    }
-
-    private val tonOnlyNames = object : GemNameServiceInterface by NameServiceMock() {
-        override fun validateRecipient(chain: uniffi.gemstone.Chain, input: String, state: GemNameRecordState) = mockGemRecipientValidation(isValid = chain == Chain.Ton.string, address = input)
+        every { scannedAddress(any()) } returns mockGemContactScannedAddress(address = "UQAzoUpalAaXnVm5MoiYWRZguLFzY0KxFjLv3MkRq5BXz3VV", chain = Chain.Ton.string, memo = "1234567")
     }
 
     private fun model() = ContactEditorViewModel(
         contactQuery = mockk(),
         context = mockk(),
         service = service,
-        nameService = tonOnlyNames,
+        nameService = NameServiceMock(),
         toastPresenter = mockk(),
         savedStateHandle = SavedStateHandle(),
         ioDispatcher = dispatcher,

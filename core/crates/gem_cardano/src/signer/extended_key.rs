@@ -1,7 +1,7 @@
 use curve25519_dalek::{constants::ED25519_BASEPOINT_TABLE, scalar::Scalar};
+use gem_hash::sha2::sha512;
 use primitives::SignerError;
-use sha2::{Digest, Sha512};
-use zeroize::Zeroize;
+use zeroize::{Zeroize, Zeroizing};
 
 const CARDANO_EXTENDED_PRIVATE_KEY_LENGTH: usize = 192;
 const KEY_LENGTH: usize = 32;
@@ -62,12 +62,7 @@ pub(crate) fn public_key_from_secret(secret: [u8; KEY_LENGTH]) -> [u8; KEY_LENGT
 }
 
 fn scalar_from_hash(parts: &[&[u8]]) -> Scalar {
-    let mut hasher = Sha512::new();
-    for part in parts {
-        hasher.update(part);
-    }
-    let bytes: [u8; 64] = hasher.finalize().into();
-    Scalar::from_bytes_mod_order_wide(&bytes)
+    Scalar::from_bytes_mod_order_wide(&sha512(&Zeroizing::new(parts.concat())))
 }
 
 #[cfg(test)]

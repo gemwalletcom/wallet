@@ -213,7 +213,8 @@
   <string name="errors_swap_no_quote_available">暂无报价</string>
   <string name="errors_swap_not_supported_asset">暂不支持该资产。</string>
   <string name="errors_connections_no_supported_wallets">暂无可用钱包</string>
-  <string name="errors_connections_unsupported_chain">暂不支持该区块链网络</string>
+  <string name="errors_connections_unsupported_chain">此连接需要不受支持的网络。</string>
+  <string name="errors_connections_unsupported_features">此连接需要不受支持的功能。</string>
   <string name="errors_authentication_unavailable">此设备未设置身份验证。请在设备设置中开启生物识别或密码。</string>
   <string name="errors_authentication_locked_out">失败次数过多，请稍后再试。</string>
   <string name="errors_authentication_failed">身份验证失败，请重试。</string>

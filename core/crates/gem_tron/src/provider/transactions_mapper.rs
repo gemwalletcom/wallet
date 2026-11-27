@@ -131,7 +131,7 @@ pub fn map_transaction(chain: Chain, transaction: TronTransaction, receipt: Tran
         transaction.raw_data.data.as_deref(),
     )?;
 
-    if let Some(transaction) = context.map_native_contract(contract.contract_type, &contract.parameter.value) {
+    if let Some(transaction) = context.map_native_contract(contract.contract_type, &contract.parameter.value, &receipt) {
         return Some(transaction);
     }
 
@@ -167,7 +167,7 @@ impl TransactionContext {
         })
     }
 
-    fn map_native_contract(&self, contract_type: Option<TronContractType>, contract_value: &ContractParameterValue) -> Option<Transaction> {
+    fn map_native_contract(&self, contract_type: Option<TronContractType>, contract_value: &ContractParameterValue, receipt: &TransactionReceiptData) -> Option<Transaction> {
         let (transaction_type, to, value, metadata): (TransactionType, String, BigUint, Option<Value>) = match contract_type? {
             TronContractType::Transfer => (TransactionType::Transfer, contract_value.to_address.clone().unwrap_or_default(), BigUint::from(contract_value.amount.unwrap_or_default()), None),
             TronContractType::FreezeBalanceV2 => (
@@ -183,6 +183,8 @@ impl TransactionContext {
                 resource_type_metadata(contract_value.resource.as_deref()),
             ),
             TronContractType::VoteWitness => self.vote_witness_transaction_data(contract_value)?,
+            TronContractType::WithdrawBalance => (TransactionType::StakeRewards, self.from.clone(), BigUint::from(receipt.withdraw_amount.unwrap_or_default()), None),
+            TronContractType::WithdrawExpireUnfreeze => (TransactionType::StakeWithdraw, self.from.clone(), BigUint::from(receipt.withdraw_expire_amount.unwrap_or_default()), None),
             _ => return None,
         };
 
@@ -292,7 +294,7 @@ fn map_transaction_state(contract_ret: &str) -> TransactionState {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::models::{BlockTransactions, TransactionReceipt, TransactionReceiptData, TriggerConstantContractResponse, TronContractType, TronLog, TronTransactionBroadcast};
+    use crate::models::{BlockTransactions, TransactionReceiptData, TriggerConstantContractResponse, TronContractType, TronLog, TronTransactionBroadcast};
     use crate::provider::testkit::{TEST_TOKEN_APPROVAL_TRANSACTION_ID, TEST_TRANSACTION_ID};
     use primitives::asset_constants::TRON_USDT_TOKEN_ID;
 
@@ -326,16 +328,7 @@ mod tests {
     #[test]
     fn test_map_transaction_freeze_bandwidth() {
         let transaction: TronTransaction = serde_json::from_str(include_str!("../../testdata/transaction_freeze.json")).unwrap();
-        let receipt = TransactionReceiptData {
-            id: "test_id".to_string(),
-            fee: Some(1000),
-            block_number: 12345,
-            block_time_stamp: DateTime::from_timestamp_millis(1758589896000),
-            result: None,
-            receipt: TransactionReceipt { result: Some("SUCCESS".to_string()) },
-            log: None,
-            internal_transactions: None,
-        };
+        let receipt = TransactionReceiptData::mock_with_result("SUCCESS");
 
         let result = map_transaction(Chain::Tron, transaction, receipt);
         assert!(result.is_some());
@@ -349,16 +342,7 @@ mod tests {
     #[test]
     fn test_map_transaction_freeze_energy() {
         let transaction: TronTransaction = serde_json::from_str(include_str!("../../testdata/transaction_freeze_energy.json")).unwrap();
-        let receipt = TransactionReceiptData {
-            id: "test_id".to_string(),
-            fee: Some(1000),
-            block_number: 12345,
-            block_time_stamp: DateTime::from_timestamp_millis(1760552376000),
-            result: None,
-            receipt: TransactionReceipt { result: Some("SUCCESS".to_string()) },
-            log: None,
-            internal_transactions: None,
-        };
+        let receipt = TransactionReceiptData::mock_with_result("SUCCESS");
 
         let result = map_transaction(Chain::Tron, transaction, receipt);
         assert!(result.is_some());
@@ -372,16 +356,7 @@ mod tests {
     #[test]
     fn test_map_transaction_stake() {
         let transaction: TronTransaction = serde_json::from_str(include_str!("../../testdata/transaction_stake.json")).unwrap();
-        let receipt = TransactionReceiptData {
-            id: "test_id".to_string(),
-            fee: Some(1000),
-            block_number: 12345,
-            block_time_stamp: DateTime::from_timestamp_millis(1758225849000),
-            result: None,
-            receipt: TransactionReceipt { result: Some("SUCCESS".to_string()) },
-            log: None,
-            internal_transactions: None,
-        };
+        let receipt = TransactionReceiptData::mock_with_result("SUCCESS");
 
         let result = map_transaction(Chain::Tron, transaction, receipt);
         assert!(result.is_some());
@@ -395,16 +370,7 @@ mod tests {
     #[test]
     fn test_map_transaction_unfreeze() {
         let transaction: TronTransaction = serde_json::from_str(include_str!("../../testdata/transaction_unfreeze.json")).unwrap();
-        let receipt = TransactionReceiptData {
-            id: "test_id".to_string(),
-            fee: Some(1000),
-            block_number: 12345,
-            block_time_stamp: DateTime::from_timestamp_millis(1758596982000),
-            result: None,
-            receipt: TransactionReceipt { result: Some("SUCCESS".to_string()) },
-            log: None,
-            internal_transactions: None,
-        };
+        let receipt = TransactionReceiptData::mock_with_result("SUCCESS");
 
         let result = map_transaction(Chain::Tron, transaction, receipt);
         assert!(result.is_some());
@@ -413,6 +379,40 @@ mod tests {
         assert_eq!(transaction.value, BigUint::from(100000000u64));
         assert_eq!(transaction.from, transaction.to);
         assert_eq!(transaction.metadata, serde_json::to_value(TransactionResourceTypeMetadata::new(Resource::Bandwidth)).ok());
+    }
+
+    #[test]
+    fn test_map_transaction_withdraw_balance() {
+        let transaction: TronTransaction = serde_json::from_str(include_str!("../../testdata/transaction_withdraw_balance.json")).unwrap();
+        let receipt: TransactionReceiptData = serde_json::from_str(include_str!("../../testdata/transaction_withdraw_balance_receipt.json")).unwrap();
+
+        let transaction = map_transaction(Chain::Tron, transaction, receipt).unwrap();
+
+        assert_eq!(transaction.hash(), "0014e0e7485ac32edc0af665c0c0f2bd7cbf6b1afa5a33fdaa713a1819fc3a0f");
+        assert_eq!(transaction.transaction_type, TransactionType::StakeRewards);
+        assert_eq!(transaction.state, TransactionState::Confirmed);
+        assert_eq!(transaction.asset_id, Chain::Tron.as_asset_id());
+        assert_eq!(transaction.from, "TDS1VwZg9e31FVggpMF1mPZcryLtK7NLxt");
+        assert_eq!(transaction.to, "TDS1VwZg9e31FVggpMF1mPZcryLtK7NLxt");
+        assert_eq!(transaction.value, BigUint::from(41417934u64));
+        assert_eq!(transaction.fee, BigUint::from(0u8));
+    }
+
+    #[test]
+    fn test_map_transaction_withdraw_expire_unfreeze() {
+        let transaction: TronTransaction = serde_json::from_str(include_str!("../../testdata/transaction_withdraw_expire_unfreeze.json")).unwrap();
+        let receipt: TransactionReceiptData = serde_json::from_str(include_str!("../../testdata/transaction_withdraw_expire_unfreeze_receipt.json")).unwrap();
+
+        let transaction = map_transaction(Chain::Tron, transaction, receipt).unwrap();
+
+        assert_eq!(transaction.hash(), "aa9475289f6987d8f69aad19fb4de415071ab7c6a62908e278490a418760af04");
+        assert_eq!(transaction.transaction_type, TransactionType::StakeWithdraw);
+        assert_eq!(transaction.state, TransactionState::Confirmed);
+        assert_eq!(transaction.asset_id, Chain::Tron.as_asset_id());
+        assert_eq!(transaction.from, "TShrm3B3vTtyHBJC5cTCkJTjha6XczytYo");
+        assert_eq!(transaction.to, "TShrm3B3vTtyHBJC5cTCkJTjha6XczytYo");
+        assert_eq!(transaction.value, BigUint::from(16999950253u64));
+        assert_eq!(transaction.fee, BigUint::from(0u8));
     }
 
     #[test]
@@ -499,19 +499,13 @@ mod tests {
     fn test_map_transaction_token_transfer() {
         let transaction: TronTransaction = serde_json::from_str(include_str!("../../testdata/transaction_token_transfer.json")).unwrap();
         let receipt = TransactionReceiptData {
-            id: "test_id".to_string(),
-            fee: Some(1000),
-            block_number: 12345,
-            block_time_stamp: DateTime::from_timestamp_millis(1727747910000),
-            result: None,
-            receipt: TransactionReceipt { result: Some("SUCCESS".to_string()) },
             log: Some(vec![TronLog::mock_transfer(
                 TRON_USDT_TOKEN_ID,
                 "0000000000000000000000002e1d447fa4169390cf5f5b3d12d380decfbfe20f",
                 "0000000000000000000000006e2cf2878020b966786f01ab45ea1fcef6880092",
                 "00000000000000000000000000000000000000000000000000000000017d7840",
             )]),
-            internal_transactions: None,
+            ..TransactionReceiptData::mock_with_result("SUCCESS")
         };
 
         let result = map_transaction(Chain::Tron, transaction, receipt);
@@ -599,14 +593,8 @@ mod tests {
         let transaction: TronTransaction = serde_json::from_str(include_str!("../../testdata/transaction_trigger_smart_swap.json")).unwrap();
         let swap_logs: TriggerConstantContractResponse = serde_json::from_str(include_str!("../../testdata/trigger_constant_contract_swap_with_logs.json")).unwrap();
         let receipt = TransactionReceiptData {
-            id: "test_id".to_string(),
-            fee: Some(1000),
-            block_number: 12345,
-            block_time_stamp: DateTime::from_timestamp_millis(1758589896000),
-            result: None,
-            receipt: TransactionReceipt { result: Some("SUCCESS".to_string()) },
             log: swap_logs.logs,
-            internal_transactions: None,
+            ..TransactionReceiptData::mock_with_result("SUCCESS")
         };
 
         let result = map_transaction(Chain::Tron, transaction, receipt);
@@ -686,16 +674,7 @@ mod tests {
     #[test]
     fn test_map_transaction_thorchain_swap() {
         let transaction: TronTransaction = serde_json::from_str(include_str!("../../testdata/transaction_thorchain_swap.json")).unwrap();
-        let receipt = TransactionReceiptData {
-            id: "test_id".to_string(),
-            fee: Some(1000),
-            block_number: 12345,
-            block_time_stamp: DateTime::from_timestamp_millis(1771951038000),
-            result: None,
-            receipt: TransactionReceipt { result: Some("SUCCESS".to_string()) },
-            log: None,
-            internal_transactions: None,
-        };
+        let receipt = TransactionReceiptData::mock_with_result("SUCCESS");
 
         let transaction = map_transaction(Chain::Tron, transaction, receipt).unwrap();
         assert_eq!(transaction.transaction_type, TransactionType::Transfer);

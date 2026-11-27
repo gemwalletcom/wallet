@@ -1,0 +1,10 @@
+{
+    "data": {
+        "id": "withdraw_provider_tx_987654321",
+        "merchant_transaction_id": "0d274c2f-cd7f-4137-a5b4-e63c4c2c020b",
+        "type": "withdraw",
+        "status": "failed",
+        "fiat_amount": "1500.00",
+        "fiat_currency": "USD"
+    }
+}

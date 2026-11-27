@@ -7,7 +7,7 @@ use localizer::LanguageLocalizer;
 use primitives::{Device, StreamEvent, SupportMessage, SupportStreamEvent, SupportTypingStatus};
 use push_notification::{GorushNotification, PushNotification, PushNotificationSupport, PushNotificationTypes};
 use streamer::{NotificationsPayload, StreamProducerQueue};
-use support::markdown_plain_text;
+use support::support_message_notification_text;
 
 use super::constants::{EVENT_CONVERSATION_TYPING_OFF, EVENT_CONVERSATION_TYPING_ON, EVENT_MESSAGE_CREATED};
 use super::model::ChatwootWebhookPayload;
@@ -70,7 +70,7 @@ impl SupportClient {
         }
 
         let title = LanguageLocalizer::new_with_language(device.locale.as_ref()).notification_support_new_message_title();
-        let message = markdown_plain_text(payload.content.as_deref().unwrap_or_default());
+        let message = support_message_notification_text(payload.content.as_deref().unwrap_or_default());
         let data = PushNotification {
             notification_type: PushNotificationTypes::Support,
             data: serde_json::to_value(PushNotificationSupport {}).ok(),
@@ -113,6 +113,16 @@ mod tests {
 
         assert!(notification.is_some());
         assert_eq!(notification.unwrap().message, "from agent");
+    }
+
+    #[test]
+    fn test_build_notification_message_with_link() {
+        let payload: ChatwootWebhookPayload =
+            serde_json::from_str(r#"{"event": "message_created", "message_type": "outgoing", "private": false, "content": "Read the **swap fees** guide in [Docs](https://docs.gemwallet.com/faq/swap-fees)."}"#).unwrap();
+
+        let notification = SupportClient::build_notification(&Device::mock(), &payload).unwrap();
+
+        assert_eq!(notification.message, "Read the swap fees guide in Docs.");
     }
 
     #[test]

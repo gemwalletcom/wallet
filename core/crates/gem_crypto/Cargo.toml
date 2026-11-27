@@ -5,8 +5,7 @@ edition = { workspace = true }
 
 [features]
 default = []
-hash = ["dep:gem_hash", "dep:zeroize"]
-pbkdf = ["hash"]
+pbkdf = ["dep:gem_hash", "dep:zeroize"]
 random = ["dep:getrandom"]
 
 [dependencies]
@@ -15,5 +14,5 @@ getrandom = { workspace = true, optional = true }
 zeroize = { workspace = true, optional = true }
 
 [dev-dependencies]
-gem_crypto = { path = ".", features = ["hash", "pbkdf", "random"] }
+gem_crypto = { path = ".", features = ["pbkdf", "random"] }
 gem_encoding = { path = "../gem_encoding", default-features = false }

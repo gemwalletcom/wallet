@@ -1,4 +1,5 @@
-use gem_crypto::{hash::hmac_sha512, pbkdf::pbkdf2_hmac_sha512};
+use gem_crypto::pbkdf::pbkdf2_hmac_sha512;
+use gem_hash::sha2::hmac_sha512;
 use gem_keystore::Mnemonic;
 use zeroize::{Zeroize, Zeroizing};
 
@@ -81,7 +82,7 @@ fn derive_child(node: CardanoNode, index: u32) -> Result<CardanoNode, AccountDer
         data[1..33].copy_from_slice(&gem_cardano::public_key_from_extended_secret(node.secret));
     }
 
-    let z = hmac_sha512(&node.chain_code, data.as_slice())?;
+    let z = hmac_sha512(&node.chain_code, data.as_slice());
     let mut zl8 = [0u8; SECRET_LEN];
     scalar_multiply8(&z[..28], &mut zl8);
 
@@ -92,7 +93,7 @@ fn derive_child(node: CardanoNode, index: u32) -> Result<CardanoNode, AccountDer
     scalar_add_256bits(&z[32..64], &node.extension, &mut extension);
 
     data[0] = if hardened { 1 } else { 3 };
-    let z = hmac_sha512(&node.chain_code, data.as_slice())?;
+    let z = hmac_sha512(&node.chain_code, data.as_slice());
     let chain_code = read_array(z.as_slice(), 32);
     zl8.zeroize();
 

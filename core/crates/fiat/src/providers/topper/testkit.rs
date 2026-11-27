@@ -1,7 +1,6 @@
 use gem_encoding::{decode_base64, encode_base64_url};
+use gem_jwt::SigningKey;
 use gem_reqwest::ReqwestClient;
-use jsonwebtoken::crypto::sign;
-use jsonwebtoken::{Algorithm, EncodingKey};
 
 use crate::FiatWebhookRequest;
 
@@ -48,8 +47,7 @@ impl FiatWebhookRequest {
     pub fn mock_topper_signed(raw_body: &str) -> Self {
         let header = encode_base64_url(br#"{"alg":"ES256"}"#);
         let message = format!("{header}.{}", encode_base64_url(raw_body.as_bytes()));
-        let key = EncodingKey::from_ec_der(&decode_base64(TEST_SIGNING_KEY).unwrap());
-        let signature = sign(message.as_bytes(), &key, Algorithm::ES256).unwrap();
+        let signature = SigningKey::es256(&decode_base64(TEST_SIGNING_KEY).unwrap()).unwrap().sign(message.as_bytes()).unwrap();
         Self::mock_with_header(raw_body, "x-topper-jws-signature", &format!("{header}..{signature}"))
     }
 }

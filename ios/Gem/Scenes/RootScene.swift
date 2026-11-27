@@ -48,6 +48,7 @@ struct RootScene: View {
                 type: type,
                 presenter: model.walletConnectorPresenter,
             )
+            .id(type.id)
         }
         .sheet(isPresented: $model.isPresentingCreateWalletSheet) {
             CreateWalletNavigationStack(model: model.createWalletModel())

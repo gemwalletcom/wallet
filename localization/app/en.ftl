@@ -453,8 +453,10 @@ errors_swap_no_quote_available = No quote available.
 errors_swap_not_supported_asset = Not supported asset.
 # Used in error cards and validation UI for the connections no supported wallets label.
 errors_connections_no_supported_wallets = No supported wallets are available.
-# Used in error cards and validation UI for the connections unsupported chain label.
-errors_connections_unsupported_chain = The provided chain is not supported.
+# WalletConnect error when a dapp's connection requires a network the wallet doesn't support.
+errors_connections_unsupported_chain = This connection requires a network that isn't supported.
+# WalletConnect error when a dapp's connection requires signing methods or events the wallet doesn't support.
+errors_connections_unsupported_features = This connection requires features that aren't supported.
 # Shown when turning on app authentication on a device with no biometrics or passcode set up.
 errors_authentication_unavailable = Authentication isn't set up on this device. Turn on biometrics or a passcode in your device settings.
 # Shown when biometric authentication is locked after too many failed attempts.

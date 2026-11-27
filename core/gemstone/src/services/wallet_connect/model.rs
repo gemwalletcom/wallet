@@ -14,6 +14,12 @@ use gem_wallet_connect::WalletConnectResponseType;
 use wallet_connect_protocol::sign::Reason;
 use wallet_connect_protocol::sign::namespaces::NamespaceError;
 
+#[uniffi::remote(Enum)]
+pub enum WalletConnectResponseType {
+    String { value: String },
+    Object { json: String },
+}
+
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemWalletConnectSessionRequest {
     pub topic: String,
@@ -36,6 +42,7 @@ pub struct GemWalletConnectAuthAccount {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
 pub enum GemWalletConnectRejectionReason {
     UserRejected,
+    Refused,
     UnsupportedChains,
     UnsupportedMethods,
     UnsupportedAccounts,
@@ -45,7 +52,7 @@ pub enum GemWalletConnectRejectionReason {
 impl From<GemWalletConnectRejectionReason> for Reason {
     fn from(reason: GemWalletConnectRejectionReason) -> Self {
         match reason {
-            GemWalletConnectRejectionReason::UserRejected => Reason::user_rejected_session(),
+            GemWalletConnectRejectionReason::UserRejected | GemWalletConnectRejectionReason::Refused => Reason::user_rejected_session(),
             GemWalletConnectRejectionReason::UnsupportedChains => NamespaceError::UnsupportedChains.into(),
             GemWalletConnectRejectionReason::UnsupportedMethods => NamespaceError::UnsupportedMethods.into(),
             GemWalletConnectRejectionReason::UnsupportedAccounts => NamespaceError::UnsupportedAccounts.into(),

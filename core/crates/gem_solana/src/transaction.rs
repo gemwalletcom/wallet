@@ -166,7 +166,7 @@ pub(crate) fn is_transaction_bytes(transaction: &[u8]) -> bool {
 
 #[cfg(feature = "signer")]
 fn is_versioned_message(payload: &[u8]) -> bool {
-    payload.first().is_some_and(|prefix| (MESSAGE_VERSION_PREFIX..OFFCHAIN_MESSAGE_PREFIX).contains(prefix))
+    payload.first().is_some_and(|prefix| (MESSAGE_VERSION_PREFIX..OFFCHAIN_MESSAGE_PREFIX).contains(prefix)) && std::str::from_utf8(payload).is_err()
 }
 
 #[cfg(feature = "signer")]

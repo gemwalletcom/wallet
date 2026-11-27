@@ -1,4 +1,3 @@
-use num_bigint::BigInt;
 use primitives::{TransactionChange, TransactionState, TransactionUpdate};
 
 use crate::models::rpc::{AccountLedger, TransactionStatus};
@@ -16,13 +15,14 @@ pub fn map_batch_transaction_status(status: &TransactionStatus, batch_id: &str, 
 }
 
 fn transaction_update(status: &TransactionStatus, state: TransactionState) -> TransactionUpdate {
-    TransactionUpdate::new(state, vec![TransactionChange::NetworkFee(BigInt::from(status.fee.clone()))])
+    TransactionUpdate::new(state, vec![TransactionChange::NetworkFee(status.fee.clone())])
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use gem_jsonrpc::types::JsonRpcResult;
+    use num_bigint::BigUint;
     use primitives::TransactionState;
 
     fn status(json: &str) -> TransactionStatus {
@@ -33,7 +33,7 @@ mod tests {
     fn test_map_transaction_status() {
         let confirmed = map_transaction_status(&status(include_str!("../testdata/transaction_by_hash.json")));
         assert_eq!(confirmed.state, TransactionState::Confirmed);
-        assert_eq!(confirmed.changes, vec![TransactionChange::NetworkFee(BigInt::from(11u32))]);
+        assert_eq!(confirmed.changes, vec![TransactionChange::NetworkFee(BigUint::from(11u32))]);
 
         let failed = map_transaction_status(&status(include_str!("../testdata/transaction_status_failed.json")));
         assert_eq!(failed.state, TransactionState::Failed);
@@ -52,7 +52,7 @@ mod tests {
         assert_eq!(status(include_str!("../testdata/transaction_by_hash.json")).applied_batch_ledger(), None);
         assert_eq!(
             map_batch_transaction_status(&batch, &batch_id.to_lowercase(), &ledger),
-            TransactionUpdate::new(TransactionState::Confirmed, vec![TransactionChange::NetworkFee(BigInt::from(60u32))])
+            TransactionUpdate::new(TransactionState::Confirmed, vec![TransactionChange::NetworkFee(BigUint::from(60u32))])
         );
         assert_eq!(
             map_batch_transaction_status(&batch, "0341D82BA5B421F2E52DC52B33289535C3BE77BC5EB94BA4CA406A93A46380A3", &ledger).state,

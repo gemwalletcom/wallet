@@ -1,5 +1,5 @@
 use ctr::cipher::{KeyIvInit, StreamCipher};
-use sha3::{Digest, Keccak256};
+use gem_hash::keccak::keccak256;
 
 use super::{
     constants::{AES_128_KEY_LEN, DERIVED_KEY_LEN},
@@ -28,10 +28,7 @@ impl KeystoreV3 {
         let mut ciphertext = plaintext.to_vec();
         let mut cipher = Aes128Ctr::new_from_slices(&derived_key[..AES_128_KEY_LEN], &iv).unwrap();
         cipher.apply_keystream(&mut ciphertext);
-        let mut hasher = Keccak256::new();
-        hasher.update(&derived_key[AES_128_KEY_LEN..DERIVED_KEY_LEN]);
-        hasher.update(&ciphertext);
-        let mac = hasher.finalize();
+        let mac = keccak256(&[&derived_key[AES_128_KEY_LEN..DERIVED_KEY_LEN], ciphertext.as_slice()].concat());
         V3_MINIMAL_TEMPLATE
             .replace("__ETHEREUM_ADDRESS__", V3_ETHEREUM_ADDRESS)
             .replace("__PUBLIC_KEY_SUFFIX__", &"11".repeat(64))

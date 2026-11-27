@@ -131,6 +131,14 @@ impl BlockTransaction {
         self.account_key(usize::from(*instruction.accounts.get(position)?))
     }
 
+    pub fn instruction_signer(&self, instruction: &Instruction, position: usize) -> Option<&String> {
+        let index = usize::from(*instruction.accounts.get(position)?);
+        if index >= self.transaction.signatures.len() {
+            return None;
+        }
+        self.account_key(index)
+    }
+
     pub fn fee(&self) -> BigUint {
         BigUint::from(self.meta.fee)
     }

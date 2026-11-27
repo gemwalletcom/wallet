@@ -213,7 +213,8 @@
   <string name="errors_swap_no_quote_available">Tidak ada kuotasi yang tersedia.</string>
   <string name="errors_swap_not_supported_asset">Aset yang tidak didukung.</string>
   <string name="errors_connections_no_supported_wallets">Tidak ada dompet yang didukung tersedia.</string>
-  <string name="errors_connections_unsupported_chain">Rantai yang disediakan tidak didukung.</string>
+  <string name="errors_connections_unsupported_chain">Koneksi ini memerlukan jaringan yang tidak didukung.</string>
+  <string name="errors_connections_unsupported_features">Koneksi ini memerlukan fitur yang tidak didukung.</string>
   <string name="errors_authentication_unavailable">Otentikasi belum diatur di perangkat ini. Aktifkan biometrik atau kode sandi di pengaturan perangkat.</string>
   <string name="errors_authentication_locked_out">Terlalu banyak percobaan gagal. Silakan coba lagi nanti.</string>
   <string name="errors_authentication_failed">Otentikasi gagal. Silakan coba lagi.</string>

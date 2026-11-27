@@ -8,14 +8,14 @@ use primitives::{AssetBalance, Chain};
 
 use super::balances_mapper::map_native_balance;
 use super::token_mapper::map_token_balance;
-use crate::rpc::{NearProvider, client::is_account_missing};
+use crate::rpc::NearProvider;
 
 #[async_trait]
 impl<C: Client + Clone> ChainBalances for NearProvider<C> {
     async fn get_balance_coin(&self, address: String) -> Result<AssetBalance, Box<dyn Error + Sync + Send>> {
         let account = match self.get_account(&address).await {
             Ok(account) => account,
-            Err(error) if is_account_missing(&error) => return Ok(AssetBalance::new_zero_balance(Chain::Near.as_asset_id())),
+            Err(error) if error.payload.is_unknown_account() => return Ok(AssetBalance::new_zero_balance(Chain::Near.as_asset_id())),
             Err(error) => return Err(error.into()),
         };
         Ok(map_native_balance(&account))
@@ -28,6 +28,30 @@ impl<C: Client + Clone> ChainBalances for NearProvider<C> {
         }))
         .await?;
         Ok(balances)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use gem_client::testkit::MockClient;
+    use gem_jsonrpc::client::JsonRpcClient;
+
+    use super::*;
+    use crate::provider::testkit::TEST_ADDRESS;
+    use crate::rpc::NearClient;
+
+    #[tokio::test]
+    async fn test_get_balance_coin_reads_zero_only_for_unknown_account() {
+        for (response, expected) in [
+            (include_str!("../../testdata/account_unknown.json"), Ok("0".to_string())),
+            (include_str!("../../testdata/account_unavailable_shard.json"), Err("Server error (-32000)".to_string())),
+        ] {
+            let client = MockClient::new().with_post(move |_, _| Ok(response.as_bytes().to_vec()));
+            let provider = NearProvider::new_rpc_only(NearClient::new(JsonRpcClient::new(client)));
+            let balance = provider.get_balance_coin(TEST_ADDRESS.to_string()).await;
+
+            assert_eq!(balance.map(|balance| balance.balance.available.to_string()).map_err(|error| error.to_string()), expected);
+        }
     }
 }
 

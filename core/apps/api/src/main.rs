@@ -27,14 +27,13 @@ use settings::Settings;
 use strum::IntoEnumIterator;
 use swapper::okx::{OkxClientConfig, OkxProviderProxy};
 use swapper::swapper::GemSwapper;
-use tokio_util::task::TaskTracker;
 use tower::Layer;
 use tower_http::normalize_path::NormalizePathLayer;
 
 use crate::auth::device::DeviceAuthConfig;
 use crate::routes::devices::support::SupportImageUploadConfig;
 use crate::state::{AppState, Clients};
-use crate::stream::{StreamObserverConfig, StreamPricesConfig, StreamState};
+use crate::stream::{Connections, StreamObserverConfig, StreamPricesConfig, StreamState};
 
 fn device_auth_config(settings: &Settings) -> Arc<DeviceAuthConfig> {
     Arc::new(DeviceAuthConfig::new(settings.api.auth.tolerance))
@@ -127,7 +126,7 @@ async fn stream_state(settings: &Settings, shutdown: ShutdownReceiver) -> Result
             },
         }),
         shutdown,
-        connections: TaskTracker::new(),
+        connections: Connections::default(),
     })
 }
 
@@ -168,7 +167,6 @@ async fn main() -> Result<(), Box<dyn Error + Send + Sync>> {
             let state = stream_state(&settings, shutdown.clone()).await?;
             let connections = state.connections.clone();
             serve(stream::router(state), address, config, shutdown).await?;
-            connections.close();
             tokio::time::timeout(settings.api.shutdown.timeout, connections.wait()).await.ok();
             Ok(())
         }

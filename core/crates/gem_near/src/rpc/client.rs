@@ -15,8 +15,6 @@ use primitives::{Chain, Transaction};
 use serde::{Deserialize, Serialize, de::DeserializeOwned};
 use std::error::Error;
 
-const ACCOUNT_NOT_FOUND_ERROR_CODE: i32 = -32000;
-
 #[derive(Deserialize)]
 struct ContractCallResult {
     result: Vec<u8>,
@@ -40,7 +38,7 @@ impl<C: Client + Clone> NearClient<C> {
     pub async fn account_exists(&self, address: &str) -> Result<bool, NearRpcError> {
         match self.get_account(address).await {
             Ok(_) => Ok(true),
-            Err(error) if is_account_missing(&error) => Ok(false),
+            Err(error) if error.payload.is_unknown_account() => Ok(false),
             Err(error) => Err(error),
         }
     }
@@ -141,8 +139,4 @@ impl<C: Client + Clone> NearClient<C> {
             })
             .await
     }
-}
-
-pub(crate) fn is_account_missing(error: &NearRpcError) -> bool {
-    error.error.code == ACCOUNT_NOT_FOUND_ERROR_CODE
 }

@@ -23,6 +23,10 @@ impl TransactionResponse {
         serde_json::from_str(include_str!("../../testdata/delegate.json")).unwrap()
     }
 
+    pub fn mock_unstake() -> Self {
+        serde_json::from_str(include_str!("../../testdata/unstake.json")).unwrap()
+    }
+
     pub fn mock_reverted_transfer_spam() -> Self {
         serde_json::from_str(include_str!("../../testdata/reverted_transfer_spam.json")).unwrap()
     }

@@ -68,6 +68,7 @@ val bindgenKotlin = tasks.register<Exec>("bindgenKotlin") {
     dependsOn(buildGemstoneHost)
     inputs.file(gemstoneHostLibrary)
     inputs.dir(coreRoot.resolve("bin/uniffi-bindgen"))
+    inputs.dir(coreRoot.resolve("crates/gem_args"))
     inputs.files(
         coreRoot.resolve("Cargo.toml"),
         coreRoot.resolve("Cargo.lock"),

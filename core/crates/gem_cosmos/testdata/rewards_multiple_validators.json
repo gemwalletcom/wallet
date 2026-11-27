@@ -1,0 +1,55 @@
+{
+  "tx": {
+    "body": {
+      "messages": [
+        {
+          "@type": "/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward",
+          "delegator_address": "cosmos1qhymx7svuag4mzstm9g9qtqskwkzzumxn83a8z",
+          "validator_address": "cosmosvaloper1fhr7e04ct0zslmkzqt9smakg3sxrdve6ulclj2"
+        },
+        {
+          "@type": "/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward",
+          "delegator_address": "cosmos1qhymx7svuag4mzstm9g9qtqskwkzzumxn83a8z",
+          "validator_address": "cosmosvaloper1tflk30mq5vgqjdly92kkhhq3raev2hnz6eete3"
+        }
+      ],
+      "memo": "Stake via Gem Wallet"
+    },
+    "auth_info": {
+      "fee": {
+        "amount": [
+          {
+            "denom": "uatom",
+            "amount": "7500"
+          }
+        ],
+        "gas_limit": "1500000"
+      }
+    }
+  },
+  "tx_response": {
+    "txhash": "D5CBABF775D5783E130DC06919C7805AC4F47050F78FAA445515426385A52357",
+    "code": 0,
+    "events": [
+      {
+        "type": "withdraw_rewards",
+        "attributes": [
+          {
+            "key": "amount",
+            "value": "63768uatom"
+          }
+        ]
+      },
+      {
+        "type": "withdraw_rewards",
+        "attributes": [
+          {
+            "key": "amount",
+            "value": "1074uatom"
+          }
+        ]
+      }
+    ],
+    "timestamp": "2026-11-23T01:31:37Z"
+  }
+}

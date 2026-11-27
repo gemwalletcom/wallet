@@ -22,7 +22,7 @@ class NameRecordController(private val nameService: GemNameServiceInterface, pri
     val state: StateFlow<GemNameRecordState> = _state.asStateFlow()
 
     fun getNameRecord(value: String, chain: Chain?) {
-        when (val step = nameService.nameInputStep(_state.value, value, chain?.toGem())) {
+        when (val step = _state.value.nameInputStep(value, chain?.toGem())) {
             GemNameInputStep.Unchanged -> return
             GemNameInputStep.Reset -> reset()
             is GemNameInputStep.Resolve -> loadNameRecord(step, requireNotNull(chain))
@@ -42,7 +42,7 @@ class NameRecordController(private val nameService: GemNameServiceInterface, pri
                 GemNameRecordState.Error
             }
             ensureActive()
-            _state.value = nameService.resolvedState(_state.value, step.name, chain.toGem(), resolved)
+            _state.value = _state.value.resolvedState(step.name, chain.toGem(), resolved)
         }
     }
 

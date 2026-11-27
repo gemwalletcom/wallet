@@ -12,6 +12,15 @@ pub struct LensDelegation {
     pub completion_timestamp: u64,
 }
 
+impl LensDelegation {
+    pub fn is_pending_withdrawal(&self) -> bool {
+        match self.state {
+            IMonadStakingLens::DelegationState::Deactivating | IMonadStakingLens::DelegationState::AwaitingWithdrawal => true,
+            IMonadStakingLens::DelegationState::Active | IMonadStakingLens::DelegationState::Activating | IMonadStakingLens::DelegationState::__Invalid => false,
+        }
+    }
+}
+
 #[derive(Clone)]
 pub struct LensValidator {
     pub validator_id: u64,

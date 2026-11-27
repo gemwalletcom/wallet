@@ -24,7 +24,7 @@ impl<C: Client + Clone> ChainTransactionState for EthereumProvider<C> {
 mod chain_integration_tests {
     use crate::provider::testkit::{create_ethereum_test_client, create_smartchain_test_client};
     use chain_traits::ChainTransactionState;
-    use num_bigint::BigInt;
+    use num_bigint::BigUint;
     use primitives::{TransactionChange, TransactionState, TransactionStateRequest};
 
     #[tokio::test]
@@ -35,7 +35,7 @@ mod chain_integration_tests {
         let result = client.get_transaction_status(request).await?;
 
         assert_eq!(result.state, TransactionState::Confirmed);
-        assert_eq!(result.changes, vec![TransactionChange::BlockNumber("22820942".to_string()), TransactionChange::NetworkFee(BigInt::from(42850974395536u64))]);
+        assert_eq!(result.changes, vec![TransactionChange::BlockNumber("22820942".to_string()), TransactionChange::NetworkFee(BigUint::from(42850974395536u64))]);
 
         Ok(())
     }
@@ -48,7 +48,7 @@ mod chain_integration_tests {
         let result = client.get_transaction_status(request).await?;
 
         assert_eq!(result.state, TransactionState::Confirmed);
-        assert_eq!(result.changes, vec![TransactionChange::BlockNumber("55082355".to_string()), TransactionChange::NetworkFee(BigInt::from(27753700000000u64))]);
+        assert_eq!(result.changes, vec![TransactionChange::BlockNumber("55082355".to_string()), TransactionChange::NetworkFee(BigUint::from(27753700000000u64))]);
 
         Ok(())
     }

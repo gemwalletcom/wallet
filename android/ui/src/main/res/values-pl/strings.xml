@@ -213,7 +213,8 @@
   <string name="errors_swap_no_quote_available">Brak dostępnej wyceny.</string>
   <string name="errors_swap_not_supported_asset">Nieobsługiwany zasób.</string>
   <string name="errors_connections_no_supported_wallets">Brak obsługiwanych portfeli.</string>
-  <string name="errors_connections_unsupported_chain">Podany łańcuch nie jest obsługiwany.</string>
+  <string name="errors_connections_unsupported_chain">To połączenie wymaga sieci, która nie jest obsługiwana.</string>
+  <string name="errors_connections_unsupported_features">To połączenie wymaga funkcji, które nie są obsługiwane.</string>
   <string name="errors_authentication_unavailable">Uwierzytelnianie nie jest skonfigurowane na tym urządzeniu. Włącz biometrię lub kod w ustawieniach urządzenia.</string>
   <string name="errors_authentication_locked_out">Zbyt wiele nieudanych prób. Spróbuj ponownie później.</string>
   <string name="errors_authentication_failed">Uwierzytelnianie nie powiodło się. Spróbuj ponownie.</string>

@@ -94,22 +94,23 @@ impl Gateway {
         let route = route_match.route;
         let path = route_match.redacted_path();
         let source = route_match.source;
-        let access = AccessLog::new(source, route, &method, &path);
+        let group = route_match.group;
+        let access = AccessLog::new(source, group, route, &method, &path);
         access.request();
-        let _inflight = self.metrics.track_inflight(source, &route.group, &route.service);
+        let _inflight = self.metrics.track_inflight(source, group, &route.service);
         let cache_ttl = self.cache.provider_ttl(&route.group, &route.service, route_match.cache_path(), method.as_str(), &body);
         let cache_key = cache_ttl.map(|_| route_match.cache_key(&method, headers, &body));
         if let Some(key) = &cache_key {
             if let Some(response) = self.cache.get_provider(&route.group, &route.service, key) {
-                self.metrics.record_cache_hit(source, &route.group, &route.service, &path);
-                self.metrics.record_response(source, &route.group, &route.service, &path, response.status);
+                self.metrics.record_cache_hit(source, group, &route.service, &path);
+                self.metrics.record_response(source, group, &route.service, &path, response.status);
                 return Ok(response);
             }
-            self.metrics.record_cache_miss(source, &route.group, &route.service, &path);
+            self.metrics.record_cache_miss(source, group, &route.service, &path);
         }
         let mut candidates = self.available_endpoints(route, &path).await.map_err(|failure| {
             access.unavailable(failure.status, failure.reason);
-            self.metrics.record_response(source, &route.group, &route.service, &path, failure.status);
+            self.metrics.record_response(source, group, &route.service, &path, failure.status);
             ErrorBody::new(upstream_status(failure.status), "no endpoint is available")
         })?;
         route.prioritize_endpoints(&mut candidates).map_err(|error| ErrorBody::new(StatusCode::INTERNAL_SERVER_ERROR, error.to_string()))?;
@@ -124,19 +125,19 @@ impl Gateway {
             if let Some((failed_index, status, reason)) = pending_failover.take() {
                 let failed = &route.endpoints[failed_index];
                 access.failover(&failed.name, &failed.host, status);
-                self.metrics.record_failover(source, &route.group, &route.service, &failed.name, &path, &reason);
+                self.metrics.record_failover(source, group, &route.service, &failed.name, &path, &reason);
             }
             let host = &endpoint.host;
             let target = match route_match.target_url(endpoint) {
                 Ok(target) => target,
                 Err(error) => {
                     access.response(&endpoint.name, host, StatusCode::BAD_REQUEST.as_u16());
-                    self.metrics.record_response(source, &route.group, &route.service, &path, StatusCode::BAD_REQUEST.as_u16());
+                    self.metrics.record_response(source, group, &route.service, &path, StatusCode::BAD_REQUEST.as_u16());
                     return Err(ErrorBody::new(StatusCode::BAD_REQUEST, error.to_string()));
                 }
             };
             if let Some(wait) = endpoint.throttle().await {
-                self.metrics.record_throttle_wait(source, &route.group, &route.service, &endpoint.name, wait);
+                self.metrics.record_throttle_wait(source, group, &route.service, &endpoint.name, wait);
             }
             if !self.endpoint_available(route, endpoint, &path).await {
                 continue;
@@ -146,8 +147,8 @@ impl Gateway {
                 Ok((mut response, retry_after)) => {
                     let cacheable = cacheable_response(&response);
                     response.headers = transport::filter_headers(&response.headers, &route.forward_headers);
-                    self.metrics.record_upstream_latency(source, &route.group, &route.service, &endpoint.name, response.status, started.elapsed());
-                    self.metrics.record_request(source, &route.group, &route.service, &endpoint.name, &path, response.status);
+                    self.metrics.record_upstream_latency(source, group, &route.service, &endpoint.name, response.status, started.elapsed());
+                    self.metrics.record_request(source, group, &route.service, &endpoint.name, &path, response.status);
                     if route.should_retry(response.status) {
                         self.start_cooldown(route, endpoint_index, &path, Failure { status: response.status, reason: "cooldown" }, retry_after).await;
                         let status = response.status;
@@ -156,15 +157,15 @@ impl Gateway {
                         continue;
                     }
                     access.response(&endpoint.name, host, response.status);
-                    self.metrics.record_response(source, &route.group, &route.service, &path, response.status);
+                    self.metrics.record_response(source, group, &route.service, &path, response.status);
                     if cacheable && let (Some(ttl), Some(key)) = (cache_ttl, cache_key) {
                         self.cache.set_provider(&route.group, &route.service, key, response.clone(), ttl);
                     }
                     return Ok(response);
                 }
                 Err(reason) => {
-                    self.metrics.record_request(source, &route.group, &route.service, &endpoint.name, &path, StatusCode::BAD_GATEWAY.as_u16());
-                    self.metrics.record_upstream_latency(source, &route.group, &route.service, &endpoint.name, StatusCode::BAD_GATEWAY.as_u16(), started.elapsed());
+                    self.metrics.record_request(source, group, &route.service, &endpoint.name, &path, StatusCode::BAD_GATEWAY.as_u16());
+                    self.metrics.record_upstream_latency(source, group, &route.service, &endpoint.name, StatusCode::BAD_GATEWAY.as_u16(), started.elapsed());
                     access.upstream_failed(&endpoint.name, host, reason);
                     self.start_cooldown(
                         route,
@@ -185,7 +186,7 @@ impl Gateway {
         if let Some((response, endpoint_index)) = last_response {
             let endpoint = &route.endpoints[endpoint_index];
             access.response(&endpoint.name, &endpoint.host, response.status);
-            self.metrics.record_response(source, &route.group, &route.service, &path, response.status);
+            self.metrics.record_response(source, group, &route.service, &path, response.status);
             return Ok(response);
         }
         let failure = self.available_endpoints(route, &path).await.err().unwrap_or(Failure {
@@ -193,7 +194,7 @@ impl Gateway {
             reason: "upstream",
         });
         access.unavailable(failure.status, failure.reason);
-        self.metrics.record_response(source, &route.group, &route.service, &path, failure.status);
+        self.metrics.record_response(source, group, &route.service, &path, failure.status);
         Err(ErrorBody::new(upstream_status(failure.status), "all upstream requests failed"))
     }
 

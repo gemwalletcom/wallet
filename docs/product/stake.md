@@ -21,13 +21,17 @@ flowchart LR
 | When | Expected | Why |
 |---|---|---|
 | An Active delegation has rewards | Rewards shows on it | |
+| A delegation on an inactive or jailed validator has rewards | Rewards shows on it, and its details offer Claim Rewards | the rewards it earned stay claimable, and Claim Rewards on the Stake screen already takes them |
 | A delegation has yet to activate or become available | a countdown says when | |
+| An ETH stake has rewards | its amount includes them, Rewards shows the part earned, and Unstake Max takes both | Everstake restakes the rewards into the stake, so they leave only with an unstake |
 | A HYPE stake is less than 1 day old | it shows as Active, and Unstake opens a sheet saying how long until it can be unstaked | Hyperliquid locks HYPE for 1 day after each stake, while it keeps earning |
 | The user taps a delegation awaiting withdrawal, in a wallet that can sign | straight to Withdraw | |
 | The user delegates to a validator Gem does not recommend | the delegation shows the state the network reports for that validator | |
 | No other active validator exists | no Redelegate | |
+| A BNB Smart Chain delegation holds less than 1 BNB, as a partial unstake can leave it | no Redelegate | the network redelegates at least 1 BNB |
 | The user redelegates | never to the validator being left | |
 | The delegation is awaiting withdrawal | Withdraw is offered | |
+| Several unstakes are ready to withdraw from one BNB Smart Chain validator, or several TRX unfreezes on TRON | one delegation awaiting withdrawal shows their total, and Withdraw shows that total | the network withdraws all of them at once |
 | The user claims rewards on a network that claims one validator at a time and picks another validator | the amount becomes that validator's rewards | the claim takes every reward of the validator it names, so the amount is never typed |
 | The coin is TRX on TRON | the user freezes and unfreezes it, and sees Energy and Bandwidth as "available / total" | |
 | The user votes TRX on TRON, with Max or the whole frozen amount | Confirm shows every frozen TRX the vote names, and the Network Fee must be covered by the liquid TRX | a vote only assigns frozen TRX, while its fee burns liquid TRX, so the signed votes match the amount shown |

@@ -1,4 +1,4 @@
-use num_bigint::BigInt;
+use num_bigint::BigUint;
 use primitives::{TransactionChange, TransactionState, TransactionUpdate};
 
 use crate::models::TransactionReceiptData;
@@ -8,7 +8,7 @@ pub fn map_transaction_status(receipt: Option<&TransactionReceiptData>) -> Trans
         return TransactionUpdate::new_state(TransactionState::Pending);
     };
 
-    let changes = receipt.fee.map(|fee| vec![TransactionChange::NetworkFee(BigInt::from(fee))]).unwrap_or_default();
+    let changes = receipt.fee.map(|fee| vec![TransactionChange::NetworkFee(BigUint::from(fee))]).unwrap_or_default();
 
     if receipt.is_failed() {
         return TransactionUpdate::new(TransactionState::Reverted, changes);
@@ -36,7 +36,7 @@ mod tests {
 
         let result = map_transaction_status(Some(&receipt));
         assert_eq!(result.state, TransactionState::Confirmed);
-        assert_eq!(result.changes, vec![TransactionChange::NetworkFee(BigInt::from(100))]);
+        assert_eq!(result.changes, vec![TransactionChange::NetworkFee(BigUint::from(100u32))]);
     }
 
     #[test]
@@ -49,7 +49,7 @@ mod tests {
         };
         let result = map_transaction_status(Some(&revert));
         assert_eq!(result.state, TransactionState::Reverted);
-        assert_eq!(result.changes, vec![TransactionChange::NetworkFee(BigInt::from(854700))]);
+        assert_eq!(result.changes, vec![TransactionChange::NetworkFee(BigUint::from(854700u32))]);
 
         for (result, receipt_result) in [(Some(RECEIPT_FAILED), None), (None, Some(RECEIPT_REVERT)), (None, Some(RECEIPT_OUT_OF_ENERGY)), (None, Some(RECEIPT_FAILED))] {
             let receipt = TransactionReceiptData {

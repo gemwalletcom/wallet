@@ -29230,187 +29230,378 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "السلسلة المقدمة غير مدعومة."
+            "value": "يتطلب هذا الاتصال شبكة غير مدعومة."
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "প্রদত্ত চেইনটি সমর্থিত নয়।"
+            "value": "এই সংযোগের জন্য এমন একটি নেটওয়ার্ক প্রয়োজন যা সমর্থিত নয়।"
           }
         },
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Zadaný řetězec není podporován."
+            "value": "Toto připojení vyžaduje síť, která není podporována."
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "Den angivne kæde understøttes ikke."
+            "value": "Denne forbindelse kræver et netværk, der ikke understøttes."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Die bereitgestellte Kette wird nicht unterstützt."
+            "value": "Diese Verbindung erfordert ein Netzwerk, das nicht unterstützt wird."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The provided chain is not supported."
+            "value": "This connection requires a network that isn't supported."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "La cadena proporcionada no es compatible."
+            "value": "Esta conexión requiere una red que no es compatible."
           }
         },
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "زنجیره ارائه شده پشتیبانی نمی‌شود."
+            "value": "این اتصال به شبکه‌ای نیاز دارد که پشتیبانی نمی‌شود."
           }
         },
         "fil": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ang ibinigay na chain ay hindi suportado."
+            "value": "Nangangailangan ang koneksyong ito ng network na hindi suportado."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "La chaîne fournie n'est pas prise en charge."
+            "value": "Cette connexion nécessite un réseau qui n'est pas pris en charge."
           }
         },
         "ha": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ba a tallafawa sarkar da aka bayar."
+            "value": "Wannan haɗin yana buƙatar cibiyar sadarwa da ba a tallafawa ba."
           }
         },
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "השרשרת שסופקה אינה נתמכת."
+            "value": "החיבור הזה דורש רשת שאינה נתמכת."
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "प्रदान की गई श्रृंखला समर्थित नहीं है."
+            "value": "इस कनेक्शन के लिए ऐसा नेटवर्क चाहिए जो समर्थित नहीं है।"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Rantai yang disediakan tidak didukung."
+            "value": "Koneksi ini memerlukan jaringan yang tidak didukung."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "La catena fornita non è supportata."
+            "value": "Questa connessione richiede una rete non supportata."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "選択されたチェーンはサポートされていません"
+            "value": "この接続にはサポートされていないネットワークが必要です。"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "제공된 체인은 지원되지 않습니다."
+            "value": "이 연결에는 지원되지 않는 네트워크가 필요합니다."
           }
         },
         "ms": {
           "stringUnit": {
             "state": "translated",
-            "value": "Rantaian yang disediakan tidak disokong."
+            "value": "Sambungan ini memerlukan rangkaian yang tidak disokong."
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "De meegeleverde keten wordt niet ondersteund."
+            "value": "Deze verbinding vereist een netwerk dat niet wordt ondersteund."
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Podany łańcuch nie jest obsługiwany."
+            "value": "To połączenie wymaga sieci, która nie jest obsługiwana."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "A cadeia fornecida não é suportada."
+            "value": "Esta conexão requer uma rede que não é suportada."
           }
         },
         "ro": {
           "stringUnit": {
             "state": "translated",
-            "value": "Lanțul furnizat nu este acceptat."
+            "value": "Această conexiune necesită o rețea care nu este acceptată."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Предоставленная цепочка не поддерживается."
+            "value": "Для этого подключения нужна сеть, которая не поддерживается."
           }
         },
         "sw": {
           "stringUnit": {
             "state": "translated",
-            "value": "Msururu uliotolewa hautumiki."
+            "value": "Muunganisho huu unahitaji mtandao ambao hautumiki."
           }
         },
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "ไม่รองรับโซ่ที่ให้มา"
+            "value": "การเชื่อมต่อนี้ต้องใช้เครือข่ายที่ไม่รองรับ"
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sağlanan zincir desteklenmiyor."
+            "value": "Bu bağlantı desteklenmeyen bir ağ gerektiriyor."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ця мережа не підтримується."
+            "value": "Для цього підключення потрібна мережа, яка не підтримується."
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "فراہم کردہ سلسلہ تعاون یافتہ نہیں ہے۔"
+            "value": "اس کنکشن کے لیے ایسا نیٹ ورک درکار ہے جو تعاون یافتہ نہیں ہے۔"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Chuỗi được cung cấp không được hỗ trợ."
+            "value": "Kết nối này yêu cầu một mạng không được hỗ trợ."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "暂不支持该区块链网络"
+            "value": "此连接需要不受支持的网络。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "不支援指定的區塊鏈。"
+            "value": "此連線需要不支援的網路。"
+          }
+        }
+      }
+    },
+    "errors.connections.unsupported_features": {
+      "extractionState": "manual",
+      "localizations": {
+        "ar": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "يتطلب هذا الاتصال ميزات غير مدعومة."
+          }
+        },
+        "bn": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "এই সংযোগের জন্য এমন কিছু ফিচার প্রয়োজন যা সমর্থিত নয়।"
+          }
+        },
+        "cs": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toto připojení vyžaduje funkce, které nejsou podporovány."
+          }
+        },
+        "da": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Denne forbindelse kræver funktioner, der ikke understøttes."
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Verbindung erfordert Funktionen, die nicht unterstützt werden."
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This connection requires features that aren't supported."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta conexión requiere funciones que no son compatibles."
+          }
+        },
+        "fa": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "این اتصال به قابلیت‌هایی نیاز دارد که پشتیبانی نمی‌شوند."
+          }
+        },
+        "fil": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nangangailangan ang koneksyong ito ng mga feature na hindi suportado."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cette connexion nécessite des fonctionnalités qui ne sont pas prises en charge."
+          }
+        },
+        "ha": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wannan haɗin yana buƙatar wasu fasaloli da ba a tallafawa ba."
+          }
+        },
+        "he": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "החיבור הזה דורש תכונות שאינן נתמכות."
+          }
+        },
+        "hi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "इस कनेक्शन के लिए ऐसी सुविधाएँ चाहिए जो समर्थित नहीं हैं।"
+          }
+        },
+        "id": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Koneksi ini memerlukan fitur yang tidak didukung."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questa connessione richiede funzionalità non supportate."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "この接続にはサポートされていない機能が必要です。"
+          }
+        },
+        "ko": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "이 연결에는 지원되지 않는 기능이 필요합니다."
+          }
+        },
+        "ms": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sambungan ini memerlukan ciri yang tidak disokong."
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deze verbinding vereist functies die niet worden ondersteund."
+          }
+        },
+        "pl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "To połączenie wymaga funkcji, które nie są obsługiwane."
+          }
+        },
+        "pt-BR": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta conexão requer recursos que não são suportados."
+          }
+        },
+        "ro": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Această conexiune necesită funcții care nu sunt acceptate."
+          }
+        },
+        "ru": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Для этого подключения нужны функции, которые не поддерживаются."
+          }
+        },
+        "sw": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Muunganisho huu unahitaji vipengele ambavyo havitumiki."
+          }
+        },
+        "th": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "การเชื่อมต่อนี้ต้องใช้ฟีเจอร์ที่ไม่รองรับ"
+          }
+        },
+        "tr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bu bağlantı desteklenmeyen özellikler gerektiriyor."
+          }
+        },
+        "uk": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Для цього підключення потрібні функції, які не підтримуються."
+          }
+        },
+        "ur": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "اس کنکشن کے لیے ایسی خصوصیات درکار ہیں جو تعاون یافتہ نہیں ہیں۔"
+          }
+        },
+        "vi": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kết nối này yêu cầu các tính năng không được hỗ trợ."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此连接需要不受支持的功能。"
+          }
+        },
+        "zh-Hant": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此連線需要不支援的功能。"
           }
         }
       }

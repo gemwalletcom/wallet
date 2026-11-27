@@ -16,7 +16,7 @@ signer = ["dep:num-traits", "dep:signer"]
 chain_integration_tests = ["rpc"]
 
 [dependencies]
-sha2 = { workspace = true }
+gem_hash = { path = "../gem_hash" }
 gem_encoding = { path = "../gem_encoding", features = ["base58", "borsh"] }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }

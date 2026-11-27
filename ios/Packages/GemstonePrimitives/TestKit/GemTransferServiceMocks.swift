@@ -3,7 +3,6 @@
 import BigInt
 import Foundation
 import Gemstone
-import enum Gemstone.GemNameInputStep
 import GemstonePrimitives
 import Primitives
 import PrimitivesTestKit
@@ -96,7 +95,6 @@ public extension GemNameService {
 }
 
 public final class GemNameServiceMock: GemNameServiceProtocol, @unchecked Sendable {
-    private let rules = GemNameService.mock()
     private let nameRecord: Gemstone.NameRecord?
     private let error: Error?
     public private(set) var requestedNames: [String] = []
@@ -112,29 +110,6 @@ public final class GemNameServiceMock: GemNameServiceProtocol, @unchecked Sendab
             throw error
         }
         return nameRecord.map { .complete(record: $0) } ?? .error
-    }
-
-    public func nameInputStep(state: GemNameRecordState, name: String, chain: Gemstone.Chain?) -> GemNameInputStep {
-        guard !name.isEmpty, let chain else {
-            return .reset
-        }
-        switch state {
-        case let .loading(loading, loadingChain) where loading == name && loadingChain == chain: return .unchanged
-        case let .complete(record) where record.name == name && record.chain == chain: return .unchanged
-        default: break
-        }
-        guard name.split(separator: ".").count >= 2 else {
-            return .reset
-        }
-        return .resolve(name: name, debounceMilliseconds: 0)
-    }
-
-    public func resolvedState(state: GemNameRecordState, name: String, chain: Gemstone.Chain, resolved: GemNameRecordState) -> GemNameRecordState {
-        state == .loading(name: name, chain: chain) ? resolved : state
-    }
-
-    public func validateRecipient(chain: Gemstone.Chain, input: String, state: GemNameRecordState) -> GemRecipientValidation {
-        rules.validateRecipient(chain: chain, input: input, state: state)
     }
 }
 

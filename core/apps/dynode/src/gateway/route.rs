@@ -17,6 +17,7 @@ use crate::config::routes::{RouteConfig, Selection};
 
 pub(super) struct Route {
     pub(super) group: String,
+    groups: Vec<String>,
     pub(super) service: String,
     selection: Selection,
     cursor: AtomicUsize,
@@ -28,6 +29,7 @@ pub(super) struct Route {
 
 pub(super) struct RouteMatch<'a> {
     pub(super) source: &'a str,
+    pub(super) group: &'a str,
     pub(super) route: &'a Route,
     remainder: &'a str,
     query: Option<&'a str>,
@@ -48,9 +50,11 @@ impl Route {
             .collect::<Result<HashSet<_>, _>>()?;
         let statuses = config.retry.map_or_else(|| default_statuses.to_vec(), |retry| retry.statuses);
         let rate = config.rate;
+        let group = config.groups.first().cloned().ok_or("route must configure at least one group")?;
         let endpoints = config.endpoints.into_iter().map(|endpoint| Endpoint::new(endpoint, rate, direct_client, proxies)).collect::<Result<Vec<_>, BoxError>>()?;
         Ok(Self {
-            group: config.group,
+            group,
+            groups: config.groups,
             service,
             selection: config.selection,
             cursor: AtomicUsize::new(0),
@@ -132,13 +136,24 @@ pub(super) fn match_route<'a>(routes: &'a HashMap<String, Route>, method: &Metho
     if source.is_empty() {
         return Err(MatchError::NotFound);
     }
-    let service_end = path.find('/').unwrap_or(path.len());
-    let (service, remainder) = path.split_at(service_end);
-    let route = routes.get(service).ok_or(MatchError::NotFound)?;
+    let (name, remainder) = split_segment(path);
+    let (route, group, remainder) = match routes.get(name) {
+        Some(route) => (route, route.group.as_str(), remainder),
+        None => {
+            let (service, remainder) = split_segment(remainder.strip_prefix('/').ok_or(MatchError::NotFound)?);
+            let route = routes.get(service).ok_or(MatchError::NotFound)?;
+            let group = route.groups.iter().find(|group| *group == name).ok_or(MatchError::NotFound)?;
+            (route, group.as_str(), remainder)
+        }
+    };
     if !is_canonical(remainder) || !route.allows(method, remainder) {
         return Err(MatchError::NotAllowed);
     }
-    Ok(RouteMatch { source, route, remainder, query })
+    Ok(RouteMatch { source, group, route, remainder, query })
+}
+
+fn split_segment(path: &str) -> (&str, &str) {
+    path.split_at(path.find('/').unwrap_or(path.len()))
 }
 
 fn is_canonical(path: &str) -> bool {
@@ -159,6 +174,7 @@ mod tests {
         let headers = HeaderMap::from_iter([(AUTHORIZATION, HeaderValue::from_static("Bearer first"))]);
         let request = RouteMatch {
             source: "api",
+            group: "prices",
             route: &route,
             remainder: "/quote",
             query: Some("asset=one"),
@@ -169,7 +185,13 @@ mod tests {
         assert_ne!(key, request.cache_key(&Method::POST, &headers, b"second"));
         assert_ne!(key, request.cache_key(&Method::POST, &HeaderMap::new(), b"first"));
         for (source, remainder, query) in [("parser", "/quote", Some("asset=one")), ("api", "/other", Some("asset=one")), ("api", "/quote", Some("asset=two"))] {
-            let other = RouteMatch { source, route: &route, remainder, query };
+            let other = RouteMatch {
+                source,
+                group: "prices",
+                route: &route,
+                remainder,
+                query,
+            };
             assert_ne!(key, other.cache_key(&Method::POST, &headers, b"first"));
         }
     }
@@ -187,6 +209,24 @@ mod tests {
         }
         for uri in ["/", "//tonapi/v2", "/api", "/api/prices", "/api/nft/opensea/v2", "/api/tonapi-other"] {
             assert_eq!(match_route(&routes, &Method::GET, uri).err(), Some(MatchError::NotFound));
+        }
+    }
+
+    #[test]
+    fn test_match_route_groups() {
+        let routes = HashMap::from([("alchemy".to_string(), Route::mock_groups(&["indexer", "nft"], "alchemy")), ("tonapi".to_string(), Route::mock("prices", "tonapi"))]);
+        for (uri, group, service, path) in [
+            ("/api/alchemy/v2", "indexer", "alchemy", "/v2"),
+            ("/api/indexer/alchemy/v2", "indexer", "alchemy", "/v2"),
+            ("/api/nft/alchemy/nft/v3/getNFTsForOwner?owner=0xabc", "nft", "alchemy", "/nft/v3/getNFTsForOwner"),
+            ("/api/nft/alchemy", "nft", "alchemy", ""),
+            ("/api/prices/tonapi/v2", "prices", "tonapi", "/v2"),
+        ] {
+            let matched = match_route(&routes, &Method::GET, uri).unwrap();
+            assert_eq!((matched.group, matched.route.service.as_str(), matched.redacted_path().as_str()), (group, service, path), "{uri}");
+        }
+        for uri in ["/api/swap/alchemy/v2", "/api/nft/tonapi/v2", "/api/nft", "/api/nft/", "/api/nft/nft/alchemy/v2"] {
+            assert_eq!(match_route(&routes, &Method::GET, uri).err(), Some(MatchError::NotFound), "{uri}");
         }
     }
 

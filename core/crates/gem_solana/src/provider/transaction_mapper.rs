@@ -65,7 +65,7 @@ fn map_native_transfer(transaction: &BlockTransaction) -> Option<NativeTransfer>
                     continue;
                 }
                 let next = NativeTransfer {
-                    sender: transaction.instruction_account(instruction, 0)?.clone(),
+                    sender: transaction.instruction_signer(instruction, 0)?.clone(),
                     recipient: transaction.instruction_account(instruction, 1)?.clone(),
                     lamports: system::transfer_lamports(&data)?,
                 };
@@ -97,7 +97,7 @@ fn map_metaplex_core_nft_transfer(transaction: &BlockTransaction, account_keys: 
     Some(MetaplexCoreNftTransfer {
         asset: resolve(0)?,
         collection: resolve(1)?,
-        sender: resolve(2)?,
+        sender: transaction.instruction_signer(instruction, 2)?.clone(),
         new_owner: resolve(4)?,
     })
 }
@@ -551,6 +551,15 @@ mod tests {
     }
 
     #[test]
+    fn test_transaction_nft_mplcore_transfer_from_unsigned_sender() {
+        let transaction = map_single_transaction(load_json_rpc_result(include_str!("../../testdata/nft_mplcore_transfer_unsigned_sender.json"))).unwrap();
+
+        assert_eq!(transaction.transaction_type, TransactionType::SmartContractCall);
+        assert_eq!(transaction.from, "DScDQ1zV4qVMU8HQmfcJkjZhfo5QqCWdV7dbxkb2gU9C");
+        assert_eq!(transaction.state, TransactionState::Reverted);
+    }
+
+    #[test]
     fn test_transaction_swap_token_to_sol() {
         let result: JsonRpcResult<BlockTransaction> = serde_json::from_str(include_str!("../../testdata/swap_token_to_sol.json")).unwrap();
 
@@ -794,6 +803,13 @@ mod tests {
         );
 
         assert_eq!(transaction, expected);
+    }
+
+    #[test]
+    fn test_transaction_transfer_sol_from_unsigned_sender() {
+        let transaction = map_single_transaction(load_json_rpc_result(include_str!("../../testdata/transfer_sol_unsigned_sender.json")));
+
+        assert!(transaction.is_none());
     }
 
     #[test]

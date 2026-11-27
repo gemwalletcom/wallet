@@ -1,0 +1,51 @@
+{
+  "result": {
+    "blockTime": 1752111467,
+    "meta": {
+      "err": {
+        "InstructionError": [
+          0,
+          "MissingRequiredSignature"
+        ]
+      },
+      "fee": 5000,
+      "preBalances": [
+        591426881
+      ],
+      "postBalances": [
+        591421881
+      ],
+      "preTokenBalances": [],
+      "postTokenBalances": []
+    },
+    "slot": 0,
+    "transaction": {
+      "message": {
+        "accountKeys": [
+          "DScDQ1zV4qVMU8HQmfcJkjZhfo5QqCWdV7dbxkb2gU9C",
+          "JATWmjADckr2M7TX5xMfo1HNfYS66DKot15fJ4hVLrVE",
+          "5pQfZttNUtaj8sySRY9RsdtB81aEAQDh2vnacpxiwTpT",
+          "CoREENxT6tW1HoK8ypY1SxRMZTcVPm7R94rH4PZNhX7d",
+          "G7B17AigRCGvwnxFc5U8zY5T3NBGduLzT7KYApNU2VdR",
+          "8wytzyCBXco7yqgrLDiecpEt452MSuNWRe7xsLgAAX1H"
+        ],
+        "instructions": [
+          {
+            "programIdIndex": 3,
+            "accounts": [
+              1,
+              2,
+              5,
+              3,
+              4
+            ],
+            "data": "24o"
+          }
+        ]
+      },
+      "signatures": [
+        "3LnToWvKmnssh2B6v2o7LbMVdA6didfcUkFEfyQ4h5usJkPCV8RCRLY1okxGuVq2wfgQJLhsoqpxDMVgPnbfa7Ph"
+      ]
+    }
+  }
+}

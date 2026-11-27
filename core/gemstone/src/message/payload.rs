@@ -7,11 +7,13 @@ use std::collections::HashSet;
 use crate::message::eip712::{GemEIP712Message, GemEIP712Value};
 use crate::message::sign_type::MessageType;
 use crate::models::list::GemListRow;
+use crate::services::localization::GemLocalizedText;
 use crate::services::simulation::payload_rows;
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct MessagePayloadPreview {
-    pub message_type: MessageType,
+pub struct MessageReview {
+    pub title: GemLocalizedText,
+    pub text: String,
     pub primary: Vec<GemListRow>,
     pub secondary: Vec<GemListRow>,
 }
@@ -24,9 +26,10 @@ pub struct MessagePayloadFields {
 }
 
 impl MessagePayloadFields {
-    pub(super) fn rows(self, chain: Chain, address_url: impl Fn(Chain, String) -> BlockExplorerLink) -> MessagePayloadPreview {
-        MessagePayloadPreview {
-            message_type: self.message_type,
+    pub(super) fn review(self, text: String, chain: Chain, address_url: impl Fn(Chain, String) -> BlockExplorerLink) -> MessageReview {
+        MessageReview {
+            title: self.message_type.title(),
+            text,
             primary: payload_rows(&self.primary, chain, &address_url),
             secondary: payload_rows(&self.secondary, chain, &address_url),
         }
@@ -440,7 +443,6 @@ mod tests {
                 version: None,
                 chain_id: Some(1),
                 verifying_contract: Some("0xContract".into()),
-                salts: None,
             },
             message: vec![GemEIP712Section {
                 name: "PermitSingle".into(),
@@ -481,7 +483,6 @@ mod tests {
                 version: None,
                 chain_id: Some(1),
                 verifying_contract: Some("0xContract".into()),
-                salts: None,
             },
             message: vec![GemEIP712Section {
                 name: "Order".into(),
@@ -511,7 +512,6 @@ mod tests {
                 version: None,
                 chain_id: Some(1),
                 verifying_contract: None,
-                salts: None,
             },
             message: vec![GemEIP712Section { name: "Action".into(), values: vec![] }],
         }

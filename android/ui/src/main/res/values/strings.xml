@@ -213,7 +213,8 @@
   <string name="errors_swap_no_quote_available">No quote available.</string>
   <string name="errors_swap_not_supported_asset">Not supported asset.</string>
   <string name="errors_connections_no_supported_wallets">No supported wallets are available.</string>
-  <string name="errors_connections_unsupported_chain">The provided chain is not supported.</string>
+  <string name="errors_connections_unsupported_chain">This connection requires a network that isn\'t supported.</string>
+  <string name="errors_connections_unsupported_features">This connection requires features that aren\'t supported.</string>
   <string name="errors_authentication_unavailable">Authentication isn\'t set up on this device. Turn on biometrics or a passcode in your device settings.</string>
   <string name="errors_authentication_locked_out">Too many failed attempts. Please try again later.</string>
   <string name="errors_authentication_failed">Authentication failed. Please try again.</string>
