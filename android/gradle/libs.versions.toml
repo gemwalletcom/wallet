@@ -2,41 +2,40 @@
 activityCompose = "1.13.0"
 compose = "1.12.1"
 composeBom = "2026.09.00"
-material3 = "1.5.0-beta01"
-navigation3 = "1.2.0"
-camera2 = "1.7.0-alpha03"
-uiautomator = "2.4.0"
-biometric = "1.4.0-alpha07"
+material3 = "1.5.0"
+navigation3 = "1.2.2"
+camera2 = "1.7.0"
+uiautomator = "2.4.1"
+biometric = "1.4.0-rc01"
 coilCompose = "3.6.3"
 zxing-core = "3.5.4"
 coreKtx = "1.19.1"
 coreSplashscreen = "1.2.0"
-datastore = "1.3.0-rc01"
-firebaseMessaging = "26.0.0"
-lifecycleRuntimeCompose = "2.11.0"
-okhttp = "5.5.0"
+datastore = "1.3.0"
+firebaseMessaging = "26.0.2"
+lifecycleRuntimeCompose = "2.11.1"
+okhttp = "5.5.1"
 review = "2.0.2"
 room = "2.8.5"
 securityCrypto = "1.1.0"
 google-services = "4.6.0"
-gradle = "9.5.1"
+gradle = "9.5.3"
 ksp = "2.3.14"
-android-lib = "9.5.1"
 androidNdk = "28.1.13356709"
 kotlin = "2.4.21"
 hiltAndroid = "2.60.1"
 hiltLifecycleViewModelCompose = "1.4.0"
-kotlinSerialization = "2.4.21"
-kotlinxSerializationJson = "1.11.0"
+kotlinxSerializationJson = "1.13.0"
 kotlinxCoroutinesAndroid = "1.11.0"
 
 junit = "4.13.2"
 junitVersion = "1.3.0"
 testRunner = "1.7.0"
-mockkVersion = "1.14.11"
-robolectric = "4.17"
+mockkVersion = "1.14.12"
+robolectric = "4.18.1"
 
-tink = "1.23.0"
+tink = "1.24.0"
+jna = "5.19.1"
 
 [libraries]
 gradle = { module = "com.android.tools.build:gradle", version.ref = "gradle" }
@@ -45,7 +44,7 @@ androidx-core-splashscreen = { module = "androidx.core:core-splashscreen", versi
 kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinxCoroutinesAndroid" }
 kotlinx-coroutines-test = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-test", version.ref = "kotlinxCoroutinesAndroid" }
 kotlinx-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinxSerializationJson" }
-kotlin-serialization = { module = "org.jetbrains.kotlin:kotlin-serialization", version.ref = "kotlinSerialization" }
+kotlin-serialization = { module = "org.jetbrains.kotlin:kotlin-serialization", version.ref = "kotlin" }
 
 # Auth and security
 androidx-biometric = { module = "androidx.biometric:biometric", version.ref = "biometric" }
@@ -98,6 +97,7 @@ lifecycle-viewmodel-savedstate = { module = "androidx.lifecycle:lifecycle-viewmo
 datastore = { module ="androidx.datastore:datastore-preferences", version.ref = "datastore" }
 
 tink = { module = "com.google.crypto.tink:tink-android", version.ref = "tink"}
+jna = { module = "net.java.dev.jna:jna", version.ref = "jna" }
 
 
 #tests
@@ -114,6 +114,6 @@ mockk = { module = "io.mockk:mockk", version.ref = "mockkVersion" }
 
 [plugins]
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp"}
-android-library = { id = "com.android.library", version.ref = "android-lib" }
+android-library = { id = "com.android.library", version.ref = "gradle" }
 google-services = { id = "com.google.gms.google-services", version.ref = "google-services" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }

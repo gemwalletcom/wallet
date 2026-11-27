@@ -105,6 +105,6 @@ tasks.configureEach {
 }
 
 dependencies {
-    api("net.java.dev.jna:jna:5.19.1@aar")
+    api(libs.jna) { artifact { type = "aar" } }
     implementation(libs.kotlinx.coroutines.android)
 }

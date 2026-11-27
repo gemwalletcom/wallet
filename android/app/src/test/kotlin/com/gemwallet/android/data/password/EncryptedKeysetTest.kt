@@ -38,7 +38,7 @@ class EncryptedKeysetTest {
 
     @Test
     fun failedCommitReturnsNoKeyset() {
-        val master = KeysetHandle.generateNew(template).getPrimitive(RegistryConfiguration.get(), Aead::class.java)
+        val master = KeysetHandle.generateNew(template.toParameters(), RegistryConfiguration.get()).getPrimitive(RegistryConfiguration.get(), Aead::class.java)
         val editor = mockk<SharedPreferences.Editor>()
         every { preferences.edit() } returns editor
         every { editor.putString("keyset", any()) } returns editor
@@ -50,9 +50,9 @@ class EncryptedKeysetTest {
 
     @Test
     fun wrongMasterKeyDoesNotReplaceEncryptedKeyset() {
-        val master = KeysetHandle.generateNew(template).getPrimitive(RegistryConfiguration.get(), Aead::class.java)
-        val wrongMaster = KeysetHandle.generateNew(template).getPrimitive(RegistryConfiguration.get(), Aead::class.java)
-        val stored = TinkProtoKeysetFormat.serializeEncryptedKeyset(KeysetHandle.generateNew(template), master, byteArrayOf(), RegistryConfiguration.get())
+        val master = KeysetHandle.generateNew(template.toParameters(), RegistryConfiguration.get()).getPrimitive(RegistryConfiguration.get(), Aead::class.java)
+        val wrongMaster = KeysetHandle.generateNew(template.toParameters(), RegistryConfiguration.get()).getPrimitive(RegistryConfiguration.get(), Aead::class.java)
+        val stored = TinkProtoKeysetFormat.serializeEncryptedKeyset(KeysetHandle.generateNew(template.toParameters(), RegistryConfiguration.get()), master, byteArrayOf(), RegistryConfiguration.get())
         every { preferences.getString("keyset", null) } returns stored.hex
 
         assertThrows(GeneralSecurityException::class.java) { encryptedKeyset(preferences, "keyset", wrongMaster, template) }
@@ -61,8 +61,8 @@ class EncryptedKeysetTest {
 
     @Test
     fun keystoreFailureIsReportedWhenThePlaintextFallbackAlsoFails() {
-        val master = KeysetHandle.generateNew(template).getPrimitive(RegistryConfiguration.get(), Aead::class.java)
-        val stored = TinkProtoKeysetFormat.serializeEncryptedKeyset(KeysetHandle.generateNew(template), master, byteArrayOf(), RegistryConfiguration.get())
+        val master = KeysetHandle.generateNew(template.toParameters(), RegistryConfiguration.get()).getPrimitive(RegistryConfiguration.get(), Aead::class.java)
+        val stored = TinkProtoKeysetFormat.serializeEncryptedKeyset(KeysetHandle.generateNew(template.toParameters(), RegistryConfiguration.get()), master, byteArrayOf(), RegistryConfiguration.get())
         every { preferences.getString("keyset", null) } returns stored.hex
         val keystoreError = GeneralSecurityException("Keystore unavailable")
         val failingMaster = mockk<Aead> { every { decrypt(any(), any()) } throws keystoreError }

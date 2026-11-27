@@ -105,7 +105,7 @@ subprojects {
     }
     listOf("com.android.library", "com.android.application").forEach { pluginId ->
         plugins.withId(pluginId) {
-            dependencies.add("testImplementation", "net.java.dev.jna:jna:5.19.1")
+            dependencies.add("testImplementation", libs.jna)
             dependencies.add("testImplementation", libs.robolectric)
             dependencies.add("testImplementation", libs.androidx.junit)
             extensions.getByType(com.android.build.api.dsl.CommonExtension::class.java).sourceSets.getByName("test").resources.directories.add(rootProject.file("gradle/robolectric").path)

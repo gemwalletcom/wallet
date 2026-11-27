@@ -15,7 +15,7 @@ internal fun encryptedKeyset(preferences: SharedPreferences, name: String, maste
     val encoded = preferences.getString(name, null)
     val handle = if (encoded == null) {
         checkNotNull(template) { "Secure keyset is missing" }
-        KeysetHandle.generateNew(template)
+        KeysetHandle.generateNew(template.toParameters(), RegistryConfiguration.get())
     } else {
         val bytes = encoded.fromHex()
         try {
