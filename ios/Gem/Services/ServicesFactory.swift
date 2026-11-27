@@ -25,7 +25,9 @@ struct ServicesFactory {
         let observablePreferences = ObservablePreferences(preferencesService: preferencesService)
         let nodeService = GemNodeService(store: GemstoneNodeStore(store: stores.nodeStore), preferences: preferencesStore)
         let nativeProvider = NativeProvider()
-        let deviceKeyService = Gemstone.GemDeviceKeyService(store: GemstoneSecurePreferencesStore(namespace: "gateway"))
+        let secureStore = GemstoneSecurePreferencesStore(namespace: "gateway")
+        let encryptedStore = GemstoneEncryptedPreferencesStore(namespace: "gateway")
+        let deviceKeyService = Gemstone.GemDeviceKeyService(store: secureStore)
         let deviceRegistrationClient = Self.makeDeviceApiClient(provider: nativeProvider, deviceKey: deviceKeyService)
 
         let gemstoneWalletStore = GemstoneWalletStore(store: stores.walletStore)
@@ -62,12 +64,11 @@ struct ServicesFactory {
         let gemstoneAddressStore = GemstoneAddressStore(store: stores.addressStore)
         let gemstoneBannerStore = GemstoneBannerStore(store: stores.bannerStore)
         let gemstoneNotificationStore = GemstoneNotificationStore(store: stores.inAppNotificationStore)
-        let gatewaySecurePreferences = GemstoneEncryptedPreferencesStore(namespace: "gateway")
         let gatewayService = GatewayService(
             provider: nativeProvider,
             nodes: nodeService,
             preferences: GemstonePreferencesStore(namespace: "gateway"),
-            securePreferences: gatewaySecurePreferences,
+            securePreferences: encryptedStore,
         )
         let nameService = Gemstone.GemNameService(api: deviceApiClient, store: gemstoneAddressStore)
         let assetsService = gatewayService.assetsService(api: apiClient, store: gemstoneAssetStore, price: priceService, preferences: preferencesService)
@@ -99,7 +100,7 @@ struct ServicesFactory {
             explorer: explorerService,
             names: nameService,
             avatar: avatarService,
-            securePreferences: gatewaySecurePreferences,
+            securePreferences: encryptedStore,
         )
         let pushNotificationEnablerService = PushNotificationEnablerService(preferencesService: preferencesService, systemPrompt: storages.systemPrompt)
         let notificationPermissions = GemstoneNotificationPermissions(service: pushNotificationEnablerService)
@@ -153,6 +154,14 @@ struct ServicesFactory {
             walletPreferences: walletPreferencesService,
             session: walletSessionService,
             transactionStatus: GemstoneTransactionStatusService(service: transactionStateService),
+        )
+        let lightningService = storages.keystore.lightningService(
+            provider: nativeProvider,
+            secure: encryptedStore,
+            preferences: walletPreferencesService,
+            balances: balanceService,
+            transactions: transactionsService,
+            session: walletSessionService,
         )
 
         let bannerService = Gemstone.GemBannerService(store: gemstoneBannerStore, platform: .ios)
@@ -248,15 +257,14 @@ struct ServicesFactory {
             session: walletSessionService,
             assets: assetsService,
         )
-        let walletConnectStore = GemstoneSecurePreferencesStore(namespace: "gateway")
         let walletConnectSocket = WebSocketConnection(configuration: WebSocketConfiguration(
-            requestProvider: WalletConnectRequestProvider(store: walletConnectStore),
+            requestProvider: WalletConnectRequestProvider(store: secureStore),
             reconnection: connectionService,
         ))
         let walletConnectListener = WalletConnectListener()
         let walletConnectClient = Gemstone.GemWalletConnectClient(
             service: walletConnectService,
-            store: walletConnectStore,
+            store: secureStore,
             provider: nativeProvider,
             transport: GemstoneSocketTransport(webSocket: walletConnectSocket),
             listener: walletConnectListener,
@@ -371,6 +379,7 @@ struct ServicesFactory {
             perpetualObserver: hyperliquidObserverService,
             walletSessionService: walletSessionService,
             transactionStateService: transactionStateService,
+            lightningService: lightningService,
         )
 
         let confirmTransferService = storages.keystore.confirmTransferService(
@@ -411,6 +420,7 @@ struct ServicesFactory {
             fiatService: fiatService,
             gatewayService: gatewayService,
             hyperliquidObserverService: hyperliquidObserverService,
+            lightningService: lightningService,
             nameService: nameService,
             nftService: nftService,
             nodeService: nodeService,

@@ -16,6 +16,7 @@ pub fn chain_transaction_timeout(chain: Chain) -> Duration {
         ChainType::Bitcoin => Duration::days(14),
         ChainType::Solana => block_time * 150,
         ChainType::Ethereum => (block_time * 120).max(MIN_EVM_TRANSACTION_TIMEOUT),
+        ChainType::Lightning => Duration::days(16),
         ChainType::Cosmos
         | ChainType::Ton
         | ChainType::Tron

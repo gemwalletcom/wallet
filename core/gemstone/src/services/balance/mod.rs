@@ -129,6 +129,10 @@ impl GemBalanceService {
         self.write_balances(wallet_id.clone(), sequence, rules::balance_updates(balances), &assets).await
     }
 
+    pub(crate) async fn is_asset_enabled(&self, wallet_id: WalletId, asset_id: AssetId) -> Result<bool, GemServiceError> {
+        Ok(self.store.get_enabled_asset_ids(wallet_id).await?.contains(&asset_id))
+    }
+
     pub async fn update_enabled_balances(&self, wallet_id: WalletId) -> Result<(), GemServiceError> {
         let asset_ids = self.store.get_enabled_asset_ids(wallet_id.clone()).await?;
         self.update(wallet_id, asset_ids).await

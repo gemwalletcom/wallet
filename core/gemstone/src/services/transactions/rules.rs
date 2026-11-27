@@ -371,6 +371,7 @@ fn status_row(rows: &GemTransactionDetailRows) -> GemListRow {
 fn row_subtitle(item: &TransactionListItem) -> GemTransactionRowSubtitle {
     match transaction_subtitle(&item.transaction) {
         GemTransactionSubtitle::None => GemTransactionRowSubtitle::None,
+        GemTransactionSubtitle::ToAddress { address } | GemTransactionSubtitle::FromAddress { address } if address.is_empty() => GemTransactionRowSubtitle::None,
         GemTransactionSubtitle::ToAddress { address } => GemTransactionRowSubtitle::ToAddress {
             participant: participant_name(item, &address),
         },
@@ -820,6 +821,9 @@ pub fn pending_activity_filters() -> TransactionsFilter {
 
 #[cfg(test)]
 mod tests {
+    use gem_spark::provider::transactions_mapper::map_payment;
+    use gem_spark::{LightningPayment, LightningPaymentDirection, LightningPaymentStatus};
+
     use crate::formatted_number::GemNumberNotation;
     use crate::models::list::GemRowMenuItem;
 
@@ -1283,6 +1287,24 @@ mod tests {
                 },
             },
             "a transfer row shows its amount"
+        );
+    }
+
+    #[test]
+    fn test_lightning_row_reads_sats_without_a_counterparty() {
+        let payment = LightningPayment::mock(LightningPaymentDirection::Incoming, LightningPaymentStatus::Completed);
+        let lightning = row(&TransactionListItem::mock_transaction(map_payment("spark1address", &payment)));
+
+        assert_eq!(lightning.subtitle, GemTransactionRowSubtitle::None);
+        assert_eq!(
+            lightning.value,
+            GemTransactionRowValue::Number {
+                number: GemFormattedNumber {
+                    notation: GemNumberNotation::Signed,
+                    tone: GemValueTone::Positive,
+                    ..GemFormattedNumber::amount(1000.0, Some("sats".to_string()), ValueStyle::Short)
+                },
+            }
         );
     }
 

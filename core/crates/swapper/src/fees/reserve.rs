@@ -53,7 +53,8 @@ pub fn max_amount_spends_all_but_fee(chain: Chain) -> bool {
         | ChainType::Algorand
         | ChainType::Polkadot
         | ChainType::Cardano
-        | ChainType::HyperCore => false,
+        | ChainType::HyperCore
+        | ChainType::Lightning => false,
     }
 }
 

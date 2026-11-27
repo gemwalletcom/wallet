@@ -19,6 +19,7 @@ import class Gemstone.GemDeveloperService
 import class Gemstone.GemDeviceService
 import class Gemstone.GemExplorerService
 import class Gemstone.GemFiatService
+import class Gemstone.GemLightningService
 import class Gemstone.GemNameService
 import class Gemstone.GemNftService
 import class Gemstone.GemNodeService
@@ -68,6 +69,7 @@ public struct ViewModelFactory: Sendable {
     let fiatService: GemFiatService
     let gatewayService: GatewayService
     let hyperliquidObserverService: any PerpetualObservable
+    let lightningService: GemLightningService
     let nameService: GemNameService
     let nftService: GemNftService
     let nodeService: GemNodeService

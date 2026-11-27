@@ -675,6 +675,11 @@ pub struct DetailsSectionsInput<'a> {
     pub price_alerts: Option<&'a [PriceAlert]>,
     pub fee_balance_metadata: Option<BalanceMetadata>,
     pub banner_events: &'a [BannerEvent],
+    pub related_asset: Option<Asset>,
+}
+
+pub fn related_asset(asset_id: &AssetId, wallet: &Wallet) -> Option<Asset> {
+    (*asset_id == AssetId::from_chain(Chain::Bitcoin) && wallet.account(Chain::Lightning).is_some()).then(|| Asset::from_chain(Chain::Lightning))
 }
 
 pub fn details_sections(input: DetailsSectionsInput) -> Vec<GemAssetDetailSection> {
@@ -689,12 +694,23 @@ pub fn details_sections(input: DetailsSectionsInput) -> Vec<GemAssetDetailSectio
         price_alerts,
         fee_balance_metadata,
         banner_events,
+        related_asset,
     } = input;
     let chain = asset.chain();
     let allows_actions = allows_actions(banner_events);
     let displayed_alerts = price_alerts.map(|alerts| displayed_price_alert_ids(alerts.to_vec()).len()).unwrap_or_default();
     let quoted = price_row(price, price_change_percentage_24h, currency, GemCurrencyStyle::Currency);
     let row = |row: GemListRow, action: Option<GemRowAction>| GemAssetDetailRow::Row { row, action };
+    let network = |asset: &Asset, action: GemRowAction| {
+        row(
+            GemListRow::Network {
+                title: GemListRowTitle::Network,
+                chain: asset.chain(),
+                name: asset_text(asset).network_full_name,
+            },
+            Some(action),
+        )
+    };
     let link = |title: GemListRowTitle, value: Option<String>, icon: GemListRowIcon, action: GemRowAction| GemAssetDetailRow::Row {
         row: GemListRow::Link { title, value, icon, action: action.clone() },
         action: Some(action),
@@ -727,14 +743,8 @@ pub fn details_sections(input: DetailsSectionsInput) -> Vec<GemAssetDetailSectio
                     Some(GemRowAction::Price),
                 )),
                 (has_price(price) && displayed_alerts > 0).then(|| link(GemListRowTitle::PriceAlerts, Some(displayed_alerts.to_string()), GemListRowIcon::None, GemRowAction::PriceAlerts)),
-                Some(row(
-                    GemListRow::Network {
-                        title: GemListRowTitle::Network,
-                        chain,
-                        name: asset_text(asset).network_full_name,
-                    },
-                    Some(GemRowAction::Network),
-                )),
+                Some(network(asset, GemRowAction::Network)),
+                related_asset.map(|related| network(&related, GemRowAction::Asset { asset: related.clone() })),
             ]
             .into_iter()
             .flatten()
@@ -1558,6 +1568,16 @@ mod tests {
     }
 
     #[test]
+    fn test_bitcoin_links_to_lightning_only_with_a_lightning_account() {
+        let bitcoin = AssetId::from_chain(Chain::Bitcoin);
+        let lightning = Wallet::mock_with_chains(&[Chain::Bitcoin, Chain::Lightning]);
+
+        assert_eq!(related_asset(&bitcoin, &lightning), Some(Asset::from_chain(Chain::Lightning)));
+        assert_eq!(related_asset(&bitcoin, &Wallet::mock_with_chains(&[Chain::Bitcoin])), None);
+        assert_eq!(related_asset(&AssetId::from_chain(Chain::Ethereum), &lightning), None);
+    }
+
+    #[test]
     fn test_network_destination_opens_the_native_asset_or_the_chain_list() {
         let ethereum = Chain::Ethereum;
         assert_eq!(network_destination(&Asset::mock_ethereum_usdc().id), Some(GemAssetNetworkDestination::Asset { asset: Asset::from_chain(ethereum) }));
@@ -1745,6 +1765,7 @@ mod tests {
             price_alerts,
             fee_balance_metadata: None,
             banner_events: &[],
+            related_asset: None,
         })
     }
 
@@ -1956,6 +1977,7 @@ mod tests {
                 price_alerts: Some(&[]),
                 fee_balance_metadata,
                 banner_events: &[],
+                related_asset: None,
             });
             section(&sections, GemListSectionTitle::Resources)
         };
@@ -2073,6 +2095,7 @@ mod tests {
                 price_alerts: Some(&[]),
                 fee_balance_metadata: None,
                 banner_events,
+                related_asset: None,
             })
             .into_iter()
             .flat_map(|section| section.rows)

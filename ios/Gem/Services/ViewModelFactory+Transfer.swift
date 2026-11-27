@@ -72,6 +72,18 @@ public extension ViewModelFactory {
         ReceiveSceneViewModel(assetAddress: assetAddress, wallet: wallet, service: receiveService())
     }
 
+    @MainActor
+    func lightningReceiveScene(wallet: Wallet, onComplete: VoidAction) -> LightningReceiveSceneViewModel {
+        LightningReceiveSceneViewModel(
+            service: lightningService,
+            walletId: wallet.id,
+            onComplete: { [toastPresenter] message in
+                Task { toastPresenter.present(message) }
+                onComplete?()
+            },
+        )
+    }
+
     private func receiveService() -> GemReceiveService {
         GemReceiveService(balances: balanceService, assets: assetsService, recentActivity: recentAssetsService)
     }

@@ -51,16 +51,7 @@ pub fn converted_values(prices: Vec<ChartValue>, rate: f64) -> Vec<ChartDateValu
 }
 
 pub fn converted_candles(candles: Vec<ChartCandleStick>, rate: f64) -> Vec<ChartCandleStick> {
-    let mut candles: Vec<ChartCandleStick> = candles
-        .into_iter()
-        .map(|candle| ChartCandleStick {
-            open: candle.open * rate,
-            high: candle.high * rate,
-            low: candle.low * rate,
-            close: candle.close * rate,
-            ..candle
-        })
-        .collect();
+    let mut candles: Vec<ChartCandleStick> = candles.into_iter().map(|candle| candle.with_rate(rate)).collect();
     candles.sort_by_key(|candle| candle.date);
     candles
 }

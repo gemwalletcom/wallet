@@ -1417,6 +1417,18 @@ fun mockGemContactSession(
     isSaving = isSaving,
 )
 
+fun mockGemCopy(
+    kind: uniffi.gemstone.GemCopyKind = mockGemCopyKind(),
+    value: String = "",
+    display: String = "",
+) = uniffi.gemstone.GemCopy(
+    kind = kind,
+    value = value,
+    display = display,
+)
+
+fun mockGemCopyKind(): uniffi.gemstone.GemCopyKind = uniffi.gemstone.GemCopyKind.Address(chain = com.wallet.core.primitives.Chain.Bitcoin.string)
+
 fun mockGemCustomFeeField(
     title: uniffi.gemstone.GemListRowTitle = uniffi.gemstone.GemListRowTitle.API,
     input: String = "",
@@ -1665,6 +1677,14 @@ fun mockGemLeverageSelection(
 ) = uniffi.gemstone.GemLeverageSelection(
     options = options,
     selected = selected,
+)
+
+fun mockGemLightningReceive(
+    qr: String = "",
+    copy: uniffi.gemstone.GemCopy = mockGemCopy(),
+) = uniffi.gemstone.GemLightningReceive(
+    qr = qr,
+    copy = copy,
 )
 
 fun mockGemLocalizedText(): uniffi.gemstone.GemLocalizedText = uniffi.gemstone.GemLocalizedText.WalletDefaultName(index = 0)

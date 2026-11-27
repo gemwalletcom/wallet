@@ -592,6 +592,26 @@ public extension Gemstone.GemContactSession {
     }
 }
 
+public extension Gemstone.GemCopy {
+    static func mock(
+        kind: Gemstone.GemCopyKind = .mock(),
+        value: String = "",
+        display: String = "",
+    ) -> Gemstone.GemCopy {
+        Gemstone.GemCopy(
+            kind: kind,
+            value: value,
+            display: display,
+        )
+    }
+}
+
+public extension Gemstone.GemCopyKind {
+    static func mock() -> Gemstone.GemCopyKind {
+        .address(chain: Primitives.Chain.bitcoin.rawValue)
+    }
+}
+
 public extension Gemstone.GemCustomFeeField {
     static func mock(
         title: Gemstone.GemListRowTitle = .api,
@@ -926,6 +946,18 @@ public extension Gemstone.GemLeverageSelection {
         Gemstone.GemLeverageSelection(
             options: options,
             selected: selected,
+        )
+    }
+}
+
+public extension Gemstone.GemLightningReceive {
+    static func mock(
+        qr: String = "",
+        copy: Gemstone.GemCopy = .mock(),
+    ) -> Gemstone.GemLightningReceive {
+        Gemstone.GemLightningReceive(
+            qr: qr,
+            copy: copy,
         )
     }
 }

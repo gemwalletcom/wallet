@@ -7,6 +7,7 @@ use crate::constants::PING_INTERVAL;
 
 const RECONNECT_MULTIPLIER_MILLISECONDS: f64 = 300.0;
 const RECONNECT_MAXIMUM_MILLISECONDS: f64 = 30_000.0;
+const RECEIVE_REFRESH: Duration = Duration::from_secs(4);
 const MARKET_REFRESH: Duration = Duration::from_secs(60);
 const WALLET_REFRESH: Duration = Duration::from_secs(300);
 const STREAMING_REFRESH: Duration = Duration::from_secs(900);
@@ -25,6 +26,7 @@ fn reconnect_delay(attempt: usize) -> Duration {
 
 pub fn refresh_interval(kind: GemRefreshKind, status: ConnectionStatus) -> Duration {
     match (kind, status) {
+        (GemRefreshKind::Receive, _) => RECEIVE_REFRESH,
         (GemRefreshKind::Chart | GemRefreshKind::Confirm, _) => MARKET_REFRESH,
         (GemRefreshKind::Market | GemRefreshKind::Wallet, ConnectionStatus::Online) => STREAMING_REFRESH,
         (GemRefreshKind::Market, ConnectionStatus::NoInternet | ConnectionStatus::NoService) => MARKET_REFRESH,

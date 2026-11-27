@@ -70,6 +70,26 @@ public extension LocalKeystore {
         )
     }
 
+    func lightningService(
+        provider: any AlienProvider,
+        secure: any GemSecureStore,
+        preferences: GemWalletPreferencesService,
+        balances: GemBalanceService,
+        transactions: GemTransactionsService,
+        session: GemWalletSessionService,
+    ) -> GemLightningService {
+        GemLightningService(
+            provider: provider,
+            keystore: gemKeystore,
+            password: password,
+            secure: secure,
+            preferences: preferences,
+            balances: balances,
+            transactions: transactions,
+            session: session,
+        )
+    }
+
     private var password: any GemKeystorePassword {
         GemstoneKeystorePassword(password: keystorePassword)
     }

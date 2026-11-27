@@ -2,7 +2,7 @@ use model_derive::Model;
 use serde::{Deserialize, Serialize};
 use strum::{AsRefStr, EnumString};
 
-#[derive(Debug, Clone, Serialize, Deserialize, AsRefStr, EnumString, PartialEq, Model)]
+#[derive(Debug, Clone, Serialize, Deserialize, AsRefStr, EnumString, PartialEq, Eq, Model)]
 #[model(swift = "Equatable, CaseIterable, Sendable")]
 #[serde(rename_all = "UPPERCASE")]
 #[strum(serialize_all = "UPPERCASE")]

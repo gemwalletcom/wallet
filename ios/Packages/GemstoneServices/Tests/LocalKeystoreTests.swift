@@ -178,6 +178,8 @@ struct LocalKeystoreTests {
                 "13nN6BGAoJwd7Nw1XxeBCx5YcBXuYnL94Mh7i3xBprqVSsFk"
             case .cardano:
                 "addr1qyr8jjfnypp95eq74aqzn7ss687ehxclgj7mu6gratmg3mul2040vt35dypp042awzsjk5xm3zr3zm5qh7454uwdv08s84ray2"
+            case .lightning:
+                "spark1pgssyjmd2fjvelgtp3wlmzms268lcauvtgy65ylx54mv3gf4ta8q2tkdl9622e"
             case .zcash:
                 "t1YYnByMzdGhQv3W3rnjHMrJs6HH4Y231gy"
             }

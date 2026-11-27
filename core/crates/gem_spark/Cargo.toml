@@ -1,0 +1,33 @@
+[package]
+name = "gem_spark"
+version = { workspace = true }
+edition = { workspace = true }
+
+[features]
+default = []
+rpc = ["dep:async-trait", "dep:chain_traits", "dep:primitives", "dep:num-bigint", "dep:signer", "dep:gem_hash", "dep:serde_json", "dep:serde_serializers"]
+wallet = ["dep:async-trait", "dep:bitcoin", "dep:gem_client", "dep:gem_encoding", "dep:primitives", "dep:serde_json", "dep:spark-wallet", "dep:tokio"]
+chain_integration_tests = ["wallet"]
+
+[dependencies]
+bech32 = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true, optional = true }
+serde_serializers = { path = "../serde_serializers", optional = true }
+lightning-invoice = { workspace = true }
+chain_traits = { path = "../chain_traits", optional = true }
+primitives = { path = "../primitives", optional = true }
+signer = { path = "../signer", optional = true }
+gem_hash = { path = "../gem_hash", optional = true }
+num-bigint = { workspace = true, optional = true }
+date_time = { path = "../date_time" }
+async-trait = { workspace = true, optional = true }
+bitcoin = { workspace = true, optional = true }
+spark-wallet = { workspace = true, optional = true }
+gem_client = { path = "../gem_client", optional = true }
+gem_encoding = { path = "../gem_encoding", optional = true }
+tokio = { workspace = true, optional = true }
+
+[dev-dependencies]
+signer = { path = "../signer" }
+tokio = { workspace = true, features = ["macros", "rt-multi-thread"] }

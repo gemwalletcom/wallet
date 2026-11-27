@@ -14,11 +14,12 @@ import com.gemwallet.android.ui.theme.Spacer16
 import com.gemwallet.android.ui.theme.sceneContentPaddingValues
 
 @Composable
-fun FatalStateScene(title: String, message: String, onCancel: (() -> Unit)?, onTryAgain: (() -> Unit)? = null) {
+fun FatalStateScene(title: String, message: String, onCancel: (() -> Unit)?, onTryAgain: (() -> Unit)? = null, closeIcon: Boolean = false) {
     Scene(
         title = title,
         padding = sceneContentPaddingValues(),
         onClose = onCancel,
+        closeIcon = closeIcon,
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             Column(

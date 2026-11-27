@@ -78,7 +78,14 @@ fn prices_for_asset_ids(client: &mut DatabaseClient, asset_ids: &[String]) -> Re
         .filter(prices_assets::asset_id.eq_any(asset_ids))
         .select((prices_assets::asset_id, PriceRow::as_select()))
         .load::<(crate::sql_types::AssetId, PriceRow)>(&mut client.connection)
-        .map(|rows| rows.into_iter().map(|(id, row)| (id.0, row)).collect())
+        .map(|rows| {
+            rows.into_iter()
+                .map(|(id, row)| {
+                    let scale = id.0.price_scale();
+                    (id.0, row.scaled(scale))
+                })
+                .collect()
+        })
 }
 
 fn price_row(client: &mut DatabaseClient, price_id: &str) -> Result<PriceRow, diesel::result::Error> {

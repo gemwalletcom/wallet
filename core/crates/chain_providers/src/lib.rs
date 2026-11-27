@@ -22,6 +22,7 @@ use gem_polkadot::rpc::{PolkadotClient, PolkadotIndexer, PolkadotProvider};
 use gem_reqwest::ReqwestGrpcTransport;
 use gem_reqwest::{ReqwestClient, retry_policy};
 use gem_solana::rpc::{SolanaClient, SolanaProvider};
+use gem_spark::provider::{KeylessSessions, LightningProvider};
 use gem_stellar::rpc::client::StellarClient;
 use gem_sui::rpc::{SuiClient, SuiIndexer, SuiProvider};
 use gem_tempo::TempoProvider;
@@ -144,6 +145,7 @@ impl ProviderFactory {
                 Box::new(TronProvider::new(TronClient::new(gem_client), Box::new(trongrid.clone()), Box::new(trongrid)))
             }
             ChainType::HyperCore => Box::new(HyperCoreClient::new(gem_client)),
+            ChainType::Lightning => Box::new(LightningProvider::new(Arc::new(KeylessSessions))),
         }
     }
 
@@ -206,6 +208,7 @@ impl ProviderFactory {
             Chain::Stable => &settings.chains.stable,
             Chain::Tempo => &settings.chains.tempo,
             Chain::Arc => &settings.chains.arc,
+            Chain::Lightning => &settings.chains.lightning,
         }
     }
 

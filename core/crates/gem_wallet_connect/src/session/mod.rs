@@ -35,7 +35,8 @@ pub fn requires_public_key(chain: Chain) -> bool {
         | ChainType::Algorand
         | ChainType::Polkadot
         | ChainType::Cardano
-        | ChainType::HyperCore => false,
+        | ChainType::HyperCore
+        | ChainType::Lightning => false,
     }
 }
 

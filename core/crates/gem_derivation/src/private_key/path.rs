@@ -54,5 +54,6 @@ pub fn default_derivation_path(chain: Chain) -> &'static str {
         Chain::Algorand => "m/44'/283'/0'/0'/0'",
         Chain::Polkadot => "m/44'/354'/0'/0'/0'",
         Chain::Cardano => "m/1852'/1815'/0'/0/0",
+        Chain::Lightning => gem_spark::IDENTITY_PATH,
     }
 }

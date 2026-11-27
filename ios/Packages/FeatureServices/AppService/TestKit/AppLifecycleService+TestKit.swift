@@ -5,6 +5,7 @@ import ConnectionStatusService
 import ConnectionStatusServiceTestKit
 import Foundation
 import protocol Gemstone.GemDeviceServiceProtocol
+import protocol Gemstone.GemLightningServiceProtocol
 import protocol Gemstone.GemPerpetualServiceProtocol
 import protocol Gemstone.GemTransactionStateServiceProtocol
 import class Gemstone.GemWalletSessionService
@@ -29,6 +30,7 @@ public extension AppLifecycleService {
         perpetualService: any GemPerpetualServiceProtocol = GemPerpetualServiceMock(),
         walletSessionService: any GemWalletSessionServiceProtocol = GemWalletSessionService.mock(),
         transactionStateService: any GemTransactionStateServiceProtocol = GemTransactionStateServiceMock(),
+        lightningService: any GemLightningServiceProtocol = GemLightningServiceMock(),
     ) -> AppLifecycleService {
         AppLifecycleService(
             walletConnector: walletConnector,
@@ -40,6 +42,7 @@ public extension AppLifecycleService {
             perpetualObserver: hyperliquidObserverService,
             walletSessionService: walletSessionService,
             transactionStateService: transactionStateService,
+            lightningService: lightningService,
         )
     }
 }
