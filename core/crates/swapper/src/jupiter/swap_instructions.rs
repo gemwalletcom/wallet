@@ -1,5 +1,5 @@
 use gem_solana::models::SolanaInstruction;
-use gem_solana::{Base64InstructionData, Instruction, Pubkey, StandardInstruction, associated_token::is_associated_token_address, decode_instruction, decode_instructions, wrapped_sol};
+use gem_solana::{Base64InstructionData, Instruction, Pubkey, StandardInstruction, associated_token::is_associated_token_address, decode_instruction, decode_instructions};
 
 use super::JupiterRoute;
 use crate::{SwapperError, binding_check::solana::verify_steps};
@@ -10,13 +10,19 @@ pub(crate) enum RouteDestination {
     Account(Pubkey),
 }
 
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub(crate) struct PlatformFee {
+    pub bps: u16,
+    pub account: Pubkey,
+}
+
 #[derive(Debug, Clone, Copy)]
 pub(crate) struct QuotedRoute {
     pub wallet: Pubkey,
     pub input_mint: Pubkey,
     pub amount: u64,
     pub minimum_out: u64,
-    pub platform_fee_bps: u16,
+    pub platform_fee: Option<PlatformFee>,
     pub destination: RouteDestination,
 }
 
@@ -44,29 +50,29 @@ impl SwapInstructions {
             RouteDestination::WalletAccount(mint) => is_associated_token_address(&route.destination, &quoted.wallet, &mint),
             RouteDestination::Account(destination) => route.destination == destination,
         };
+        let takes_quoted_fee = match quoted.platform_fee {
+            Some(fee) => route.arguments.platform_fee_bps == fee.bps && route.fee_account == Some(fee.account),
+            None => route.arguments.platform_fee_bps == 0,
+        };
         let is_quoted = route.spends_from(&quoted.wallet, &quoted.input_mint)
             && route.arguments.in_amount <= quoted.amount
             && route.arguments.minimum_out() >= quoted.minimum_out
-            && route.arguments.platform_fee_bps <= quoted.platform_fee_bps
+            && route.arguments.positive_slippage_bps == 0
+            && takes_quoted_fee
             && pays_destination;
         if !is_quoted {
             return Err(SwapperError::InvalidRoute);
         }
         let steps: Vec<StandardInstruction> = self.compute_budget.iter().chain(&self.setup).chain(&self.cleanup).map(StandardInstruction::new).collect();
-        verify_steps(&steps, &quoted.wallet, &[], &[(quoted.input_mint, quoted.amount)])
-    }
-
-    pub(crate) fn wraps_native_sol(&self, wallet: &Pubkey) -> Result<bool, SwapperError> {
-        let wrapped_sol = wrapped_sol::wrapped_sol_account(wallet).map_err(SwapperError::transaction_error)?;
-        Ok(self.setup.iter().any(|instruction| StandardInstruction::new(instruction).transfers_to(&wrapped_sol)))
+        verify_steps(&steps, &quoted.wallet, &[], &[])
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use gem_solana::{USDC_TOKEN_MINT, associated_token::get_associated_token_address_with_program_id, instructions::program_ids::token_program, system};
-    use primitives::testkit::signer_mock::TEST_PRIVATE_KEY_SOLANA_ADDRESS;
+    use gem_solana::{USDC_TOKEN_MINT, associated_token::get_associated_token_address_with_program_id, instructions::program_ids::token_program, system, token, wrapped_sol};
+    use primitives::{swap::SOLANA_REFERRAL_ADDRESS, testkit::signer_mock::TEST_PRIVATE_KEY_SOLANA_ADDRESS};
 
     #[test]
     fn test_verify() {
@@ -100,14 +106,33 @@ mod tests {
             ),
             (
                 QuotedRoute {
-                    platform_fee_bps: quoted.platform_fee_bps - 1,
+                    platform_fee: quoted.platform_fee.map(|fee| PlatformFee { bps: fee.bps - 1, ..fee }),
                     ..quoted
                 },
                 "a route that takes a higher fee than quoted",
             ),
+            (
+                QuotedRoute {
+                    platform_fee: quoted.platform_fee.map(|fee| PlatformFee { bps: fee.bps + 1, ..fee }),
+                    ..quoted
+                },
+                "a route that leaves out part of Gem's fee",
+            ),
+            (QuotedRoute { platform_fee: None, ..quoted }, "a fee where the quote takes none"),
+            (
+                QuotedRoute {
+                    platform_fee: quoted.platform_fee.map(|fee| PlatformFee { account: stranger, ..fee }),
+                    ..quoted
+                },
+                "a fee paid into an account other than Gem's",
+            ),
         ] {
             assert_eq!(instructions.verify(&refused), Err(SwapperError::InvalidRoute), "{reason}");
         }
+
+        let mut positive_slippage = instructions.clone();
+        positive_slippage.swap.data[28] = 1;
+        assert_eq!(positive_slippage.verify(&quoted), Err(SwapperError::InvalidRoute), "a route that keeps part of a better price than quoted");
 
         let mut route_to_stranger = instructions.swap.clone();
         route_to_stranger.accounts[2].pubkey = stranger_usdc;
@@ -127,19 +152,24 @@ mod tests {
             ..instructions
         };
         assert_eq!(sends_coins_away.verify(&quoted), Err(SwapperError::InvalidRoute), "the steps around the route follow the Solana step rules");
+        let usdc_route = QuotedRoute::mock_usdc_sol();
+        let pays_gem_apart = SwapInstructions {
+            setup: vec![token::transfer_checked_with_program_id(
+                &get_associated_token_address_with_program_id(&usdc_route.wallet, &usdc, &token_program()).unwrap(),
+                &usdc,
+                &get_associated_token_address_with_program_id(&Pubkey::from_base58(SOLANA_REFERRAL_ADDRESS).unwrap(), &usdc, &token_program()).unwrap(),
+                &usdc_route.wallet,
+                1,
+                6,
+                &token_program(),
+            )],
+            ..SwapInstructions::mock_usdc_sol()
+        };
+        assert_eq!(pays_gem_apart.verify(&usdc_route), Err(SwapperError::InvalidRoute), "Gem's fee is taken inside the route, never as a step of its own");
         let second_route = SwapInstructions {
             setup: vec![route_to_stranger],
             ..SwapInstructions::mock()
         };
         assert_eq!(second_route.verify(&quoted), Err(SwapperError::InvalidRoute), "a second Jupiter route among the steps around the swap");
-    }
-
-    #[test]
-    fn test_wraps_native_sol() {
-        let wallet = QuotedRoute::mock().wallet;
-
-        assert_eq!(SwapInstructions::mock().wraps_native_sol(&wallet), Ok(true));
-        assert_eq!(SwapInstructions::mock_usdc_sol().wraps_native_sol(&wallet), Ok(false));
-        assert_eq!(SwapInstructions::mock().wraps_native_sol(&Pubkey::from_base58(TEST_PRIVATE_KEY_SOLANA_ADDRESS).unwrap()), Ok(false));
     }
 }

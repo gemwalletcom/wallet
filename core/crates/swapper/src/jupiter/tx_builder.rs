@@ -7,7 +7,7 @@ use gem_solana::{
 };
 
 use super::model::{BuildRequest, BuildResponse};
-use super::swap_instructions::{QuotedRoute, RouteDestination, SwapInstructions};
+use super::swap_instructions::{PlatformFee, QuotedRoute, RouteDestination, SwapInstructions};
 use crate::{SwapperError, fees::subtract_bps};
 
 impl BuildResponse {
@@ -19,17 +19,16 @@ impl BuildResponse {
         if self.tip_instruction.is_some() || !self.other_instructions.is_empty() {
             return Err(SwapperError::InvalidRoute);
         }
-        if !self.swap_instruction.accounts.iter().any(|account| account.pubkey == request.fee_account && account.is_writable) {
-            return Err(SwapperError::compute_quote_error("Jupiter referral fee is missing from the swap instruction"));
-        }
-
         let payer = Pubkey::from_base58(&request.taker).map_err(SwapperError::transaction_error)?;
         let quoted = QuotedRoute {
             wallet: payer,
             input_mint: Pubkey::from_base58(&request.input_mint).map_err(SwapperError::transaction_error)?,
             amount: request.amount.parse::<u64>().map_err(SwapperError::transaction_error)?,
             minimum_out: subtract_bps(&self.out_amount.parse::<u64>().map_err(SwapperError::compute_quote_error)?, request.slippage_bps),
-            platform_fee_bps: u16::try_from(request.platform_fee_bps).map_err(SwapperError::compute_quote_error)?,
+            platform_fee: Some(PlatformFee {
+                bps: u16::try_from(request.platform_fee_bps).map_err(SwapperError::compute_quote_error)?,
+                account: Pubkey::from_base58(&request.fee_account).map_err(SwapperError::transaction_error)?,
+            }),
             destination: RouteDestination::WalletAccount(Pubkey::from_base58(&request.output_mint).map_err(SwapperError::transaction_error)?),
         };
         let swap = SwapInstructions::new(self.compute_budget_instructions, self.setup_instructions, self.swap_instruction, self.cleanup_instruction)?;
@@ -96,7 +95,8 @@ mod tests {
                 },
                 &[]
             ),
-            Err(SwapperError::ComputeQuoteError("Jupiter referral fee is missing from the swap instruction".to_string()))
+            Err(SwapperError::InvalidRoute),
+            "a fee paid into an account other than the one Gem asked for"
         );
         assert_eq!(
             BuildResponse {

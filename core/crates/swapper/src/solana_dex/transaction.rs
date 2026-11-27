@@ -122,7 +122,7 @@ impl DexTransaction<'_> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::solana_dex::testkit::TEST_AUTHORITY;
+    use crate::testkit::TEST_SOLANA_PAYER;
     use gem_solana::{
         DEFAULT_SWAP_GAS_LIMIT, decode_transaction,
         instructions::program_ids::{associated_token_program, compute_budget_program, system_program, token_program},
@@ -159,7 +159,7 @@ mod tests {
         );
         assert_eq!(
             input_fee.instructions().unwrap()[2],
-            system::transfer(&Pubkey::from_base58(TEST_AUTHORITY).unwrap(), &Pubkey::from_base58(SOLANA_REFERRAL_ADDRESS).unwrap(), 5_000)
+            system::transfer(&Pubkey::from_base58(TEST_SOLANA_PAYER).unwrap(), &Pubkey::from_base58(SOLANA_REFERRAL_ADDRESS).unwrap(), 5_000)
         );
         assert_eq!(
             program_ids(&DexTransaction::mock(&usdc, &native)),

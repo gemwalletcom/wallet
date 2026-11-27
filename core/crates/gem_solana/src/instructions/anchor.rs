@@ -36,8 +36,12 @@ pub trait AnchorAccount: BorshDeserialize {
     }
 }
 
+pub fn instruction_body<'a>(data: &'a [u8], name: &str) -> Option<&'a [u8]> {
+    discriminated_body(data, global_discriminator(name))
+}
+
 pub fn instruction_arguments<T: BorshDeserialize>(data: &[u8], name: &str) -> SolanaResult<T> {
-    let mut arguments = discriminated_body(data, global_discriminator(name)).ok_or_else(|| SolanaError::invalid_input(format!("Invalid {name} instruction")))?;
+    let mut arguments = instruction_body(data, name).ok_or_else(|| SolanaError::invalid_input(format!("Invalid {name} instruction")))?;
     T::deserialize(&mut arguments).map_err(|error| SolanaError::invalid_input(format!("Invalid {name} instruction: {error}")))
 }
 
@@ -84,6 +88,15 @@ mod tests {
             Whirlpool::decode(&hex::decode("3f95d10ce180630901").unwrap()),
             Err(SolanaError::invalid_input("Invalid Whirlpool account: Unexpected length of input"))
         );
+    }
+
+    #[test]
+    fn test_instruction_body() {
+        let data = [global_discriminator("swap").as_slice(), &[1, 2]].concat();
+
+        assert_eq!(instruction_body(&data, "swap"), Some([1, 2].as_slice()));
+        assert_eq!(instruction_body(&data, "route"), None);
+        assert_eq!(instruction_body(&data[..7], "swap"), None);
     }
 
     #[test]

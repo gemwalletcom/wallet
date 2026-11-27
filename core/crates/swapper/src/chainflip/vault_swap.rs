@@ -140,6 +140,7 @@ mod tests {
         testkit::{ETHEREUM_NATIVE_MIN_PRICE, SOLANA_MIN_PRICE, arbitrum_usdc_destination, ethereum_usdc_parameters, mock_parameters},
         tx_builder::solana_instruction,
     };
+    use crate::testkit::TEST_SOLANA_PAYER;
     use gem_solana::anchor::global_discriminator;
     use primitives::{
         AssetId, Chain,
@@ -326,7 +327,7 @@ mod tests {
             ),
             (
                 VaultSwap {
-                    parameters: mock_parameters(Chain::Solana, "7g2rVN8fAAQdPh1mkajpvELqYa3gWvFXJsBLnKfEQfqy", SOLANA_MIN_PRICE),
+                    parameters: mock_parameters(Chain::Solana, TEST_SOLANA_PAYER, SOLANA_MIN_PRICE),
                     ..swap.clone()
                 },
                 native.clone(),

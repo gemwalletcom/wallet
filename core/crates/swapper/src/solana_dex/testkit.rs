@@ -24,6 +24,7 @@ use super::{
 use crate::{
     SwapperQuoteAsset,
     fees::{FeeSide, ReferralTransfer},
+    testkit::TEST_SOLANA_PAYER,
 };
 
 pub(crate) fn mock_solana_asset(token_id: Option<&str>, decimals: u32) -> SwapperQuoteAsset {
@@ -33,7 +34,6 @@ pub(crate) fn mock_solana_asset(token_id: Option<&str>, decimals: u32) -> Swappe
     }
 }
 
-pub(crate) const TEST_AUTHORITY: &str = "7g2rVN8fAAQdPh1mkajpvELqYa3gWvFXJsBLnKfEQfqy";
 #[cfg(feature = "swap_integration_tests")]
 pub(crate) const TEST_FUNDED_WALLET: &str = "9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM";
 pub(crate) const TEST_TOS_MINT: &str = "HmjCoarLh5duURfJ333DwfFiPyTCgFT35pRSAoP8pump";
@@ -87,7 +87,7 @@ impl<'a> DexTransaction<'a> {
     pub fn mock(input: &'a SwapToken, output: &'a SwapToken) -> Self {
         Self {
             swap: PoolSwap {
-                authority: Pubkey::from_base58(TEST_AUTHORITY).unwrap(),
+                authority: Pubkey::from_base58(TEST_SOLANA_PAYER).unwrap(),
                 input,
                 intermediate: None,
                 output,

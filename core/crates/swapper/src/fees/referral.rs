@@ -109,6 +109,13 @@ impl ReferralFee {
         }
     }
 
+    pub fn quoted_fee<T: FeeAmount>(&self, side: FeeSide, quoted_value: T) -> T {
+        match side {
+            FeeSide::Input => self.fee_value(&quoted_value),
+            FeeSide::Output => self.fee_value(&self.value_for_swap(FeeSide::Input, quoted_value)),
+        }
+    }
+
     pub fn transfer<T: FeeAmount>(&self, side: FeeSide, value: T, output_value: T) -> ReferralTransfer<T> {
         let fee_base = match side {
             FeeSide::Input => value,
@@ -287,6 +294,16 @@ mod tests {
         assert_eq!(fee.value_for_swap(FeeSide::Input, 1_000_000_000u64), 1_005_025_126);
         assert_eq!(fee.swap_value(FeeSide::Input, 1_005_025_126u64), 1_000_000_001);
         assert_eq!(fee.value_for_swap(FeeSide::Output, 1_000_000_000u64), 1_000_000_000);
+    }
+
+    #[test]
+    fn test_quoted_fee() {
+        let fee = ReferralFee { address: String::new(), bps: 50 };
+        let output = fee.transfer(FeeSide::Output, 0u64, 1_000_000);
+
+        assert_eq!(fee.quoted_fee(FeeSide::Input, 1_000_000u64), 5_000);
+        assert_eq!(fee.quoted_fee(FeeSide::Output, output.received_value(1_000_000)), output.value, "the fee on the output it was taken from");
+        assert_eq!(fee.quoted_fee(FeeSide::Output, 995_001u64), 5_000);
     }
 
     #[test]

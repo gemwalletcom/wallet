@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use gem_evm::EVM_ZERO_ADDRESS;
 use gem_solana::{
-    AccountMeta, Instruction, Pubkey, SolanaAddress,
+    AccountMeta, Instruction, Pubkey, SolanaAddress, StandardInstruction,
     associated_token::{create_associated_token_account_idempotent_with_address, get_associated_token_address_with_program_id},
     compute_budget,
     instructions::program_ids,
@@ -55,9 +55,14 @@ pub(in crate::mayan::tx_builder) fn client_swap_route(user: &Pubkey, destination
         },
         amount: route.effective_amount_in64.parse::<u64>()?,
         minimum_out: 0,
-        platform_fee_bps: 0,
+        platform_fee: None,
         destination: RouteDestination::Account(*destination_account),
     })
+}
+
+fn wraps_native_sol(setup: &[Instruction], wallet: &Pubkey) -> Result<bool, SwapperError> {
+    let wrapped_sol = wrapped_sol::wrapped_sol_account(wallet).map_err(solana_error)?;
+    Ok(setup.iter().any(|instruction| StandardInstruction::new(instruction).transfers_to(&wrapped_sol)))
 }
 
 pub(in crate::mayan::tx_builder) fn append_client_swap_instructions(instructions: &mut Vec<Instruction>, swap: SolanaClientSwap, relayer: &Pubkey, quoted: &QuotedRoute) -> Result<Vec<String>, SwapperError> {
@@ -70,7 +75,7 @@ pub(in crate::mayan::tx_builder) fn append_client_swap_instructions(instructions
     } = swap;
     let client_swap = SwapInstructions::new(compute_budget_instructions.unwrap_or_default(), setup_instructions.unwrap_or_default(), swap_instruction, cleanup_instruction)?;
     client_swap.verify(quoted)?;
-    let needs_native_sol_wrap = quoted.input_mint == wrapped_sol::wrapped_sol_mint() && !client_swap.wraps_native_sol(&quoted.wallet)?;
+    let needs_native_sol_wrap = quoted.input_mint == wrapped_sol::wrapped_sol_mint() && !wraps_native_sol(&client_swap.setup, &quoted.wallet)?;
 
     let SwapInstructions { compute_budget, setup, swap, cleanup } = client_swap;
     instructions.extend(compute_budget);
@@ -136,9 +141,9 @@ mod tests {
             provider::Mayan,
         },
         solana_dex::SolanaTransaction,
+        testkit::TEST_SOLANA_PAYER,
     };
 
-    const USDT_USER: &str = "7g2rVN8fAAQdPh1mkajpvELqYa3gWvFXJsBLnKfEQfqy";
     const USDT_LEDGER_ACCOUNT: &str = "5SGghFsD6otbtctbotPveZvUWBJGDz8CGFTCUjp5dNcB";
     const USDT_AMOUNT: u64 = 5_000_000;
     const SOL_LEDGER_ACCOUNT: &str = "9HrGRWMADkN3Sdh3pUpcPuRbX9cyJztokCaS9PfmcnsX";
@@ -148,12 +153,12 @@ mod tests {
     fn test_client_swap_through_jupiter_passes_the_binding_check() {
         let mayan = Mayan::with_clients(MayanClient::new(MockClient::new()), MayanClient::new(MockClient::new()), Arc::new(ProviderMock::new("{}".to_string())));
         let token = QuotedRoute {
-            wallet: Pubkey::from_base58(USDT_USER).unwrap(),
             input_mint: Pubkey::from_base58(SOLANA_USDT_TOKEN_ID).unwrap(),
             amount: USDT_AMOUNT,
             minimum_out: 0,
-            platform_fee_bps: 0,
+            platform_fee: None,
             destination: RouteDestination::Account(Pubkey::from_base58(USDT_LEDGER_ACCOUNT).unwrap()),
+            ..QuotedRoute::mock()
         };
         let coin = QuotedRoute {
             wallet: Pubkey::from_base58(TEST_SOLANA_SENDER).unwrap(),
@@ -165,9 +170,9 @@ mod tests {
 
         let mut token_instructions = Vec::new();
         append_client_swap_instructions(&mut token_instructions, SolanaClientSwap::mock_usdt(), &token.wallet, &token).unwrap();
-        let quote_data = SolanaTransaction::new(token_instructions, vec![]).encode(USDT_USER, &[]).unwrap();
+        let quote_data = SolanaTransaction::new(token_instructions, vec![]).encode(TEST_SOLANA_PAYER, &[]).unwrap();
         let quote = Quote::mock_with_request(&QuoteRequest {
-            wallet_address: USDT_USER.to_string(),
+            wallet_address: TEST_SOLANA_PAYER.to_string(),
             ..QuoteRequest::mock(Chain::Solana, Some(SOLANA_USDT_TOKEN_ID))
         });
         (&mayan as &dyn Swapper).verify_binding(&quote, &quote_data).unwrap();
@@ -198,6 +203,15 @@ mod tests {
     }
 
     #[test]
+    fn test_wraps_native_sol() {
+        let wallet = QuotedRoute::mock().wallet;
+
+        assert_eq!(wraps_native_sol(&SwapInstructions::mock().setup, &wallet), Ok(true));
+        assert_eq!(wraps_native_sol(&SwapInstructions::mock_usdc_sol().setup, &wallet), Ok(false));
+        assert_eq!(wraps_native_sol(&SwapInstructions::mock().setup, &Pubkey::from_base58(TEST_PRIVATE_KEY_SOLANA_ADDRESS).unwrap()), Ok(false));
+    }
+
+    #[test]
     fn test_client_swap_route() {
         let user = Pubkey::from_base58(TEST_SOLANA_SENDER).unwrap();
         let ledger = Pubkey::from_base58(SOL_LEDGER_ACCOUNT).unwrap();
@@ -213,8 +227,8 @@ mod tests {
         let route = client_swap_route(&user, &ledger, &token).unwrap();
         assert_eq!(route.input_mint, Pubkey::from_base58(SOLANA_USDC_TOKEN_ID).unwrap());
         assert_eq!(
-            (route.wallet, route.amount, route.minimum_out, route.platform_fee_bps),
-            (user, 1_000_000, 0, 0),
+            (route.wallet, route.amount, route.minimum_out, route.platform_fee),
+            (user, 1_000_000, 0, None),
             "the bridge's own instruction carries the minimum it needs"
         );
         assert_eq!(client_swap_route(&user, &ledger, &coin).unwrap().input_mint, wrapped_sol::wrapped_sol_mint());

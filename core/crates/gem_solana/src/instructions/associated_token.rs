@@ -27,7 +27,7 @@ pub fn create_associated_token_account_idempotent_with_address(payer: &Pubkey, a
     }
 }
 
-pub fn is_create_account_data(data: &[u8]) -> bool {
+pub(crate) fn is_create_account_data(data: &[u8]) -> bool {
     data.is_empty() || data == [CREATE_DISCRIMINANT] || data == [CREATE_IDEMPOTENT_DISCRIMINANT]
 }
 

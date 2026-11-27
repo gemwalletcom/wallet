@@ -7,7 +7,10 @@ use gem_solana::{
 };
 use primitives::{Chain, swap::SOLANA_REFERRAL_ADDRESS};
 
-use crate::{Deployment, Quote, SwapperError};
+use crate::{
+    Deployment, Quote, SwapperError,
+    fees::{FeeSide, on_chain_referral_fees},
+};
 
 const MAX_COMPUTE_UNIT_PRICE: u64 = 100_000_000;
 const TOKEN_ACCOUNT_RENT_LAMPORTS: u64 = 2_039_280;
@@ -23,15 +26,16 @@ struct StepPolicy<'a> {
 }
 
 pub(super) fn fee_limits(quote: &Quote) -> Result<Vec<(Pubkey, u64)>, SwapperError> {
-    [(quote.request.from_asset.asset_id(), &quote.from_value), (quote.request.to_asset.asset_id(), &quote.to_value)]
+    let fee = on_chain_referral_fees(&quote.request).solana;
+    [(quote.request.from_asset.asset_id(), FeeSide::Input, &quote.from_value), (quote.request.to_asset.asset_id(), FeeSide::Output, &quote.to_value)]
         .into_iter()
-        .filter(|(asset, _)| asset.chain == Chain::Solana)
-        .map(|(asset, value)| {
+        .filter(|(asset, _, _)| asset.chain == Chain::Solana)
+        .map(|(asset, side, value)| {
             let mint = match asset.token_id {
                 Some(token_id) => Pubkey::from_base58(&token_id).map_err(SwapperError::transaction_error)?,
                 None => wrapped_sol::wrapped_sol_mint(),
             };
-            Ok((mint, u64::try_from(value).unwrap_or(u64::MAX)))
+            Ok((mint, u64::try_from(fee.quoted_fee(side, value.clone())).unwrap_or(u64::MAX)))
         })
         .collect()
 }
@@ -126,6 +130,7 @@ impl StepPolicy<'_> {
 mod tests {
     use super::*;
     use crate::solana_dex::SolanaTransaction;
+    use crate::{QuoteRequest, SwapperQuoteAsset};
     use gem_encoding::{decode_base58, encode_base64};
     use gem_solana::{
         AccountMeta, Instruction, USDC_TOKEN_MINT,
@@ -134,7 +139,26 @@ mod tests {
         instructions::program_ids::system_program,
         system, token,
     };
+    use num_bigint::BigUint;
+    use primitives::AssetId;
     use primitives::testkit::signer_mock::{TEST_PRIVATE_KEY_SOLANA_ADDRESS, TEST_SOLANA_SENDER};
+
+    #[test]
+    fn test_fee_limits() {
+        let usdc = Pubkey::from_base58(USDC_TOKEN_MINT).unwrap();
+        let quote = Quote {
+            request: QuoteRequest {
+                to_asset: SwapperQuoteAsset::from(AssetId::from_token(Chain::Solana, USDC_TOKEN_MINT)),
+                ..QuoteRequest::mock(Chain::Solana, None)
+            },
+            from_value: BigUint::from(1_000_000_000u64),
+            to_value: BigUint::from(995_000u64),
+            ..Quote::mock(Chain::Solana, None)
+        };
+
+        assert_eq!(fee_limits(&quote), Ok(vec![(wrapped_sol::wrapped_sol_mint(), 5_000_000), (usdc, 5_000)]), "Gem's fee on the amount it is taken from");
+        assert_eq!(fee_limits(&Quote::mock(Chain::Ethereum, None)), Ok(vec![]));
+    }
 
     #[test]
     fn test_verify_solana() {

@@ -1,7 +1,5 @@
 use num_bigint::BigInt;
 
-pub const TEST_SOLANA_PAYER: &str = "7g2rVN8fAAQdPh1mkajpvELqYa3gWvFXJsBLnKfEQfqy";
-
 use super::model::{CurrencyAmount, EvmStepData, QuoteDetails, RelayChainInfo, RelayQuoteResponse, RelayRequest, RelayStatus, Step, StepData, StepItem};
 
 impl RelayQuoteResponse {

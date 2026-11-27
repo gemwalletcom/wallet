@@ -8,7 +8,7 @@ const TRANSFER_CHECKED_DISCRIMINANT: u8 = 12;
 pub(crate) const CLOSE_ACCOUNT_DISCRIMINANT: u8 = 9;
 pub(crate) const SYNC_NATIVE_DISCRIMINANT: u8 = 17;
 
-pub fn transfer_checked_amount(data: &[u8]) -> Option<u64> {
+pub(crate) fn transfer_checked_amount(data: &[u8]) -> Option<u64> {
     let (discriminant, arguments) = data.split_first()?;
     let [amount @ .., _decimals]: [u8; 9] = arguments.try_into().ok()?;
     (*discriminant == TRANSFER_CHECKED_DISCRIMINANT).then_some(u64::from_le_bytes(amount))

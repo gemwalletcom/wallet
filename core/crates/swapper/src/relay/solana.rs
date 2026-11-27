@@ -1,7 +1,7 @@
 use gem_encoding::borsh::{BorshDeserialize, DecodeError, Reader};
 use gem_solana::{
     HexInstructionData, Instruction, Pubkey, StandardInstruction,
-    anchor::{global_discriminator, instruction_arguments},
+    anchor::{instruction_arguments, instruction_body},
     decode_instructions, wrapped_sol,
 };
 use num_bigint::BigUint;
@@ -53,7 +53,7 @@ pub fn quoted_transaction(request: &QuoteRequest, value: &BigUint, response: &Re
 fn transaction(step: &SolanaStepData, quoted: &QuotedDeposit) -> Result<SolanaTransaction, SwapperError> {
     let instructions = decode_instructions::<HexInstructionData>(step.instructions.clone()).map_err(SwapperError::transaction_error)?;
     let steps: Vec<StandardInstruction> = instructions.iter().map(StandardInstruction::new).collect();
-    verify_steps(&steps, &quoted.wallet, &contracts(Chain::Solana).targets, &[(quoted.mint.unwrap_or_else(wrapped_sol::wrapped_sol_mint), quoted.amount)])?;
+    verify_steps(&steps, &quoted.wallet, &contracts(Chain::Solana).targets, &[])?;
     quoted.verify(&instructions.iter().map(RelayStep::decode).collect::<Vec<_>>())?;
     Ok(SolanaTransaction::new(instructions, step.address_lookup_table_addresses.clone()))
 }
@@ -91,7 +91,7 @@ impl<'a> RelayStep<'a> {
                 (_, Ok(amount), Some(mint)) => Self::Deposit { mint: Some(mint), amount },
                 _ => Self::Unsupported,
             },
-            SOLANA_RELAY_FORWARDER_PROGRAM_ID => match (instruction.data.starts_with(&global_discriminator(FORWARD_TOKEN)), instruction.account(FORWARDER_TOKEN_ACCOUNT)) {
+            SOLANA_RELAY_FORWARDER_PROGRAM_ID => match (instruction_body(&instruction.data, FORWARD_TOKEN).is_some(), instruction.account(FORWARDER_TOKEN_ACCOUNT)) {
                 (true, Some(token_account)) => Self::Forward { token_account },
                 _ => Self::Unsupported,
             },
@@ -111,8 +111,12 @@ impl<'a> RelayStep<'a> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{SwapperQuoteAsset, binding_check::solana::verify_solana, relay::testkit::TEST_SOLANA_PAYER, testkit::mock_quote};
-    use gem_solana::{AddressLookupTableAccount, decode_transaction};
+    use crate::{
+        SwapperQuoteAsset,
+        binding_check::solana::verify_solana,
+        testkit::{TEST_SOLANA_PAYER, mock_quote},
+    };
+    use gem_solana::{AddressLookupTableAccount, anchor::global_discriminator, decode_transaction};
     use primitives::{
         AssetId,
         asset_constants::{BASE_USDC_ASSET_ID, SOLANA_USDC_ASSET_ID, SOLANA_USDC_TOKEN_ID, SOLANA_USDT_ASSET_ID},
