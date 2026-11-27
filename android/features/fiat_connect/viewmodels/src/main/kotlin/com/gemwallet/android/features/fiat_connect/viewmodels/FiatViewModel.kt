@@ -176,7 +176,7 @@ class FiatViewModel @Inject constructor(
     }
 
     private suspend fun loadQuotes(request: GemFiatQuoteRequest, assetId: AssetId) {
-        session.update { it.onFetchStarted(request) }
+        session.update { it.onQuoteStart(request) }
         val results = withContext(ioDispatcher) { service.quotes(request, assetId.toIdentifier()) }
         session.update { it.onQuoteResults(results) }
     }

@@ -103,7 +103,7 @@ class WalletSearchViewModel @Inject constructor(
     val previewNfts: StateFlow<List<GemNftEntry>> = content.select(viewModelScope, emptyList()) { it.view.nfts }
     val hasMoreNfts: StateFlow<Boolean> = content.select(viewModelScope, false) { it.view.hasMoreNfts }
 
-    override fun assetsSearchLimit(query: String): Int = service.walletSearchLimits(query).fetch
+    override fun assetsSearchLimit(query: String): Int = service.walletSearchLimits(query).window
 }
 
 private class WalletSearchRows(val pinned: List<AssetInfoDataAggregate>, unpinned: List<AssetInfoDataAggregate>, val perpetuals: List<PerpetualData>, val lists: List<AssetList>, val collections: List<NFTData>) {

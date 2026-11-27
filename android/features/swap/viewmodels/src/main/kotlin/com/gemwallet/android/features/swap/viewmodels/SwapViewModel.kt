@@ -383,7 +383,7 @@ class SwapViewModel @Inject constructor(
     private fun assetInfo(assetId: AssetId) = getCurrentWalletId().flatMapLatest { walletId -> assetQuery(walletId.id, assetId) }
 
     private fun onQuoteFetchStarted(requestKey: GemSwapRequest) {
-        session.update { it.onFetchStarted(requestKey) }
+        session.update { it.onQuoteStart(requestKey) }
     }
 
     private suspend fun requestQuotes(input: GemSwapQuoteInput): Boolean {
