@@ -213,7 +213,8 @@
   <string name="errors_swap_no_quote_available">Geen offerte beschikbaar.</string>
   <string name="errors_swap_not_supported_asset">Niet-ondersteunde asset.</string>
   <string name="errors_connections_no_supported_wallets">Er zijn geen ondersteunde wallets beschikbaar.</string>
-  <string name="errors_connections_unsupported_chain">De meegeleverde keten wordt niet ondersteund.</string>
+  <string name="errors_connections_unsupported_chain">Deze verbinding vereist een netwerk dat niet wordt ondersteund.</string>
+  <string name="errors_connections_unsupported_features">Deze verbinding vereist functies die niet worden ondersteund.</string>
   <string name="errors_authentication_unavailable">Verificatie is niet ingesteld op dit apparaat. Zet biometrie of een toegangscode aan in de apparaatinstellingen.</string>
   <string name="errors_authentication_locked_out">Te veel mislukte pogingen. Probeer het later opnieuw.</string>
   <string name="errors_authentication_failed">Verificatie mislukt. Probeer het opnieuw.</string>

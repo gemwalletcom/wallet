@@ -104,8 +104,8 @@ class WalletConnectCoordinator(
         client.approveAuthentication(authentication.id, wallet.toGem(), signature)
     }
 
-    override fun rejectAuthentication(authentication: GemWalletConnectAuthentication, onSuccess: () -> Unit, onError: (GemErrorText) -> Unit) = launchCall(onSuccess, onError) {
-        client.rejectAuthentication(authentication.id)
+    override fun rejectAuthentication(authentication: GemWalletConnectAuthentication, reason: GemWalletConnectRejectionReason, onSuccess: () -> Unit, onError: (GemErrorText) -> Unit) = launchCall(onSuccess, onError) {
+        client.rejectAuthentication(authentication.id, reason)
     }
 
     override fun respondRequest(request: GemWalletConnectSessionRequest, onFailure: (GemWalletConnectFailure) -> Unit, onFinish: () -> Unit) {

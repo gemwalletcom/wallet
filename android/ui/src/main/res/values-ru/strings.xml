@@ -213,7 +213,8 @@
   <string name="errors_swap_no_quote_available">Котировка недоступна.</string>
   <string name="errors_swap_not_supported_asset">Неподдерживаемый актив.</string>
   <string name="errors_connections_no_supported_wallets">Поддерживаемые кошельки отсутствуют.</string>
-  <string name="errors_connections_unsupported_chain">Предоставленная цепочка не поддерживается.</string>
+  <string name="errors_connections_unsupported_chain">Для этого подключения нужна сеть, которая не поддерживается.</string>
+  <string name="errors_connections_unsupported_features">Для этого подключения нужны функции, которые не поддерживаются.</string>
   <string name="errors_authentication_unavailable">На этом устройстве не настроена аутентификация. Включите биометрию или код-пароль в настройках устройства.</string>
   <string name="errors_authentication_locked_out">Слишком много неудачных попыток. Пожалуйста, попробуйте позже.</string>
   <string name="errors_authentication_failed">Не удалось пройти аутентификацию. Пожалуйста, попробуйте снова.</string>

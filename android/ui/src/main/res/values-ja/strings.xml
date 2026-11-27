@@ -213,7 +213,8 @@
   <string name="errors_swap_no_quote_available">見積もりを取得できません</string>
   <string name="errors_swap_not_supported_asset">未対応の資産です。</string>
   <string name="errors_connections_no_supported_wallets">サポートされているウォレットがありません。</string>
-  <string name="errors_connections_unsupported_chain">選択されたチェーンはサポートされていません</string>
+  <string name="errors_connections_unsupported_chain">この接続にはサポートされていないネットワークが必要です。</string>
+  <string name="errors_connections_unsupported_features">この接続にはサポートされていない機能が必要です。</string>
   <string name="errors_authentication_unavailable">このデバイスでは認証が設定されていません。デバイスの設定で生体認証またはパスコードをオンにしてください。</string>
   <string name="errors_authentication_locked_out">失敗した回数が多すぎます。しばらくしてからもう一度お試しください。</string>
   <string name="errors_authentication_failed">認証に失敗しました。もう一度お試しください。</string>

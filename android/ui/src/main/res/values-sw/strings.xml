@@ -213,7 +213,8 @@
   <string name="errors_swap_no_quote_available">Hakuna nukuu inayopatikana.</string>
   <string name="errors_swap_not_supported_asset">Kipengee hakitumiki.</string>
   <string name="errors_connections_no_supported_wallets">Hakuna pochi zinazotumika zinazopatikana.</string>
-  <string name="errors_connections_unsupported_chain">Msururu uliotolewa hautumiki.</string>
+  <string name="errors_connections_unsupported_chain">Muunganisho huu unahitaji mtandao ambao hautumiki.</string>
+  <string name="errors_connections_unsupported_features">Muunganisho huu unahitaji vipengele ambavyo havitumiki.</string>
   <string name="errors_authentication_unavailable">Uthibitishaji haujawekwa kwenye kifaa hiki. Washa bayometriki au nambari ya siri kwenye mipangilio ya kifaa.</string>
   <string name="errors_authentication_locked_out">Majaribio mengi mno yameshindwa. Tafadhali jaribu tena baadaye.</string>
   <string name="errors_authentication_failed">Uthibitishaji umeshindwa. Tafadhali jaribu tena.</string>

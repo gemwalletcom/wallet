@@ -11,7 +11,7 @@ struct RejectionReasonWalletConnectorServiceTests {
     func everyErrorNamesACoreRejectionReason() {
         #expect(GemWalletConnectRejectionReason(from: GemWalletConnectError.UnsupportedChains) == .unsupportedChains)
         #expect(GemWalletConnectRejectionReason(from: GemWalletConnectError.UnsupportedWallets) == .unsupportedAccounts)
-        #expect(GemWalletConnectRejectionReason(from: GemWalletConnectError.InvalidOrigin) == .userRejected)
+        #expect(GemWalletConnectRejectionReason(from: GemWalletConnectError.InvalidOrigin) == .refused)
         #expect(GemWalletConnectRejectionReason(from: AnyError("cancelled")) == .userRejected)
     }
 }

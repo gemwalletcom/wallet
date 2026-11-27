@@ -213,7 +213,8 @@
   <string name="errors_swap_no_quote_available">Nessuna quotazione disponibile.</string>
   <string name="errors_swap_not_supported_asset">Attività non supportata.</string>
   <string name="errors_connections_no_supported_wallets">Non sono disponibili portafogli supportati.</string>
-  <string name="errors_connections_unsupported_chain">La catena fornita non è supportata.</string>
+  <string name="errors_connections_unsupported_chain">Questa connessione richiede una rete non supportata.</string>
+  <string name="errors_connections_unsupported_features">Questa connessione richiede funzionalità non supportate.</string>
   <string name="errors_authentication_unavailable">L\'autenticazione non è configurata su questo dispositivo. Attiva la biometria o un codice nelle impostazioni del dispositivo.</string>
   <string name="errors_authentication_locked_out">Troppi tentativi non riusciti. Riprova più tardi.</string>
   <string name="errors_authentication_failed">Autenticazione non riuscita. Riprova.</string>

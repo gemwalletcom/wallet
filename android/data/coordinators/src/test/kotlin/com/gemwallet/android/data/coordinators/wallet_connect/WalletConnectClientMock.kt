@@ -69,7 +69,7 @@ class WalletConnectClientMock(
         calls.add("approveAuthentication $authenticationId ${wallet.id} $signature")
     }
 
-    override suspend fun rejectAuthentication(authenticationId: String) {
-        calls.add("rejectAuthentication $authenticationId")
+    override suspend fun rejectAuthentication(authenticationId: String, reason: GemWalletConnectRejectionReason) {
+        calls.add("rejectAuthentication $authenticationId $reason")
     }
 }

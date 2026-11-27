@@ -485,8 +485,10 @@ public enum Localized {
       public static let notFound = Localized.tr("Localizable", "errors.connections.not_found", fallback: "This connection no longer exists.")
       /// Couldn't reach WalletConnect. Check your internet connection and try again.
       public static let relayUnavailable = Localized.tr("Localizable", "errors.connections.relay_unavailable", fallback: "Couldn't reach WalletConnect. Check your internet connection and try again.")
-      /// The provided chain is not supported.
-      public static let unsupportedChain = Localized.tr("Localizable", "errors.connections.unsupported_chain", fallback: "The provided chain is not supported.")
+      /// This connection requires a network that isn't supported.
+      public static let unsupportedChain = Localized.tr("Localizable", "errors.connections.unsupported_chain", fallback: "This connection requires a network that isn't supported.")
+      /// This connection requires features that aren't supported.
+      public static let unsupportedFeatures = Localized.tr("Localizable", "errors.connections.unsupported_features", fallback: "This connection requires features that aren't supported.")
       /// User cancelled
       public static let userCancelled = Localized.tr("Localizable", "errors.connections.user_cancelled", fallback: "User cancelled")
     }

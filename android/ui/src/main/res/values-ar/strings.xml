@@ -213,7 +213,8 @@
   <string name="errors_swap_no_quote_available">لا يوجد عرض سعر متاح.</string>
   <string name="errors_swap_not_supported_asset">أصل غير مدعوم.</string>
   <string name="errors_connections_no_supported_wallets">لا تتوفر محافظ مدعومة.</string>
-  <string name="errors_connections_unsupported_chain">السلسلة المقدمة غير مدعومة.</string>
+  <string name="errors_connections_unsupported_chain">يتطلب هذا الاتصال شبكة غير مدعومة.</string>
+  <string name="errors_connections_unsupported_features">يتطلب هذا الاتصال ميزات غير مدعومة.</string>
   <string name="errors_authentication_unavailable">المصادقة غير مُعدّة على هذا الجهاز. فعّل القياسات الحيوية أو رمز المرور من إعدادات جهازك.</string>
   <string name="errors_authentication_locked_out">محاولات فاشلة كثيرة جدًا. يرجى المحاولة مرة أخرى لاحقًا.</string>
   <string name="errors_authentication_failed">فشلت المصادقة. يرجى المحاولة مرة أخرى.</string>

@@ -20,6 +20,7 @@ pub enum GemErrorText {
     UnsupportedChain,
     MaliciousOrigin,
     NoSupportedWallets,
+    UnsupportedFeatures,
     Payment { status: PaymentStatus },
     InvalidSecretPhrase,
     InvalidSecretPhraseWords { words: Vec<String> },
@@ -61,6 +62,7 @@ impl GemServiceError {
             Self::NoAccountForChain { .. } => GemErrorText::NoAccountForChain,
             Self::Offline => GemErrorText::NetworkOffline,
             Self::WalletImport { error } => error.text(),
+            Self::WalletConnect { error } => error.text(),
             Self::Cancelled | Self::Expired => GemErrorText::Cancelled,
         }
     }
@@ -119,6 +121,7 @@ impl GemWalletConnectError {
             Self::UnsupportedChains => GemErrorText::UnsupportedChain,
             Self::InvalidOrigin => GemErrorText::MaliciousOrigin,
             Self::UnsupportedWallets => GemErrorText::NoSupportedWallets,
+            Self::UnsupportedMethods | Self::UnsupportedEvents => GemErrorText::UnsupportedFeatures,
             Self::Service { msg } => GemErrorText::message(msg.clone()),
         }
     }
@@ -162,6 +165,7 @@ pub fn payment_error_text(error: PaymentError) -> GemErrorText {
 mod tests {
     use super::*;
     use crate::api::GemApiError;
+    use wallet_connect_protocol::sign::namespaces::NamespaceError;
 
     #[test]
     fn test_a_blank_message_reads_as_unknown() {
@@ -204,6 +208,17 @@ mod tests {
         assert_eq!(GemServiceError::from(words.clone()).text(), GemErrorText::InvalidSecretPhraseWords { words: vec!["abandom".to_string()] });
         assert_eq!(GemServiceError::from(GemWalletImportError::InvalidPrivateKey).text(), GemErrorText::InvalidPrivateKey);
         assert!(!GemServiceError::from(words).to_string().contains("abandom"), "the log text never repeats a phrase word");
+    }
+
+    #[test]
+    fn test_a_connection_gem_refuses_after_approval_reads_as_its_reason() {
+        let text = |error: GemWalletConnectError| GemServiceError::WalletConnect { error }.text();
+
+        assert_eq!(text(NamespaceError::UnsupportedChains.into()), GemErrorText::UnsupportedChain);
+        assert_eq!(text(NamespaceError::UnsupportedAccounts.into()), GemErrorText::NoSupportedWallets);
+        assert_eq!(text(NamespaceError::UnsupportedMethods.into()), GemErrorText::UnsupportedFeatures);
+        assert_eq!(text(NamespaceError::UnsupportedEvents.into()), GemErrorText::UnsupportedFeatures);
+        assert_eq!(text(GemWalletConnectError::InvalidOrigin), GemErrorText::MaliciousOrigin);
     }
 
     #[test]
