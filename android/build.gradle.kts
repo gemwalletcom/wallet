@@ -72,7 +72,9 @@ subprojects {
     }
     plugins.withId("com.android.library") {
         extensions.configure<com.android.build.api.dsl.LibraryExtension> {
-            compileSdk = 37
+            compileSdk {
+                version = release(37) { minorApiLevel = 1 }
+            }
             defaultConfig {
                 minSdk = 28
                 testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"

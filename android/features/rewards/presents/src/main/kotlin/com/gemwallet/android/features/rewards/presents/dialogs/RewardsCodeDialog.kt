@@ -2,7 +2,6 @@ package com.gemwallet.android.features.rewards.presents.dialogs
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -72,7 +71,7 @@ internal fun RewardsCodeDialog(isVisible: Boolean, title: String, label: String,
                 input = it
             },
             singleLine = true,
-            keyboardActions = KeyboardActions(onDone = { doneAction() }),
+            onKeyboardAction = { doneAction() },
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
         )
         info?.let {

@@ -1,8 +1,7 @@
 [versions]
 activityCompose = "1.13.0"
-compose = "1.12.1"
-composeBom = "2026.09.00"
-material3 = "1.5.0"
+compose = "1.13.0"
+composeBom = "2026.11.01"
 navigation3 = "1.2.2"
 camera2 = "1.7.0"
 uiautomator = "2.4.1"
@@ -57,7 +56,7 @@ compose-activity = { module = "androidx.activity:activity-compose", version.ref 
 compose-ui = { module = "androidx.compose.ui:ui" }
 navigation3-runtime = { module = "androidx.navigation3:navigation3-runtime", version.ref = "navigation3" }
 navigation3-ui = { module = "androidx.navigation3:navigation3-ui", version.ref = "navigation3" }
-compose-material3 = { module = "androidx.compose.material3:material3", version.ref = "material3" }
+compose-material3 = { module = "androidx.compose.material3:material3" }
 
 # Sqlite room
 room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }

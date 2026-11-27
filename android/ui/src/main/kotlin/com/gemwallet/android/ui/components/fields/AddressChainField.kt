@@ -5,7 +5,7 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.input.KeyboardActionHandler
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -47,7 +47,7 @@ fun ColumnScope.AddressChainField(
         label = label,
         onValueChange = onValueChange,
         keyboardOptions = if (onSubmit == null) KeyboardOptions.Default else KeyboardOptions(imeAction = ImeAction.Done),
-        keyboardActions = if (onSubmit == null) KeyboardActions.Default else KeyboardActions(onDone = { onSubmit() }),
+        onKeyboardAction = onSubmit?.let { submit -> KeyboardActionHandler { submit() } },
         trailing = {
             Row(
                 verticalAlignment = Alignment.CenterVertically,

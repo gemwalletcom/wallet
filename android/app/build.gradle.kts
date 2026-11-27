@@ -56,7 +56,9 @@ configurations.matching { it.name == "androidApis" }.configureEach {
 
 android {
     namespace = "com.gemwallet.android"
-    compileSdk = 37
+    compileSdk {
+        version = release(37) { minorApiLevel = 1 }
+    }
     ndkVersion = libs.versions.androidNdk.get()
 
     val channelDimension = "channel"

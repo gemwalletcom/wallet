@@ -2,7 +2,7 @@ FROM ubuntu@sha256:a2d43bffc46670d7108bb3c0468c67c5557c4c92e83e1e34cbff1322ad1b9
 
 ARG NDK_VERSION
 ARG BUILD_TOOLS_VERSION=36.0.0
-ARG PLATFORM_VERSION=android-37.0
+ARG PLATFORM_VERSION=android-37.1
 ARG JDK_URL=https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.21%2B9/OpenJDK17U-jdk_x64_linux_hotspot_17.0.21_9.tar.gz
 ARG JDK_SHA256=8b9b611d917e3dfd8419d3566b5949226f69b052fed7e109c1368add1dfe8711
 ARG ANDROID_TOOLS_URL=https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
