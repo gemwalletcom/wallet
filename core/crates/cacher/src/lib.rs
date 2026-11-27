@@ -133,15 +133,16 @@ impl CacherClient {
         Ok(count)
     }
 
-    pub(crate) async fn expiring_set_members(&self, keys: &[CacheKey<'_>]) -> Result<Vec<Vec<String>>, Box<dyn Error + Send + Sync>> {
-        if keys.is_empty() {
-            return Ok(vec![]);
+    pub(crate) async fn expiring_set_matches(&self, keys: &[CacheKey<'_>], members: &[String]) -> Result<Vec<Vec<String>>, Box<dyn Error + Send + Sync>> {
+        if keys.is_empty() || members.is_empty() {
+            return Ok(vec![vec![]; keys.len()]);
         }
         let mut pipe = redis::pipe();
         for key in keys {
-            pipe.cmd("ZRANGE").arg(key.key()).arg(0).arg(-1);
+            pipe.cmd("ZMSCORE").arg(key.key()).arg(members);
         }
-        Ok(pipe.query_async(&mut self.connection.clone()).await?)
+        let scores: Vec<Vec<Option<f64>>> = pipe.query_async(&mut self.connection.clone()).await?;
+        Ok(scores.into_iter().map(|scores| members.iter().zip(scores).filter_map(|(member, score)| score.map(|_| member.clone())).collect()).collect())
     }
 
     pub(crate) async fn remove_from_set(&self, key: CacheKey<'_>, members: &[String]) -> Result<usize, Box<dyn Error + Send + Sync>> {

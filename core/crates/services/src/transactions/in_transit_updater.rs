@@ -17,7 +17,7 @@ use swapper::cross_chain::{self, DepositAddressMap};
 use swapper::swapper::GemSwapper;
 
 use crate::config::repository::Repository as ConfigurationRepository;
-use crate::transactions::{CheckSchedule, SwapVaultAddressClient, TransactionQueue, TransactionQueueGroup, TransactionQueueMetrics, swap_result_metadata, swap_state_updates, transaction_with_swap_state};
+use crate::transactions::{CheckSchedule, DepositAddressLookup, SwapVaultAddressClient, TransactionQueue, TransactionQueueGroup, TransactionQueueMetrics, swap_result_metadata, swap_state_updates, transaction_with_swap_state};
 
 struct InTransitConfig {
     timeout: Duration,
@@ -88,25 +88,23 @@ impl InTransitUpdater {
 
     pub async fn update(&self) -> Result<usize, Box<dyn Error + Send + Sync>> {
         let config = InTransitConfig::from_config(self.config.as_ref()).await?;
-        let vault_addresses = self.vault_client.get_deposit_address_map().await?;
         let now = DateTime::now();
-        let (transactions_to_check, counts) = due_in_transit_transactions(self.repository.as_ref(), &self.schedule, &config, now, &vault_addresses).await?;
+        let (transactions_to_check, counts) = due_in_transit_transactions(self.repository.as_ref(), &self.schedule, &config, now, &self.vault_client).await?;
         self.metrics.record_queue(TransactionQueue::InTransit, counts);
         let cutoff = now - config.timeout;
 
         stream::iter(&transactions_to_check)
-            .then(|transaction| self.update_transaction(transaction, now, cutoff, &vault_addresses, &config))
+            .then(|(transaction, provider)| self.update_transaction(transaction, *provider, now, cutoff, &config))
             .try_fold(0, |total, updated| async move { Ok(total + usize::from(updated)) })
             .await
     }
 
-    async fn update_transaction(&self, transaction: &Transaction, now: DateTime, cutoff: DateTime, vault_addresses: &DepositAddressMap, config: &InTransitConfig) -> Result<bool, Box<dyn Error + Send + Sync>> {
+    async fn update_transaction(&self, transaction: &Transaction, provider: Option<SwapperProvider>, now: DateTime, cutoff: DateTime, config: &InTransitConfig) -> Result<bool, Box<dyn Error + Send + Sync>> {
         let chain = transaction.id.chain;
         let hash = transaction.id.hash.as_str();
         let elapsed_duration = now - transaction.created_at;
         let elapsed = DurationMs(elapsed_duration);
 
-        let provider = cross_chain::in_transit_swap_provider(transaction, vault_addresses);
         let provider_name = provider.as_ref().map(|provider| provider.as_ref().to_string()).unwrap_or_default();
         let result = match provider {
             Some(provider) => match self.swapper.get_swap_result(provider, &SwapResultRequest::from(transaction)).await {
@@ -164,8 +162,8 @@ async fn due_in_transit_transactions(
     schedule: &CheckSchedule,
     config: &InTransitConfig,
     now: DateTime,
-    vault_addresses: &DepositAddressMap,
-) -> Result<(Vec<Transaction>, BTreeMap<TransactionQueueGroup, usize>), Box<dyn Error + Send + Sync>> {
+    deposit_address_lookup: &impl DepositAddressLookup,
+) -> Result<(Vec<(Transaction, Option<SwapperProvider>)>, BTreeMap<TransactionQueueGroup, usize>), Box<dyn Error + Send + Sync>> {
     let mut transactions_to_check = Vec::new();
     let mut counts = BTreeMap::new();
     let mut after = None;
@@ -180,17 +178,22 @@ async fn due_in_transit_transactions(
         };
         after = Some(TransactionFilter::After(last.created_at, last.id.clone()));
         let is_last_page = transactions.len() < config.scan_limit() as usize;
-        for (group, count) in in_transit_counts(&transactions, vault_addresses) {
+        let vault_addresses = deposit_address_lookup.get_deposit_address_map(&transactions).await?;
+        for (group, count) in in_transit_counts(&transactions, &vault_addresses) {
             *counts.entry(group).or_default() += count;
         }
         let enabled = transactions
             .into_iter()
-            .filter(|transaction| cross_chain::in_transit_swap_provider(transaction, vault_addresses).is_none_or(|provider| config.enabled_providers.contains(&provider)))
+            .map(|transaction| {
+                let provider = cross_chain::in_transit_swap_provider(&transaction, &vault_addresses);
+                (transaction, provider)
+            })
+            .filter(|(_, provider)| provider.is_none_or(|provider| config.enabled_providers.contains(&provider)))
             .collect::<Vec<_>>();
-        let ids = enabled.iter().map(|transaction| transaction.id.clone()).collect::<Vec<_>>();
+        let ids = enabled.iter().map(|(transaction, _)| transaction.id.clone()).collect::<Vec<_>>();
         let due = schedule.due(&ids, now).await?;
         let remaining = config.query_limit() - transactions_to_check.len();
-        transactions_to_check.extend(enabled.into_iter().filter(|transaction| due.contains(&transaction.id)).take(remaining));
+        transactions_to_check.extend(enabled.into_iter().filter(|(transaction, _)| due.contains(&transaction.id)).take(remaining));
         if is_last_page {
             break;
         }
@@ -224,6 +227,12 @@ mod tests {
     use cacher::CheckScheduleCacher;
     use num_bigint::BigUint;
     use primitives::{HOUR, MINUTE, SwapProvider, TransactionId};
+
+    impl DepositAddressLookup for DepositAddressMap {
+        async fn get_deposit_address_map(&self, _transactions: &[Transaction]) -> Result<DepositAddressMap, Box<dyn Error + Send + Sync>> {
+            Ok(self.clone())
+        }
+    }
 
     #[tokio::test]
     async fn test_provider_checks_are_enabled_by_default() {
@@ -291,7 +300,10 @@ mod tests {
 
         let (selected, _) = due_in_transit_transactions(&repository, &schedule, &config, now, &vault_addresses).await.unwrap();
 
-        assert_eq!(selected.iter().map(|transaction| transaction.id.hash.as_str()).collect::<Vec<_>>(), vec!["0008", "0009"]);
+        assert_eq!(
+            selected.iter().map(|(transaction, provider)| (transaction.id.hash.as_str(), *provider)).collect::<Vec<_>>(),
+            vec![("0008", Some(SwapProvider::Bridgers)), ("0009", None)]
+        );
         assert_eq!(cacher.checked_ids(), vec!["ethereum_0007", "ethereum_0008", "ethereum_0009"]);
     }
 

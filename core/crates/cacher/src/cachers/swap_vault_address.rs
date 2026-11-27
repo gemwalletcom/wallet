@@ -20,13 +20,17 @@ impl CacherClient {
         }
     }
 
-    pub async fn vault_addresses(&self, providers: &[SwapProvider], kind: SwapVaultAddressKind) -> Result<Vec<Vec<String>>, Box<dyn Error + Send + Sync>> {
-        let keys = providers.iter().map(|provider| vault_key(provider.as_ref(), kind)).collect::<Vec<_>>();
-        match kind {
-            SwapVaultAddressKind::Deposit => self.expiring_set_members(&keys).await,
-            SwapVaultAddressKind::Send => self.set_members(&keys).await,
-        }
+    pub async fn send_addresses(&self, providers: &[SwapProvider]) -> Result<Vec<Vec<String>>, Box<dyn Error + Send + Sync>> {
+        self.set_members(&vault_keys(providers, SwapVaultAddressKind::Send)).await
     }
+
+    pub async fn matching_deposit_ids(&self, providers: &[SwapProvider], candidates: &[String]) -> Result<Vec<Vec<String>>, Box<dyn Error + Send + Sync>> {
+        self.expiring_set_matches(&vault_keys(providers, SwapVaultAddressKind::Deposit), candidates).await
+    }
+}
+
+fn vault_keys(providers: &[SwapProvider], kind: SwapVaultAddressKind) -> Vec<CacheKey<'_>> {
+    providers.iter().map(|provider| vault_key(provider.as_ref(), kind)).collect()
 }
 
 fn vault_key(provider: &str, kind: SwapVaultAddressKind) -> CacheKey<'_> {
@@ -54,7 +58,9 @@ mod tests {
         client.add_to_expiring_set(key, &["recent".to_string()], now - SECONDS_PER_DAY as f64).await.unwrap();
         client.add_to_expiring_set(key, &["current".to_string()], now).await.unwrap();
 
-        assert_eq!(client.expiring_set_members(&[key]).await.unwrap(), vec![vec!["recent".to_string(), "current".to_string()]]);
+        let members = ["expired", "recent", "current", "unknown"].map(String::from);
+        assert_eq!(client.expiring_set_matches(&[key], &members).await.unwrap(), vec![vec!["recent".to_string(), "current".to_string()]]);
+        assert_eq!(client.expiring_set_matches(&[key], &[]).await.unwrap(), vec![Vec::<String>::new()]);
         client.delete(&[key]).await.unwrap();
     }
 }
