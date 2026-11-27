@@ -12,7 +12,7 @@ pub fn is_advance_nonce_account_data(data: &[u8]) -> bool {
     data.get(..4) == Some(ADVANCE_NONCE_ACCOUNT_DISCRIMINANT.as_slice())
 }
 
-pub fn transfer_lamports(data: &[u8]) -> Option<u64> {
+pub(crate) fn transfer_lamports(data: &[u8]) -> Option<u64> {
     let (discriminant, lamports) = data.split_first_chunk::<4>()?;
     let lamports: [u8; 8] = lamports.try_into().ok()?;
     (*discriminant == TRANSFER_DISCRIMINANT).then_some(u64::from_le_bytes(lamports))

@@ -1,16 +1,12 @@
 use gem_evm::u256::u256_to_biguint;
 use num_bigint::BigUint;
-use primitives::{AssetId, EVMChain, swap::SwapQuoteDataType};
+use primitives::{AssetId, swap::SwapQuoteDataType};
 
 use super::{data_format::DataFormat, evm::token_transfer};
 use crate::{Deployment, SwapperError, SwapperQuoteData};
 
 pub(super) fn verify_amounts(from_asset: &AssetId, from_value: &BigUint, data: &SwapperQuoteData) -> Result<(), SwapperError> {
-    let swapped_token = match from_asset.token_id.as_deref() {
-        Some(token_id) => Some(token_id),
-        None => EVMChain::from_chain(from_asset.chain).and_then(|chain| chain.native_token_contract()),
-    };
-    let is_swapped_token = |token: &str| swapped_token.is_some_and(|swapped| Deployment::contains(from_asset.chain, &[swapped], token));
+    let is_swapped_token = |token: &str| from_asset.approval_token().is_some_and(|swapped| Deployment::contains(from_asset.chain, &[swapped], token));
     let approves_swapped_token = data
         .approval
         .iter()
@@ -38,7 +34,7 @@ mod tests {
     use alloy_sol_types::SolCall;
     use gem_evm::contracts::IERC20;
     use primitives::{
-        Chain,
+        Chain, EVMChain,
         asset_constants::{ETHEREUM_USDC_TOKEN_ID, ETHEREUM_USDT_TOKEN_ID},
         hex,
         swap::{ApprovalData, Permit2ApprovalData},

@@ -148,7 +148,7 @@ A stablecoin is one on the official list, USDT, USDC, USDS, USDe, USD1, USDG and
 | The user changes Slippage | the choice is kept for later swaps | |
 | Slippage is Auto and the provider is OKX or Chainflip | Minimum Receive uses the most OKX may take, and the slippage Chainflip recommends | the minimum shown is one the trade keeps |
 | The user picks a Slippage and the provider is Chainflip | the swap uses that slippage, not Chainflip's recommendation | the chosen limit is the one enforced |
-| The user picks a Slippage and Mayan's route would use more | Mayan gives no quote | the chosen limit is the one enforced |
+| The user picks a Slippage and Mayan's or Relay's route would use more | that provider gives no quote | the chosen limit is the one enforced |
 | Slippage is Auto and Mayan's route would use more than `5%` | Mayan gives no quote | Auto never lets the provider pick an unbounded minimum |
 
 ### Confirm
@@ -217,7 +217,7 @@ For a provider bound to contracts it also checks:
 - On TON, every message, and together they attach no more TON than the amount quoted.
 - For a plain transfer, the address it pays.
 - For a provider that shows several pool types as one, only the contracts of the pool type that gave the quote.
-- On Solana, every instruction. Besides the provider's own programs, only the standard steps pass: setting the network fee under a limit, creating token accounts, wrapping SOL into the wallet's own account, paying Gem's fee, and closing accounts back to the wallet. Gem's fee is in the token swapped or the token received, and no more than Gem's fee on the amount quoted. SOL sent anywhere the check cannot tie to the wallet or to Gem is limited to the rent of two token accounts.
+- On Solana, every instruction. Besides the provider's own programs, only the standard steps pass: setting the network fee under a limit, creating token accounts, wrapping SOL into the wallet's own account, paying Gem's fee, and closing accounts back to the wallet. Gem's fee is in one token, the token swapped or the token received, and no more than Gem's fee on the amount quoted. The network fee may come to no more than `0.01 SOL`. SOL sent anywhere the check cannot tie to the wallet or to Gem is limited to the rent of two token accounts.
 
 A provider that names anything else is refused at Confirm, and left out of the quote list where its quote already names the contract. When a provider upgrades a contract, its swaps stop until the app update that ships the new address.
 
@@ -243,11 +243,11 @@ A provider that names anything else is refused at Confirm, and left out of the q
 | Uniswap, PancakeSwap, Oku, Wagmi, Aerodrome | EVM | The Universal Router, with Permit2 and the router as spenders | At Confirm |
 | SunSwap | Tron | Its Universal Router, with its Permit2 and the router as spenders | At Confirm |
 | Across | EVM | The spoke pool | At Confirm |
-| Relay, Chainflip, Near Intents, swaps.xyz | Bitcoin and other deposit-address swaps | A deposit address made per swap | |
+| Relay, Chainflip, Near Intents, swaps.xyz | Deposit-address swaps, such as Relay from Bitcoin and Chainflip from Polkadot | A deposit address made per swap | |
 | Mayan | Sui | Built on the device against the package read from Mayan's shipped state object on the Sui node; the route spends only the asset quoted, no more than the amount quoted, pays out the asset and network quoted, in the asset's own decimals, and accepts no less than the Minimum Receive shown; a swap before the bridge replays the transaction Mayan returns, which may take from the wallet only the coin quoted, no more than the amount quoted, and the SUI in the Wormhole fee coin the reply names, which Wormhole accepts only at its exact fee | At Confirm |
 | Bridgers, DeDust, STON.fi | TON tokens | Built on the device: the token leaves through the sender's own jetton wallet, which comes from the TON node | |
 | DeDust, STON.fi | TON coin | Built on the device against shipped contracts | |
-| Hyperliquid | All | Built on the device: the order names the pair's market, shipped with the app for HYPE and UBTC against USDC and read from the Hyperliquid node for any other pair | |
+| Hyperliquid | All | Built on the device: the order names the pair's market, shipped with the app for HYPE and UBTC against USDC and read from the Hyperliquid node for any other pair; HYPE moved between HyperEVM and HyperCore is a send to the network's system address | |
 | Hyperion, Cetus, DeepBook, Stellar DEX, XRP Ledger DEX | All | Built on the device against shipped contracts | |
 
 A known contract shows under its provider's name, such as `SunSwap Router`; the shared Uniswap Permit2 shows as `Permit2`.

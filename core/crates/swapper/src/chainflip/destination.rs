@@ -22,7 +22,7 @@ impl VaultSwapDestination {
     }
 
     pub(super) fn validate_call(&self, chain: u32, address: &[u8], asset: u32) -> Result<(), SwapperError> {
-        self.validate(chain == self.chain.id() && address == self.address && asset == u32::from(self.asset))
+        (chain == self.chain.id() && address == self.address && asset == u32::from(self.asset)).then_some(()).ok_or(SwapperError::InvalidRoute)
     }
 
     pub(super) fn validate_tron<'a>(&self, note: &'a [u8]) -> Result<&'a [u8], SwapperError> {
@@ -31,15 +31,7 @@ impl VaultSwapDestination {
             prefix.push((self.address.len() as u8) << 2);
         }
         prefix.extend(&self.address);
-        self.validate(note.starts_with(&prefix))?;
-        tron_cf_parameters(&note[prefix.len()..]).ok_or(SwapperError::InvalidRoute)
-    }
-
-    fn validate(&self, matches: bool) -> Result<(), SwapperError> {
-        if !matches {
-            return Err(SwapperError::InvalidRoute);
-        }
-        Ok(())
+        note.strip_prefix(prefix.as_slice()).and_then(tron_cf_parameters).ok_or(SwapperError::InvalidRoute)
     }
 }
 
@@ -49,7 +41,7 @@ fn tron_cf_parameters(data: &[u8]) -> Option<&[u8]> {
     if ccm != NO_CCM || length & 0b11 != SCALE_TWO_BYTE_LENGTH {
         return None;
     }
-    rest.get(..usize::from(length >> 2))
+    (rest.len() == usize::from(length >> 2)).then_some(rest)
 }
 
 #[cfg(test)]
@@ -65,6 +57,7 @@ mod tests {
         let note = [&[5u8, 2, (TEST_BITCOIN_SENDER.len() as u8) << 2][..], TEST_BITCOIN_SENDER.as_bytes(), &[0, 0x91, 1], &[7; 100]].concat();
 
         assert_eq!(destination.validate_tron(&note), Ok(&[7; 100][..]));
+        assert_eq!(destination.validate_tron(&[note.as_slice(), &[0]].concat()), Err(SwapperError::InvalidRoute), "a note with bytes after its parameters");
         assert!(destination.validate_tron(&note[..note.len() - 1]).is_err());
     }
 

@@ -1,5 +1,5 @@
 use gem_solana::{
-    Pubkey, StandardInstruction,
+    MAX_COMPUTE_UNIT_LIMIT, Pubkey, StandardInstruction,
     associated_token::is_associated_token_address,
     decode_transaction,
     instructions::program_ids::{token_2022_program, token_program},
@@ -12,14 +12,15 @@ use crate::{
     fees::{FeeSide, on_chain_referral_fees},
 };
 
-const MAX_COMPUTE_UNIT_PRICE: u64 = 100_000_000;
+const MAX_PRIORITY_FEE_LAMPORTS: u64 = 10_000_000;
+const MICRO_LAMPORTS_PER_LAMPORT: u64 = 1_000_000;
+const MAX_COMPUTE_UNIT_PRICE: u64 = MAX_PRIORITY_FEE_LAMPORTS * MICRO_LAMPORTS_PER_LAMPORT / MAX_COMPUTE_UNIT_LIMIT as u64;
 const TOKEN_ACCOUNT_RENT_LAMPORTS: u64 = 2_039_280;
 const MAX_UNBOUND_LAMPORTS: u64 = 2 * TOKEN_ACCOUNT_RENT_LAMPORTS;
 
 struct StepPolicy<'a> {
     wallet: &'a Pubkey,
     wrapped_sol: Pubkey,
-    wrapped_sol_mint: Pubkey,
     referral: Pubkey,
     contracts: &'a [&'a str],
     fee_limits: &'a [(Pubkey, u64)],
@@ -56,7 +57,6 @@ pub(crate) fn verify_steps(instructions: &[StandardInstruction], wallet: &Pubkey
     let policy = StepPolicy {
         wallet,
         wrapped_sol: wrapped_sol::wrapped_sol_account(wallet).map_err(SwapperError::transaction_error)?,
-        wrapped_sol_mint: wrapped_sol::wrapped_sol_mint(),
         referral: Pubkey::from_base58(SOLANA_REFERRAL_ADDRESS).map_err(SwapperError::transaction_error)?,
         contracts,
         fee_limits,
@@ -64,10 +64,17 @@ pub(crate) fn verify_steps(instructions: &[StandardInstruction], wallet: &Pubkey
     let unbound_lamports = instructions.iter().enumerate().try_fold(0u64, |total, (position, instruction)| {
         policy.unbound_lamports(instruction, &instructions[position + 1..]).map(|lamports| total.saturating_add(lamports))
     })?;
-    let fees_within_limits = fee_limits
+    let fees: Vec<(u64, u64)> = fee_limits
         .iter()
-        .all(|(mint, limit)| instructions.iter().fold(0u64, |total, instruction| total.saturating_add(policy.gem_fee(instruction, mint))) <= *limit);
-    if unbound_lamports > MAX_UNBOUND_LAMPORTS || !fees_within_limits {
+        .map(|(mint, limit)| (instructions.iter().fold(0u64, |total, instruction| total.saturating_add(policy.gem_fee(instruction, mint))), *limit))
+        .filter(|(fee, _)| *fee > 0)
+        .collect();
+    let fee_within_limit = match fees.as_slice() {
+        [] => true,
+        [(fee, limit)] => fee <= limit,
+        _ => false,
+    };
+    if unbound_lamports > MAX_UNBOUND_LAMPORTS || !fee_within_limit {
         return Err(SwapperError::InvalidRoute);
     }
     Ok(())
@@ -78,7 +85,7 @@ impl StepPolicy<'_> {
         match *instruction {
             StandardInstruction::ComputeBudget { unit_price: Some(price) } if price > MAX_COMPUTE_UNIT_PRICE => Err(SwapperError::InvalidRoute),
             StandardInstruction::ComputeBudget { .. } | StandardInstruction::Memo | StandardInstruction::SyncNative => Ok(0),
-            StandardInstruction::Transfer { destination: Some(destination), .. } if self.returns_to_wallet(destination, later) || (*destination == self.referral && self.takes_fee(&self.wrapped_sol_mint)) => Ok(0),
+            StandardInstruction::Transfer { destination: Some(destination), .. } if self.returns_to_wallet(destination, later) || (*destination == self.referral && self.takes_fee(&wrapped_sol::wrapped_sol_mint())) => Ok(0),
             StandardInstruction::Transfer { lamports, .. } => Ok(lamports),
             StandardInstruction::CreateTokenAccount { token_program: Some(program), .. } if ![token_program(), token_2022_program()].contains(program) => Err(SwapperError::InvalidRoute),
             StandardInstruction::CreateTokenAccount { owner, .. } if owner == Some(self.wallet) => Ok(0),
@@ -106,7 +113,7 @@ impl StepPolicy<'_> {
         match *instruction {
             StandardInstruction::Transfer {
                 destination: Some(destination), lamports, ..
-            } if *destination == self.referral && *mint == self.wrapped_sol_mint => lamports,
+            } if *destination == self.referral && *mint == wrapped_sol::wrapped_sol_mint() => lamports,
             StandardInstruction::TransferChecked {
                 mint: Some(paid),
                 destination: Some(destination),
@@ -264,6 +271,13 @@ mod tests {
             (
                 vec![token::transfer_checked_with_program_id(&wallet_usdc, &usdc, &referral_usdc, &wallet, 2, 6, &token_program())],
                 "a token fee to Gem above the amount quoted",
+            ),
+            (
+                vec![
+                    system::transfer(&wallet, &referral, 5_000),
+                    token::transfer_checked_with_program_id(&wallet_usdc, &usdc, &referral_usdc, &wallet, 1, 6, &token_program()),
+                ],
+                "Gem's fee taken in both tokens, which no quote charges",
             ),
         ] {
             let transaction = SolanaTransaction::new(instructions, vec![]).encode(TEST_SOLANA_SENDER, &[]).unwrap();

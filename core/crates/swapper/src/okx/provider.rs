@@ -122,8 +122,11 @@ mod tests {
 
         assert_eq!(
             provider.binding(&Quote::mock_from(&ETHEREUM_USDC_ASSET_ID)),
-            provider.binding(&Quote::mock_from(&AssetId::from_chain(Chain::Ethereum))),
-            "a token swap is bound like a coin swap"
+            Binding::Contracts(Contracts {
+                targets: vec!["0x8feAB81D36E7576107D5dE0758c1b839Be31B4F6"],
+                spenders: vec!["0x40aA958dd87FC8305b97f2BA922CDdCa374bcD7f"],
+            }),
+            "the router is called and only its approval contract is approved"
         );
         assert_eq!(provider.binding(&Quote::mock_from(&AssetId::from_chain(Chain::Bitcoin))), Binding::Contracts(Contracts::default()));
         for asset in support_assets() {

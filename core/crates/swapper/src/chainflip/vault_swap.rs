@@ -144,7 +144,7 @@ mod tests {
     use crate::chainflip::{
         broker::SolanaVaultSwapResponse,
         provider::TRON_VAULT,
-        testkit::{ETHEREUM_NATIVE_MIN_PRICE, SOLANA_MIN_PRICE, arbitrum_usdc_destination, bitcoin_destination, ethereum_usdc_parameters, mock_parameters},
+        testkit::{ETHEREUM_NATIVE_MIN_PRICE, SOLANA_MIN_PRICE, arbitrum_usdc_destination, bitcoin_destination, mock_parameters},
         tx_builder::solana_instruction,
     };
     use crate::testkit::TEST_SOLANA_PAYER;
@@ -196,7 +196,7 @@ mod tests {
         let token_swap = VaultSwap {
             token_id: Some(ETHEREUM_USDC_TOKEN_ID.to_string()),
             amount: BigUint::from(500_000_000u64),
-            parameters: ethereum_usdc_parameters(),
+            parameters: mock_parameters(Chain::Ethereum, TEST_EVM_SENDER, "0x4faa1adcd75c490000000000000000"),
             ..VaultSwap::mock_ethereum()
         };
 

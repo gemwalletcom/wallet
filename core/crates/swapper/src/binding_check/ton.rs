@@ -6,8 +6,8 @@ use crate::{Deployment, SwapperError};
 
 pub(super) fn verify_ton_messages(messages: &str, contracts: &[&str], from_value: &BigUint) -> Result<(), SwapperError> {
     let messages: Vec<TonConnectMessage> = serde_json::from_str(messages).map_err(SwapperError::transaction_error)?;
-    let attached = TonConnectMessage::swap_quote_data(&messages).map_err(|_| SwapperError::InvalidRoute)?.value;
-    if messages.iter().all(|message| Deployment::contains(Chain::Ton, contracts, message.address())) && attached <= *from_value {
+    let attached = TonConnectMessage::total_amount(&messages).map_err(|_| SwapperError::InvalidRoute)?;
+    if !messages.is_empty() && messages.iter().all(|message| Deployment::contains(Chain::Ton, contracts, message.address())) && attached <= *from_value {
         Ok(())
     } else {
         Err(SwapperError::InvalidRoute)

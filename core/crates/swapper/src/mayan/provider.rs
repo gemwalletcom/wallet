@@ -199,15 +199,16 @@ where
             SlippageMode::Exact => request.options.slippage.bps,
             SlippageMode::Auto => MAYAN_MAX_SLIPPAGE_BPS,
         };
-        if route.common().slippage_bps > allowed_slippage_bps || !settles_in_asset_decimals(&request.to_asset, route.common()) {
+        if route.common().slippage_bps > allowed_slippage_bps {
             return Err(SwapperError::InvalidRoute);
         }
         let to_value = route.common().expected_output_value(request.to_asset.decimals)?;
-
-        Ok(Quote {
+        let quote = Quote {
             from_value,
             ..Quote::from_route(request, self.provider(), to_value, route.common().slippage_bps, route, Some(route.common().eta_seconds))?
-        })
+        };
+        validate_route(&quote, route.common())?;
+        Ok(quote)
     }
 
     async fn get_quote_data(&self, quote: &Quote, _data: QuoteDataInput) -> Result<SwapperQuoteData, SwapperError> {
@@ -481,6 +482,11 @@ mod tests {
             replying(|quote| quote["toToken"]["decimals"] = serde_json::json!(2)).get_quote(&auto).await.unwrap_err(),
             SwapperError::InvalidRoute,
             "a reply that names fewer decimals than HyperCore USDC settles in"
+        );
+        assert_eq!(
+            replying(|quote| quote["minAmountOut"] = serde_json::json!(5)).get_quote(&auto).await.unwrap_err(),
+            SwapperError::InvalidRoute,
+            "a route that accepts less than the minimum the quote would show is left out of the list"
         );
     }
 

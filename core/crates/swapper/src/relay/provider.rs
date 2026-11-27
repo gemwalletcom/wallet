@@ -6,7 +6,7 @@ use alloy_primitives::U256;
 use async_trait::async_trait;
 use gem_client::Client;
 use primitives::{
-    AssetId, Chain,
+    AssetId,
     swap::{ApprovalData, SlippageMode},
 };
 
@@ -75,9 +75,10 @@ where
     }
 
     fn binding(&self, quote: &Quote) -> Binding {
-        match quote.request.from_asset.chain() {
-            Chain::Bitcoin => Binding::DepositAddress,
-            chain => Binding::Contracts(contracts::contracts(chain)),
+        let chain = quote.request.from_asset.chain();
+        match RelayChain::from_chain(&chain).map(|relay_chain| relay_chain.uses_deposit_address()) {
+            Some(true) => Binding::DepositAddress,
+            Some(false) | None => Binding::Contracts(contracts::contracts(chain)),
         }
     }
 
@@ -120,6 +121,10 @@ where
         let to_value = BigUint::from_str(&response.details.currency_out.amount).map_err(SwapperError::compute_quote_error)?;
 
         let slippage_bps = response.details.slippage_bps(request.options.slippage.bps);
+        match request.options.slippage.mode {
+            SlippageMode::Exact if slippage_bps > request.options.slippage.bps => return Err(SwapperError::InvalidRoute),
+            SlippageMode::Exact | SlippageMode::Auto => {}
+        }
         Ok(Quote {
             from_value,
             ..Quote::from_route(request, self.provider(), to_value, slippage_bps, &response, response.details.eta_in_seconds())?
@@ -184,30 +189,29 @@ where
 
     async fn check_approval(&self, quote: &Quote, quote_response: &RelayQuoteResponse, from_asset_id: &AssetId) -> Result<Option<ApprovalData>, SwapperError> {
         let chain = RelayChain::from_chain(&from_asset_id.chain).ok_or(SwapperError::NotSupportedChain)?;
-        let token = match (chain, from_asset_id.token_id.clone()) {
-            (RelayChain::Bitcoin | RelayChain::Solana | RelayChain::Ton | RelayChain::Xrp, _) | (RelayChain::Tron, None) => return Ok(None),
-            (_, Some(token)) => token,
-            (RelayChain::Evm(chain), None) => match chain.native_token_contract() {
-                Some(token) => token.to_string(),
-                None => return Ok(None),
-            },
+        let token = match chain {
+            RelayChain::Bitcoin | RelayChain::Solana | RelayChain::Ton | RelayChain::Xrp => None,
+            RelayChain::Evm(_) | RelayChain::Tron => from_asset_id.approval_token(),
+        };
+        let Some(token) = token else {
+            return Ok(None);
         };
 
         let spender = chain.contract_address(&quote_response.router_address().ok_or(SwapperError::InvalidRoute)?)?;
         let amount = U256::from_str(&quote.from_value.to_string()).map_err(SwapperError::from)?;
-        check_token_approval(quote.request.wallet_address.clone(), token, spender, amount, self.rpc_provider.clone(), from_asset_id.chain).await
+        check_token_approval(quote.request.wallet_address.clone(), token.to_string(), spender, amount, self.rpc_provider.clone(), from_asset_id.chain).await
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{Route, SwapperQuoteAsset, alien::mock::ProviderMock, approval::DEFAULT_TRON_SWAP_ENERGY_LIMIT, relay::model::Step};
+    use crate::{Route, SwapperQuoteAsset, alien::mock::ProviderMock, approval::DEFAULT_TRON_SWAP_ENERGY_LIMIT, models::Options, relay::model::Step, testkit::mock_quote};
     use gem_client::{ClientError, testkit::MockClient};
     use primitives::Chain;
     use primitives::{
         asset_constants::{BASE_USDC_ASSET_ID, BASE_USDC_TOKEN_ID, CELO_WETH_TOKEN_ID, TRON_USDT_TOKEN_ID},
-        swap::{SwapQuoteDataType, SwapStatus},
+        swap::{Slippage, SwapQuoteDataType, SwapStatus},
     };
 
     const ROUTER_ADDRESS: &str = "0xCcC88a9d1B4ED6b0EABA998850414b24f1c315bE";
@@ -235,6 +239,33 @@ mod tests {
             relay.verify_binding(&quote, &approving(ERC20_ROUTER_ADDRESS)),
             Err(SwapperError::InvalidRoute),
             "only the contracts that take the deposit receive an approval"
+        );
+    }
+
+    #[tokio::test]
+    async fn test_get_quote_holds_exact_slippage() {
+        let relay = |total: &'static str| {
+            let mut reply: serde_json::Value = serde_json::from_str(include_str!("testdata/quote_sol_to_base_usdc.json")).unwrap();
+            reply["details"]["slippageTolerance"] = serde_json::json!({ "total": total });
+            Relay {
+                provider: ProviderType::new(SwapperProvider::Relay),
+                rpc_provider: Arc::new(ProviderMock::new(String::new())),
+                client: RelayClient::new(MockClient::new().with_post(move |_, _| Ok(serde_json::to_vec(&reply).unwrap()))),
+            }
+        };
+        let request = |bps: u32, mode: SlippageMode| QuoteRequest {
+            wallet_address: "4Nd1mBQtrMJVYVfKf2PJy9NZUZdTAsp7D4xWLs4gDB4T".into(),
+            value: BigUint::from(100_000_000u64),
+            options: Options::new_with_slippage(Slippage { bps, mode }),
+            ..mock_quote(SwapperQuoteAsset::from(AssetId::from_chain(Chain::Solana)), SwapperQuoteAsset::from(BASE_USDC_ASSET_ID.clone()))
+        };
+
+        assert_eq!(relay("100").get_quote(&request(100, SlippageMode::Exact)).await.map(|quote| quote.data.slippage_bps), Ok(100));
+        assert_eq!(relay("150").get_quote(&request(100, SlippageMode::Auto)).await.map(|quote| quote.data.slippage_bps), Ok(150));
+        assert_eq!(
+            relay("150").get_quote(&request(100, SlippageMode::Exact)).await.err(),
+            Some(SwapperError::InvalidRoute),
+            "a reply that uses more slippage than the user chose"
         );
     }
 

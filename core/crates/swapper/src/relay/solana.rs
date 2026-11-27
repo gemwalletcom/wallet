@@ -1,4 +1,3 @@
-use gem_encoding::borsh::{BorshDeserialize, DecodeError, Reader};
 use gem_solana::{
     HexInstructionData, Instruction, Pubkey, StandardInstruction,
     anchor::{instruction_arguments, instruction_body},
@@ -21,16 +20,6 @@ const DEPOSIT_TOKEN: &str = "deposit_token";
 const FORWARD_TOKEN: &str = "forward_token";
 const DEPOSIT_TOKEN_MINT: usize = 4;
 const FORWARDER_TOKEN_ACCOUNT: usize = 6;
-
-struct DepositArguments {
-    amount: u64,
-}
-
-impl BorshDeserialize for DepositArguments {
-    fn deserialize_reader(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
-        Ok(Self { amount: reader.read()? })
-    }
-}
 
 struct QuotedDeposit {
     wallet: Pubkey,
@@ -93,7 +82,7 @@ impl QuotedDeposit {
 
 impl<'a> RelayStep<'a> {
     fn decode(instruction: &'a Instruction) -> Self {
-        let deposit = |name| instruction_arguments::<DepositArguments>(&instruction.data, name).map(|arguments| arguments.amount);
+        let deposit = |name| instruction_arguments::<u64>(&instruction.data, name);
         match instruction.program_id.to_base58().as_str() {
             SOLANA_RELAY_DEPOSITORY_PROGRAM_ID => match (deposit(DEPOSIT_NATIVE), deposit(DEPOSIT_TOKEN), instruction.account(DEPOSIT_TOKEN_MINT)) {
                 (Ok(amount), _, _) => Self::Deposit { mint: None, amount },

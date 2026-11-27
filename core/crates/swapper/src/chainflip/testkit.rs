@@ -83,10 +83,6 @@ pub fn mock_parameters(chain: Chain, address: &str, min_price: &str) -> VaultSwa
     VaultSwapParameters::new(chain, refund_parameters(address, min_price), None, None)
 }
 
-pub fn ethereum_usdc_parameters() -> VaultSwapParameters {
-    mock_parameters(Chain::Ethereum, TEST_EVM_SENDER, "0x4faa1adcd75c490000000000000000")
-}
-
 pub fn mock_routes(quote: &Quote, estimated_price: f64) -> Vec<Route> {
     let route_data = ChainflipRouteData {
         boost_fee: None,

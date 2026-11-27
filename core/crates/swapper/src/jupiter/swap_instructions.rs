@@ -1,5 +1,5 @@
 use gem_solana::models::SolanaInstruction;
-use gem_solana::{Base64InstructionData, Instruction, Pubkey, StandardInstruction, associated_token::is_associated_token_address, decode_instruction, decode_instructions};
+use gem_solana::{Base64InstructionData, Instruction, Pubkey, StandardInstruction, associated_token::is_associated_token_address, decode_instruction, decode_instructions, instructions::program_ids::compute_budget_program};
 
 use super::JupiterRoute;
 use crate::{SwapperError, binding_check::solana::verify_steps};
@@ -60,7 +60,7 @@ impl SwapInstructions {
             && route.arguments.positive_slippage_bps == 0
             && takes_quoted_fee
             && pays_destination;
-        if !is_quoted {
+        if !is_quoted || self.compute_budget.iter().any(|instruction| instruction.program_id != compute_budget_program()) {
             return Err(SwapperError::InvalidRoute);
         }
         let steps: Vec<StandardInstruction> = self.compute_budget.iter().chain(&self.setup).chain(&self.cleanup).map(StandardInstruction::new).collect();
@@ -149,9 +149,14 @@ mod tests {
 
         let sends_coins_away = SwapInstructions {
             setup: vec![system::transfer(&wallet, &stranger, 1_000_000_000)],
-            ..instructions
+            ..instructions.clone()
         };
         assert_eq!(sends_coins_away.verify(&quoted), Err(SwapperError::InvalidRoute), "the steps around the route follow the Solana step rules");
+        let wraps_in_compute_budget = SwapInstructions {
+            compute_budget: vec![system::transfer(&wallet, &wrapped_sol::wrapped_sol_account(&wallet).unwrap(), 1)],
+            ..instructions
+        };
+        assert_eq!(wraps_in_compute_budget.verify(&quoted), Err(SwapperError::InvalidRoute), "the compute budget steps hold only compute budget instructions");
         let usdc_route = QuotedRoute::mock_usdc_sol();
         let pays_gem_apart = SwapInstructions {
             setup: vec![token::transfer_checked_with_program_id(

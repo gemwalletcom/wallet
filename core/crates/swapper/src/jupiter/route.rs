@@ -3,8 +3,6 @@ use gem_solana::{Instruction, JUPITER_PROGRAM_ID, Pubkey, anchor::instruction_bo
 
 use crate::fees::subtract_bps;
 
-type UnitRouteStep = [u8; 4];
-
 struct RouteLayout {
     instruction: &'static str,
     authority: usize,
@@ -101,7 +99,7 @@ struct UnitStepsRoute(RouteArguments);
 
 impl BorshDeserialize for UnitStepsRoute {
     fn deserialize_reader(reader: &mut Reader<'_>) -> Result<Self, DecodeError> {
-        reader.read::<Vec<UnitRouteStep>>()?;
+        reader.read::<Vec<[u8; 4]>>()?;
         Ok(Self(RouteArguments {
             in_amount: reader.read()?,
             quoted_out_amount: reader.read()?,
