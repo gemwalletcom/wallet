@@ -524,6 +524,11 @@ struct Migrations {
             try db.removeDeprecatedChains(["blast"])
         }
 
+        migrator.registerMigration("Set negative fees in \(TransactionRecord.databaseTableName) to zero") { db in
+            guard try db.hasColumn(TransactionRecord.Columns.fee.name, in: TransactionRecord.databaseTableName) else { return }
+            try db.execute(sql: "UPDATE \(TransactionRecord.databaseTableName) SET \(TransactionRecord.Columns.fee.name) = '0' WHERE \(TransactionRecord.Columns.fee.name) LIKE '-%'")
+        }
+
         try migrator.migrate(writer)
     }
 }

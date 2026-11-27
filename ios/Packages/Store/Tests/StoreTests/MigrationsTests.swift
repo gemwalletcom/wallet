@@ -264,4 +264,27 @@ struct MigrationsTests {
         #expect(try rows("SELECT assetId FROM \(BalanceRecord.databaseTableName)") == ["seievm_0xtoken"])
         #expect(try rows("SELECT \"table\" FROM pragma_foreign_key_check").isEmpty)
     }
+
+    @Test
+    func negativeFeeBecomesZero() throws {
+        let asset = AssetBasic.mock(asset: .mock(id: Chain.sui.assetId))
+        let db = DB.mock(wallets: [.mock(accounts: [.mock(chain: .sui)])], assets: [asset])
+        let walletId = WalletId.single(chain: .sui, address: "0xsender")
+        try WalletStore(db: db).addWallet(.mock(id: walletId, type: .single, accounts: [.mock(chain: .sui, address: "0xsender")]))
+        let store = TransactionStore(db: db)
+        try store.addTransactions(walletId: walletId, transactions: [
+            .mock(.mock(id: TransactionId(chain: .sui, hash: "negative"), assetId: Chain.sui.assetId, fee: "-858240", feeAssetId: Chain.sui.assetId)),
+            .mock(.mock(id: TransactionId(chain: .sui, hash: "paid"), assetId: Chain.sui.assetId, fee: "1750000", feeAssetId: Chain.sui.assetId)),
+        ])
+        try db.dbPool.write {
+            try $0.execute(sql: "DELETE FROM grdb_migrations WHERE identifier = ?", arguments: ["Set negative fees in \(TransactionRecord.databaseTableName) to zero"])
+        }
+
+        var upgrade = Migrations()
+        try upgrade.run(db.dbPool)
+        try upgrade.runChanges(db.dbPool)
+
+        let fees = try db.dbPool.read { try String.fetchAll($0, sql: "SELECT hash || ':' || fee FROM \(TransactionRecord.databaseTableName) ORDER BY hash") }
+        #expect(fees == ["negative:0", "paid:1750000"])
+    }
 }
