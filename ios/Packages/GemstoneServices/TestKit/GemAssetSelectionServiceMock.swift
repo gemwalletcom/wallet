@@ -50,7 +50,7 @@ public final class GemAssetSelectionServiceMock: GemAssetSelectionServiceProtoco
     }
 
     public func walletSearchLimits(query _: String) -> GemWalletSearchLimits {
-        GemWalletSearchLimits(fetch: 13, results: 100)
+        GemWalletSearchLimits(window: 13, results: 100)
     }
 
     public var searchView: GemWalletSearchView = .mock()

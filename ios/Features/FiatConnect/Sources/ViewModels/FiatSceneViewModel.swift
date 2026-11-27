@@ -168,7 +168,7 @@ extension FiatSceneViewModel {
 
     func load() async {
         guard let request = session.quoteRequest() else { return }
-        session = session.onFetchStarted(request: request)
+        session = session.onQuoteStart(request: request)
         let results = await service.quotes(request: request, assetId: asset.id)
         guard results.error == nil || !Task.isCancelled else { return }
         session = session.onQuoteResults(results: results)

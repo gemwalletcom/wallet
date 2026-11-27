@@ -392,7 +392,7 @@ extension SwapSceneViewModel {
 
     private func loadQuotes(input: GemSwapQuoteInput) async {
         guard !isTransferDataLoading else { return }
-        session = session.onFetchStarted(request: input.request)
+        session = session.onQuoteStart(request: input.request)
         do {
             let quoteProviders = try await service.quoteProviders(input: input)
             try Task.checkCancellation()

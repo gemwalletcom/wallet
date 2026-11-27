@@ -240,7 +240,7 @@ struct SwapSceneViewModelTests {
         let model = SwapSceneViewModel.mock()
         await model.load()
 
-        model.session = model.session.onFetchStarted(request: .mock())
+        model.session = model.session.onQuoteStart(request: .mock())
 
         #expect(model.viewState.isQuoteLoading)
         #expect(model.viewState.quote != nil)

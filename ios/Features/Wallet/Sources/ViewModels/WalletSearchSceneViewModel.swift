@@ -56,7 +56,7 @@ public final class WalletSearchSceneViewModel: Sendable, SearchResultActions {
         searchQuery = ObservableQuery(
             WalletSearchQuery(
                 walletId: wallet.id,
-                limit: service.walletSearchLimits(query: .empty).fetch,
+                limit: service.walletSearchLimits(query: .empty).window,
                 types: [.asset, .perpetual, .list, .nft],
             ),
             initialValue: .empty,
@@ -175,7 +175,7 @@ extension WalletSearchSceneViewModel {
         var request = searchQuery.request
         request.searchBy = searchableQuery
         request.searchKey = request.scope.gemScope.searchKey(query: searchableQuery)
-        request.limit = service.walletSearchLimits(query: searchableQuery).fetch
+        request.limit = service.walletSearchLimits(query: searchableQuery).window
         searchQuery.request = request
         loadState = searchableQuery.isNotEmpty ? .loading : .noData
     }
