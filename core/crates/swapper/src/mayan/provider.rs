@@ -7,7 +7,7 @@ use super::{
     },
     mapper::map_swap_result,
     model::{MayanChain, MayanQuote, MayanQuoteCommon, MayanTransactionResult, QuoteParams, SwiftVersion},
-    tx_builder::{fast_mctp, mctp, mono_chain, swift},
+    tx_builder::{amount::fractional_amount, fast_mctp, mctp, mono_chain, swift},
     wormhole_chain,
 };
 use crate::amount_to_value;
@@ -16,7 +16,7 @@ use crate::{
     Binding, Contracts, QuoteDataInput, ProviderType, Quote, QuoteRequest, RpcClient, RpcProvider, SwapAmountMode, SwapResult, SwapResultRequest, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData,
     config::get_swap_proxy_url,
     cross_chain::VaultAddresses,
-    fees::{default_referral_address, default_referral_fees},
+    fees::{default_referral_address, default_referral_fees, subtract_bps},
     route_cache::Cache,
 };
 use async_trait::async_trait;
@@ -27,6 +27,7 @@ use primitives::{
     AssetId, Chain, ChainType, HOUR,
     contract_constants::{EVM_ZERO_ADDRESS, SOLANA_JUPITER_PROGRAM_ID},
     decode_hex,
+    swap::SlippageMode,
 };
 use std::{collections::BTreeSet, fmt::Debug, sync::Arc};
 
@@ -102,13 +103,20 @@ where
     }
 }
 
+const MINIMUM_ROUNDING_BPS: u32 = 1;
+
 fn validate_route(quote: &Quote, route: &MayanQuoteCommon) -> Result<(), SwapperError> {
     let from_asset = quote.request.from_asset.asset_id();
     let to_asset = quote.request.to_asset.asset_id();
     let amount = route.effective_amount_in64.parse::<BigUint>().map_err(|_| SwapperError::InvalidRoute)?;
     let spends_quoted_asset = asset_id_for_token(from_asset.chain, &route.from_token.contract).as_ref() == Some(&from_asset);
     let pays_quoted_asset = route.to_chain == wormhole_chain::name_for_chain(to_asset.chain)? && asset_id_for_token(to_asset.chain, &route.to_token.contract).as_ref() == Some(&to_asset);
-    if !spends_quoted_asset || !pays_quoted_asset || amount > quote.from_value {
+    let minimum_decimals = match quote.request.to_asset.decimals {
+        0 => route.to_token.decimals,
+        decimals => decimals,
+    };
+    let pays_quoted_minimum = fractional_amount::<BigUint>(&route.min_amount_out, minimum_decimals)? >= subtract_bps(&quote.to_value, quote.data.slippage_bps + MINIMUM_ROUNDING_BPS);
+    if !spends_quoted_asset || !pays_quoted_asset || !pays_quoted_minimum || amount > quote.from_value {
         return Err(SwapperError::InvalidRoute);
     }
     Ok(())
@@ -184,6 +192,10 @@ where
             .await
             .map_err(|error| map_quote_error(error, request.from_asset.decimals))?;
         let route = Self::select_route(&routes, from_asset.chain, to_asset.chain).ok_or(SwapperError::NoQuoteAvailable)?;
+        match request.options.slippage.mode {
+            SlippageMode::Exact if route.common().slippage_bps > request.options.slippage.bps => return Err(SwapperError::InvalidRoute),
+            SlippageMode::Exact | SlippageMode::Auto => {}
+        }
         let to_value = route.common().expected_output_value(request.to_asset.decimals)?;
 
         Ok(Quote {
@@ -301,6 +313,17 @@ mod tests {
         };
 
         assert_eq!(validate_route(&quote, &route), Ok(()));
+        assert_eq!(
+            validate_route(
+                &Quote {
+                    to_value: BigUint::from(803_620u64),
+                    ..quote.clone()
+                },
+                &route
+            ),
+            Ok(()),
+            "a minimum a unit under the quote's is rounding"
+        );
         assert_eq!(validate_route(&Quote::mock_with_request(&request(AssetId::from_chain(Chain::Solana), sui_usdc.clone())), &coin), Ok(()));
         for (quote, reason) in [
             (
@@ -318,6 +341,13 @@ mod tests {
             (
                 Quote::mock_with_request(&request(SOLANA_USDC_ASSET_ID.clone(), AssetId::from_token(Chain::Base, SUI_USDC_TOKEN_ID))),
                 "a route that pays out on another network than quoted",
+            ),
+            (
+                Quote {
+                    to_value: BigUint::from(810_000u64),
+                    ..quote.clone()
+                },
+                "a route that accepts less than the minimum the quote shows",
             ),
         ] {
             assert_eq!(validate_route(&quote, &route), Err(SwapperError::InvalidRoute), "{reason}");
@@ -408,6 +438,11 @@ mod tests {
         let quote = provider.get_quote(&request).await.unwrap();
 
         assert_eq!(quote.to_value, BigUint::from(602333700u64));
+        let tighter = QuoteRequest {
+            options: Options::new_with_slippage(4.into()),
+            ..request
+        };
+        assert_eq!(provider.get_quote(&tighter).await.unwrap_err(), SwapperError::InvalidRoute, "a route with more slippage than the wallet set");
     }
 
     #[tokio::test]
