@@ -3,6 +3,7 @@ use crate::alien::AlienError;
 use crate::api::GemApiError;
 use crate::gateway::GatewayError;
 use crate::services::wallet::error::GemWalletImportError;
+use crate::services::wallet_connect::error::GemWalletConnectError;
 use primitives::{Account, Chain, Wallet};
 
 #[derive(Debug, Clone, PartialEq, uniffi::Error)]
@@ -18,6 +19,7 @@ pub enum GemServiceError {
     NoAccountForChain { chain: Chain },
     Offline,
     WalletImport { error: GemWalletImportError },
+    WalletConnect { error: GemWalletConnectError },
     Cancelled,
     Expired,
 }
@@ -33,6 +35,7 @@ impl std::fmt::Display for GemServiceError {
             Self::NoAccountForChain { chain } => write!(f, "wallet has no {chain} account"),
             Self::Offline => write!(f, "network offline"),
             Self::WalletImport { error } => write!(f, "{error}"),
+            Self::WalletConnect { error } => write!(f, "{error}"),
             Self::Cancelled => write!(f, "cancelled"),
             Self::Expired => write!(f, "expired"),
         }

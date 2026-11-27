@@ -147,10 +147,10 @@ class ConnectionProposalViewModelTest {
     @Test
     fun `every proposal Core refuses notifies the scene and rejects the proposal`() = runTest(dispatcher) {
         listOf(
-            GemWalletConnectException.InvalidOrigin() to "Malicious origin",
-            GemWalletConnectException.UnsupportedChains() to "Unsupported chain",
-            GemWalletConnectException.UnsupportedWallets() to "No supported wallets",
-        ).forEach { (error, text) ->
+            Triple(GemWalletConnectException.InvalidOrigin(), "Malicious origin", GemWalletConnectRejectionReason.REFUSED),
+            Triple(GemWalletConnectException.UnsupportedChains(), "Unsupported chain", GemWalletConnectRejectionReason.UNSUPPORTED_CHAINS),
+            Triple(GemWalletConnectException.UnsupportedWallets(), "No supported wallets", GemWalletConnectRejectionReason.UNSUPPORTED_ACCOUNTS),
+        ).forEach { (error, text, reason) ->
             val approve: ApproveWalletConnection = mockk(relaxed = true)
             val service = service()
             coEvery { service.prepareSessionProposal(any(), any(), any(), any(), any()) } throws error
@@ -159,7 +159,7 @@ class ConnectionProposalViewModelTest {
 
             assertEquals(text, model.refusalMessages.first())
             advanceUntilIdle()
-            verify { approve.rejectConnection(proposal, any(), any(), any()) }
+            verify { approve.rejectConnection(proposal, reason, any(), any()) }
         }
     }
 

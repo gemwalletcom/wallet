@@ -207,7 +207,7 @@ extension WalletConnectorService {
 
     private func reject(_ authentication: GemWalletConnectAuthentication, error: any Error) async {
         do {
-            try await client.rejectAuthentication(authenticationId: authentication.id)
+            try await client.rejectAuthentication(authenticationId: authentication.id, reason: GemWalletConnectRejectionReason(from: error))
         } catch {
             debugLog("WalletConnect reject authentication error: \(error)")
         }

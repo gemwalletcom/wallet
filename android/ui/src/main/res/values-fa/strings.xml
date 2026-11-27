@@ -213,7 +213,8 @@
   <string name="errors_swap_no_quote_available">هیچ قیمتی در دسترس نیست.</string>
   <string name="errors_swap_not_supported_asset">دارایی پشتیبانی نمی شود.</string>
   <string name="errors_connections_no_supported_wallets">هیچ کیف پول پشتیبانی شده ای در دسترس نیست.</string>
-  <string name="errors_connections_unsupported_chain">زنجیره ارائه شده پشتیبانی نمی‌شود.</string>
+  <string name="errors_connections_unsupported_chain">این اتصال به شبکه‌ای نیاز دارد که پشتیبانی نمی‌شود.</string>
+  <string name="errors_connections_unsupported_features">این اتصال به قابلیت‌هایی نیاز دارد که پشتیبانی نمی‌شوند.</string>
   <string name="errors_authentication_unavailable">احراز هویت در این دستگاه تنظیم نشده است. بیومتریک یا رمز عبور را در تنظیمات دستگاه روشن کنید.</string>
   <string name="errors_authentication_locked_out">تلاش‌های ناموفق بیش از حد. لطفاً بعداً دوباره امتحان کنید.</string>
   <string name="errors_authentication_failed">احراز هویت ناموفق بود. لطفاً دوباره امتحان کنید.</string>

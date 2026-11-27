@@ -213,7 +213,8 @@
   <string name="errors_swap_no_quote_available">ไม่มีราคาเสนอให้ใช้งาน</string>
   <string name="errors_swap_not_supported_asset">ไม่รองรับสินทรัพย์นี้</string>
   <string name="errors_connections_no_supported_wallets">ไม่มีกระเป๋าเงินที่รองรับ</string>
-  <string name="errors_connections_unsupported_chain">ไม่รองรับโซ่ที่ให้มา</string>
+  <string name="errors_connections_unsupported_chain">การเชื่อมต่อนี้ต้องใช้เครือข่ายที่ไม่รองรับ</string>
+  <string name="errors_connections_unsupported_features">การเชื่อมต่อนี้ต้องใช้ฟีเจอร์ที่ไม่รองรับ</string>
   <string name="errors_authentication_unavailable">อุปกรณ์นี้ยังไม่ได้ตั้งค่าการยืนยันตัวตน เปิดไบโอเมตริกซ์หรือรหัสผ่านในการตั้งค่าอุปกรณ์</string>
   <string name="errors_authentication_locked_out">ลองไม่สำเร็จหลายครั้งเกินไป โปรดลองใหม่ภายหลัง</string>
   <string name="errors_authentication_failed">การยืนยันตัวตนล้มเหลว โปรดลองอีกครั้ง</string>
