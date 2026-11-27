@@ -7,24 +7,28 @@ use primitives::AssetBalance;
 
 use super::EthereumClient;
 use super::chain_provider::EvmChainProvider;
-use super::indexer::EVMAssetBalanceProvider;
+
+#[async_trait]
+pub trait AssetBalanceProvider: Send + Sync {
+    async fn get_asset_balances(&self, address: String) -> Result<Vec<AssetBalance>, Box<dyn Error + Send + Sync>>;
+}
 
 pub struct EthereumProvider<C: Client + Clone> {
     client: EthereumClient<C>,
     transactions_by_address_provider: Box<dyn ChainTransactions>,
-    asset_balance_provider: Option<EVMAssetBalanceProvider<C>>,
+    asset_balance_provider: Option<Box<dyn AssetBalanceProvider>>,
     pub(crate) provider: Box<dyn EvmChainProvider>,
 }
 
 impl<C: Client + Clone> EthereumProvider<C> {
-    pub fn new(client: EthereumClient<C>, transactions_by_address_provider: Box<dyn ChainTransactions>, asset_balance_provider: EVMAssetBalanceProvider<C>) -> Self
+    pub fn new(client: EthereumClient<C>, transactions_by_address_provider: Box<dyn ChainTransactions>, asset_balance_provider: Box<dyn AssetBalanceProvider>) -> Self
     where
         C: 'static,
     {
         Self::new_with_provider(client.clone(), transactions_by_address_provider, asset_balance_provider, Box::new(client))
     }
 
-    pub fn new_with_provider(client: EthereumClient<C>, transactions_by_address_provider: Box<dyn ChainTransactions>, asset_balance_provider: EVMAssetBalanceProvider<C>, provider: Box<dyn EvmChainProvider>) -> Self
+    pub fn new_with_provider(client: EthereumClient<C>, transactions_by_address_provider: Box<dyn ChainTransactions>, asset_balance_provider: Box<dyn AssetBalanceProvider>, provider: Box<dyn EvmChainProvider>) -> Self
     where
         C: 'static,
     {
