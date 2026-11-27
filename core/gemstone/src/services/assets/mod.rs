@@ -226,15 +226,14 @@ impl GemAssetsService {
         Ok(rules::merge_assets(stored.into_iter().chain(synced).collect(), tokens.into_iter().map(rules::default_asset_basic).collect()))
     }
 
-    pub async fn sync_default_assets(&self) -> Result<(), GemServiceError> {
-        self.ensure_default_assets().await?;
-        self.store.set_stakeable_assets(rules::stakeable_asset_ids()).await
-    }
-
     pub async fn ensure_default_assets(&self) -> Result<(), GemServiceError> {
         let assets = rules::default_assets();
-        let existing = self.store.get_asset_ids(assets.iter().map(|asset| asset.asset.id.clone()).collect()).await?;
-        let missing = rules::missing_assets(assets, existing);
+        let stored = self.store.get_asset_basics(assets.iter().map(|asset| asset.asset.id.clone()).collect()).await?;
+        let changed = rules::changed_assets(rules::with_chain_flags(&stored), &stored);
+        if !changed.is_empty() {
+            self.store.save_assets(changed).await?;
+        }
+        let missing = rules::missing_assets(assets, stored.into_iter().map(|basic| basic.asset.id).collect());
         if missing.is_empty() {
             return Ok(());
         }
@@ -307,6 +306,45 @@ mod tests {
             store_versions();
             service.ensure_default_assets().await.unwrap();
             assert_eq!(stored_versions(), vec![Some("1".to_string()); 3], "a start that adds nothing keeps the applied lists");
+        })
+    }
+
+    #[test]
+    fn test_a_stored_coin_takes_the_stake_and_swap_its_chain_gained_in_an_update() {
+        block_on(async {
+            let solana = AssetId::from_chain(Chain::Solana);
+            let stored = rules::default_assets()
+                .into_iter()
+                .map(|basic| {
+                    if basic.asset.id != solana {
+                        return basic;
+                    }
+                    AssetBasic {
+                        properties: AssetProperties {
+                            is_stakeable: false,
+                            is_swapable: false,
+                            ..basic.properties.clone()
+                        },
+                        ..basic
+                    }
+                })
+                .collect();
+            let store = Arc::new(MemoryAssetStore {
+                assets: std::sync::Mutex::new(stored),
+                ..MemoryAssetStore::default()
+            });
+            let service = GemAssetsService::mock(Arc::new(TestAlienProvider::offline()), store.clone());
+            AssetList::iter().for_each(|list| service.preferences.set_assets_version(list, "1".to_string()).unwrap());
+
+            service.ensure_default_assets().await.unwrap();
+            service.ensure_default_assets().await.unwrap();
+
+            let properties = store.assets.lock().unwrap().iter().find(|basic| basic.asset.id == solana).unwrap().properties.clone();
+            assert!(properties.is_stakeable && properties.is_swapable);
+            let writes: Vec<Vec<AssetId>> = store.asset_writes.lock().unwrap().iter().map(|write| write.iter().map(|basic| basic.asset.id.clone()).collect()).collect();
+            assert_eq!(writes, vec![vec![solana]], "only the changed coin is written, and a start with nothing changed writes nothing");
+            let versions: Vec<_> = AssetList::iter().map(|list| service.preferences.get_assets_version(list)).collect();
+            assert_eq!(versions, vec![Some("1".to_string()); 3], "a flag change does not apply the asset lists again");
         })
     }
 

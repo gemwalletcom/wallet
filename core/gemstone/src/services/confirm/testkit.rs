@@ -202,9 +202,6 @@ impl GemAssetStore for MemoryAssetStore {
     async fn set_sellable_assets(&self, _: Vec<AssetId>) -> Result<(), GemServiceError> {
         panic!("unexpected asset write")
     }
-    async fn set_stakeable_assets(&self, _: Vec<AssetId>) -> Result<(), GemServiceError> {
-        panic!("unexpected asset write")
-    }
 }
 
 impl GemConfirmData {

@@ -63,7 +63,7 @@ impl GemAppStartService {
 
     pub async fn setup_wallets(&self) -> Vec<GemAppStartFailure> {
         let mut failures = Vec::new();
-        record(&mut failures, GemAppStartStep::SetupWalletAssets, self.assets.sync_default_assets()).await;
+        record(&mut failures, GemAppStartStep::SetupWalletAssets, self.assets.ensure_default_assets()).await;
         match self.wallet.setup_chains_outcome(Chain::all()).await {
             Ok(outcome) => {
                 for (wallet_id, error) in outcome.failures {
