@@ -3,12 +3,11 @@ use super::broker::{AssetsResponse, ChainflipAsset, DepositChannelRequest, Quote
 use super::destination::VaultSwapDestination;
 use super::parameters::VaultSwapParameters;
 use super::provider::{TRON_VAULT, refund_parameters};
-use super::vault_swap::VaultSwap;
 use crate::fees::DEFAULT_CHAINFLIP_FEE_BPS;
 use crate::{Quote, Route};
 use num_bigint::BigUint;
 use primitives::known_assets::ARBITRUM_USDC;
-use primitives::testkit::signer_mock::{TEST_BITCOIN_SENDER, TEST_EVM_RECIPIENT, TEST_EVM_SENDER, TEST_POLKADOT_SENDER, TEST_SOLANA_SENDER, TEST_TRON_SENDER};
+use primitives::testkit::signer_mock::{TEST_BITCOIN_SENDER, TEST_EVM_RECIPIENT, TEST_EVM_SENDER, TEST_POLKADOT_SENDER};
 use primitives::{AssetId, Chain};
 
 pub const TRON_NOTE: &str = "0x07037e5f4552091a69125d5dfcb7b8c2659029395bdf00890101960000003e1451cdb84d440345de6195b0384d1b77aa4eaa0000000000000000000000000000000000000000000000000000000000000000000000001e83d2972d3dca3a330d60c2777ee5b8d25683c63fa359116985609830f42054050004002d";
@@ -81,43 +80,11 @@ pub fn arbitrum_usdc_destination() -> VaultSwapDestination {
 }
 
 pub fn mock_parameters(chain: Chain, address: &str, min_price: &str) -> VaultSwapParameters {
-    VaultSwapParameters::new(chain, refund_parameters(address, min_price), None, None).unwrap()
+    VaultSwapParameters::new(chain, refund_parameters(address, min_price), None, None)
 }
 
 pub fn ethereum_usdc_parameters() -> VaultSwapParameters {
     mock_parameters(Chain::Ethereum, TEST_EVM_SENDER, "0x4faa1adcd75c490000000000000000")
-}
-
-impl VaultSwap {
-    pub fn mock_ethereum() -> Self {
-        Self {
-            wallet: TEST_EVM_SENDER.to_string(),
-            token_id: None,
-            amount: BigUint::from(100_000_000_000_000_000u64),
-            destination: bitcoin_destination(),
-            parameters: mock_parameters(Chain::Ethereum, TEST_EVM_SENDER, ETHEREUM_NATIVE_MIN_PRICE),
-        }
-    }
-
-    pub fn mock_tron() -> Self {
-        Self {
-            wallet: TEST_TRON_SENDER.to_string(),
-            token_id: None,
-            amount: BigUint::from(50_000_000u32),
-            destination: arbitrum_usdc_destination(),
-            parameters: mock_parameters(Chain::Tron, TEST_TRON_SENDER, "0x0"),
-        }
-    }
-
-    pub fn mock_solana() -> Self {
-        Self {
-            wallet: TEST_SOLANA_SENDER.to_string(),
-            token_id: None,
-            amount: BigUint::from(500_000_000u64),
-            destination: bitcoin_destination(),
-            parameters: mock_parameters(Chain::Solana, TEST_SOLANA_SENDER, SOLANA_MIN_PRICE),
-        }
-    }
 }
 
 pub fn mock_routes(quote: &Quote, estimated_price: f64) -> Vec<Route> {

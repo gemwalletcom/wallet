@@ -5,29 +5,25 @@ use gem_solana::{
     AccountMeta, BLOCKHASH_SET_AT_SIGNING, DEFAULT_SWAP_GAS_LIMIT, Instruction, InstructionBuilder, Pubkey, TransactionBuilder,
     compute_budget::{set_compute_unit_limit, set_compute_unit_price},
 };
-use gem_tron::address::TronAddress;
-use num_bigint::BigUint;
 use primitives::{
     hex::{decode_hex, encode},
     swap::SwapQuoteDataType::Contract,
 };
 
-use super::broker::{SolanaVaultSwapResponse, TronVaultSwapResponse};
+use super::{broker::SolanaVaultSwapResponse, vault_swap::TronVaultCall};
 use crate::{SwapperError, SwapperQuoteData};
 
-pub(super) fn build_tron_quote_data(response: &TronVaultSwapResponse, to: TronAddress, value: BigUint) -> Result<SwapperQuoteData, SwapperError> {
-    let calldata = decode_hex(&response.calldata).map_err(|_| SwapperError::TransactionError("invalid Tron calldata".to_string()))?;
-
-    Ok(SwapperQuoteData {
-        to: to.to_string(),
+pub(super) fn build_tron_quote_data(note: &str, call: TronVaultCall) -> SwapperQuoteData {
+    SwapperQuoteData {
+        to: call.to.to_string(),
         data_type: Contract,
-        value,
-        data: encode(calldata),
-        memo: Some(response.note.clone()),
+        value: call.value,
+        data: encode(call.calldata),
+        memo: Some(note.to_string()),
         approval: None,
         gas_limit: None,
         permit2: None,
-    })
+    }
 }
 
 pub(super) fn solana_instruction(response: &SolanaVaultSwapResponse) -> Result<Instruction, SwapperError> {
@@ -63,29 +59,23 @@ mod tests {
     use super::*;
     use crate::{
         binding_check::solana::verify_solana,
-        chainflip::{
-            broker::{SolanaVaultSwapResponse, TronVaultSwapResponse},
-            provider::SOLANA_VAULT,
-            testkit::TRON_NOTE,
-        },
+        chainflip::{broker::SolanaVaultSwapResponse, provider::SOLANA_VAULT, testkit::TRON_NOTE},
     };
     use gem_jsonrpc::types::JsonRpcResponse;
     use gem_solana::decode_transaction;
+    use gem_tron::address::TronAddress;
     use num_bigint::BigUint;
 
     #[test]
     fn test_build_tron_quote_data_maps_trc20_contract_call_fields() {
         let data = build_tron_quote_data(
-            &TronVaultSwapResponse {
-                calldata: "0xa9059cbb".to_string(),
+            TRON_NOTE,
+            TronVaultCall {
+                to: TronAddress::parse("TXYZopYRdj2D9XRtbG411XZZ3kM5VkAeBf").unwrap(),
                 value: BigUint::ZERO,
-                source_token_address: Some("0xeca9bc828a3005b9a3b909f2cc5c2a54794de05f".to_string()),
-                ..TronVaultSwapResponse::mock()
+                calldata: vec![0xa9, 0x05, 0x9c, 0xbb],
             },
-            TronAddress::parse("TXYZopYRdj2D9XRtbG411XZZ3kM5VkAeBf").unwrap(),
-            BigUint::ZERO,
-        )
-        .unwrap();
+        );
 
         assert_eq!(data.data_type, Contract);
         assert_eq!(data.to, "TXYZopYRdj2D9XRtbG411XZZ3kM5VkAeBf");
@@ -96,21 +86,18 @@ mod tests {
 
     #[test]
     fn test_build_tron_quote_data_maps_native_contract_transfer_fields() {
-        for calldata in ["", "0x"] {
-            let data = build_tron_quote_data(
-                &TronVaultSwapResponse {
-                    calldata: calldata.to_string(),
-                    ..TronVaultSwapResponse::mock()
-                },
-                TronAddress::parse("TDMakP1fbWc7XXoSWZpujpjRAuePPEn4oi").unwrap(),
-                BigUint::from(50_000_000u64),
-            )
-            .unwrap();
+        let data = build_tron_quote_data(
+            TRON_NOTE,
+            TronVaultCall {
+                to: TronAddress::parse("TDMakP1fbWc7XXoSWZpujpjRAuePPEn4oi").unwrap(),
+                value: BigUint::from(50_000_000u64),
+                calldata: vec![],
+            },
+        );
 
-            assert_eq!(data.to, "TDMakP1fbWc7XXoSWZpujpjRAuePPEn4oi");
-            assert_eq!(data.value, BigUint::from(50000000u64));
-            assert_eq!(data.data, "");
-        }
+        assert_eq!(data.to, "TDMakP1fbWc7XXoSWZpujpjRAuePPEn4oi");
+        assert_eq!(data.value, BigUint::from(50000000u64));
+        assert_eq!(data.data, "");
     }
 
     #[test]

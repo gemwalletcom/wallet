@@ -43,6 +43,13 @@ impl BorshDeserialize for SolanaSwapParameters {
     }
 }
 
+#[derive(Debug, PartialEq)]
+pub(super) struct TronVaultCall {
+    pub(super) to: TronAddress,
+    pub(super) value: BigUint,
+    pub(super) calldata: Vec<u8>,
+}
+
 #[derive(Debug, Clone)]
 pub struct VaultSwap {
     pub(super) wallet: String,
@@ -73,7 +80,7 @@ impl VaultSwap {
         Ok(value)
     }
 
-    pub(super) fn validate_tron(&self, response: &TronVaultSwapResponse) -> Result<(TronAddress, BigUint), SwapperError> {
+    pub(super) fn validate_tron(&self, response: &TronVaultSwapResponse) -> Result<TronVaultCall, SwapperError> {
         let value = self.value(&response.value)?;
         let calldata = decode_hex(&response.calldata).map_err(|_| SwapperError::InvalidRoute)?;
         let to = match self.token_id {
@@ -87,7 +94,7 @@ impl VaultSwap {
         };
         let note = decode_hex(&response.note).map_err(|_| SwapperError::InvalidRoute)?;
         self.parameters.validate(self.destination.validate_tron(&note)?)?;
-        Ok((to, value))
+        Ok(TronVaultCall { to, value, calldata })
     }
 
     pub(super) fn validate_solana(&self, instruction: &Instruction) -> Result<(), SwapperError> {
@@ -137,7 +144,7 @@ mod tests {
     use crate::chainflip::{
         broker::SolanaVaultSwapResponse,
         provider::TRON_VAULT,
-        testkit::{ETHEREUM_NATIVE_MIN_PRICE, SOLANA_MIN_PRICE, arbitrum_usdc_destination, ethereum_usdc_parameters, mock_parameters},
+        testkit::{ETHEREUM_NATIVE_MIN_PRICE, SOLANA_MIN_PRICE, arbitrum_usdc_destination, bitcoin_destination, ethereum_usdc_parameters, mock_parameters},
         tx_builder::solana_instruction,
     };
     use crate::testkit::TEST_SOLANA_PAYER;
@@ -146,8 +153,40 @@ mod tests {
         AssetId, Chain,
         asset_constants::{ETHEREUM_USDC_TOKEN_ID, ETHEREUM_USDT_TOKEN_ID, SOLANA_USDC_TOKEN_ID, SOLANA_USDT_TOKEN_ID, TRON_USDT_TOKEN_ID},
         hex::encode_with_0x,
-        testkit::signer_mock::{TEST_BITCOIN_SENDER, TEST_EVM_SENDER, TEST_PRIVATE_KEY_SOLANA_ADDRESS},
+        testkit::signer_mock::{TEST_BITCOIN_SENDER, TEST_EVM_SENDER, TEST_PRIVATE_KEY_SOLANA_ADDRESS, TEST_SOLANA_SENDER, TEST_TRON_SENDER},
     };
+
+    impl VaultSwap {
+        fn mock_ethereum() -> Self {
+            Self {
+                wallet: TEST_EVM_SENDER.to_string(),
+                token_id: None,
+                amount: BigUint::from(100_000_000_000_000_000u64),
+                destination: bitcoin_destination(),
+                parameters: mock_parameters(Chain::Ethereum, TEST_EVM_SENDER, ETHEREUM_NATIVE_MIN_PRICE),
+            }
+        }
+
+        fn mock_tron() -> Self {
+            Self {
+                wallet: TEST_TRON_SENDER.to_string(),
+                token_id: None,
+                amount: BigUint::from(50_000_000u32),
+                destination: arbitrum_usdc_destination(),
+                parameters: mock_parameters(Chain::Tron, TEST_TRON_SENDER, "0x0"),
+            }
+        }
+
+        fn mock_solana() -> Self {
+            Self {
+                wallet: TEST_SOLANA_SENDER.to_string(),
+                token_id: None,
+                amount: BigUint::from(500_000_000u64),
+                destination: bitcoin_destination(),
+                parameters: mock_parameters(Chain::Solana, TEST_SOLANA_SENDER, SOLANA_MIN_PRICE),
+            }
+        }
+    }
 
     #[test]
     fn test_validate_evm() {
@@ -243,12 +282,17 @@ mod tests {
             cfParameters: vec![].into(),
         };
 
-        assert_eq!(swap.validate_tron(&native), Ok((TronAddress::parse(TRON_VAULT).unwrap(), swap.amount.clone())));
+        let vault_call = TronVaultCall {
+            to: TronAddress::parse(TRON_VAULT).unwrap(),
+            value: swap.amount.clone(),
+            calldata: vec![],
+        };
+        assert_eq!(swap.validate_tron(&native), Ok(vault_call));
+        assert_eq!(swap.validate_tron(&TronVaultSwapResponse { calldata: String::new(), ..native.clone() }).map(|call| call.calldata), Ok(vec![]));
         assert_eq!(
-            swap.validate_tron(&TronVaultSwapResponse { calldata: String::new(), ..native.clone() }),
-            Ok((TronAddress::parse(TRON_VAULT).unwrap(), swap.amount.clone()))
+            token_swap.validate_tron(&token).map(|call| (call.to, call.value, call.calldata)),
+            Ok((TronAddress::parse(TRON_USDT_TOKEN_ID).unwrap(), BigUint::ZERO, decode_hex(&token.calldata).unwrap()))
         );
-        assert_eq!(token_swap.validate_tron(&token), Ok((TronAddress::parse(TRON_USDT_TOKEN_ID).unwrap(), BigUint::ZERO)));
 
         for (refused, response, reason) in [
             (

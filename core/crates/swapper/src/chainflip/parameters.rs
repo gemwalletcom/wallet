@@ -11,7 +11,6 @@ use super::{
 use crate::{SwapperError, fees::DEFAULT_CHAINFLIP_FEE_BPS};
 
 const CF_PARAMETERS_VERSION: u8 = 1;
-const NO_ORACLE_PRICE_SLIPPAGE: u8 = 0;
 const BROKER_ACCOUNT_LENGTH: usize = 32;
 const BROKER_FEE_BPS: u32 = 5;
 
@@ -24,13 +23,13 @@ pub struct VaultSwapParameters {
 }
 
 impl VaultSwapParameters {
-    pub(super) fn new(chain: Chain, refund: RefundParameters, dca: Option<DcaParameters>, boost_fee: Option<u32>) -> Result<Self, SwapperError> {
-        Ok(Self {
+    pub(super) fn new(chain: Chain, refund: RefundParameters, dca: Option<DcaParameters>, boost_fee: Option<u8>) -> Self {
+        Self {
             chain,
             refund,
             dca,
-            boost_fee: u8::try_from(boost_fee.unwrap_or_default()).map_err(|_| SwapperError::InvalidRoute)?,
-        })
+            boost_fee: boost_fee.unwrap_or_default(),
+        }
     }
 
     pub(super) fn validate(&self, cf_parameters: &[u8]) -> Result<(), SwapperError> {
@@ -51,6 +50,10 @@ impl VaultSwapParameters {
             .encode_address(&self.refund.refund_address)
             .ok_or_else(|| SwapperError::TransactionError(format!("invalid Chainflip refund address: {}", self.refund.refund_address)))?;
         let min_price = U256::from_str(&self.refund.min_price).map_err(SwapperError::transaction_error)?;
+        let oracle_price_slippage = match self.refund.max_oracle_price_slippage {
+            Some(slippage) => [&[1u8][..], &u16::from(slippage).to_le_bytes()].concat(),
+            None => vec![0],
+        };
         let dca = match &self.dca {
             Some(dca) => [&[1u8][..], &dca.number_of_chunks.to_le_bytes(), &dca.chunk_interval.to_le_bytes()].concat(),
             None => vec![0],
@@ -60,7 +63,8 @@ impl VaultSwapParameters {
             &self.refund.retry_duration.to_le_bytes()[..],
             &address,
             &min_price.to_le_bytes::<32>(),
-            &[NO_CCM, NO_ORACLE_PRICE_SLIPPAGE],
+            &[NO_CCM],
+            &oracle_price_slippage,
             &dca,
             &[self.boost_fee],
         ]
@@ -99,6 +103,18 @@ mod tests {
             ..parameters.clone()
         };
         assert_eq!(split.validate(&encoded(&[0, 0, 1, 3, 0, 0, 0, 2, 0, 0, 0, 7], &[5, 0, 4, 0, 45])), Ok(()));
+        let oracle_limited = VaultSwapParameters {
+            refund: RefundParameters {
+                max_oracle_price_slippage: Some(77),
+                ..parameters.refund.clone()
+            },
+            ..parameters.clone()
+        };
+        assert_eq!(
+            oracle_limited.validate(&encoded(&[0, 1, 77, 0, 0, 0], &[5, 0, 4, 0, 45])),
+            Ok(()),
+            "an oracle price limit the quote set, as a two-byte basis point value"
+        );
 
         for (cf_parameters, reason) in [
             (encoded(&[1, 0, 0, 0], &[5, 0, 4, 0, 45]), "a refund that also makes a call"),

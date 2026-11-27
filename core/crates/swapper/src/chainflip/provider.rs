@@ -153,7 +153,7 @@ fn get_best_quote(quotes: Vec<QuoteResponse>, request: &ChainflipQuoteRequest) -
         })
         .max_by(|(left, ..), (right, ..)| left.egress_amount_native.cmp(&right.egress_amount_native))
         .ok_or(SwapperError::NoQuoteAvailable)?;
-    let boost_fee = estimated_boost_fee_bps.map(|fee| fee.ceil().to_u32().filter(|fee| *fee <= u8::MAX as u32).ok_or(SwapperError::InvalidRoute)).transpose()?;
+    let boost_fee = estimated_boost_fee_bps.map(|fee| fee.ceil().to_u8().ok_or(SwapperError::InvalidRoute)).transpose()?;
     if details.egress_amount_native == BigUint::from(0u32)
         || !details.estimated_price.is_finite()
         || details.estimated_price <= 0.0
@@ -276,7 +276,7 @@ where
                 source_asset,
                 destination_asset,
                 destination_address: quote.request.destination_address.clone(),
-                boost_fee: route_data.boost_fee,
+                boost_fee: route_data.boost_fee.map(u32::from),
                 refund_parameters,
                 dca_parameters: route_data.dca_parameters,
             };
@@ -289,7 +289,7 @@ where
             token_id: from_asset.token_id.clone(),
             amount: input_amount.clone(),
             destination: VaultSwapDestination::new(&quote.request.to_asset.asset_id(), &quote.request.destination_address)?,
-            parameters: VaultSwapParameters::new(from_asset.chain, refund_parameters.clone(), route_data.dca_parameters.clone(), route_data.boost_fee)?,
+            parameters: VaultSwapParameters::new(from_asset.chain, refund_parameters.clone(), route_data.dca_parameters.clone(), route_data.boost_fee),
         };
         let extra_params = match source_chain_type {
             ChainType::Ethereum => VaultSwapExtras::Evm(VaultSwapChainExtras {
@@ -317,7 +317,7 @@ where
             destination_asset,
             quote.request.destination_address.clone(),
             DEFAULT_FEE_BPS,
-            route_data.boost_fee,
+            route_data.boost_fee.map(u32::from),
             extra_params,
             route_data.dca_parameters,
         );
@@ -329,10 +329,7 @@ where
 
                 Ok(SwapperQuoteData::new_contract(vault_address(from_asset.chain)?.to_string(), value, response.calldata, approval, gas_limit))
             }
-            (ChainType::Tron, VaultSwapResponse::Tron(response)) => {
-                let (to, value) = vault_swap.validate_tron(&response)?;
-                tx_builder::build_tron_quote_data(&response, to, value)
-            }
+            (ChainType::Tron, VaultSwapResponse::Tron(response)) => Ok(tx_builder::build_tron_quote_data(&response.note, vault_swap.validate_tron(&response)?)),
             (ChainType::Solana, VaultSwapResponse::Solana(response)) => {
                 let instruction = tx_builder::solana_instruction(&response)?;
                 vault_swap.validate_solana(&instruction)?;
