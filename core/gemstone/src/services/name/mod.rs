@@ -9,7 +9,6 @@ use primitives::{AddressName, Chain, ChainAddress};
 
 use crate::api::{GemApiError, GemDeviceApiClient};
 use crate::services::name::store::GemAddressNameWriter;
-use crate::services::recipient::{GemRecipientValidation, rules as recipient_rules};
 
 pub use model::{GemAddressNameUpdate, GemNameInputStep, GemNameRecordState};
 pub use store::GemAddressStore;
@@ -25,18 +24,6 @@ impl GemNameService {
     #[uniffi::constructor]
     pub fn new(api: Arc<GemDeviceApiClient>, store: Arc<dyn GemAddressStore>) -> Self {
         Self { api, store }
-    }
-
-    pub fn validate_recipient(&self, chain: Chain, input: String, state: GemNameRecordState) -> GemRecipientValidation {
-        recipient_rules::validation(chain, &input, &state)
-    }
-
-    pub fn name_input_step(&self, state: GemNameRecordState, name: String, chain: Option<Chain>) -> GemNameInputStep {
-        rules::name_input_step(&state, &name, chain)
-    }
-
-    pub fn resolved_state(&self, state: GemNameRecordState, name: String, chain: Chain, resolved: GemNameRecordState) -> GemNameRecordState {
-        rules::resolved_state(&state, &name, chain, resolved)
     }
 
     pub async fn get_name_record(&self, name: String, chain: Chain) -> Result<GemNameRecordState, GemServiceError> {

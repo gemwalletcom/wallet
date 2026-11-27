@@ -1,6 +1,9 @@
 use primitives::name::NameRecord;
 use primitives::{AddressName, AddressType, Chain};
 
+use super::rules;
+use crate::services::recipient::{GemRecipientValidation, rules as recipient_rules};
+
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
 pub enum GemNameRecordState {
     None,
@@ -29,6 +32,18 @@ impl GemNameRecordState {
             Self::Error => Some(GemNameIndicator::Error),
             Self::Complete { .. } => Some(GemNameIndicator::Success),
         }
+    }
+
+    pub fn validate_recipient(&self, chain: Chain, input: String) -> GemRecipientValidation {
+        recipient_rules::validation(chain, &input, self)
+    }
+
+    pub fn name_input_step(&self, name: String, chain: Option<Chain>) -> GemNameInputStep {
+        rules::name_input_step(self, &name, chain)
+    }
+
+    pub fn resolved_state(&self, name: String, chain: Chain, resolved: GemNameRecordState) -> GemNameRecordState {
+        rules::resolved_state(self, &name, chain, resolved)
     }
 }
 

@@ -13,7 +13,6 @@ import SwiftUI
 public final class AddressInputViewModel {
     let placeholder: String
     public let nameRecordViewModel: NameRecordViewModel
-    private let nameService: any GemNameServiceProtocol
 
     public var chain: Chain {
         didSet { onChangeChain() }
@@ -29,7 +28,6 @@ public final class AddressInputViewModel {
         self.chain = chain
         self.placeholder = placeholder
         nameRecordViewModel = NameRecordViewModel(nameService: nameService)
-        self.nameService = nameService
         inputModel = InputValidationViewModel()
     }
 
@@ -51,7 +49,7 @@ public final class AddressInputViewModel {
     }
 
     private var validation: GemRecipientValidation {
-        nameService.validateRecipient(chain: chain.rawValue, input: text, state: nameResolveState)
+        nameResolveState.validateRecipient(chain: chain.rawValue, input: text)
     }
 
     public func update(text: String) {

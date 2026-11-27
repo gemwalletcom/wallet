@@ -1,7 +1,7 @@
 package com.gemwallet.android.ui.models.name
 
 import com.gemwallet.android.ext.errorText
-import com.gemwallet.android.ext.validateRecipient
+import com.gemwallet.android.ext.toGem
 import com.wallet.core.primitives.Chain
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -80,5 +80,5 @@ class AddressInputModel(private val nameService: GemNameServiceInterface, scope:
 
     private fun isValid(text: String, resolve: GemNameRecordState, chain: Chain?): Boolean = chain != null && validation(text, resolve, chain).isValid
 
-    private fun validation(text: String, state: GemNameRecordState, chain: Chain): GemRecipientValidation = nameService.validateRecipient(chain, text, state)
+    private fun validation(text: String, state: GemNameRecordState, chain: Chain): GemRecipientValidation = state.validateRecipient(chain.toGem(), text)
 }

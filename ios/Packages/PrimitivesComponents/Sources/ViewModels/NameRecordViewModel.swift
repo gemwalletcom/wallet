@@ -20,7 +20,7 @@ public final class NameRecordViewModel {
     }
 
     public func getNameRecord(name: String, chain: Chain) {
-        switch nameService.nameInputStep(state: state, name: name, chain: chain.toGem()) {
+        switch state.nameInputStep(name: name, chain: chain.toGem()) {
         case .unchanged:
             return
         case .reset:
@@ -37,10 +37,10 @@ public final class NameRecordViewModel {
             try await Task.sleep(for: .milliseconds(debounceMilliseconds))
             let resolved = try await nameService.getNameRecord(name: name, chain: chain.rawValue)
             try Task.checkCancellation()
-            state = nameService.resolvedState(state: state, name: name, chain: chain.toGem(), resolved: resolved)
+            state = state.resolvedState(name: name, chain: chain.toGem(), resolved: resolved)
         } catch {
             guard !error.isCancelled else { return }
-            state = nameService.resolvedState(state: state, name: name, chain: chain.toGem(), resolved: .error)
+            state = state.resolvedState(name: name, chain: chain.toGem(), resolved: .error)
         }
     }
 
