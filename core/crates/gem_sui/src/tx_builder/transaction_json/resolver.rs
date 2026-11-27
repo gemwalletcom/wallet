@@ -1,6 +1,9 @@
-use super::model::{TransactionArgument, TransactionCommand, TransactionInput};
+use super::{
+    model::{TransactionArgument, TransactionCommand, TransactionInput},
+    spend::WalletObject,
+};
 use crate::rpc::proto::{FunctionDescriptor, OpenSignature, open_signature::Reference};
-use crate::{SuiClient, SuiError, tx_builder::ResolvedObjectInput, types::ObjectInput};
+use crate::{SuiClient, SuiError, full_coin_type, tx_builder::ResolvedObjectInput, types::ObjectInput};
 use futures::future::try_join_all;
 use std::collections::{HashMap, HashSet};
 
@@ -63,7 +66,7 @@ async fn get_functions(client: &SuiClient, keys: Vec<MoveFunctionKey>) -> Result
     .map(|functions| functions.into_iter().collect())
 }
 
-pub(super) async fn object_inputs(client: &SuiClient, inputs: &[TransactionInput], input_mutability: &HashMap<usize, bool>) -> Result<HashMap<usize, ObjectInput>, SuiError> {
+pub(super) async fn object_inputs(client: &SuiClient, inputs: &[TransactionInput], input_mutability: &HashMap<usize, bool>) -> Result<(HashMap<usize, ObjectInput>, HashMap<usize, WalletObject>), SuiError> {
     let object_ids = inputs
         .iter()
         .filter_map(|input| match input {
@@ -87,23 +90,23 @@ pub(super) async fn object_inputs(client: &SuiClient, inputs: &[TransactionInput
         .map(|(object_id, object)| Ok((object_id, ResolvedObjectInput::from_rpc_object(object)?)))
         .collect::<Result<HashMap<_, _>, SuiError>>()?;
 
-    inputs
-        .iter()
-        .enumerate()
-        .filter_map(|(index, input)| match input {
-            TransactionInput::UnresolvedObject { object } => Some(object_input(index, &object.object_id, &objects, input_mutability)),
-            TransactionInput::Pure { .. } | TransactionInput::Object { .. } | TransactionInput::FundsWithdrawal { .. } | TransactionInput::UnresolvedPure { .. } => None,
-        })
-        .collect()
+    let mut object_inputs = HashMap::new();
+    let mut wallet_objects = HashMap::new();
+    for (index, input) in inputs.iter().enumerate() {
+        let TransactionInput::UnresolvedObject { object } = input else {
+            continue;
+        };
+        let resolved = objects.get(&object.object_id).ok_or_else(|| SuiError::invalid_input(format!("Sui object was not returned by RPC: {}", object.object_id)))?;
+        object_inputs.insert(index, resolved.input(input_mutability.get(&index).copied().unwrap_or(false)));
+        if resolved.is_owned() {
+            wallet_objects.insert(index, resolved.coin_type().map_or(WalletObject::Other, |coin_type| WalletObject::Coin(full_coin_type(coin_type))));
+        }
+    }
+    Ok((object_inputs, wallet_objects))
 }
 
 fn is_mutable_parameter(parameter: &OpenSignature) -> bool {
     parameter.reference.and_then(|reference| Reference::try_from(reference).ok()) == Some(Reference::Mutable)
-}
-
-fn object_input(index: usize, object_id: &str, objects: &HashMap<String, ResolvedObjectInput>, input_mutability: &HashMap<usize, bool>) -> Result<(usize, ObjectInput), SuiError> {
-    let object = objects.get(object_id).ok_or_else(|| SuiError::invalid_input(format!("Sui object was not returned by RPC: {object_id}")))?;
-    Ok((index, object.input(input_mutability.get(&index).copied().unwrap_or(false))))
 }
 
 #[cfg(test)]

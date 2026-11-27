@@ -98,7 +98,7 @@ where
     }
 
     let params = GetSwapSuiParams::new(route, quote.request.wallet_address.clone(), fast_mctp_input_contract(route)?.to_string(), false, route.destination_referrer_address()?);
-    SuiClientSwapReplay::get(client, sui_client, params).await.map(Some)
+    SuiClientSwapReplay::get(client, sui_client, params, 0).await.map(Some)
 }
 
 fn build_fast_mctp_transaction(quote: &Quote, route: &MayanFastMctpQuote, context: &FastMctpSuiContext, swap: Option<&SuiClientSwapReplay>, gas_budget: u64) -> Result<TxOutput, SwapperError> {

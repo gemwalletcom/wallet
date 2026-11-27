@@ -2,6 +2,7 @@ use super::{
     builder::{CommandOutput, output_argument, replay_command, replay_input},
     model::{TransactionArgument, TransactionBuilderJson},
     resolver::{input_mutability, object_inputs},
+    spend::WalletObject,
 };
 use crate::{
     SuiClient, SuiError,
@@ -25,6 +26,7 @@ impl ReplayedTransaction {
 pub struct TransactionJsonReplay {
     pub(super) transaction: TransactionBuilderJson,
     pub(super) object_inputs: HashMap<usize, ObjectInput>,
+    pub(super) wallet_objects: HashMap<usize, WalletObject>,
 }
 
 impl TransactionJsonReplay {
@@ -78,8 +80,8 @@ pub(super) fn parse_transaction_json(transaction_json: &str) -> Result<Transacti
 
 pub(super) async fn prepare_replay(client: &SuiClient, transaction: TransactionBuilderJson) -> Result<TransactionJsonReplay, SuiError> {
     let input_mutability = input_mutability(client, &transaction.commands).await?;
-    let object_inputs = object_inputs(client, &transaction.inputs, &input_mutability).await?;
-    Ok(TransactionJsonReplay { transaction, object_inputs })
+    let (object_inputs, wallet_objects) = object_inputs(client, &transaction.inputs, &input_mutability).await?;
+    Ok(TransactionJsonReplay { transaction, object_inputs, wallet_objects })
 }
 
 #[cfg(test)]

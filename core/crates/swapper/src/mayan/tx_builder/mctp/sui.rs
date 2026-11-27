@@ -1,7 +1,10 @@
 mod context;
 mod transaction;
 
-use self::{context::MctpSuiContext, transaction::build_mctp_transaction};
+use self::{
+    context::MctpSuiContext,
+    transaction::{build_mctp_transaction, fees::bridge_fee},
+};
 use crate::mayan::{
     client::MayanClient,
     model::{GetSwapSuiParams, MayanMctpQuote},
@@ -44,5 +47,9 @@ where
 
     let with_wh_fee = route.has_auction == Some(true) || route.cheaper_chain.as_deref() != Some(WormholeChain::Sui.name());
     let params = GetSwapSuiParams::new(route, quote.request.wallet_address.clone(), mctp_input_contract.to_string(), with_wh_fee, route.destination_referrer_address()?);
-    SuiClientSwapReplay::get(client, sui_client, params).await.map(Some)
+    let wormhole_fee = match with_wh_fee {
+        true => bridge_fee(route)?,
+        false => 0,
+    };
+    SuiClientSwapReplay::get(client, sui_client, params, wormhole_fee).await.map(Some)
 }

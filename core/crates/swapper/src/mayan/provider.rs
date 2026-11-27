@@ -496,13 +496,13 @@ mod tests {
 #[cfg(all(test, feature = "swap_integration_tests"))]
 mod swap_integration_tests {
     use super::*;
-    use crate::testkit::mock_quote;
+    use crate::testkit::{TEST_SUI_WALLET, mock_quote};
     use crate::{QuoteDataInput, SwapperQuoteAsset, mayan::constants::MAYAN_FORWARDER, models::Options};
     use gem_reqwest::NativeProvider;
     use num_bigint::BigUint;
     use primitives::{
         AssetId,
-        asset_constants::{BASE_USDC_ASSET_ID, HYPERCORE_SPOT_USDC_ASSET_ID, HYPEREVM_USDC_ASSET_ID, POLYGON_USDT_ASSET_ID, SOLANA_USDC_ASSET_ID, SUI_USDC_ASSET_ID},
+        asset_constants::{BASE_USDC_ASSET_ID, HYPERCORE_SPOT_USDC_ASSET_ID, HYPEREVM_USDC_ASSET_ID, POLYGON_USDT_ASSET_ID, SOLANA_USDC_ASSET_ID, SUI_USDC_ASSET_ID, SUI_WAL_ASSET_ID},
         swap::{Slippage, SlippageMode, SwapStatus},
     };
     use std::{future::Future, time::Instant};
@@ -630,6 +630,27 @@ mod swap_integration_tests {
         assert_eq!(route.to_chain, wormhole_chain::WormholeChain::Base.name());
         assert!(quote_data.to.is_empty());
         assert_eq!(quote_data.value, BigUint::from(0u64));
+        assert!(!quote_data.data.is_empty());
+        Ok(())
+    }
+
+    #[tokio::test]
+    async fn test_mayan_provider_get_sui_token_quote_and_data() -> Result<(), SwapperError> {
+        let provider = Mayan::new(Arc::new(NativeProvider::default().set_debug(false)));
+        let request = QuoteRequest {
+            from_asset: SwapperQuoteAsset::from(SUI_WAL_ASSET_ID.clone()),
+            to_asset: SwapperQuoteAsset::from(BASE_USDC_ASSET_ID.clone()),
+            wallet_address: TEST_SUI_WALLET.to_string(),
+            destination_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".to_string(),
+            value: BigUint::from(5_000_000_000u64),
+            options: Options::new_with_slippage(200.into()),
+        };
+
+        let quote = timed("mayan sui token quote", provider.get_quote(&request)).await?;
+        let quote_data = timed("mayan sui token quote data", provider.get_quote_data(&quote, QuoteDataInput::None)).await?;
+        (&provider as &dyn Swapper).verify_binding(&quote, &quote_data)?;
+
+        assert!(quote.to_value > BigUint::ZERO);
         assert!(!quote_data.data.is_empty());
         Ok(())
     }
