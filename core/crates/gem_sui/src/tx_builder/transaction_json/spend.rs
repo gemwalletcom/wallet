@@ -32,9 +32,6 @@ impl TransactionJsonReplay {
         for command in &self.transaction.commands {
             match command {
                 TransactionCommand::SplitCoins { split_coins } => {
-                    for amount in &split_coins.amounts {
-                        self.refuse_wallet_coin(amount)?;
-                    }
                     if let Some(coin_type) = self.wallet_coin(&split_coins.coin)? {
                         for amount in &split_coins.amounts {
                             add(coin_type.clone(), self.pure_u64(amount)?)?;
@@ -56,6 +53,23 @@ impl TransactionJsonReplay {
             }
         }
         Ok(spend)
+    }
+
+    pub fn unused_wallet_split(&self, argument: &TransactionArgument) -> Option<(String, u64)> {
+        let TransactionArgument::NestedResult { nested_result: [command, index] } = *argument else {
+            return None;
+        };
+        let TransactionCommand::SplitCoins { split_coins } = self.transaction.commands.get(command)? else {
+            return None;
+        };
+        let coin_type = self.wallet_coin(&split_coins.coin).ok()??;
+        let amount = self.pure_u64(split_coins.amounts.get(index)?).ok()?;
+        let used = self.transaction.commands.iter().flat_map(TransactionCommand::arguments).any(|used| match *used {
+            TransactionArgument::Result { result } => result == command,
+            TransactionArgument::NestedResult { nested_result } => nested_result == [command, index],
+            TransactionArgument::GasCoin { .. } | TransactionArgument::Input { .. } => false,
+        });
+        (!used).then_some((coin_type, amount))
     }
 
     fn wallet_coin(&self, argument: &TransactionArgument) -> Result<Option<String>, SuiError> {
@@ -195,5 +209,30 @@ mod tests {
         ] {
             assert!(spend(inputs, commands, &wallet_coins).is_err(), "{reason}");
         }
+    }
+
+    #[test]
+    fn test_unused_wallet_split() {
+        let transaction = json!({
+            "version": 2,
+            "inputs": [amount(3), amount(5), object(1)],
+            "commands": [
+                { "SplitCoins": { "coin": { "GasCoin": true }, "amounts": [{ "Input": 0 }, { "Input": 1 }] } },
+                swap(json!({ "NestedResult": [0, 0] })),
+                { "SplitCoins": { "coin": { "NestedResult": [0, 0] }, "amounts": [{ "Input": 0 }] } },
+                { "SplitCoins": { "coin": { "Input": 2 }, "amounts": [{ "Input": 1 }] } },
+                { "MergeCoins": { "destination": { "NestedResult": [3, 0] }, "sources": [{ "NestedResult": [2, 0] }] } }
+            ]
+        });
+        let replay = TransactionJsonReplay::mock_with_wallet_coins(&transaction.to_string(), &[(2, WAL)]);
+        let unused = |command, index| replay.unused_wallet_split(&TransactionArgument::NestedResult { nested_result: [command, index] });
+
+        assert_eq!(unused(0, 1), Some((full_coin_type(SUI_COIN_TYPE), 5)));
+        assert_eq!(unused(0, 0), None, "a coin a call can split SUI off");
+        assert_eq!(unused(2, 0), None, "a coin split from a coin the wallet does not hold");
+        assert_eq!(unused(3, 0), None, "a coin something is merged into");
+        assert_eq!(unused(0, 2), None);
+        assert_eq!(replay.unused_wallet_split(&TransactionArgument::Result { result: 0 }), None);
+        assert_eq!(replay.unused_wallet_split(&TransactionArgument::GasCoin { gas_coin: true }), None);
     }
 }

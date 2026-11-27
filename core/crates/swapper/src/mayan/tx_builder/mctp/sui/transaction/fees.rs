@@ -3,6 +3,6 @@ use crate::{
     mayan::{model::MayanMctpQuote, tx_builder::amount::value_to_query},
 };
 
-pub(in crate::mayan::tx_builder::mctp::sui) fn bridge_fee(route: &MayanMctpQuote) -> Result<u64, SwapperError> {
+pub(super) fn bridge_fee(route: &MayanMctpQuote) -> Result<u64, SwapperError> {
     value_to_query(route.bridge_fee.as_ref().ok_or(SwapperError::InvalidRoute)?)?.parse::<u64>().map_err(SwapperError::from)
 }

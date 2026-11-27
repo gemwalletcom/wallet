@@ -1,5 +1,5 @@
 mod bridge;
-pub(super) mod fees;
+mod fees;
 mod order;
 
 use self::{

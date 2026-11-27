@@ -5,10 +5,10 @@ use std::{
     str::FromStr,
 };
 
-use super::{Argument, TransactionBuilder};
-use crate::types::{Address, Digest, ObjectInput};
+use super::{Argument, TransactionBuilder, balance::MODULE_COIN};
+use crate::types::{Address, Digest, ObjectInput, TypeTag};
 
-const COIN_OBJECT_TYPE: &str = "::coin::Coin<";
+const COIN_STRUCT: &str = "Coin";
 
 #[derive(Clone, Debug)]
 pub struct ResolvedObjectInput {
@@ -65,9 +65,15 @@ impl ResolvedObjectInput {
         }
     }
 
-    pub(crate) fn coin_type(&self) -> Option<&str> {
-        let (package, coin_type) = self.object_type.as_deref()?.split_once(COIN_OBJECT_TYPE)?;
-        (Address::from_str(package).ok()? == sui_framework_package_address()).then(|| coin_type.strip_suffix('>')).flatten()
+    pub(crate) fn coin_type(&self) -> Option<String> {
+        let TypeTag::Struct(object) = self.object_type.as_deref()?.parse::<TypeTag>().ok()? else {
+            return None;
+        };
+        let is_coin = object.address == sui_framework_package_address() && object.module.to_string() == MODULE_COIN && object.name.to_string() == COIN_STRUCT;
+        match object.type_params.as_slice() {
+            [coin_type] if is_coin => Some(coin_type.to_string()),
+            _ => None,
+        }
     }
 
     pub fn input(&self, mutable: bool) -> ObjectInput {
@@ -134,7 +140,7 @@ impl ObjectResolver {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::{SUI_COIN_TYPE, rpc::proto::Owner};
+    use crate::{SUI_COIN_TYPE, SUI_COIN_TYPE_FULL, rpc::proto::Owner};
 
     #[test]
     fn test_coin_type() {
@@ -156,8 +162,14 @@ mod tests {
         let full = object(1, &format!("0x{:064x}::coin::Coin<{SUI_COIN_TYPE}>", 2));
 
         assert!(full.is_owned());
-        assert_eq!(full.coin_type(), Some(SUI_COIN_TYPE));
-        assert_eq!(object(1, "0x2::coin::Coin<0x2::sui::SUI>").coin_type(), Some(SUI_COIN_TYPE));
+        assert_eq!(full.coin_type(), Some(SUI_COIN_TYPE_FULL.to_string()));
+        assert_eq!(object(1, "0x2::coin::Coin<0x2::sui::SUI>").coin_type(), Some(SUI_COIN_TYPE_FULL.to_string()));
+        assert_eq!(
+            object(1, "0x2::coin::Coin<0x5::lp::LP<0x2::sui::SUI>>").coin_type(),
+            object(1, &format!("0x2::coin::Coin<0x5::lp::LP<0x{:064x}::sui::SUI>>", 2)).coin_type(),
+            "a generic coin type reads the same in either address form"
+        );
+        assert_eq!(object(1, "0x2::coin::CoinMetadata<0x2::sui::SUI>").coin_type(), None);
         assert_eq!(object(1, "0x3::coin::Coin<0x2::sui::SUI>").coin_type(), None, "a coin type of another package is not a coin");
         assert_eq!(object(1, "0x2::kiosk::Kiosk").coin_type(), None);
         assert!(!object(3, "0x2::clock::Clock").is_owned(), "a shared object is not the wallet's");

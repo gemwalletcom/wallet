@@ -3,7 +3,7 @@ use super::{
     spend::WalletObject,
 };
 use crate::rpc::proto::{FunctionDescriptor, OpenSignature, open_signature::Reference};
-use crate::{SuiClient, SuiError, full_coin_type, tx_builder::ResolvedObjectInput, types::ObjectInput};
+use crate::{SuiClient, SuiError, tx_builder::ResolvedObjectInput, types::ObjectInput};
 use futures::future::try_join_all;
 use std::collections::{HashMap, HashSet};
 
@@ -99,7 +99,7 @@ pub(super) async fn object_inputs(client: &SuiClient, inputs: &[TransactionInput
         let resolved = objects.get(&object.object_id).ok_or_else(|| SuiError::invalid_input(format!("Sui object was not returned by RPC: {}", object.object_id)))?;
         object_inputs.insert(index, resolved.input(input_mutability.get(&index).copied().unwrap_or(false)));
         if resolved.is_owned() {
-            wallet_objects.insert(index, resolved.coin_type().map_or(WalletObject::Other, |coin_type| WalletObject::Coin(full_coin_type(coin_type))));
+            wallet_objects.insert(index, resolved.coin_type().map_or(WalletObject::Other, WalletObject::Coin));
         }
     }
     Ok((object_inputs, wallet_objects))

@@ -30,7 +30,7 @@ pub(in crate::mayan::tx_builder) struct SuiClientSwapReplay {
 }
 
 impl SuiClientSwapReplay {
-    pub(in crate::mayan::tx_builder) async fn get<C>(client: &MayanClient<C>, sui_client: &SuiClient, params: GetSwapSuiParams, wormhole_fee: u64) -> Result<Self, SwapperError>
+    pub(in crate::mayan::tx_builder) async fn get<C>(client: &MayanClient<C>, sui_client: &SuiClient, params: GetSwapSuiParams) -> Result<Self, SwapperError>
     where
         C: Client + Clone + Send + Sync + Debug + 'static,
     {
@@ -38,8 +38,18 @@ impl SuiClientSwapReplay {
         let amount = params.amount_in64.parse::<u64>()?;
         let swap: SuiClientSwap = client.get_swap_sui(params).await?;
         let replay = prepare_transaction_json_replay(sui_client, &swap.tx).await.map_err(sui_error)?;
-        verify_wallet_spend(&replay, &coin_type, amount, wormhole_fee)?;
+        verify_wallet_spend(&replay, &coin_type, amount, wormhole_fee(&swap, &replay)?)?;
         Ok(Self { swap, replay })
+    }
+}
+
+fn wormhole_fee(swap: &SuiClientSwap, replay: &TransactionJsonReplay) -> Result<u64, SwapperError> {
+    let Some(coin) = &swap.wh_fee_coin else {
+        return Ok(0);
+    };
+    match replay.unused_wallet_split(coin) {
+        Some((coin_type, amount)) if coin_type_matches(&coin_type, SUI_COIN_TYPE) => Ok(amount),
+        Some(_) | None => Err(SwapperError::InvalidRoute),
     }
 }
 
@@ -191,6 +201,32 @@ mod tests {
             assert_eq!(verify_wallet_spend(replay, coin_type, amount, 0), Err(SwapperError::InvalidRoute), "{reason}");
         }
         assert_eq!(verify_wallet_spend(&from_gas, SUI_WAL_TOKEN_ID, 0, 1_000_000_000), Ok(()), "SUI for the Wormhole fee beside a token swap");
+
+        assert_eq!(wormhole_fee(&coin, &from_gas), Ok(0), "a reply without a fee coin gets no SUI for the fee");
+        let fee_coin = |argument| SuiClientSwap { wh_fee_coin: Some(argument), ..coin.clone() };
+        assert_eq!(
+            wormhole_fee(&fee_coin(SuiTransactionArgument::NestedResult { nested_result: [0, 0] }), &from_gas),
+            Err(SwapperError::InvalidRoute),
+            "a fee coin the swap also spends, so a call could split SUI off it"
+        );
+        assert_eq!(wormhole_fee(&fee_coin(SuiTransactionArgument::Result { result: 4 }), &from_gas), Err(SwapperError::InvalidRoute), "a fee coin a call returns");
+        let mut with_fee_split: Value = serde_json::from_str(&coin.tx).unwrap();
+        let fee_input = with_fee_split["inputs"].as_array().unwrap().len();
+        with_fee_split["inputs"]
+            .as_array_mut()
+            .unwrap()
+            .push(serde_json::json!({ "Pure": { "bytes": gem_encoding::encode_base64(&7_000u64.to_le_bytes()) } }));
+        let fee_command = with_fee_split["commands"].as_array().unwrap().len();
+        with_fee_split["commands"]
+            .as_array_mut()
+            .unwrap()
+            .push(serde_json::json!({ "SplitCoins": { "coin": { "GasCoin": true }, "amounts": [{ "Input": fee_input }] } }));
+        let fee_split = TransactionJsonReplay::mock(&with_fee_split.to_string());
+        assert_eq!(
+            wormhole_fee(&fee_coin(SuiTransactionArgument::NestedResult { nested_result: [fee_command, 0] }), &fee_split),
+            Ok(7_000),
+            "SUI split from the wallet for the fee and left for Wormhole, which takes only its exact fee"
+        );
     }
 
     #[test]
