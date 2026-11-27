@@ -23,14 +23,15 @@ pub struct BlockPlan {
 }
 
 pub fn timeout_for_state(state: &ParserState, min_check: Duration, max_check: Duration) -> Duration {
+    let min_interval = cmp::max(Duration::from_millis(state.timeout_latest_block as u64), min_check);
     let block_time = Duration::from_millis(state.block_time as u64);
     if block_time.is_zero() {
-        return cmp::max(Duration::from_millis(state.timeout_latest_block as u64), min_check);
+        return min_interval;
     }
 
     let remaining = block_time.saturating_sub(state.updated_at.elapsed());
-    let upper = cmp::max(cmp::min(block_time, max_check), min_check);
-    remaining.clamp(min_check, upper)
+    let upper = cmp::max(cmp::min(block_time, max_check), min_interval);
+    remaining.clamp(min_interval, upper)
 }
 
 pub fn should_reload_catchup(processed_blocks: i64, interval: i64, elapsed: Duration, max_check: Duration) -> bool {
@@ -111,6 +112,32 @@ mod tests {
             ..ParserState::mock()
         };
         assert_eq!(timeout_for_state(&s, MIN, MAX), MIN);
+    }
+
+    #[test]
+    fn test_timeout_for_state_min_interval() {
+        for since_update in [0, 12, 30] {
+            let s = ParserState {
+                block_time: 20_000,
+                timeout_latest_block: 10_000,
+                updated_at: DateTime::now() - Duration::from_secs(since_update),
+                ..ParserState::mock()
+            };
+            assert_eq!(timeout_for_state(&s, MIN, MAX), Duration::from_secs(10), "{since_update}s after the last block");
+        }
+
+        let s = ParserState {
+            block_time: 12_000,
+            timeout_latest_block: 3_000,
+            updated_at: DateTime::now(),
+            ..ParserState::mock()
+        };
+        assert_eq!(timeout_for_state(&s, MIN, MAX), MAX);
+        let s = ParserState {
+            updated_at: DateTime::now() - Duration::from_secs(15),
+            ..s
+        };
+        assert_eq!(timeout_for_state(&s, MIN, MAX), Duration::from_secs(3));
     }
 
     #[test]
