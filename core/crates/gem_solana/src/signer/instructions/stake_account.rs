@@ -1,6 +1,6 @@
+use gem_hash::sha2::sha256;
 use num_traits::ToPrimitive;
 use primitives::{FeeOption, SignerError, SignerInput};
-use sha2::{Digest, Sha256};
 
 use crate::{AccountMeta, Instruction, Pubkey, STAKE_PROGRAM_ID, SYSTEM_PROGRAM_ID, SYSVAR_CLOCK_ID, SYSVAR_RENT_ID};
 
@@ -86,11 +86,7 @@ pub(super) fn withdraw_instruction(stake_account: Pubkey, recipient: Pubkey, aut
 pub(super) fn from_blockhash(sender: &Pubkey, input: &SignerInput) -> Result<Pubkey, SignerError> {
     let seed = seed_from_blockhash(input)?;
     let stake_program = program()?;
-    let mut hasher = Sha256::new();
-    hasher.update(sender.as_bytes());
-    hasher.update(seed.as_bytes());
-    hasher.update(stake_program.as_bytes());
-    Ok(Pubkey::new(hasher.finalize().into()))
+    Ok(Pubkey::new(sha256(&[sender.as_bytes(), seed.as_bytes(), stake_program.as_bytes()].concat())))
 }
 
 pub(super) fn rent(input: &SignerInput) -> u64 {

@@ -7,7 +7,7 @@ use gem_evm::rpc::parsers::ProtocolParser;
 use gem_evm::rpc::{EthereumClient, EvmFeeCalculator, EvmStakingClient};
 use gem_evm::transaction_params::TransactionParams;
 use num_bigint::BigInt;
-use primitives::{AssetBalance, AssetId, Chain, DelegationBase, DelegationValidator, StakeType};
+use primitives::{AssetBalance, AssetId, Chain, DateTime, DelegationBase, DelegationValidator, StakeType};
 
 use crate::constants::{HUB_READER_ADDRESS, STAKING_VALIDATORS_LIMIT};
 use crate::encode::{decode_delegations, decode_elected_validators, decode_undelegations, decode_validators, encode_delegations_call, encode_elected_validators_calls, encode_stake, encode_undelegations_call, encode_validators_call};
@@ -60,7 +60,7 @@ impl<C: Client + Clone> EvmStakingClient for BscStakingClient<C> {
 
     async fn get_staking_delegations(&self, address: &str) -> Result<Vec<DelegationBase>, Box<dyn Error + Sync + Send>> {
         let (delegations, undelegations) = self.get_staking_state(address).await?;
-        Ok(map_delegations(delegations, undelegations))
+        Ok(map_delegations(delegations, undelegations, DateTime::now()))
     }
 
     async fn get_staking_balance(&self, address: &str) -> Result<Option<AssetBalance>, Box<dyn Error + Sync + Send>> {

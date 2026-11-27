@@ -1,8 +1,8 @@
 use aes::Aes128;
 use ctr::cipher::{KeyIvInit, StreamCipher};
 use gem_crypto::compare::constant_time_eq;
+use gem_hash::keccak::keccak256;
 use scrypt::{Params as ScryptParams, scrypt};
-use sha3::{Digest, Keccak256};
 use zeroize::Zeroizing;
 
 use super::{
@@ -32,9 +32,6 @@ pub(super) fn derive_scrypt_key(password: &[u8], params: &KdfParamsV3) -> Result
 }
 
 fn verify_v3_mac(derived_key: &[u8], ciphertext: &[u8], mac: &[u8]) -> Result<(), KeystoreError> {
-    let mut hasher = Keccak256::new();
-    hasher.update(&derived_key[AES_128_KEY_LEN..DERIVED_KEY_LEN]);
-    hasher.update(ciphertext);
-    let expected = hasher.finalize();
-    if constant_time_eq(expected.as_slice(), mac) { Ok(()) } else { Err(KeystoreError::AuthenticationFailed) }
+    let expected = keccak256(&Zeroizing::new([&derived_key[AES_128_KEY_LEN..DERIVED_KEY_LEN], ciphertext].concat()));
+    if constant_time_eq(&expected, mac) { Ok(()) } else { Err(KeystoreError::AuthenticationFailed) }
 }

@@ -12,8 +12,8 @@ use signer::Signer;
 
 use super::{
     eip712::GemEIP712Message,
-    payload::{MessagePayloadFields, MessagePayloadPreview},
-    sign_type::SignMessage,
+    payload::{MessagePayloadFields, MessageReview},
+    sign_type::{MessageType, SignMessage},
 };
 use crate::{GemstoneError, keystore::GemKeystore};
 use gem_tron::signer::tron_hash_message;
@@ -21,23 +21,6 @@ use gem_wallet_connect::SignDigestType;
 use primitives::{BlockExplorerLink, Chain, ChainSigner, SimulationPayloadField};
 use std::sync::Arc;
 use zeroize::Zeroizing;
-
-fn siwe_or_text_preview(chain: primitives::Chain, data: &[u8]) -> MessagePreview {
-    match String::from_utf8(data.to_vec()) {
-        Ok(string) => match SiweMessage::try_parse(&string) {
-            Some(message) if message.validate(chain).is_ok() => MessagePreview::Siwe(message),
-            Some(_) | None => MessagePreview::Text(string),
-        },
-        Err(_) => MessagePreview::Text(encode_with_0x(data)),
-    }
-}
-
-#[derive(Debug, PartialEq)]
-pub enum MessagePreview {
-    Text(String),
-    EIP712(GemEIP712Message),
-    Siwe(SiweMessage),
-}
 
 #[derive(Debug)]
 pub struct MessageSigner {
@@ -51,18 +34,26 @@ impl MessageSigner {
         Self { message, timestamp }
     }
 
-    pub fn payload_preview(&self, simulation_payload: Vec<SimulationPayloadField>, address_url: impl Fn(Chain, String) -> BlockExplorerLink) -> Result<Option<MessagePayloadPreview>, GemstoneError> {
-        let payload_preview = match self.preview()? {
-            MessagePreview::Text(_) => match self.message.sign_type {
-                SignDigestType::Eip191 | SignDigestType::Siwe => self.siwe_payload_preview(simulation_payload),
-                SignDigestType::Base58 => self.siws_payload_preview(simulation_payload)?,
-                _ => None,
+    pub fn review(&self, simulation_payload: Vec<SimulationPayloadField>, address_url: impl Fn(Chain, String) -> BlockExplorerLink) -> MessageReview {
+        let text = self.plain_preview();
+        match self.payload_fields(simulation_payload) {
+            Some(fields) => fields.review(text, self.message.chain, address_url),
+            None => MessageReview {
+                title: MessageType::Text.title(),
+                text,
+                primary: vec![],
+                secondary: vec![],
             },
-            MessagePreview::EIP712(message) => Some(message.payload_preview(simulation_payload)),
-            MessagePreview::Siwe(message) => Some(MessagePayloadFields::from_siwe(&message, simulation_payload)),
-        };
+        }
+    }
 
-        Ok(payload_preview.map(|fields| fields.rows(self.message.chain, address_url)))
+    fn payload_fields(&self, simulation_payload: Vec<SimulationPayloadField>) -> Option<MessagePayloadFields> {
+        match self.message.sign_type {
+            SignDigestType::Eip191 | SignDigestType::Siwe => self.siwe_payload_preview(simulation_payload),
+            SignDigestType::Eip712 => Some(self.eip712_message().ok()?.payload_preview(simulation_payload)),
+            SignDigestType::Base58 => self.siws_payload_preview(simulation_payload).ok().flatten(),
+            SignDigestType::SuiPersonal | SignDigestType::TonPersonal | SignDigestType::TronPersonal => None,
+        }
     }
 
     fn hash(&self) -> Result<Vec<u8>, GemstoneError> {
@@ -86,32 +77,6 @@ impl MessageSigner {
 }
 
 impl MessageSigner {
-    pub fn preview(&self) -> Result<MessagePreview, GemstoneError> {
-        match self.message.sign_type {
-            SignDigestType::Eip191 | SignDigestType::Siwe => Ok(siwe_or_text_preview(self.message.chain, &self.message.data)),
-            SignDigestType::SuiPersonal | SignDigestType::TronPersonal => Ok(MessagePreview::Text(self.data_as_utf8_or_hex())),
-            SignDigestType::TonPersonal => {
-                let string = self.data_as_utf8()?;
-                let Ok(ton_data) = TonSignMessageData::from_bytes(string.as_bytes()) else {
-                    return Ok(MessagePreview::Text(string));
-                };
-                Ok(MessagePreview::Text(ton_data.payload.data().to_string()))
-            }
-            SignDigestType::Eip712 => {
-                let string = self.data_as_utf8()?;
-                if string.is_empty() {
-                    return Err(GemstoneError::from("Empty EIP712 message string"));
-                }
-                let message = GemEIP712Message::from_json(&string).map_err(|e| GemstoneError::from(format!("Invalid EIP712 message: {e}")))?;
-                Ok(MessagePreview::EIP712(message))
-            }
-            SignDigestType::Base58 => {
-                let decoded = decode_base58(&self.message.data).unwrap_or_default();
-                Ok(MessagePreview::Text(String::from_utf8_lossy(&decoded).to_string()))
-            }
-        }
-    }
-
     pub fn sign_with_keystore(&self, keystore: Arc<GemKeystore>, keystore_id: String, password: Vec<u8>) -> Result<String, GemstoneError> {
         let private_key = keystore.signing_key(&keystore_id, self.message.chain, password)?;
         self.sign(private_key)
@@ -119,16 +84,12 @@ impl MessageSigner {
 
     pub fn plain_preview(&self) -> String {
         match self.message.sign_type {
-            SignDigestType::SuiPersonal | SignDigestType::Eip191 | SignDigestType::TronPersonal => self.data_as_utf8_or_hex(),
-            SignDigestType::Base58 => match self.preview() {
-                Ok(MessagePreview::Text(preview)) => preview,
-                _ => "".to_string(),
+            SignDigestType::SuiPersonal | SignDigestType::Eip191 | SignDigestType::Siwe | SignDigestType::TronPersonal => self.data_as_utf8_or_hex(),
+            SignDigestType::Base58 => String::from_utf8_lossy(&decode_base58(&self.message.data).unwrap_or_default()).to_string(),
+            SignDigestType::TonPersonal => match TonSignMessageData::from_bytes(&self.message.data) {
+                Ok(ton_data) => ton_data.payload.data().to_string(),
+                Err(_) => self.data_as_utf8_or_hex(),
             },
-            SignDigestType::TonPersonal => match self.preview() {
-                Ok(MessagePreview::Text(preview)) => preview,
-                _ => self.data_as_utf8_or_hex(),
-            },
-            SignDigestType::Siwe => self.data_as_utf8_or_hex(),
             SignDigestType::Eip712 => {
                 let value: serde_json::Value = serde_json::from_slice(&self.message.data).unwrap_or_default();
                 serde_json::to_string_pretty(&value).unwrap_or_default()
@@ -171,6 +132,14 @@ impl MessageSigner {
         String::from_utf8(self.message.data.clone()).unwrap_or_else(|_| encode_with_0x(&self.message.data))
     }
 
+    fn eip712_message(&self) -> Result<GemEIP712Message, GemstoneError> {
+        let string = self.data_as_utf8()?;
+        if string.is_empty() {
+            return Err(GemstoneError::from("Empty EIP712 message string"));
+        }
+        GemEIP712Message::from_json(&string).map_err(|e| GemstoneError::from(format!("Invalid EIP712 message: {e}")))
+    }
+
     fn siwe_payload_preview(&self, simulation_payload: Vec<SimulationPayloadField>) -> Option<MessagePayloadFields> {
         let string = String::from_utf8(self.message.data.clone()).ok()?;
         let message = SiweMessage::try_parse(&string)?;
@@ -204,10 +173,7 @@ impl MessageSigner {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::message::{
-        eip712::{GemEIP712Section, GemEIP712Value},
-        sign_type::MessageType,
-    };
+    use crate::message::eip712::{GemEIP712Section, GemEIP712Value};
     use crate::models::list::GemListRow;
     use crate::services::localization::GemLocalizedText;
     use gem_encoding::encode_base58;
@@ -247,10 +213,7 @@ mod tests {
             sign_type: SignDigestType::Eip191,
             data,
         });
-        match decoder.preview() {
-            Ok(MessagePreview::Text(preview)) => assert_eq!(preview, "hello world"),
-            _ => panic!("Unexpected preview result"),
-        }
+        assert_eq!(decoder.plain_preview(), "hello world");
 
         let hash = decoder.hash().unwrap();
         assert_eq!(encode_with_0x(&hash), "0xd9eba16ed0ecae432b71fe008c98cc872bb4cc214d3220a36f365326cf807d68");
@@ -265,10 +228,7 @@ mod tests {
             sign_type: SignDigestType::Eip191,
             data,
         });
-        match decoder.preview() {
-            Ok(MessagePreview::Text(preview)) => assert_eq!(preview, "test"),
-            _ => panic!("Unexpected preview result"),
-        }
+        assert_eq!(decoder.plain_preview(), "test");
     }
 
     #[test]
@@ -280,11 +240,7 @@ mod tests {
             sign_type: SignDigestType::Eip191,
             data,
         });
-        match decoder.preview() {
-            // Since 0xdeadbeef is not valid UTF-8, preview should show the hex representation
-            Ok(MessagePreview::Text(preview)) => assert_eq!(preview, "0xdeadbeef"),
-            _ => panic!("Unexpected preview result"),
-        }
+        assert_eq!(decoder.plain_preview(), "0xdeadbeef");
     }
 
     #[test]
@@ -330,15 +286,12 @@ Issued At: 2026-03-09T15:48:34.458Z"#;
             data,
         });
 
-        match decoder.preview() {
-            Ok(MessagePreview::Text(preview)) => assert_eq!(preview, "This is an example message to be signed - 1747125759060"),
-            _ => panic!("Unexpected preview result for base58"),
-        }
+        assert_eq!(decoder.plain_preview(), "This is an example message to be signed - 1747125759060");
         let hash = decoder.hash().unwrap();
 
         assert_eq!(hex::encode(&hash), "5468697320697320616e206578616d706c65206d65737361676520746f206265207369676e6564202d2031373437313235373539303630");
 
-        assert_eq!(decoder.payload_preview(vec![], explorer_link).unwrap(), None);
+        assert_eq!(decoder.payload_fields(vec![]), None);
     }
 
     #[test]
@@ -351,10 +304,9 @@ Issued At: 2026-03-09T15:48:34.458Z"#;
             data: encode_base58(message.as_bytes()).into_bytes(),
         });
 
-        assert_eq!(decoder.preview().unwrap(), MessagePreview::Text(message.to_string()));
         assert_eq!(decoder.plain_preview(), message);
         assert_eq!(decoder.hash().unwrap(), message.as_bytes());
-        assert_eq!(decoder.payload_preview(vec![], explorer_link).unwrap().unwrap().message_type, MessageType::Siws);
+        assert_eq!(decoder.review(vec![], explorer_link).title, GemLocalizedText::SignInWith { chain: Chain::Solana });
         assert_eq!(decoder.sign(Zeroizing::new(TEST_PRIVATE_KEY.to_vec())).unwrap(), encode_base58(key_pair.sign(message.as_bytes())),);
     }
 
@@ -367,8 +319,8 @@ Issued At: 2026-03-09T15:48:34.458Z"#;
             data: encode_base58(message.as_bytes()).into_bytes(),
         });
 
-        assert!(decoder.payload_preview(vec![], explorer_link).is_err());
-        assert_eq!(decoder.preview().unwrap(), MessagePreview::Text(message.clone()));
+        assert!(decoder.siws_payload_preview(vec![]).is_err());
+        assert_eq!(decoder.plain_preview(), message);
         assert_eq!(decoder.hash().unwrap(), message.as_bytes());
     }
 
@@ -395,16 +347,14 @@ Issued At: 2026-03-09T15:48:34.458Z"#;
             sign_type: SignDigestType::Eip712,
             data: json_str.as_bytes().to_vec(),
         });
-        let preview = decoder.preview().unwrap();
         assert_eq!(
-            preview,
-            MessagePreview::EIP712(GemEIP712Message {
+            decoder.eip712_message().unwrap(),
+            GemEIP712Message {
                 domain: EIP712Domain {
                     name: Some("Seaport".to_string()),
                     version: Some("1.1".to_string()),
                     chain_id: Some(1),
                     verifying_contract: Some("0x00000000006c3852cbEf3e08E8dF289169EdE581".to_string()),
-                    salts: None,
                 },
                 message: vec![GemEIP712Section {
                     name: "OrderComponents".to_string(),
@@ -456,7 +406,7 @@ Issued At: 2026-03-09T15:48:34.458Z"#;
                         },
                     ],
                 }],
-            })
+            }
         );
     }
 
@@ -482,16 +432,14 @@ Issued At: 2026-03-09T15:48:34.458Z"#;
             sign_type: SignDigestType::Eip712,
             data: json_str.as_bytes().to_vec(),
         });
-        let preview = decoder.preview().unwrap();
         assert_eq!(
-            preview,
-            MessagePreview::EIP712(GemEIP712Message {
+            decoder.eip712_message().unwrap(),
+            GemEIP712Message {
                 domain: EIP712Domain {
                     name: Some("ClobAuthDomain".to_string()),
                     version: Some("1".to_string()),
                     chain_id: Some(137),
                     verifying_contract: None,
-                    salts: None,
                 },
                 message: vec![GemEIP712Section {
                     name: "ClobAuth".to_string(),
@@ -518,7 +466,7 @@ Issued At: 2026-03-09T15:48:34.458Z"#;
                         },
                     ],
                 }],
-            })
+            }
         );
     }
 
@@ -542,19 +490,13 @@ Issued At: 2026-03-09T15:48:34.458Z"#;
             data: message.as_bytes().to_vec(),
         });
 
-        match decoder.preview() {
-            Ok(MessagePreview::Siwe(siwe)) => {
-                assert_eq!(siwe.domain, "login.xyz");
-                assert_eq!(siwe.chain_id, "1");
-            }
-            other => panic!("Unexpected result: {other:?}"),
-        }
-
-        assert_eq!(decoder.plain_preview(), message);
+        let review = decoder.review(vec![], explorer_link);
+        assert_eq!(review.title, GemLocalizedText::SignInWith { chain: Chain::Ethereum });
+        assert_eq!(review.text, message);
     }
 
     #[test]
-    fn test_siwe_preview_falls_back_to_text_when_validation_fails() {
+    fn test_siwe_review_keeps_sign_in_title_when_validation_fails() {
         let message = [
             "login.xyz wants you to sign in with your Ethereum account:",
             "0x6dD7802E6d44bE89a789C4bD60bD511B68F41c7c",
@@ -573,38 +515,9 @@ Issued At: 2026-03-09T15:48:34.458Z"#;
             data: message.as_bytes().to_vec(),
         });
 
-        match decoder.preview() {
-            Ok(MessagePreview::Text(preview)) => assert_eq!(preview, message),
-            other => panic!("Unexpected result: {other:?}"),
-        }
-    }
-
-    #[test]
-    fn test_eip191_siwe_preview_falls_back_to_text_on_chain_mismatch() {
-        let message = [
-            "thepoc.xyz wants you to sign in with your Ethereum account:",
-            "0xBA4D1d35bCe0e8F28E5a3403e7a0b996c5d50AC4",
-            "",
-            "Sign in with different chain ID",
-            "",
-            "URI: https://thepoc.xyz",
-            "Version: 1",
-            "Chain ID: 137",
-            "Nonce: byjof9dwrao97skautdxhb",
-            "Issued At: 2026-03-09T15:48:34.458Z",
-        ]
-        .join("\n");
-
-        let decoder = MessageSigner::new(SignMessage {
-            chain: Chain::Ethereum,
-            sign_type: SignDigestType::Eip191,
-            data: message.as_bytes().to_vec(),
-        });
-
-        match decoder.preview() {
-            Ok(MessagePreview::Text(preview)) => assert_eq!(preview, message),
-            other => panic!("Expected text preview, got {other:?}"),
-        }
+        let review = decoder.review(vec![], explorer_link);
+        assert_eq!(review.title, GemLocalizedText::SignInWith { chain: Chain::Ethereum });
+        assert_eq!(review.text, message);
     }
 
     #[test]
@@ -629,10 +542,10 @@ Issued At: 2026-03-09T15:48:34.458Z"#;
             data: message.as_bytes().to_vec(),
         });
 
-        let payload_preview = decoder.payload_preview(vec![], explorer_link).unwrap().expect("expected SIWE payload preview");
-        assert_eq!(payload_preview.message_type, MessageType::Siwe);
-        assert_eq!(payload_preview.primary.len(), 2);
-        let titles = payload_preview
+        let review = decoder.review(vec![], explorer_link);
+        assert_eq!(review.title, GemLocalizedText::SignInWith { chain: Chain::Ethereum });
+        assert_eq!(review.primary.len(), 2);
+        let titles = review
             .primary
             .iter()
             .map(|row| match row {
@@ -657,11 +570,6 @@ Issued At: 2026-03-09T15:48:34.458Z"#;
             sign_type: SignDigestType::TonPersonal,
             data: data.as_bytes().to_vec(),
         });
-
-        match decoder.preview() {
-            Ok(MessagePreview::Text(preview)) => assert_eq!(preview, "Hello TON"),
-            other => panic!("Unexpected result: {other:?}"),
-        }
 
         assert_eq!(decoder.plain_preview(), "Hello TON");
     }

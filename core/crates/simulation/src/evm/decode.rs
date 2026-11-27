@@ -362,11 +362,12 @@ mod tests {
         assert_eq!(result.payload.iter().find(|field| field.kind == SimulationPayloadFieldKind::Value).map(|field| field.value.as_str()), Some("1000"));
     }
 
-    #[tokio::test]
-    async fn eip712_permit_with_an_unreadable_value_or_deadline_still_warns() {
+    #[test]
+    fn eip712_permit_with_an_unreadable_value_or_deadline_is_refused() {
         for field in ["value", "deadline"] {
-            let result = simulate_eip712_message(Chain::Ethereum, &permit_message(field, json!("not a number"))).await;
-            assert!(is_permit_warning(&result.warnings[0].warning), "{field}");
+            let mut json: Value = serde_json::from_str(include_str!("../../testdata/permit_excessive_expiration.json")).unwrap();
+            json["message"][field] = json!("not a number");
+            assert!(parse_eip712_json(&json).is_err(), "{field}");
         }
     }
 
@@ -399,13 +400,12 @@ mod tests {
         assert_eq!(result.payload[0].value, "Permit Batch");
     }
 
-    #[tokio::test]
-    async fn eip712_permit2_batch_with_an_unreadable_amount_warns_as_unlimited() {
+    #[test]
+    fn eip712_permit2_batch_with_an_unreadable_amount_is_refused() {
         let mut json: Value = serde_json::from_str(include_str!("../../testdata/permit2_batch_transfer.json")).unwrap();
         json["message"]["permitted"][1]["amount"] = json!("not a number");
-        let result = simulate_eip712_message(Chain::Ethereum, &parse_eip712_json(&json).unwrap()).await;
 
-        assert!(is_unlimited_warning(warning(&result)));
+        assert!(parse_eip712_json(&json).is_err());
     }
 
     #[tokio::test]

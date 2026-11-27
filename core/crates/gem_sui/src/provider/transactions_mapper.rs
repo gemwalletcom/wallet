@@ -251,13 +251,6 @@ mod tests {
     }
 
     #[test]
-    fn test_map_transaction_blocks() {
-        let transaction_blocks = TransactionBlocks { data: vec![] };
-        let transactions = map_transaction_blocks(transaction_blocks);
-        assert_eq!(transactions.len(), 0);
-    }
-
-    #[test]
     fn test_map_smart_contract_call() {
         let digest: Digest = serde_json::from_str(include_str!("../../testdata/transfer_token_contract.json")).unwrap();
         let transaction = map_transaction(digest).unwrap();
@@ -312,13 +305,12 @@ mod tests {
     #[test]
     fn test_map_mayan_mctp_smart_contract_call() {
         let digest: Digest = serde_json::from_str(include_str!("../../testdata/mayan_mctp_sui_usdc_to_arbitrum_usdc.json")).unwrap();
-        let expected_contract = primary_contract(digest.move_call_packages.iter().map(String::as_str)).unwrap();
         let transaction = map_transaction(digest).unwrap();
 
         assert_eq!(transaction.hash(), "AqXACRuimqMVf4wiVjR3Ch5PBunhQAJY3ZfAMF3MXUsW");
         assert_eq!(transaction.transaction_type, TransactionType::SmartContractCall);
         assert_eq!(transaction.from, "0x1b4cd8b734f2465614678ca0450ce9c4f2ff4835c6a7545522892a1a8fb67991");
-        assert_eq!(transaction.to, expected_contract);
+        assert_eq!(transaction.to, "0xb5bd3599ec7f4ae86afd84398f6f2d862deecce965e8ace2d8d8c8108d5076df");
     }
 
     #[test]

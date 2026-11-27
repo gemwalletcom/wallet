@@ -9,7 +9,7 @@ gem_aptos = { path = "../gem_aptos", default-features = false }
 gem_bitcoin = { path = "../gem_bitcoin", default-features = false, features = ["signer"] }
 gem_cardano = { path = "../gem_cardano", default-features = false, features = ["signer"] }
 gem_cosmos = { path = "../gem_cosmos", default-features = false }
-gem_crypto = { path = "../gem_crypto", features = ["hash", "pbkdf"] }
+gem_crypto = { path = "../gem_crypto", features = ["pbkdf"] }
 gem_encoding = { path = "../gem_encoding", default-features = false, features = ["base58"] }
 gem_evm = { path = "../gem_evm", default-features = false }
 gem_hash = { path = "../gem_hash" }

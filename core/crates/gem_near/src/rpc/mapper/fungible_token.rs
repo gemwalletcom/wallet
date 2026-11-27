@@ -31,7 +31,7 @@ pub(super) fn map_fungible_token_transfers(receipts: &[Outcome]) -> Result<Vec<T
     let mut asset_transfers = Vec::<TransactionAssetTransfer>::new();
     for receipt in receipts {
         for log in &receipt.logs {
-            let Some(transfers) = parse_fungible_token_transfer_event(log)? else {
+            let Some(transfers) = parse_fungible_token_transfer_event(log) else {
                 continue;
             };
             let contract = receipt.executor_id.as_deref().ok_or("missing NEAR receipt executor id")?;
@@ -59,15 +59,12 @@ pub(super) fn map_fungible_token_transfers(receipts: &[Outcome]) -> Result<Vec<T
     Ok(asset_transfers)
 }
 
-fn parse_fungible_token_transfer_event(log: &str) -> Result<Option<Vec<FungibleTokenTransfer>>, Box<dyn Error + Send + Sync>> {
-    let Some(event_json) = log.strip_prefix(EVENT_JSON_PREFIX) else {
-        return Ok(None);
-    };
-    let event: NearEvent = serde_json::from_str(event_json)?;
+fn parse_fungible_token_transfer_event(log: &str) -> Option<Vec<FungibleTokenTransfer>> {
+    let event: NearEvent = serde_json::from_str(log.strip_prefix(EVENT_JSON_PREFIX)?).ok()?;
     if event.standard.as_deref() != Some(NEP_141_STANDARD) || event.event.as_deref() != Some(FUNGIBLE_TOKEN_TRANSFER_EVENT) {
-        return Ok(None);
+        return None;
     }
-    Ok(Some(serde_json::from_value(event.data.ok_or("missing NEP-141 event data")?)?))
+    serde_json::from_value(event.data?).ok()
 }
 
 #[cfg(test)]
@@ -75,10 +72,31 @@ mod tests {
     use super::*;
 
     #[test]
-    fn ignores_non_fungible_token_events() {
-        for event in [r#"{"event":"donation","data":{"amount":"1"}}"#, r#"{"standard":"potlock","event":"donation","data":{"amount":"1"}}"#] {
-            let log = format!("{EVENT_JSON_PREFIX}{event}");
-            assert!(parse_fungible_token_transfer_event(&log).unwrap().is_none());
+    fn test_parse_fungible_token_transfer_event() {
+        for event in [
+            r#"{"event":"donation","data":{"amount":"1"}}"#,
+            r#"{"standard":"potlock","event":"donation","data":{"amount":"1"}}"#,
+            "not json",
+            r#"{"standard":"nep141","event":"ft_transfer"}"#,
+            r#"{"standard":"nep141","event":"ft_transfer","data":[{"old_owner_id":"a.near","new_owner_id":"b.near","amount":"one"}]}"#,
+        ] {
+            assert!(parse_fungible_token_transfer_event(&format!("{EVENT_JSON_PREFIX}{event}")).is_none());
         }
+    }
+
+    #[test]
+    fn test_map_fungible_token_transfers() {
+        let receipt: Outcome = serde_json::from_value(serde_json::json!({
+            "executor_id": "token.near",
+            "logs": [format!("{EVENT_JSON_PREFIX}not json"), format!(r#"{EVENT_JSON_PREFIX}{{"standard":"nep141","event":"ft_transfer","data":[{{"old_owner_id":"a.near","new_owner_id":"b.near","amount":"5"}}]}}"#)],
+            "status": {"SuccessValue": ""},
+            "tokens_burnt": "0"
+        }))
+        .unwrap();
+
+        let transfers = map_fungible_token_transfers(&[receipt]).unwrap();
+
+        assert_eq!(transfers.len(), 1);
+        assert_eq!(transfers[0].value, BigUint::from(5u32));
     }
 }

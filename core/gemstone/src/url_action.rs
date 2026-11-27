@@ -8,6 +8,13 @@ pub enum UrlAction {
     WalletConnect { link: WalletConnectLink },
 }
 
+#[uniffi::remote(Enum)]
+pub enum WalletConnectLink {
+    Connect { uri: String },
+    Request,
+    Session { topic: String },
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -57,6 +57,13 @@ pub fn mock_spend_utxos() -> Vec<UTXO> {
     ]
 }
 
+pub fn mock_dust_and_large_utxos() -> Vec<UTXO> {
+    (1..=20)
+        .map(|index| mock_utxo_with(&format!("{index:064x}"), 0, "600", TEST_BITCOIN_P2WPKH_ADDRESS))
+        .chain([mock_utxo_with(&format!("{:064x}", 21), 0, "100000", TEST_BITCOIN_P2WPKH_ADDRESS)])
+        .collect()
+}
+
 pub fn op_return_script(bytes: usize) -> ScriptBuf {
     let push = PushBytesBuf::try_from(vec![0u8; bytes]).unwrap();
     Builder::new().push_opcode(OP_RETURN).push_slice(push).into_script()

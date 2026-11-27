@@ -1,0 +1,21 @@
+{
+    "ret": [
+        {
+            "contractRet": "SUCCESS"
+        }
+    ],
+    "txID": "aa9475289f6987d8f69aad19fb4de415071ab7c6a62908e278490a418760af04",
+    "raw_data": {
+        "contract": [
+            {
+                "parameter": {
+                    "value": {
+                        "owner_address": "41b793007f94e7a0efa7c66cc898670174345335d1"
+                    },
+                    "type_url": "type.googleapis.com/protocol.WithdrawExpireUnfreezeContract"
+                },
+                "type": "WithdrawExpireUnfreezeContract"
+            }
+        ]
+    }
+}

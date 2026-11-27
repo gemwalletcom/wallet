@@ -1,6 +1,6 @@
+use gem_hash::sha2::sha512;
 use primitives::FiatQuoteType;
 use primitives::hex;
-use sha2::{Digest, Sha512};
 use url::Url;
 
 const MERCURYO_REDIRECT_URL: &str = "https://exchange.mercuryo.io";
@@ -34,7 +34,7 @@ impl MercuryoWidget {
 
     fn signature(&self) -> String {
         let content = format!("{}{}{}{}", self.address, self.secret_key, self.ip_address, self.merchant_transaction_id);
-        let hash = hex::encode(Sha512::digest(content));
+        let hash = hex::encode(sha512(content.as_bytes()));
         format!("v2:{}", hash)
     }
 
@@ -68,10 +68,10 @@ mod tests {
 
     #[test]
     fn signature_v2_format() {
-        let signature = MercuryoWidget::mock().signature();
-        let expected_hash = hex::encode(Sha512::digest("0x123secret127.0.0.1tx123"));
-
-        assert_eq!(signature, format!("v2:{}", expected_hash));
+        assert_eq!(
+            MercuryoWidget::mock().signature(),
+            "v2:ead820318be19870c157682e7f4ad1190b41b3811d85c1a31c14b4d614fed9a7806fdddd324e258d7c7d0be78427727d98bed6d44a5a13c3761aabf5b39978e7"
+        );
     }
 
     #[test]

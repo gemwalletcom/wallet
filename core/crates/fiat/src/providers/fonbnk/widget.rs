@@ -1,7 +1,7 @@
 use std::error::Error;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use jsonwebtoken::{EncodingKey, Header, encode};
+use gem_jwt::{SigningKey, encode};
 use primitives::{FiatQuoteType, FiatQuoteUrlData};
 use serde::{Deserialize, Serialize};
 use url::Url;
@@ -36,7 +36,7 @@ impl FonbnkWidget {
     fn signed_url(&self, data: &FiatQuoteUrlData, expires_at: u64) -> Result<String, Box<dyn Error + Send + Sync>> {
         let network = FiatMapping::get_network(data.asset_symbol.network.clone())?;
         let claims = FonbnkWidgetClaims { uid: data.quote.id.clone(), exp: expires_at };
-        let signature = encode(&Header::default(), &claims, &EncodingKey::from_secret(self.secret.as_bytes()))?;
+        let signature = encode(&SigningKey::hs256(self.secret.as_bytes())?, None, &claims)?;
 
         let mut url = Url::parse(&self.url)?;
         if data.quote.quote_type == FiatQuoteType::Sell {
@@ -66,7 +66,7 @@ impl FonbnkWidget {
 mod tests {
     use std::collections::HashMap;
 
-    use jsonwebtoken::{Algorithm, DecodingKey, Validation, decode};
+    use gem_jwt::{VerifyingKey, decode};
     use primitives::{FiatAssetSymbol, FiatProviderName, FiatQuote};
 
     use super::*;
@@ -98,9 +98,7 @@ mod tests {
     fn test_signed_url_buy() {
         let url = Url::parse(&widget().signed_url(&data(FiatQuoteType::Buy), 1_800_000_000).unwrap()).unwrap();
         let params: HashMap<String, String> = url.query_pairs().into_owned().collect();
-        let claims = decode::<FonbnkWidgetClaims>(&params["signature"], &DecodingKey::from_secret(b"test_widget_secret"), &Validation::new(Algorithm::HS256))
-            .unwrap()
-            .claims;
+        let claims = decode::<FonbnkWidgetClaims>(&VerifyingKey::hs256(b"test_widget_secret").unwrap(), &params["signature"]).unwrap();
 
         assert_eq!(url.path(), "/");
         assert_eq!(claims.uid, "quote_id");

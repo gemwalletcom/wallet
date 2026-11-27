@@ -104,6 +104,9 @@ class MainActivity :
         splashScreen.setKeepOnScreenCondition { !appViewModel.launchReadyState.value }
         splashScreen.setOnExitAnimationListener { it.remove() }
         enableEdgeToEdge()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            window.setHideOverlayWindows(true)
+        }
 
         systemAuthenticator = SystemAuthenticator(this, lockViewModel, privacyCover, viewModel.authRequests)
         systemAuthenticator.prepare()

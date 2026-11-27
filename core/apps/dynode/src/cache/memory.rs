@@ -53,7 +53,7 @@ impl RequestCache {
         let rules = routes
             .iter()
             .filter(|(_, route)| !route.cache.is_empty())
-            .map(|(service, route)| (CacheScope::provider(&route.group, service), CacheRules::from_rules(route.cache.clone())));
+            .filter_map(|(service, route)| Some((CacheScope::provider(route.groups.first()?, service), CacheRules::from_rules(route.cache.clone()))));
         Self::new(config.memory.max, rules)
     }
 

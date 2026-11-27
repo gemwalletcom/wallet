@@ -97,7 +97,7 @@ pub fn accounts(namespaces: &BTreeMap<String, SessionNamespace>) -> Vec<String> 
     namespaces.values().flat_map(|namespace| namespace.accounts.clone()).collect()
 }
 
-fn proposal_chains(key: &str, namespace: &ProposalNamespace) -> (String, Vec<String>) {
+pub(crate) fn proposal_chains(key: &str, namespace: &ProposalNamespace) -> (String, Vec<String>) {
     match (&namespace.chains, key.split_once(':')) {
         (Some(chains), _) => (key.to_string(), chains.clone()),
         (None, Some((name, _))) => (name.to_string(), vec![key.to_string()]),

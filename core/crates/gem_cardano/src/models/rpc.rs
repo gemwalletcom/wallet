@@ -36,6 +36,12 @@ pub struct AddressTransactions {
     pub transactions: Vec<AddressTransaction>,
 }
 
+#[derive(Debug, Deserialize)]
+pub struct AddressHistory {
+    pub received: Vec<AddressTransaction>,
+    pub sent: Vec<AddressTransaction>,
+}
+
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct AddressTransaction {
     #[serde(flatten)]

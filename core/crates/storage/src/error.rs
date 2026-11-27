@@ -1,6 +1,7 @@
 use std::error::Error;
 use std::fmt;
 
+use diesel::r2d2::PoolError;
 use tokio::task::JoinError;
 
 #[derive(Debug, Clone)]
@@ -217,8 +218,8 @@ impl From<JoinError> for DatabaseError {
     }
 }
 
-impl From<r2d2::Error> for DatabaseError {
-    fn from(_: r2d2::Error) -> Self {
+impl From<PoolError> for DatabaseError {
+    fn from(_: PoolError) -> Self {
         DatabaseError::ConnectionPool
     }
 }

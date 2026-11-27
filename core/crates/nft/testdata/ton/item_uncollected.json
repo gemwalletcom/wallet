@@ -1,0 +1,23 @@
+{
+    "nft_items": [
+        {
+            "address": "0:0FC974E5AB28B2109A69D7CB8F28BABB38806F1AC015BB3C69F0D0C90AB950CD",
+            "collection_address": null
+        }
+    ],
+    "metadata": {
+        "0:0FC974E5AB28B2109A69D7CB8F28BABB38806F1AC015BB3C69F0D0C90AB950CD": {
+            "token_info": [
+                {
+                    "valid": true,
+                    "name": "my daughter's frown",
+                    "description": "One of my twin daughters. Ugh, I was scared by her frown",
+                    "image": "https://s.getgems.io/nft/s/6700/67006d5d913772911d6baf3e/nft/1155795.jpg",
+                    "extra": {
+                        "marketplace": "getgems.io"
+                    }
+                }
+            ]
+        }
+    }
+}

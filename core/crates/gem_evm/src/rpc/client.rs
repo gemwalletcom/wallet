@@ -137,6 +137,10 @@ impl<C: Client + Clone> EthereumClient<C> {
             .await
     }
 
+    pub async fn get_nonce(&self, address: &str) -> Result<u64, Box<dyn std::error::Error + Send + Sync>> {
+        u64_from_str(&self.get_transaction_count(address).await?)
+    }
+
     pub async fn broadcast_transaction(&self, data: &str) -> Result<String, JsonRpcError> {
         self.client.request(EthereumRpc::SendRawTransaction { data: data.to_string() }).await
     }

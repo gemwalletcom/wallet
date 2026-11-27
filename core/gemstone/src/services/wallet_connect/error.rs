@@ -42,11 +42,11 @@ impl From<GemServiceError> for GemWalletConnectError {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::services::wallet_connect::rules::session_rejection;
+    use wallet_connect_protocol::sign::Reason;
 
     #[test]
     fn test_a_failed_proposal_is_rejected_for_the_reason_that_failed_it() {
-        let code = |error: GemWalletConnectError| session_rejection(error.rejection_reason()).code;
+        let code = |error: GemWalletConnectError| Reason::from(error.rejection_reason()).code;
 
         assert_eq!(code(GemWalletConnectError::UnsupportedChains), 5100);
         assert_eq!(code(GemWalletConnectError::UnsupportedWallets), 5103);

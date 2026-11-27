@@ -28,7 +28,7 @@ Audit a swapper provider in `crates/swapper/src/<provider>/provider.rs` against 
 - [ ] `get_vault_addresses()` returns every deposit address (user sends to vault) and send address (vault sends to user) the provider uses
 - [ ] Each address is confirmed against live on-chain activity (explorer or node API) and the provider's authoritative source (backend repository, chain spec, or live chains endpoint), not the docs portal alone. A documented "vault" can be a deployed-but-unused contract, and PR test vectors may be testnet addresses
 - [ ] Deposit addresses enable `is_cross_chain_swap()` detection in `cross_chain.rs`; send addresses enable `is_from_vault_address()` detection for incoming swap completions
-- [ ] If the provider requires memo/payload validation (like Thorchain), `is_valid_swap_transaction()` handles it
+- [ ] If the provider requires memo/payload validation (like THORChain), `is_valid_swap_transaction()` handles it
 
 ### 6. Swap Result Tracking
 - [ ] `get_swap_result()` maps provider status to `SwapResult` / `SwapStatus` and handles completed, pending, and failed/refunded states

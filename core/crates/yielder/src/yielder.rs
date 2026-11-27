@@ -32,10 +32,10 @@ impl Yielder {
         Ok(positions.into_iter().flatten().collect())
     }
 
-    pub async fn get_balance(&self, chain: Chain, address: &str, token_ids: &[String]) -> Vec<AssetBalance> {
+    pub async fn get_balance(&self, chain: Chain, address: &str, token_ids: &[String]) -> Result<Vec<AssetBalance>, YielderError> {
         let futures: Vec<_> = self.providers.iter().map(|p| p.get_balance(chain, address, token_ids)).collect();
-        let balances = futures::future::join_all(futures).await.into_iter().filter_map(Result::ok).flatten().collect();
-        Self::map_earn_balances(balances)
+        let balances = futures::future::join_all(futures).await.into_iter().collect::<Result<Vec<_>, _>>()?;
+        Ok(Self::map_earn_balances(balances.into_iter().flatten().collect()))
     }
 
     pub async fn get_data(&self, asset_id: &AssetId, address: &str, value: &str, earn_type: &EarnType) -> Result<ContractCallData, YielderError> {

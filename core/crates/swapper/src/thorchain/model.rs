@@ -79,18 +79,11 @@ pub struct TransactionCoin {
 
 impl TransactionCoin {
     pub fn native_value(&self) -> Option<BigUint> {
-        let decimals = self.decimals.or_else(|| self.asset_decimals())?;
+        let decimals = match self.decimals {
+            Some(decimals) => decimals,
+            None => THORChainAsset::from_id(&self.asset_id()?)?.decimals,
+        };
         Some(value_to(&self.amount, decimals).magnitude().clone())
-    }
-
-    fn asset_decimals(&self) -> Option<u32> {
-        let asset_id = self.asset_id()?;
-        if asset_id.token_id.is_none() {
-            return Some(Asset::from_chain(asset_id.chain).decimals);
-        }
-        let (chain_symbol, _) = self.asset.split_once('.')?;
-        let chain_name = ChainName::from_symbol(chain_symbol)?;
-        chain_name.token_assets().into_iter().find(|asset| asset.id == asset_id).map(|asset| asset.decimals)
     }
 
     pub fn asset_id(&self) -> Option<AssetId> {
@@ -173,12 +166,12 @@ impl TransactionStatus {
         let swap_done = self.stages.swap_status.as_ref().is_some_and(|s| !s.pending);
         let outbound_done = self.stages.outbound_signed.as_ref().is_none_or(|s| s.completed);
 
-        if swap_done && self.is_refunded() {
-            SwapStatus::Refunded
-        } else if swap_done && has_output && outbound_done {
-            SwapStatus::Completed
-        } else {
+        if !(swap_done && has_output && outbound_done) {
             SwapStatus::Pending
+        } else if self.is_refunded() {
+            SwapStatus::Refunded
+        } else {
+            SwapStatus::Completed
         }
     }
 
@@ -216,7 +209,7 @@ impl TransactionStatus {
 
     fn payout_seconds(&self) -> Option<u32> {
         let stage = self.stages.outbound_signed.as_ref().filter(|stage| !stage.completed)?;
-        let (payout, chain) = self.planned_out_txs.iter().flatten().filter(|tx| !tx.refund).find_map(|tx| Some((tx, tx.external_chain()?)))?;
+        let (payout, chain) = self.planned_out_txs.iter().flatten().filter_map(|tx| Some((tx, tx.external_chain()?))).min_by_key(|(tx, _)| tx.refund)?;
         let allowance = quote_mapper::outbound_seconds(chain.chain());
         let Some(blocks) = stage.blocks_since_scheduled else {
             return Some(allowance);
@@ -389,6 +382,21 @@ mod tests {
         let status: TransactionStatus = serde_json::from_str(include_str!("testdata/tx_status_btc_to_eth_usdc_refund.json")).unwrap();
         assert_eq!(status.swap_status(), SwapStatus::Refunded);
         assert!(status.destination_coin().is_none());
+
+        let scheduled = TransactionStatus {
+            out_txs: None,
+            stages: TransactionStages {
+                outbound_signed: Some(OutboundSignedStage {
+                    completed: false,
+                    blocks_since_scheduled: Some(5),
+                }),
+                ..status.stages.clone()
+            },
+            ..status.clone()
+        };
+        assert_eq!(scheduled.swap_status(), SwapStatus::Pending);
+        assert!(scheduled.destination_coin().is_none());
+        assert_eq!(scheduled.eta_in_seconds(), Some(630));
     }
 
     #[test]

@@ -3,8 +3,7 @@ use std::collections::HashMap;
 use std::error::Error;
 use std::fmt;
 
-use hmac::{Hmac, KeyInit, Mac};
-use sha2::Sha256;
+use gem_hash::sha2::verify_hmac_sha256;
 
 pub(crate) const SIGNATURE_HEADER: &str = "x-chatwoot-signature";
 pub(crate) const TIMESTAMP_HEADER: &str = "x-chatwoot-timestamp";
@@ -51,11 +50,11 @@ impl ChatwootWebhookVerifier {
             .and_then(|signature| hex::decode(signature).ok())
             .ok_or_else(|| ChatwootWebhookError::InvalidRequest("Invalid Chatwoot webhook signature".to_string()))?;
 
-        Hmac::<Sha256>::new_from_slice(self.secret.as_bytes())
-            .map_err(|_| ChatwootWebhookError::InvalidRequest("Invalid Chatwoot webhook signing key".to_string()))?
-            .chain_update(format!("{timestamp}.{data}"))
-            .verify_slice(&signature)
-            .map_err(|_| ChatwootWebhookError::InvalidRequest("Invalid Chatwoot webhook signature".to_string()))
+        if verify_hmac_sha256(self.secret.as_bytes(), format!("{timestamp}.{data}").as_bytes(), &signature) {
+            Ok(())
+        } else {
+            Err(ChatwootWebhookError::InvalidRequest("Invalid Chatwoot webhook signature".to_string()))
+        }
     }
 }
 

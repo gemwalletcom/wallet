@@ -1,16 +1,12 @@
 use gem_encoding::borsh::{BorshDeserialize, BorshSerialize};
-use sha2::{Digest, Sha256};
+use gem_hash::sha2::sha256;
 
 use crate::{AccountMeta, Instruction, Pubkey, Result as SolanaResult, SolanaError};
 
 const DISCRIMINATOR_LEN: usize = 8;
 
 fn namespaced_discriminator(namespace: &str, name: &str) -> [u8; 8] {
-    let mut hasher = Sha256::new();
-    hasher.update(namespace.as_bytes());
-    hasher.update(b":");
-    hasher.update(name.as_bytes());
-    let hash = hasher.finalize();
+    let hash = sha256(format!("{namespace}:{name}").as_bytes());
     let mut data = [0u8; 8];
     data.copy_from_slice(&hash[..8]);
     data

@@ -1,0 +1,40 @@
+{
+  "tx": {
+    "body": {
+      "messages": [
+        {
+          "@type": "/cosmos.distribution.v1beta1.MsgWithdrawDelegatorReward",
+          "delegator_address": "cosmos1qhymx7svuag4mzstm9g9qtqskwkzzumxn83a8z",
+          "validator_address": "cosmosvaloper1tflk30mq5vgqjdly92kkhhq3raev2hnz6eete3"
+        },
+        {
+          "@type": "/cosmos.staking.v1beta1.MsgUndelegate",
+          "delegator_address": "cosmos1qhymx7svuag4mzstm9g9qtqskwkzzumxn83a8z",
+          "validator_address": "cosmosvaloper1tflk30mq5vgqjdly92kkhhq3raev2hnz6eete3",
+          "amount": {
+            "denom": "uatom",
+            "amount": "11700000"
+          }
+        }
+      ],
+      "memo": "Stake via Gem Wallet"
+    },
+    "auth_info": {
+      "fee": {
+        "amount": [
+          {
+            "denom": "uatom",
+            "amount": "10000"
+          }
+        ],
+        "gas_limit": "2000000"
+      }
+    }
+  },
+  "tx_response": {
+    "txhash": "C11964CF4C025C7300632AE2AE1EF7DEB6E823991183E2B73C31A348402765EF",
+    "code": 0,
+    "events": [],
+    "timestamp": "2026-11-18T16:13:21Z"
+  }
+}

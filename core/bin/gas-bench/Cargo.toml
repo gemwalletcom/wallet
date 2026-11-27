@@ -4,7 +4,7 @@ version.workspace = true
 edition.workspace = true
 
 [dependencies]
-clap = { workspace = true, features = ["env"] }
+gem_args = { path = "../../crates/gem_args" }
 
 tokio = { workspace = true }
 num-bigint = { workspace = true }

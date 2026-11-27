@@ -82,30 +82,27 @@ fn map_swap(chain: Chain, swap: &Payment, fee: Option<&Payment>) -> Option<Trans
 }
 
 pub fn map_transaction(chain: Chain, transaction: Payment) -> Option<Transaction> {
-    match transaction.payment_type.as_str() {
-        TRANSACTION_TYPE_PAYMENT | TRANSACTION_TYPE_CREATE_ACCOUNT => {
-            if transaction.clone().asset_type.unwrap_or_default() == "native" || transaction.clone().payment_type.as_str() == TRANSACTION_TYPE_CREATE_ACCOUNT {
-                return Some(Transaction::new(
-                    transaction.clone().transaction_hash,
-                    chain.as_asset_id(),
-                    transaction.from_address()?,
-                    transaction.to_address()?,
-                    None,
-                    TransactionType::Transfer,
-                    transaction.get_state(),
-                    transaction.fee_charged(),
-                    chain.as_asset_id(),
-                    transaction.get_value()?,
-                    transaction.clone().get_memo(),
-                    None,
-                    transaction.created_at,
-                ));
-            }
+    let asset_id = match transaction.payment_type.as_str() {
+        TRANSACTION_TYPE_PAYMENT => map_asset_id(chain, transaction.asset_type.as_deref()?, transaction.asset_issuer.as_ref(), transaction.asset_code.as_ref())?,
+        TRANSACTION_TYPE_CREATE_ACCOUNT => chain.as_asset_id(),
+        _ => return None,
+    };
 
-            None
-        }
-        _ => None,
-    }
+    Some(Transaction::new(
+        transaction.transaction_hash.clone(),
+        asset_id,
+        transaction.from_address()?,
+        transaction.to_address()?,
+        None,
+        TransactionType::Transfer,
+        transaction.get_state(),
+        transaction.fee_charged(),
+        chain.as_asset_id(),
+        transaction.get_value()?,
+        transaction.get_memo(),
+        None,
+        transaction.created_at,
+    ))
 }
 
 #[cfg(test)]
@@ -119,7 +116,7 @@ mod tests {
         provider::testkit::TEST_TRANSACTION_ID,
     };
     use num_bigint::BigUint;
-    use primitives::{AssetId, Chain};
+    use primitives::{AssetId, Chain, TransactionState, asset_constants::STELLAR_USDC_ASSET_ID};
 
     #[test]
     fn test_encode_transaction_data_variants() {
@@ -177,6 +174,31 @@ mod tests {
         .unwrap();
 
         assert_eq!(map_transaction(Chain::Stellar, payment).unwrap().fee, BigUint::from(100u32));
+    }
+
+    #[test]
+    fn test_map_transactions_token_payment() {
+        let records = serde_json::from_str::<Embedded<Payment>>(include_str!("../../testdata/transaction_token_payment.json")).unwrap()._embedded.records;
+        let created_at = records[0].created_at;
+
+        assert_eq!(
+            map_transactions(Chain::Stellar, records),
+            vec![Transaction::new(
+                "20bb73b79b4c0a218150d4f05fcc68c0df887659edfa733da9aa70866b94383d".to_string(),
+                STELLAR_USDC_ASSET_ID.clone(),
+                "GAUA7XL5K54CC2DDGP77FJ2YBHRJLT36CPZDXWPM6MP7MANOGG77PNJU".to_string(),
+                "GAEGSLTLBJD6GP7USHBTCQNK5EOGA7JFWLS776XOZOUIY7K7IFZG4DZQ".to_string(),
+                None,
+                TransactionType::Transfer,
+                TransactionState::Confirmed,
+                BigUint::from(200u32),
+                Chain::Stellar.as_asset_id(),
+                BigUint::from(787_200_000u32),
+                None,
+                None,
+                created_at,
+            )]
+        );
     }
 
     #[test]

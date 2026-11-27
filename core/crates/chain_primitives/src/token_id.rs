@@ -1,5 +1,5 @@
 use alloy_primitives::Address;
-use primitives::{Chain, chain_aptos::is_fungible_asset_token_id};
+use primitives::{AssetId, Chain, chain_aptos::is_fungible_asset_token_id};
 use std::str::FromStr;
 
 pub fn format_token_id(chain: Chain, token_id: String) -> Option<String> {
@@ -54,11 +54,8 @@ pub fn format_token_id(chain: Chain, token_id: String) -> Option<String> {
             }
         }
         Chain::Stellar => {
-            if let Some((issuer, symbol)) = token_id.split_once("::") {
-                (issuer.len() == 56 && issuer.starts_with('G') && !symbol.is_empty()).then_some(token_id)
-            } else {
-                None
-            }
+            let (issuer, code) = token_id.split_once("::").or_else(|| token_id.split_once('-').map(|(code, issuer)| (issuer, code)))?;
+            (issuer.len() == 56 && issuer.starts_with('G') && !code.is_empty()).then(|| AssetId::sub_token_id(&[issuer.to_string(), code.to_string()]))
         }
         Chain::Aptos => is_fungible_asset_token_id(&token_id).then_some(token_id),
         Chain::Bitcoin
@@ -156,6 +153,13 @@ mod tests {
         let chain = Chain::Stellar;
 
         assert_eq!(format_token_id(chain, STELLAR_USDC_TOKEN_ID.to_string()), Some(STELLAR_USDC_TOKEN_ID.to_string()));
+        assert_eq!(format_token_id(chain, "USDC-GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN".to_string()), Some(STELLAR_USDC_TOKEN_ID.to_string()));
+        assert_eq!(
+            format_token_id(chain, "MXNe-GCQCNWT22JDLENQAVIE6DRJGHWAQ6EX2H5ABGPV55EJUPPZM5UA7KHZR".to_string()),
+            Some("GCQCNWT22JDLENQAVIE6DRJGHWAQ6EX2H5ABGPV55EJUPPZM5UA7KHZR::MXNe".to_string())
+        );
+        assert_eq!(format_token_id(chain, "CCW67TSZV3SSS2HXMBQ5JFGCKJNXKZM7UQUWUZPUTHXSTZLEO7SJMI75".to_string()), None);
+        assert_eq!(format_token_id(chain, "-GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN".to_string()), None);
         assert_eq!(format_token_id(chain, "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN".to_string()), None);
         assert_eq!(format_token_id(chain, "invalid".to_string()), None);
         assert_eq!(format_token_id(chain, "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN::".to_string()), None);

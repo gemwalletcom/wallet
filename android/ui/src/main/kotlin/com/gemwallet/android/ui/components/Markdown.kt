@@ -18,9 +18,6 @@ private val boldRegex = """\*\*(.*?)\*\*""".toRegex()
 private val italicRegex = """\*(.*?)\*""".toRegex()
 private val codeBlockRegex = """```([\s\S]*?)```""".toRegex()
 private val inlineCodeRegex = """`(.*?)`""".toRegex()
-private val headingRegex = """^(#{1,2})\s*(.*)""".toRegex(RegexOption.MULTILINE)
-private val listRegex = """^- (.*)""".toRegex(RegexOption.MULTILINE)
-private val blockquoteRegex = """^>\s+(.*)""".toRegex(RegexOption.MULTILINE)
 
 fun parseMarkdownToAnnotatedString(markdown: String, linkColor: Color = Color.Blue): AnnotatedString {
     val tokens = mutableListOf<MarkdownToken>()
@@ -54,9 +51,6 @@ fun parseMarkdownToAnnotatedString(markdown: String, linkColor: Color = Color.Bl
     }
     addMatches(boldRegex, TokenType.BOLD, 1)
     addMatches(italicRegex, TokenType.ITALIC, 1)
-    addMatches(headingRegex, TokenType.HEADING, 2)
-    addMatches(listRegex, TokenType.LIST, 1)
-    addMatches(blockquoteRegex, TokenType.BLOCKQUOTE, 1)
 
     tokens.sortBy { it.start }
 
@@ -149,42 +143,6 @@ fun parseMarkdownToAnnotatedString(markdown: String, linkColor: Color = Color.Bl
                     builder.length,
                 )
             }
-
-            TokenType.HEADING -> {
-                val headingLevel = token.groups[0].length
-                val headingText = token.groups[1]
-                val styleStart = builder.length
-                builder.append(headingText)
-                builder.addStyle(
-                    SpanStyle(
-                        fontSize = if (headingLevel == 1) 26.sp else 22.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = if (headingLevel == 1) Color(0xFFA75CF2) else Color(0xFF48D883),
-                    ),
-                    styleStart,
-                    builder.length,
-                )
-            }
-
-            TokenType.LIST -> {
-                val listItem = token.groups[0]
-                builder.append("• $listItem\n")
-            }
-
-            TokenType.BLOCKQUOTE -> {
-                val quoteText = token.groups[0]
-                val styleStart = builder.length
-                builder.append(quoteText)
-                builder.addStyle(
-                    SpanStyle(
-                        background = Color(0xFFE0E0E0),
-                        fontStyle = FontStyle.Italic,
-                    ),
-                    styleStart,
-                    builder.length,
-                )
-                builder.append("\n")
-            }
         }
         currentIndex = token.end
     }
@@ -204,7 +162,4 @@ private enum class TokenType {
     BARE_LINK,
     BOLD,
     ITALIC,
-    HEADING,
-    LIST,
-    BLOCKQUOTE,
 }

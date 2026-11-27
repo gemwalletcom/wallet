@@ -8,7 +8,7 @@ gem_encoding = { path = "../gem_encoding", default-features = false, features = 
 ed25519-dalek = { workspace = true, default-features = false, features = ["zeroize"] }
 secp256k1 = { workspace = true }
 bech32 = { workspace = true }
-getrandom = { workspace = true }
+gem_crypto = { path = "../gem_crypto", default-features = false, features = ["random"] }
 primitives = { path = "../primitives" }
 alloy-primitives = { workspace = true }
 zeroize = { workspace = true }

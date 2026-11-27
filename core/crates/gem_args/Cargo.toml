@@ -1,0 +1,4 @@
+[package]
+name = "gem_args"
+version = { workspace = true }
+edition = { workspace = true }

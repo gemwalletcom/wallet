@@ -22,7 +22,7 @@ impl LabelSet for JobLabels {
 #[derive(Default)]
 struct JobState {
     interval: u64,
-    duration: u64,
+    duration: Option<u64>,
     last_success: Option<u64>,
 }
 
@@ -39,12 +39,20 @@ impl JobMetrics {
         }
     }
 
+    pub fn restore(&self, name: &str, interval: u64, last_success_at: Option<u64>) {
+        let mut jobs = super::locked(&self.jobs);
+        let state = jobs.entry(name.to_string()).or_default();
+
+        state.interval = interval;
+        state.last_success = state.last_success.max(last_success_at);
+    }
+
     pub fn report(&self, name: &str, interval: u64, duration: u64, success: bool) {
         let mut jobs = super::locked(&self.jobs);
         let state = jobs.entry(name.to_string()).or_default();
 
         state.interval = interval;
-        state.duration = duration;
+        state.duration = Some(duration);
 
         if success {
             let timestamp = unix_timestamp();
@@ -67,7 +75,9 @@ impl MetricsProvider for JobMetrics {
             };
 
             interval.get_or_create(&labels).set(state.interval as i64);
-            duration.get_or_create(&labels).set(state.duration as i64);
+            if let Some(milliseconds) = state.duration {
+                duration.get_or_create(&labels).set(milliseconds as i64);
+            }
 
             if let Some(ts) = state.last_success {
                 last_success_at.get_or_create(&labels).set(ts as i64);
@@ -77,5 +87,30 @@ impl MetricsProvider for JobMetrics {
         registry.register("job_last_success_at", "Last successful job run (unix timestamp)", last_success_at);
         registry.register("job_interval_seconds", "Job interval in seconds", interval);
         registry.register("job_duration_milliseconds", "Last job duration in milliseconds", duration);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_restore_reports_persisted_last_success_until_a_newer_one() {
+        let metrics = JobMetrics::new("alerter");
+        metrics.restore("failing", 21600, Some(1_700_000_000));
+        metrics.report("failing", 21600, 10, false);
+        metrics.report("succeeded", 60, 10, true);
+        metrics.restore("succeeded", 60, Some(1_700_000_000));
+        metrics.restore("never", 60, None);
+
+        let mut registry = MetricsRegistry::new();
+        metrics.register(&mut registry);
+        let output = registry.encode();
+
+        assert!(output.contains(r#"job_last_success_at{service="alerter",job_name="failing"} 1700000000"#));
+        assert!(!output.contains(r#"job_last_success_at{service="alerter",job_name="succeeded"} 1700000000"#));
+        assert!(output.contains(r#"job_interval_seconds{service="alerter",job_name="never"} 60"#));
+        assert!(!output.contains(r#"job_last_success_at{service="alerter",job_name="never"}"#));
+        assert!(!output.contains(r#"job_duration_milliseconds{service="alerter",job_name="never"}"#));
     }
 }

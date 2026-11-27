@@ -101,8 +101,7 @@ mod fiat_integration_tests {
 mod tests {
     use std::collections::HashMap;
 
-    use jsonwebtoken::jwk::Jwk;
-    use jsonwebtoken::{Algorithm, DecodingKey, Validation, decode};
+    use gem_jwt::{VerifyingKey, decode};
     use primitives::{FiatAssetSymbol, FiatQuote};
 
     use super::super::testkit::TEST_SIGNING_PUBLIC_KEY;
@@ -142,10 +141,7 @@ mod tests {
         };
         let url = Url::parse(&TopperClient::mock().redirect_url(&data).unwrap()).unwrap();
         let params: HashMap<String, String> = url.query_pairs().into_owned().collect();
-        let key = DecodingKey::from_jwk(&serde_json::from_str::<Jwk>(TEST_SIGNING_PUBLIC_KEY).unwrap()).unwrap();
-        let mut validation = Validation::new(Algorithm::ES256);
-        validation.required_spec_claims.clear();
-        let mut claims = decode::<serde_json::Value>(&params[BOOTSTRAP_TOKEN_PARAM], &key, &validation).unwrap().claims;
+        let mut claims = decode::<serde_json::Value>(&VerifyingKey::es256(TEST_SIGNING_PUBLIC_KEY).unwrap(), &params[BOOTSTRAP_TOKEN_PARAM]).unwrap();
         claims["iat"] = 1_800_000_000.into();
 
         assert_eq!(url.origin().ascii_serialization(), "https://app.topperpay.com");

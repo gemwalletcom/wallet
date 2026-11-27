@@ -21,16 +21,16 @@ impl CacherJobTracker {
     fn job_key(&self, job_name: &str) -> String {
         format!("{}:{}", self.service, job_name)
     }
-
-    async fn get_last_success(&self, job_name: &str) -> Option<u64> {
-        self.statuses.last_success(&self.job_key(job_name)).await.ok().flatten()
-    }
 }
 
 #[async_trait]
 impl JobSchedule for CacherJobTracker {
+    async fn last_success_at(&self, job_name: &str) -> Option<u64> {
+        self.statuses.last_success(&self.job_key(job_name)).await.ok().flatten()
+    }
+
     async fn evaluate(&self, job_name: &str, interval: Duration, now: SystemTime) -> Result<RunDecision, JobError> {
-        let last_success_at = self.get_last_success(job_name).await;
+        let last_success_at = self.last_success_at(job_name).await;
         let context = JobContext { last_success_at };
 
         if let Some(last_success) = last_success_at {

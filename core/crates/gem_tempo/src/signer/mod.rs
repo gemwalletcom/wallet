@@ -128,7 +128,10 @@ mod tests {
         let input = mock_tempo_signer_input(
             TransactionInputType::TokenApprove {
                 asset: TEMPO_BRIDGED_USDC.clone(),
-                approval_data: ApprovalData::mock(),
+                approval_data: ApprovalData {
+                    token: TEMPO_BRIDGED_USDC_TOKEN_ID.to_string(),
+                    ..ApprovalData::mock()
+                },
             },
             "0",
             TOKEN_TRANSFER_GAS_LIMIT,
@@ -136,7 +139,7 @@ mod tests {
         );
         assert_eq!(
             TempoSigner.sign_token_approval(&input, &TEST_PRIVATE_KEY).unwrap(),
-            "76f8d0821079843b9aca008504a817c80082fde8f85ef85c94dac17f958d2ee523a2206206994597c13d831ec780b844095ea7b30000000000000000000000002b5ad5c4795c026514f8317c7a215e218dccd6cfffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc0808080809420c00000000000000000000014f22ca97301eb7380c0b8413518aae0ec2ae1ea63093271ec8349dbcb69ac49a337476f049396326abe84621c8814d8724eee73b4bb29a213a6a90d7703db5964011d64905c0f8d0c2d8ed71c"
+            "76f8d0821079843b9aca008504a817c80082fde8f85ef85c9420c000000000000000000000b9537d11c60e8b5080b844095ea7b30000000000000000000000002b5ad5c4795c026514f8317c7a215e218dccd6cfffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffc0808080809420c00000000000000000000014f22ca97301eb7380c0b84102e105ec17881fe4abcc23490547385a8b1f78678580146e8862db107f2b662932a732fb041d8a280fd7643731b8e45feec87cc7dcfc17768d95dd1ba497a33f1c"
         );
     }
 
@@ -203,11 +206,15 @@ mod tests {
             ]
         );
 
-        let input_with_approval = mock_tempo_swap_input(usdc.clone(), usdc.id, Some(ApprovalData::mock()));
+        let approval = ApprovalData {
+            token: TEMPO_BRIDGED_USDC_TOKEN_ID.to_string(),
+            ..ApprovalData::mock()
+        };
+        let input_with_approval = mock_tempo_swap_input(usdc.clone(), usdc.id, Some(approval));
         assert_eq!(
             signer.sign_swap(&input_with_approval, &TEST_PRIVATE_KEY).unwrap(),
             vec![
-                "76f8eb821079843b9aca008504a817c80083089f08f878f85c94dac17f958d2ee523a2206206994597c13d831ec780b844095ea7b30000000000000000000000002b5ad5c4795c026514f8317c7a215e218dccd6cfffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffd994a2dc7d0266f0cc50b3eeaf36c9bfcecff1beea918082abcdc0808080809420c000000000000000000000b9537d11c60e8b5080c0b8415544316cf9789d3ba7ec06c96f68adb8703b8485fb31488f6af89b46bb77592301edc6d089d612a20c7413f8460eeafb08e517a3018c12396504772b5521991c1b"
+                "76f8eb821079843b9aca008504a817c80083089f08f878f85c9420c000000000000000000000b9537d11c60e8b5080b844095ea7b30000000000000000000000002b5ad5c4795c026514f8317c7a215e218dccd6cfffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffd994a2dc7d0266f0cc50b3eeaf36c9bfcecff1beea918082abcdc0808080809420c000000000000000000000b9537d11c60e8b5080c0b841eacc212286d3c5c1cb0b71e0ce4b5e7cfef1beddb675a00939c9910854089dc613549c3fd57e4774df9de7714d755c4e9ba1e7c0935adb85a64a1c4a44fd83d41c"
             ]
         );
 

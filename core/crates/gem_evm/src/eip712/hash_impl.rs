@@ -1,11 +1,10 @@
-use alloy_primitives::hex;
 use gem_hash::keccak::keccak256;
 use primitives::SignerError;
 use serde_json::{Map, Value};
 use std::collections::BTreeSet;
 
 use super::data::{TypeField, TypedData};
-use super::parse::{MAX_WORD_BYTES, adjust_signed_value, base_type_name, left_pad, parse_array_type, parse_fixed_bytes_size, parse_int_value, parse_numeric_bits, parse_uint_value, right_pad};
+use super::parse::{DecodedValue, MAX_WORD_BYTES, base_type_name, decode_value, validate_eip712_domain_chain_id_binding};
 
 const PREFIX_PERSONAL_MESSAGE: &[u8] = b"\x19\x01";
 
@@ -34,21 +33,6 @@ pub fn hash_typed_data(json: &str) -> Result<[u8; 32], SignerError> {
     Ok(keccak256(&preimage))
 }
 
-pub(super) fn validate_eip712_domain_chain_id_binding(value: &Value) -> Result<(), SignerError> {
-    let domain_chain_id = value.get("domain").and_then(|domain| domain.get("chainId"));
-    let schema_has_chain_id = value
-        .get("types")
-        .and_then(|types| types.get("EIP712Domain"))
-        .and_then(Value::as_array)
-        .is_some_and(|fields| fields.iter().any(|field| field.get("name").and_then(Value::as_str) == Some("chainId")));
-
-    match (domain_chain_id, schema_has_chain_id) {
-        (Some(_), false) => SignerError::invalid_input_err("EIP712Domain type schema must declare chainId when domain.chainId is present"),
-        (Some(Value::Null) | None, true) => SignerError::invalid_input_err("EIP712 domain missing chainId"),
-        _ => Ok(()),
-    }
-}
-
 fn hash_struct(primary_type: &str, data: Option<&Value>, types: &std::collections::HashMap<String, Vec<TypeField>>) -> Result<[u8; 32], SignerError> {
     let fields = types.get(primary_type).ok_or_else(|| SignerError::invalid_input(format!("Unknown EIP-712 type '{primary_type}'")))?;
 
@@ -72,140 +56,24 @@ fn hash_struct(primary_type: &str, data: Option<&Value>, types: &std::collection
 
 fn encode_value(type_name: &str, value: Option<&Value>, types: &std::collections::HashMap<String, Vec<TypeField>>) -> Result<[u8; 32], SignerError> {
     let value = value.ok_or_else(|| SignerError::invalid_input(format!("Missing value for type '{type_name}'")))?;
-    if value.is_null() {
-        return Err(SignerError::invalid_input(format!("Missing value for type '{type_name}'")));
-    }
 
-    if let Some((element_type, expected_len)) = parse_array_type(type_name)? {
-        let mut concatenated = Vec::new();
-
-        match value {
-            Value::Array(items) => {
-                if let Some(len) = expected_len
-                    && items.len() != len
-                {
-                    return Err(SignerError::invalid_input(format!("Expected array of length {len} for type '{ty}', got {}", items.len(), ty = type_name)));
-                }
-
-                for item in items {
-                    let element_bytes = encode_value(&element_type, Some(item), types)?;
-                    concatenated.extend_from_slice(&element_bytes);
-                }
+    match decode_value(type_name, value, |name| types.contains_key(name))? {
+        DecodedValue::Array { element_type, items } => {
+            let mut concatenated = Vec::new();
+            for item in items {
+                concatenated.extend_from_slice(&encode_value(&element_type, Some(item), types)?);
             }
-            other => {
-                return Err(SignerError::invalid_input(format!("Expected array for type '{ty}', got {}", other, ty = type_name)));
-            }
+            Ok(keccak256(&concatenated))
         }
-
-        return Ok(keccak256(&concatenated));
+        DecodedValue::Struct { type_name, .. } => hash_struct(type_name, Some(value), types),
+        DecodedValue::String(string) => Ok(keccak256(string.as_bytes())),
+        DecodedValue::Bytes(bytes) => Ok(keccak256(&bytes)),
+        DecodedValue::FixedBytes(bytes) => Ok(right_pad(&bytes)),
+        DecodedValue::Bool(value) => Ok(if value { left_pad(&[1]) } else { [0u8; 32] }),
+        DecodedValue::Address(address) => Ok(left_pad(address.as_slice())),
+        DecodedValue::Uint(number) => Ok(number.to_be_bytes::<MAX_WORD_BYTES>()),
+        DecodedValue::Int(number) => Ok(number.into_raw().to_be_bytes::<MAX_WORD_BYTES>()),
     }
-
-    let base_type = base_type_name(type_name);
-    if types.contains_key(base_type) {
-        return hash_struct(base_type, Some(value), types);
-    }
-
-    match base_type {
-        "string" => encode_string(value),
-        "bytes" => encode_bytes(value),
-        "bool" => encode_bool(value),
-        "address" => encode_address(value),
-        _ => {
-            if base_type.starts_with("uint") || base_type == "uint" {
-                encode_uint(base_type, Some(value))
-            } else if base_type.starts_with("int") {
-                encode_int(base_type, Some(value))
-            } else if base_type.starts_with("bytes") {
-                encode_fixed_bytes(base_type, value)
-            } else {
-                SignerError::invalid_input_err(format!("Unsupported EIP-712 type '{ty}'", ty = type_name))
-            }
-        }
-    }
-}
-
-fn encode_string(value: &Value) -> Result<[u8; 32], SignerError> {
-    let string_value = match value {
-        Value::String(s) => s.as_str(),
-        other => return Err(SignerError::invalid_input(format!("Expected string value, got {}", other))),
-    };
-
-    Ok(keccak256(string_value.as_bytes()))
-}
-
-fn encode_bytes(value: &Value) -> Result<[u8; 32], SignerError> {
-    let bytes = match value {
-        Value::String(s) => hex::decode(s).map_err(SignerError::from_display)?,
-        other => return Err(SignerError::invalid_input(format!("Expected hex string for bytes value, got {}", other))),
-    };
-
-    Ok(keccak256(&bytes))
-}
-
-fn encode_bool(value: &Value) -> Result<[u8; 32], SignerError> {
-    let bool_value = match value {
-        Value::Bool(b) => *b,
-        Value::Number(num) => match (num.as_u64(), num.as_i64()) {
-            (Some(v), _) => v != 0,
-            (_, Some(v)) => v != 0,
-            _ => return Err(SignerError::invalid_input("Invalid numeric value for bool")),
-        },
-        other => return Err(SignerError::invalid_input(format!("Expected boolean value, got {}", other))),
-    };
-
-    if bool_value { Ok(left_pad(&[1])) } else { Ok([0u8; 32]) }
-}
-
-fn encode_address(value: &Value) -> Result<[u8; 32], SignerError> {
-    let bytes = match value {
-        Value::String(s) => {
-            let raw = hex::decode(s).map_err(SignerError::from_display)?;
-            if raw.len() != 20 {
-                return Err(SignerError::invalid_input(format!("Invalid address length for '{s}'")));
-            }
-            raw
-        }
-        other => return Err(SignerError::invalid_input(format!("Expected address string, got {}", other))),
-    };
-
-    Ok(left_pad(&bytes))
-}
-
-fn encode_uint(type_name: &str, value: Option<&Value>) -> Result<[u8; 32], SignerError> {
-    let bits = parse_numeric_bits(type_name, "uint")?;
-    let number = parse_uint_value(value)?;
-
-    if number.bit_len() > bits {
-        return Err(SignerError::invalid_input(format!("Value out of range for type '{type_name}' ({bits}-bit unsigned integer)")));
-    }
-
-    Ok(number.to_be_bytes::<MAX_WORD_BYTES>())
-}
-
-fn encode_int(type_name: &str, value: Option<&Value>) -> Result<[u8; 32], SignerError> {
-    let bits = parse_numeric_bits(type_name, "int")?;
-    let number = parse_int_value(value)?;
-    let unsigned = adjust_signed_value(number, bits)?;
-    Ok(unsigned.to_be_bytes::<MAX_WORD_BYTES>())
-}
-
-fn encode_fixed_bytes(type_name: &str, value: &Value) -> Result<[u8; 32], SignerError> {
-    let size = parse_fixed_bytes_size(type_name)?;
-    let mut bytes = match value {
-        Value::String(s) if s.is_empty() => Vec::new(),
-        Value::String(s) => hex::decode(s).map_err(SignerError::from_display)?,
-        other => return Err(SignerError::invalid_input(format!("Expected hex string for {type_name}, got {}", other))),
-    };
-
-    if bytes.len() > size {
-        return Err(SignerError::invalid_input(format!("Value too large for type '{type_name}'")));
-    }
-
-    if bytes.len() < size {
-        bytes.resize(size, 0u8);
-    }
-
-    Ok(right_pad(&bytes))
 }
 
 fn hash_type(primary_type: &str, types: &std::collections::HashMap<String, Vec<TypeField>>) -> Result<[u8; 32], SignerError> {
@@ -259,4 +127,18 @@ fn collect_type_dependencies(primary_type: &str, types: &std::collections::HashM
             collect_type_dependencies(&field.r#type, types, results);
         }
     }
+}
+
+fn left_pad(bytes: &[u8]) -> [u8; MAX_WORD_BYTES] {
+    let mut out = [0u8; MAX_WORD_BYTES];
+    let len = bytes.len().min(MAX_WORD_BYTES);
+    out[MAX_WORD_BYTES - len..].copy_from_slice(&bytes[bytes.len() - len..]);
+    out
+}
+
+fn right_pad(bytes: &[u8]) -> [u8; MAX_WORD_BYTES] {
+    let mut out = [0u8; MAX_WORD_BYTES];
+    let len = bytes.len().min(MAX_WORD_BYTES);
+    out[..len].copy_from_slice(&bytes[..len]);
+    out
 }

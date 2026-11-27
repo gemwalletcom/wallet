@@ -1,4 +1,5 @@
 use alloy_primitives::{Address, Signature as EthereumSignature};
+use gem_crypto::random;
 use primitives::SignerError;
 use secp256k1::ecdsa::{RecoverableSignature, RecoveryId, Signature};
 use secp256k1::{Message, PublicKey, SECP256K1, SecretKey};
@@ -68,7 +69,7 @@ pub fn uncompressed_public_key(public_key: &[u8]) -> Result<Vec<u8>, SignerError
 
 pub fn generate_private_key() -> Result<Zeroizing<[u8; SECRET_KEY_LENGTH]>, SignerError> {
     let mut bytes = Zeroizing::new([0u8; SECRET_KEY_LENGTH]);
-    getrandom::fill(bytes.as_mut_slice()).map_err(SignerError::from_display)?;
+    random::fill(bytes.as_mut_slice()).map_err(SignerError::from_display)?;
     match validate_private_key(bytes.as_slice()) {
         Ok(()) => Ok(bytes),
         Err(_) => generate_private_key(),

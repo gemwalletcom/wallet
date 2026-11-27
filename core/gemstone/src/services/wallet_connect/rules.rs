@@ -1,4 +1,3 @@
-use crate::constants::{WALLET_CONNECT_USER_REJECTED_ERROR_CODE, WALLET_CONNECT_USER_REJECTED_ERROR_MESSAGE};
 use gem_evm::transaction::decode_calldata;
 use std::collections::HashSet;
 use std::str::FromStr;
@@ -23,26 +22,15 @@ use crate::models::list::{GemListRow, GemListRowTitle};
 use crate::services::error::GemServiceError;
 use crate::services::error_text::GemErrorText;
 use crate::services::transfer::{GemRecipient, GemTransferData};
-use crate::services::wallet_connect::model::{
-    GemSignerFailure, GemWalletConnectAuthAccount, GemWalletConnectOutcome, GemWalletConnectRejection, GemWalletConnectRejectionReason, GemWalletConnectResponse, GemWalletConnectRpcError, GemWalletConnectTransactionAction,
-};
-use crate::wallet_connect::WalletConnect;
+use crate::services::wallet_connect::model::{GemSignerFailure, GemWalletConnectAuthAccount, GemWalletConnectOutcome, GemWalletConnectResponse, GemWalletConnectTransactionAction};
 use gem_wallet_connect::{EvmTransactionKind, WalletConnectResponseType, WalletConnectTransaction};
 use num_bigint::BigInt;
 use primitives::GasPriceType;
 use primitives::TransactionInputType;
 use primitives::{Asset, TransactionType, TransferDataExtra, TransferDataOutputAction, TransferDataOutputType};
-use wallet_connect_protocol::sign::namespaces::NamespaceError;
+use wallet_connect_protocol::sign::Reason;
 use wallet_connect_protocol::sign::types::Redirect;
 
-const UNSUPPORTED_CHAINS_ERROR_CODE: i32 = 5100;
-const UNSUPPORTED_METHODS_ERROR_CODE: i32 = 5101;
-const UNSUPPORTED_ACCOUNTS_ERROR_CODE: i32 = 5103;
-const UNSUPPORTED_EVENTS_ERROR_CODE: i32 = 5102;
-const SESSION_REQUEST_EXPIRED_ERROR_CODE: i32 = 8000;
-const USER_REJECTED_SESSION_ERROR_CODE: i32 = 5000;
-const METHOD_NOT_FOUND_ERROR_CODE: i32 = -32601;
-const UNRECOGNIZED_CHAIN_ERROR_CODE: i32 = 4902;
 const BLOCKED_APP_LINK_SCHEMES: [&str; 33] = [
     GEM_URL_SCHEME,
     WALLET_CONNECT_URL_SCHEME,
@@ -117,20 +105,20 @@ pub fn session_account(connection: &WalletConnection, chain: Chain) -> Result<Ac
 pub fn add_chain_outcome(connection: &WalletConnection, chain_id: u64) -> GemWalletConnectOutcome {
     match switchable_account(connection, chain_id) {
         Some(_) => GemWalletConnectOutcome::respond_null(),
-        None => GemWalletConnectOutcome::respond_error(unrecognized_chain_error()),
+        None => GemWalletConnectOutcome::respond_error(Reason::unrecognized_chain()),
     }
 }
 
 pub fn switch_chain_outcome(connection: &WalletConnection, chain_id: u64) -> GemWalletConnectOutcome {
     let Some(account) = switchable_account(connection, chain_id) else {
-        return GemWalletConnectOutcome::respond_error(unrecognized_chain_error());
+        return GemWalletConnectOutcome::respond_error(Reason::unrecognized_chain());
     };
     if connection.session.chains.contains(&account.chain) {
         return GemWalletConnectOutcome::respond_null();
     }
     match WalletConnectCAIP2::format_account(account.chain, &account.address) {
         Some(account) => GemWalletConnectOutcome::AddSessionAccount { account },
-        None => GemWalletConnectOutcome::respond_error(unrecognized_chain_error()),
+        None => GemWalletConnectOutcome::respond_error(Reason::unrecognized_chain()),
     }
 }
 
@@ -225,8 +213,7 @@ pub fn authentication_accounts(chain_ids: &[String], wallet: &Wallet) -> Vec<Gem
 }
 
 pub fn account_chains(accounts: &[String]) -> Vec<Chain> {
-    let wallet_connect = WalletConnect::new();
-    unique(accounts.iter().filter_map(|account| wallet_connect.parse_account(account.clone())).map(|address| address.chain))
+    unique(accounts.iter().filter_map(|account| WalletConnectCAIP2::parse_account(account.clone())).map(|address| address.chain))
 }
 
 pub fn application_metadata(name: String, description: String, url: String, icons: Vec<String>) -> ApplicationMetadata {
@@ -255,31 +242,6 @@ pub fn session(topic: String, chains: Vec<Chain>, expire_at: DateTime, metadata:
         created_at: DateTime::now(),
         expire_at,
         metadata,
-    }
-}
-
-pub fn session_rejection(reason: GemWalletConnectRejectionReason) -> GemWalletConnectRejection {
-    let (code, message) = match reason {
-        GemWalletConnectRejectionReason::UserRejected => (USER_REJECTED_SESSION_ERROR_CODE, "User rejected."),
-        GemWalletConnectRejectionReason::UnsupportedChains => (UNSUPPORTED_CHAINS_ERROR_CODE, "Unsupported chains"),
-        GemWalletConnectRejectionReason::UnsupportedMethods => (UNSUPPORTED_METHODS_ERROR_CODE, "Unsupported methods"),
-        GemWalletConnectRejectionReason::UnsupportedAccounts => (UNSUPPORTED_ACCOUNTS_ERROR_CODE, "Unsupported accounts"),
-        GemWalletConnectRejectionReason::UnsupportedEvents => (UNSUPPORTED_EVENTS_ERROR_CODE, "Unsupported events"),
-    };
-    GemWalletConnectRejection {
-        reason,
-        code,
-        message: message.to_string(),
-        deletes_session: true,
-    }
-}
-
-pub fn namespace_rejection(error: NamespaceError) -> GemWalletConnectRejectionReason {
-    match error {
-        NamespaceError::UnsupportedChains => GemWalletConnectRejectionReason::UnsupportedChains,
-        NamespaceError::UnsupportedAccounts => GemWalletConnectRejectionReason::UnsupportedAccounts,
-        NamespaceError::UnsupportedMethods => GemWalletConnectRejectionReason::UnsupportedMethods,
-        NamespaceError::UnsupportedEvents => GemWalletConnectRejectionReason::UnsupportedEvents,
     }
 }
 
@@ -321,13 +283,6 @@ fn is_same_or_subdomain(host: &str, domain: &str) -> bool {
     host == domain || host.strip_suffix(domain).is_some_and(|prefix| prefix.ends_with('.'))
 }
 
-pub fn user_rejected_error() -> GemWalletConnectRpcError {
-    GemWalletConnectRpcError {
-        code: WALLET_CONNECT_USER_REJECTED_ERROR_CODE,
-        message: WALLET_CONNECT_USER_REJECTED_ERROR_MESSAGE.to_string(),
-    }
-}
-
 pub fn signer_failure(error: GemErrorText) -> GemSignerFailure {
     match error {
         GemErrorText::Cancelled => GemSignerFailure::Reject,
@@ -335,29 +290,8 @@ pub fn signer_failure(error: GemErrorText) -> GemSignerFailure {
     }
 }
 
-pub fn request_expired_error() -> GemWalletConnectRpcError {
-    GemWalletConnectRpcError {
-        code: SESSION_REQUEST_EXPIRED_ERROR_CODE,
-        message: "Session request expired".to_string(),
-    }
-}
-
 pub fn is_expired(expiry: Option<u64>, now: DateTime) -> bool {
     expiry.is_some_and(|expiry| now.timestamp() >= expiry as i64)
-}
-
-pub fn unrecognized_chain_error() -> GemWalletConnectRpcError {
-    GemWalletConnectRpcError {
-        code: UNRECOGNIZED_CHAIN_ERROR_CODE,
-        message: "Unrecognized chain ID".to_string(),
-    }
-}
-
-pub fn method_not_found_error() -> GemWalletConnectRpcError {
-    GemWalletConnectRpcError {
-        code: METHOD_NOT_FOUND_ERROR_CODE,
-        message: "Method not found".to_string(),
-    }
 }
 
 pub fn request_message_id(topic: &str, request_id: &str) -> String {
@@ -530,22 +464,8 @@ fn hex_to_bytes(value: &str) -> Result<Vec<u8>, GemServiceError> {
 
 #[cfg(test)]
 mod tests {
-
-    #[test]
-    fn test_session_rejection_names_the_wire_values() {
-        let rejection = session_rejection(GemWalletConnectRejectionReason::UnsupportedChains);
-        assert_eq!(rejection.reason, GemWalletConnectRejectionReason::UnsupportedChains);
-        assert_eq!(rejection.code, 5100);
-        assert_eq!(rejection.message, "Unsupported chains");
-        assert!(rejection.deletes_session);
-
-        assert_eq!(session_rejection(GemWalletConnectRejectionReason::UserRejected).code, USER_REJECTED_SESSION_ERROR_CODE);
-        assert_eq!(session_rejection(GemWalletConnectRejectionReason::UnsupportedMethods).code, 5101);
-        assert_eq!(session_rejection(GemWalletConnectRejectionReason::UnsupportedEvents).code, 5102);
-        assert_eq!(session_rejection(GemWalletConnectRejectionReason::UnsupportedAccounts).code, 5103);
-    }
-
     use super::*;
+    use crate::services::wallet_connect::model::GemWalletConnectRejectionReason;
     use gem_wallet_connect::WCEthereumTransaction;
     use gem_wallet_connect::WCSuiTransactionData;
     use num_bigint::BigUint;
@@ -638,13 +558,24 @@ mod tests {
     }
 
     #[test]
+    fn test_rejection_reason_wire_codes() {
+        let code = |reason: GemWalletConnectRejectionReason| Reason::from(reason).code;
+
+        assert_eq!(code(GemWalletConnectRejectionReason::UserRejected), 5000);
+        assert_eq!(code(GemWalletConnectRejectionReason::UnsupportedChains), 5100);
+        assert_eq!(code(GemWalletConnectRejectionReason::UnsupportedMethods), 5101);
+        assert_eq!(code(GemWalletConnectRejectionReason::UnsupportedEvents), 5102);
+        assert_eq!(code(GemWalletConnectRejectionReason::UnsupportedAccounts), 5103);
+    }
+
+    #[test]
     fn test_switch_chain_adds_a_supported_network_to_a_session_that_already_has_the_ethereum_address() {
         let wallet = Wallet::mock_with_chains(&[Chain::Ethereum, Chain::Base, Chain::Blast, Chain::Solana]);
         let connection = |chains: &[Chain]| WalletConnection {
             session: WalletConnectionSession::mock("topic", chains),
             wallet: wallet.clone(),
         };
-        let unrecognized = GemWalletConnectOutcome::respond_error(unrecognized_chain_error());
+        let unrecognized = GemWalletConnectOutcome::respond_error(Reason::unrecognized_chain());
 
         assert_eq!(
             switch_chain_outcome(&connection(&[Chain::Ethereum]), 8453),

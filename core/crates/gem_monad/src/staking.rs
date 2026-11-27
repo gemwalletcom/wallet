@@ -6,12 +6,11 @@ use gem_evm::rpc::parsers::ProtocolParser;
 use gem_evm::rpc::{EthereumClient, EvmFeeCalculator, EvmStakingClient};
 use gem_evm::transaction_params::TransactionParams;
 use num_bigint::BigInt;
-use num_traits::Zero;
 use primitives::{AssetBalance, AssetId, Balance, Chain, DelegationBase, DelegationValidator, StakeType};
 
 use crate::constants::STAKING_LENS_CONTRACT;
 use crate::encode::{decode_apys, decode_balance, decode_delegations, decode_validators, encode_apys, encode_balance, encode_delegations, encode_stake, encode_validators};
-use crate::mapper::{map_delegation, map_validator};
+use crate::mapper::{map_delegations, map_validator};
 use crate::parser::MonadParser;
 
 pub struct MonadStakingClient<C: Client + Clone> {
@@ -48,13 +47,12 @@ impl<C: Client + Clone> EvmStakingClient for MonadStakingClient<C> {
     }
 
     async fn get_staking_delegations(&self, address: &str) -> Result<Vec<DelegationBase>, Box<dyn Error + Sync + Send>> {
+        if self.client.get_nonce(address).await? == 0 {
+            return Ok(vec![]);
+        }
         let positions = decode_delegations(&self.call_delegations(address).await?)?;
 
-        Ok(positions
-            .into_iter()
-            .filter(|position| !position.amount.is_zero() || !position.rewards.is_zero())
-            .map(|position| map_delegation(address, position))
-            .collect())
+        Ok(map_delegations(address, positions))
     }
 
     async fn get_staking_balance(&self, address: &str) -> Result<Option<AssetBalance>, Box<dyn Error + Sync + Send>> {
@@ -130,10 +128,25 @@ mod tests {
 
         assert!(client.get_staking_delegations(TEST_ADDRESS).await.is_err());
 
-        let empty_client = mock_jsonrpc_client(|_request_method, _params| Ok(json!(encode_prefixed(IMonadStakingLens::getDelegationsCall::abi_encode_returns(&vec![])))));
-        let client = MonadStakingClient::new(EthereumClient::new(empty_client, EVMChain::Monad));
+        let unused_client = mock_jsonrpc_client(|request_method, params| {
+            assert_eq!(request_method, method::ETH_GET_TRANSACTION_COUNT);
+            assert_eq!(params, &json!([TEST_ADDRESS, "latest"]));
+            Ok(json!("0x0"))
+        });
+        let client = MonadStakingClient::new(EthereumClient::new(unused_client, EVMChain::Monad));
 
         assert_eq!(client.get_staking_delegations(TEST_ADDRESS).await.unwrap(), Vec::<DelegationBase>::new());
+
+        let staked_client = mock_jsonrpc_client(|request_method, _params| match request_method {
+            method::ETH_GET_TRANSACTION_COUNT => Ok(json!("0x1a")),
+            _ => Ok(json!(encode_prefixed(IMonadStakingLens::getDelegationsCall::abi_encode_returns(&vec![IMonadStakingLens::Delegation::mock()])))),
+        });
+        let client = MonadStakingClient::new(EthereumClient::new(staked_client, EVMChain::Monad));
+
+        assert_eq!(
+            client.get_staking_delegations(TEST_ADDRESS).await.unwrap().into_iter().map(|delegation| delegation.delegation_id).collect::<Vec<_>>(),
+            vec![format!("{TEST_ADDRESS}:16:active:0")]
+        );
     }
 
     #[tokio::test]

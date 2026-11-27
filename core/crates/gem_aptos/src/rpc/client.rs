@@ -10,12 +10,14 @@ use serde::Serialize;
 use serde::de::DeserializeOwned;
 
 use crate::models::{
-    Account, Block, DelegationPoolStake, GasFee, Ledger, Resource, RewardRate, SimulateTransactionQuery, SponsoredSimulationSignature, Transaction, TransactionPayload, TransactionResponse, TransactionSimulation, ValidatorSet, ViewRequest,
+    Account, Block, BlockHeader, DelegationPoolStake, GasFee, Ledger, Resource, RewardRate, SimulateTransactionQuery, SponsoredSimulationSignature, Transaction, TransactionPayload, TransactionResponse, TransactionSimulation, ValidatorSet,
+    ViewRequest,
 };
 use crate::provider::payload_builder::build_swap_transaction_payload;
+use crate::provider::transactions_mapper::map_block_range_transactions;
 use crate::rpc::target::AptosTarget;
 use crate::signer::{build_delegation_pool_transaction_payload, build_token_transfer_transaction_payload, build_transfer_transaction_payload};
-use crate::{DEFAULT_MAX_GAS_AMOUNT, DEFAULT_SWAP_MAX_GAS_AMOUNT, GAS_LIMIT_MULTIPLIER, SIMULATION_MAX_GAS_AMOUNT};
+use crate::{DEFAULT_MAX_GAS_AMOUNT, DEFAULT_SWAP_MAX_GAS_AMOUNT, GAS_LIMIT_MULTIPLIER, SIMULATION_MAX_GAS_AMOUNT, TRANSACTIONS_PAGE_LIMIT};
 
 #[derive(Debug)]
 pub struct AptosClient<C: Client> {
@@ -47,6 +49,26 @@ impl<C: Client> AptosClient<C> {
 
     pub async fn get_block_transactions(&self, block_number: u64) -> Result<Block, Box<dyn Error + Send + Sync>> {
         Ok(self.client.get(AptosTarget::GetBlock { height: block_number }).await?)
+    }
+
+    pub async fn get_block_header(&self, height: u64) -> Result<BlockHeader, Box<dyn Error + Send + Sync>> {
+        Ok(self.client.get(AptosTarget::GetBlockHeader { height }).await?)
+    }
+
+    pub async fn get_transactions(&self, start: u64, limit: u64) -> Result<Vec<Transaction>, Box<dyn Error + Send + Sync>> {
+        Ok(self.client.get(AptosTarget::GetTransactions { start, limit }).await?)
+    }
+
+    pub async fn get_block_range_transactions(&self, blocks: &[u64]) -> Result<Vec<Vec<Transaction>>, Box<dyn Error + Send + Sync>> {
+        let (first_block, last_block) = blocks.first().zip(blocks.last()).ok_or("missing Aptos blocks")?;
+        let (first, last) = futures::try_join!(self.get_block_header(*first_block), self.get_block_header(*last_block))?;
+        let pages = futures::future::try_join_all(
+            (first.first_version..=last.last_version)
+                .step_by(TRANSACTIONS_PAGE_LIMIT as usize)
+                .map(|start| self.get_transactions(start, TRANSACTIONS_PAGE_LIMIT.min(last.last_version + 1 - start))),
+        )
+        .await?;
+        map_block_range_transactions(pages.into_iter().flatten().collect(), last.last_version + 1 - first.first_version, blocks.len() as u64)
     }
 
     pub async fn get_transactions_by_address(&self, address: String) -> Result<Vec<Transaction>, Box<dyn Error + Send + Sync>> {

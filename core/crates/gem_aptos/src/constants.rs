@@ -11,6 +11,8 @@ pub const SIMULATION_MAX_GAS_AMOUNT: u64 = 2_000_000;
 pub const DEFAULT_MAX_GAS_AMOUNT: u64 = 1500;
 pub const DEFAULT_SWAP_MAX_GAS_AMOUNT: u64 = 30000;
 pub const GAS_LIMIT_MULTIPLIER: u64 = 120;
+pub const TRANSACTIONS_PAGE_LIMIT: u64 = 100;
+pub const BLOCK_METADATA_TRANSACTION_TYPE: &str = "block_metadata_transaction";
 
 pub const STAKE_WITHDRAW_EVENT: &str = "0x1::coin::WithdrawEvent";
 pub const STAKE_DEPOSIT_EVENT: &str = "0x1::coin::DepositEvent";
@@ -38,5 +40,6 @@ pub const HYPERION_POOL_SWAP_EVENTS: [&str; 3] = [
 
 pub const DELEGATION_POOL_ADD_STAKE_EVENT: &str = "0x1::delegation_pool::AddStake";
 pub const DELEGATION_POOL_UNLOCK_STAKE_EVENT: &str = "0x1::delegation_pool::UnlockStake";
+pub const DELEGATION_POOL_WITHDRAW_STAKE_EVENT: &str = "0x1::delegation_pool::WithdrawStake";
 
 pub const KNOWN_VALIDATOR_POOL: &str = "0xdb5247f859ce63dbe8940cf8773be722a60dcc594a8be9aca4b76abceb251b8e";

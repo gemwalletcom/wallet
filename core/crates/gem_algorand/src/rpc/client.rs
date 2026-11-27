@@ -3,7 +3,7 @@ use std::error::Error;
 use gem_client::{Client, ClientExt};
 use primitives::Chain;
 
-use crate::models::{Account, AssetDetails, TransactionBroadcast, TransactionStatus, TransactionsParams};
+use crate::models::{Account, AssetDetails, BlockResponse, BlockTransactionIds, TransactionBroadcast, TransactionStatus, TransactionsParams};
 use crate::rpc::target::AlgorandTarget;
 
 #[derive(Debug)]
@@ -19,6 +19,14 @@ impl<C: Client> AlgorandClient<C> {
 
     pub fn get_chain(&self) -> Chain {
         self.chain
+    }
+
+    pub async fn get_block(&self, round: u64) -> Result<BlockResponse, Box<dyn Error + Send + Sync>> {
+        Ok(self.client.get(AlgorandTarget::GetBlock { round }).await?)
+    }
+
+    pub async fn get_block_transaction_ids(&self, round: u64) -> Result<BlockTransactionIds, Box<dyn Error + Send + Sync>> {
+        Ok(self.client.get(AlgorandTarget::GetBlockTransactionIds { round }).await?)
     }
 
     pub async fn get_account(&self, address: &str) -> Result<Account, Box<dyn Error + Send + Sync>> {

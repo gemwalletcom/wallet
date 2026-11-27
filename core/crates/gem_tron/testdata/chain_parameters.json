@@ -1,6 +1,7 @@
 {
   "chainParameter": [
     { "key": "getEnergyFee", "value": 100 },
-    { "key": "getTransactionFee", "value": 1000 }
+    { "key": "getTransactionFee", "value": 1000 },
+    { "key": "getMemoFee", "value": 1000000 }
   ]
 }

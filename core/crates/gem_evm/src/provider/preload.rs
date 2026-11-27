@@ -33,7 +33,7 @@ impl<C: Client + Clone> ChainTransactionLoad for EthereumProvider<C> {
     }
 
     async fn get_transaction_preload(&self, input: TransactionPreloadInput) -> Result<TransactionLoadMetadata, Box<dyn Error + Sync + Send>> {
-        let nonce = self.get_transaction_count(&input.sender_address).await?;
+        let nonce = self.get_nonce(&input.sender_address).await?;
         let chain_id = self.chain.to_chain().network_id().to_string();
 
         map_transaction_preload(nonce, chain_id)

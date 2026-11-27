@@ -31,7 +31,7 @@ use wallet_connect_protocol::sign::{Metadata, Participant, ProposeResponse, Publ
 use wallet_connect_protocol::verify::{self, Attestation, Verification, VerifyPublicKey};
 use wallet_connect_protocol::{PairingUri, ProtocolError, envelope};
 
-use super::model::{GemWalletConnectFailure, GemWalletConnectOutcome, GemWalletConnectRejection, GemWalletConnectRejectionReason, GemWalletConnectResponse, GemWalletConnectRpcError, GemWalletConnectSessionRequest};
+use super::model::{GemWalletConnectFailure, GemWalletConnectOutcome, GemWalletConnectRejectionReason, GemWalletConnectResponse, GemWalletConnectSessionRequest};
 use super::{GemWalletConnectService, rules};
 use crate::alien::{AlienHttpMethod, AlienProvider, AlienTarget};
 use crate::config::wallet_connect::get_wallet_connect_config;
@@ -225,7 +225,7 @@ impl GemWalletConnectClient {
             .is_origin_rejected(pending.proposal.proposer.metadata.url.clone(), pending.verification.origin.clone(), pending.verification.status.clone())
         {
             if self.take_pairing_request(&proposal_id).is_some() {
-                self.reject_proposal(&pending, GemWalletConnectRejectionReason::UserRejected).await?;
+                self.reject_proposal(&pending, &Reason::user_rejected_session()).await?;
             }
             return Err(invalid_origin());
         }
@@ -245,13 +245,11 @@ impl GemWalletConnectClient {
         let namespaces = match namespaces::approved_namespaces(&pending.proposal, &supported) {
             Ok(namespaces) => namespaces,
             Err(error) => {
-                let reason = rules::namespace_rejection(error);
+                let reason = Reason::from(error);
                 if self.take_pairing_request(&proposal_id).is_some() {
-                    self.reject_proposal(&pending, reason).await?;
+                    self.reject_proposal(&pending, &reason).await?;
                 }
-                return Err(GemServiceError::Unsupported {
-                    msg: self.service.session_rejection(reason).message,
-                });
+                return Err(GemServiceError::Unsupported { msg: reason.message });
             }
         };
         let approved_chains = namespaces::approved_chains(&namespaces);
@@ -325,7 +323,7 @@ impl GemWalletConnectClient {
         let Some(PairingRequest::Proposal(pending)) = self.take_pairing_request(&proposal_id) else {
             return Ok(());
         };
-        self.reject_proposal(&pending, reason).await?;
+        self.reject_proposal(&pending, &reason.into()).await?;
         self.return_to_dapp(&pending.pairing_topic, &pending.proposal.proposer.metadata);
         Ok(())
     }
@@ -359,7 +357,7 @@ impl GemWalletConnectClient {
         let Some((request, session)) = self.read(|state| state.request(&topic, id))? else {
             return Ok(());
         };
-        self.respond(&request, &session, GemWalletConnectResponse::Error { error: rules::user_rejected_error() }).await?;
+        self.respond(&request, &session, GemWalletConnectResponse::Error { error: Reason::user_rejected_request() }).await?;
         self.return_after_last_request(&session)
     }
 
@@ -436,7 +434,7 @@ impl GemWalletConnectClient {
         let Some(PairingRequest::Authentication(pending)) = self.take_pairing_request(&authentication_id) else {
             return Ok(());
         };
-        let response = rejection(pending.request_id, &self.service.session_rejection(GemWalletConnectRejectionReason::UserRejected));
+        let response = payload::failure(pending.request_id, &Reason::user_rejected_session());
         let rejection = authentication_answer(&pending, &crypto::generate_key()?, &response, Publish::AuthenticationRejection)?;
         self.store_and_send(rejection, |state| state.remove_pairing(&pending.pairing_topic)).await?;
         self.return_to_dapp(&pending.pairing_topic, &pending.params.requester.metadata);
@@ -526,7 +524,7 @@ impl GemWalletConnectClient {
 
     async fn receive_request(&self, session: Session, message: &RelayMessage, key: &Key, id: u64, request: SessionRequest) -> Result<(), GemServiceError> {
         if rules::is_expired(request.request.expiry_timestamp, DateTime::now()) {
-            return self.publish(&session.topic, key, &payload::failure(id, &reason(rules::request_expired_error())), Publish::SessionRequestResponse).await;
+            return self.publish(&session.topic, key, &payload::failure(id, &Reason::request_expired()), Publish::SessionRequestResponse).await;
         }
         if let Err(refusal) = namespaces::authorization(&session.namespaces, &request.chain_id, &request.request.method) {
             return self.publish(&session.topic, key, &payload::failure(id, &refusal), Publish::SessionRequestResponse).await;
@@ -583,7 +581,7 @@ impl GemWalletConnectClient {
         let message = match response {
             GemWalletConnectResponse::Response { value } => payload::success(request.id, &response_value(value)?),
             GemWalletConnectResponse::Null => payload::success(request.id, &()),
-            GemWalletConnectResponse::Error { error } => payload::failure(request.id, &reason(error)),
+            GemWalletConnectResponse::Error { error } => payload::failure(request.id, &error),
         };
         let key = crypto::parse_key(&session.key)?;
         let answer = outgoing_publish(&session.topic, &envelope::encrypt(&key, &message)?, Publish::SessionRequestResponse);
@@ -677,16 +675,11 @@ impl GemWalletConnectClient {
         Err(GemServiceError::Expired)
     }
 
-    async fn reject_proposal(&self, pending: &PendingProposal, reason: GemWalletConnectRejectionReason) -> Result<(), GemServiceError> {
-        let session_rejection = self.service.session_rejection(reason);
+    async fn reject_proposal(&self, pending: &PendingProposal, reason: &Reason) -> Result<(), GemServiceError> {
         let key = self.pairing_key(&pending.pairing_topic)?;
-        let response = rejection(pending.request_id, &session_rejection);
+        let response = payload::failure(pending.request_id, reason);
         let answer = outgoing_publish(&pending.pairing_topic, &envelope::encrypt(&key, &response)?, Publish::ProposalRejection);
-        self.store_and_send(answer, |state| state.remove_pairing(&pending.pairing_topic)).await?;
-        if session_rejection.deletes_session {
-            self.service.delete_session(pending.pairing_topic.clone()).await?;
-        }
-        Ok(())
+        self.store_and_send(answer, |state| state.remove_pairing(&pending.pairing_topic)).await
     }
 
     async fn answer_ping(&self, topic: &str, key: &Key, id: u64, method: Publish) -> Result<(), GemServiceError> {
@@ -935,20 +928,6 @@ fn response_value(value: WalletConnectResponseType) -> Result<Box<RawValue>, Gem
         WalletConnectResponseType::Object { json } => json,
     };
     RawValue::from_string(json).map_err(|error| GemServiceError::Core { msg: error.to_string() })
-}
-
-fn reason(error: GemWalletConnectRpcError) -> Reason {
-    Reason { code: error.code, message: error.message }
-}
-
-fn rejection(request_id: u64, rejection: &GemWalletConnectRejection) -> Vec<u8> {
-    payload::failure(
-        request_id,
-        &Reason {
-            code: rejection.code,
-            message: rejection.message.clone(),
-        },
-    )
 }
 
 fn decode<T: DeserializeOwned>(params: &RawValue) -> Result<T, GemServiceError> {
@@ -1371,10 +1350,9 @@ mod tests {
             };
             client.respond(&pending, &session, signature).await.unwrap();
 
-            let rejected = rules::user_rejected_error();
             assert_eq!(
                 dapp.transport.published(&topic, &session_key),
-                vec![serde_json::json!({"id": 200, "jsonrpc": "2.0", "error": {"code": rejected.code, "message": rejected.message}})],
+                vec![serde_json::json!({"id": 200, "jsonrpc": "2.0", "error": {"code": 4001, "message": "User rejected the request"}})],
                 "a signature finished after the user rejected the request is not sent"
             );
         });

@@ -2,7 +2,8 @@ use std::collections::HashMap;
 use std::num::NonZeroU32;
 use std::time::Duration;
 
-use serde::Deserialize;
+use serde::de::Error as _;
+use serde::{Deserialize, Deserializer};
 use serde_serializers::duration;
 
 use super::path::PathAllowlist;
@@ -28,7 +29,8 @@ pub struct ProxyHealthConfig {
 
 #[derive(Clone, Debug, Deserialize)]
 pub struct RouteConfig {
-    pub group: String,
+    #[serde(rename = "group", deserialize_with = "deserialize_groups")]
+    pub groups: Vec<String>,
     pub selection: Selection,
     pub headers: Option<HeadersConfig>,
     #[serde(default)]
@@ -38,6 +40,24 @@ pub struct RouteConfig {
     pub rate: Option<RateConfig>,
     pub retry: Option<RetryOverride>,
     pub endpoints: Vec<EndpointConfig>,
+}
+
+#[derive(Deserialize)]
+#[serde(untagged)]
+enum Groups {
+    One(String),
+    Many(Vec<String>),
+}
+
+fn deserialize_groups<'de, D: Deserializer<'de>>(deserializer: D) -> Result<Vec<String>, D::Error> {
+    let groups = match Groups::deserialize(deserializer)? {
+        Groups::One(group) => vec![group],
+        Groups::Many(groups) => groups,
+    };
+    if groups.is_empty() {
+        return Err(D::Error::custom("route must configure at least one group"));
+    }
+    Ok(groups)
 }
 
 #[derive(Clone, Copy, Debug, Deserialize)]

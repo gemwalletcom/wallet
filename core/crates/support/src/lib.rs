@@ -5,5 +5,5 @@ mod text;
 mod webhook;
 
 pub use identity::identifier_hash;
-pub use text::{SupportMessageDisplayContent, SupportMessageLink, markdown_plain_text, parse_support_message_display_content};
+pub use text::{SupportMessageDisplayContent, SupportMessageLink, parse_support_message_display_content, support_message_notification_text};
 pub use webhook::ChatwootWebhookVerifier;

@@ -7,9 +7,7 @@ use futures::future::join_all;
 use gem_sui::{
     EMPTY_ADDRESS, ESTIMATION_GAS_BUDGET, SUI_COIN_TYPE, SUI_COIN_TYPE_FULL, SuiClient,
     address::SuiAddress,
-    coin_type_matches, full_coin_type,
-    gas_budget::GAS_BUDGET_MULTIPLIER,
-    is_sui_coin,
+    coin_type_matches, full_coin_type, is_sui_coin,
     models::TxOutput,
     tx_builder::{Argument, ObjectResolver, TransactionBuilder},
     types::{Address, ObjectInput, TransactionKind},
@@ -94,19 +92,17 @@ pub(crate) fn upgraded_error(provider: &str) -> SwapperError {
     SwapperError::TransactionError(format!("{provider} was upgraded since this app was built; on-chain {provider} quotes are temporarily unavailable."))
 }
 
-pub(crate) async fn build_quote_data(client: &SuiClient, build_transaction: impl Fn(u64) -> Result<TxOutput, SwapperError>) -> Result<SwapperQuoteData, SwapperError> {
+pub(crate) async fn build_quote_data(client: &SuiClient, gas_coin_total: Option<u64>, build_transaction: impl Fn(u64) -> Result<TxOutput, SwapperError>) -> Result<SwapperQuoteData, SwapperError> {
     let estimate = build_transaction(ESTIMATION_GAS_BUDGET)?;
-    let dry_run = client.dry_run(estimate.base64_encoded()).await.map_err(SwapperError::transaction_error)?;
-    if dry_run.effects.status.status != "success" {
-        let detail = dry_run.effects.status.error.as_deref().unwrap_or("no details available");
+    let gas = client.estimate_gas(&estimate.base64_encoded(), gas_coin_total).await.map_err(SwapperError::transaction_error)?;
+    if gas.status.status != "success" {
+        let detail = gas.status.error.as_deref().unwrap_or("no details available");
         return Err(SwapperError::TransactionError(format!("Sui swap simulation failed: {detail}")));
     }
 
-    let fee = dry_run.effects.gas_used.calculate_gas_budget().map_err(SwapperError::transaction_error)?;
-    let gas_budget = fee * GAS_BUDGET_MULTIPLIER / 100;
-    let output = build_transaction(gas_budget)?;
+    let output = build_transaction(gas.budget)?;
 
-    Ok(SwapperQuoteData::new_contract(String::new(), BigUint::from(0u64), output.base64_encoded(), None, Some(gas_budget.to_string())))
+    Ok(SwapperQuoteData::new_contract(String::new(), BigUint::from(0u64), output.base64_encoded(), None, Some(gas.budget.to_string())))
 }
 
 pub(crate) fn pay_referral_fee(txb: &mut TransactionBuilder, input_coin: Argument, fee: u64, referral_fee: &ReferralFee) -> Result<Argument, SwapperError> {

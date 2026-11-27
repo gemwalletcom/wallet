@@ -38,6 +38,7 @@ pub async fn account_state<C: Client + Clone>(client: &EthereumClient<C>, addres
         create_call3(EVERSTAKE_ACCOUNTING_ADDRESS, IAccounting::pendingDepositedBalanceOfCall { account }),
         create_call3(EVERSTAKE_ACCOUNTING_ADDRESS, IAccounting::withdrawRequestCall { staker: account }),
         create_call3(EVERSTAKE_ACCOUNTING_ADDRESS, IAccounting::restakedRewardOfCall { account }),
+        create_call3(EVERSTAKE_ACCOUNTING_ADDRESS, IAccounting::autocompoundBalanceOfCall { account }),
     ];
 
     let expected = calls.len();
@@ -52,6 +53,7 @@ pub async fn account_state<C: Client + Clone>(client: &EthereumClient<C>, addres
         pending_deposited_balance: decode_balance_result::<IAccounting::pendingDepositedBalanceOfCall>(&results[2])?,
         withdraw_request: decode_call3_return::<IAccounting::withdrawRequestCall>(&results[3])?,
         restaked_reward: decode_balance_result::<IAccounting::restakedRewardOfCall>(&results[4])?,
+        autocompound_balance: decode_balance_result::<IAccounting::autocompoundBalanceOfCall>(&results[5])?,
     })
 }
 

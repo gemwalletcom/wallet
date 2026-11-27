@@ -39,6 +39,13 @@ pub struct SuiEffects {
     pub status: SuiStatus,
 }
 
+#[derive(Debug)]
+pub struct GasEstimate {
+    pub fee: u64,
+    pub budget: u64,
+    pub status: SuiStatus,
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct GasUsed {

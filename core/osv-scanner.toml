@@ -13,3 +13,7 @@ reason = "basic-toml is unmaintained. It reads TOML at compile time in askama (v
 [[IgnoredVulns]]
 id = "RUSTSEC-2026-0543"
 reason = "chrono is unmaintained. Core no longer depends on it; it stays in Cargo.lock only as an optional dependency of serde_with under ark-serialize, which ruint pulls in behind its ark-ff features that nothing enables, so it is never compiled."
+
+[[IgnoredVulns]]
+id = "RUSTSEC-2026-0387"
+reason = "crypto-bigint 0.5.5 has timing variability in operations meant to be constant-time. It is only an optional dependency of alloy-primitives through k256 0.13, which nothing enables, so it is listed in Cargo.lock but never compiled."

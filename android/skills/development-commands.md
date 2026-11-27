@@ -31,6 +31,15 @@ For release builds, read `release-and-verification.md`.
 
 From the repo root, use `just start-emulator`, then `just run-android` as the default Android run flow.
 
+## Dependency Lock
+
+```bash
+just lock
+just lock-check
+```
+
+`app/gradle.lockfile` pins every version `:app` resolves, which includes everything the library modules ship, and `buildscript-gradle.lockfile` pins the build plugins. A build that resolves a version outside the lock fails, as does a configuration the lock does not list. After changing a dependency, a plugin or a build variant, run `just lock` and commit both files with the change; `just lock-check` regenerates both files and fails when they differ from the committed ones. Library modules keep no lockfile of their own.
+
 ## Compose Iteration
 
 For presentation-only Compose work, build the owning module first and avoid repeating full app builds for each visual adjustment:

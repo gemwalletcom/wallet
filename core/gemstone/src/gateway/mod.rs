@@ -66,7 +66,7 @@ impl GemGateway {
     }
 
     pub async fn get_balance_earn(&self, chain: Chain, address: String, token_ids: Vec<String>) -> Result<Vec<AssetBalance>, GatewayError> {
-        Ok(self.yielder.get_balance(chain, &address, &token_ids).await)
+        self.yielder.get_balance(chain, &address, &token_ids).await.map_err(|error| GatewayError::NetworkError { msg: error.to_string() })
     }
 
     pub async fn get_transaction_update(&self, transaction: Transaction) -> Result<TransactionUpdate, GatewayError> {
@@ -188,6 +188,7 @@ impl GemGateway {
 mod tests {
     use super::*;
     use crate::testkit::{EmptyPreferences, TestAlienProvider};
+    use primitives::asset_constants::BASE_USDC_TOKEN_ID;
 
     #[test]
     fn test_get_node_status_http_404_error() {
@@ -202,6 +203,21 @@ mod tests {
             Ok(status) => panic!("expected network error for 404 response, got {:?}", status),
             Err(GatewayError::NetworkError { msg }) => assert_eq!(msg, "HTTP error: status 404"),
             Err(error) => panic!("expected NetworkError, got {error:?}"),
+        }
+    }
+
+    #[test]
+    fn test_get_balance_earn_reports_a_failed_vault_read() {
+        let provider: Arc<dyn AlienProvider> = Arc::new(TestAlienProvider::offline());
+        let preferences: Arc<dyn GemPreferencesStore> = Arc::new(EmptyPreferences);
+        let secure: Arc<dyn GemSecureStore> = Arc::new(EmptyPreferences);
+        let gateway = GemGateway::new(provider, Arc::new(GemNodeService::mock()), preferences, secure);
+
+        let result = futures::executor::block_on(gateway.get_balance_earn(Chain::Base, "0x0000000000000000000000000000000000000001".to_string(), vec![BASE_USDC_TOKEN_ID.to_string()]));
+
+        match result {
+            Err(GatewayError::NetworkError { .. }) => {}
+            other => panic!("expected NetworkError, got {other:?}"),
         }
     }
 }

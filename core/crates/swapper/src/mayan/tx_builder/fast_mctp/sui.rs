@@ -86,7 +86,10 @@ where
     let swap = get_swap_transaction(client, &sui_client, quote, route);
     let (prefetched, swap) = try_join!(prefetched, swap)?;
 
-    sui_swap::build_quote_data(&sui_client, |gas_budget| build_fast_mctp_transaction(quote, route, &prefetched, swap.as_ref(), gas_budget)).await
+    sui_swap::build_quote_data(&sui_client, prefetched.transaction.gas_coin_total, |gas_budget| {
+        build_fast_mctp_transaction(quote, route, &prefetched, swap.as_ref(), gas_budget)
+    })
+    .await
 }
 
 async fn get_swap_transaction<C>(client: &MayanClient<C>, sui_client: &SuiClient, quote: &Quote, route: &MayanFastMctpQuote) -> Result<Option<SuiClientSwapReplay>, SwapperError>

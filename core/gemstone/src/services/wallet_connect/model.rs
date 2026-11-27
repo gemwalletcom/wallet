@@ -11,6 +11,14 @@ use primitives::{Account, Asset, Chain, SimulationResult, VerificationStatus, Wa
 
 use crate::message::sign_type::SignMessage;
 use gem_wallet_connect::WalletConnectResponseType;
+use wallet_connect_protocol::sign::Reason;
+use wallet_connect_protocol::sign::namespaces::NamespaceError;
+
+#[uniffi::remote(Enum)]
+pub enum WalletConnectResponseType {
+    String { value: String },
+    Object { json: String },
+}
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemWalletConnectSessionRequest {
@@ -31,12 +39,6 @@ pub struct GemWalletConnectAuthAccount {
     pub issuer: String,
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Record)]
-pub struct GemWalletConnectRpcError {
-    pub code: i32,
-    pub message: String,
-}
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
 pub enum GemWalletConnectRejectionReason {
     UserRejected,
@@ -46,19 +48,23 @@ pub enum GemWalletConnectRejectionReason {
     UnsupportedEvents,
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Record)]
-pub struct GemWalletConnectRejection {
-    pub reason: GemWalletConnectRejectionReason,
-    pub code: i32,
-    pub message: String,
-    pub deletes_session: bool,
+impl From<GemWalletConnectRejectionReason> for Reason {
+    fn from(reason: GemWalletConnectRejectionReason) -> Self {
+        match reason {
+            GemWalletConnectRejectionReason::UserRejected => Reason::user_rejected_session(),
+            GemWalletConnectRejectionReason::UnsupportedChains => NamespaceError::UnsupportedChains.into(),
+            GemWalletConnectRejectionReason::UnsupportedMethods => NamespaceError::UnsupportedMethods.into(),
+            GemWalletConnectRejectionReason::UnsupportedAccounts => NamespaceError::UnsupportedAccounts.into(),
+            GemWalletConnectRejectionReason::UnsupportedEvents => NamespaceError::UnsupportedEvents.into(),
+        }
+    }
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum GemWalletConnectResponse {
     Response { value: WalletConnectResponseType },
     Null,
-    Error { error: GemWalletConnectRpcError },
+    Error { error: Reason },
 }
 
 #[derive(Debug, Clone, PartialEq, uniffi::Enum)]
@@ -74,11 +80,11 @@ pub enum GemSignerFailure {
     Reject,
 }
 
-#[derive(Debug, Clone, PartialEq, uniffi::Enum)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum GemWalletConnectOutcome {
     Ignored,
     Respond { response: GemWalletConnectResponse },
-    Fail { error: GemWalletConnectRpcError, failure: GemWalletConnectFailure },
+    Fail { error: Reason, failure: GemWalletConnectFailure },
     AddSessionAccount { account: String },
 }
 
@@ -87,26 +93,26 @@ impl GemWalletConnectOutcome {
         Self::Respond { response: GemWalletConnectResponse::Null }
     }
 
-    pub fn respond_error(error: GemWalletConnectRpcError) -> Self {
+    pub fn respond_error(error: Reason) -> Self {
         Self::Respond {
             response: GemWalletConnectResponse::Error { error },
         }
     }
 
     pub fn rejected() -> Self {
-        Self::respond_error(crate::services::wallet_connect::rules::user_rejected_error())
+        Self::respond_error(Reason::user_rejected_request())
     }
 
     pub fn failed(failure: GemWalletConnectFailure) -> Self {
         Self::Fail {
-            error: crate::services::wallet_connect::rules::user_rejected_error(),
+            error: Reason::user_rejected_request(),
             failure,
         }
     }
 
     pub fn expired() -> Self {
         Self::Fail {
-            error: crate::services::wallet_connect::rules::request_expired_error(),
+            error: Reason::request_expired(),
             failure: GemWalletConnectFailure::Expired,
         }
     }

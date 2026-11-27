@@ -27,13 +27,14 @@ const COINGECKO_CHAIN_PLATFORMS: &[(Chain, &str)] = &[
     (Chain::Celo, "celo"),
     (Chain::ZkSync, "zksync"),
     (Chain::Linea, "linea"),
+    (Chain::World, "world-chain"),
     (Chain::Near, "near-protocol"),
     (Chain::Ton, "the-open-network"),
     (Chain::Algorand, "algorand"),
     (Chain::Berachain, "berachain"),
     (Chain::Ink, "ink"),
     (Chain::Unichain, "unichain"),
-    (Chain::SeiEvm, "sei-network"),
+    (Chain::SeiEvm, "sei-v2"),
     (Chain::Xrp, "xrp"),
     (Chain::Hyperliquid, "hyperevm"),
     (Chain::Sonic, "sonic"),
@@ -138,6 +139,10 @@ mod tests {
         assert_eq!(get_coingecko_platform_id_for_chain(Chain::Robinhood), Some("robinhood"));
         assert_eq!(get_chain_for_coingecko_platform_id("x-layer"), Some(Chain::XLayer));
         assert_eq!(get_coingecko_platform_id_for_chain(Chain::XLayer), Some("x-layer"));
+        assert_eq!(get_chain_for_coingecko_platform_id("sei-v2"), Some(Chain::SeiEvm));
+        assert_eq!(get_coingecko_platform_id_for_chain(Chain::SeiEvm), Some("sei-v2"));
+        assert_eq!(get_chain_for_coingecko_platform_id("world-chain"), Some(Chain::World));
+        assert_eq!(get_coingecko_platform_id_for_chain(Chain::World), Some("world-chain"));
         assert_eq!(get_chain_for_coingecko_platform_id("unknown"), None);
         assert_eq!(get_coingecko_platform_id_for_chain(Chain::Bitcoin), None);
 
@@ -162,6 +167,14 @@ mod tests {
         assert_eq!(
             get_asset_ids_for_coin("unit-bitcoin", &HashMap::from([("hyperliquid".to_string(), Some("0x8f254b963e8468305d409b33aa137c67".to_string()))])),
             vec![HYPERCORE_SPOT_UBTC_ASSET_ID.clone()]
+        );
+        assert_eq!(
+            get_asset_ids_for_coin("euro-coin", &HashMap::from([("stellar".to_string(), Some("EURC-GDHU6WRG4IEQXM5NZ4BMPKOXHW76MZM4Y2IEMFDVXBSDP6SJY4ITNPP2".to_string()))])),
+            vec![AssetId::from(Chain::Stellar, Some("GDHU6WRG4IEQXM5NZ4BMPKOXHW76MZM4Y2IEMFDVXBSDP6SJY4ITNPP2::EURC".to_string()))]
+        );
+        assert_eq!(
+            get_asset_ids_for_coin("allunity-eur", &HashMap::from([("stellar".to_string(), Some("CB44W727WSLHPXJ47A6DHF5D34RKWSOZAMEDXO3CF5TEEEQ2ZX4V3VRI".to_string()))])),
+            vec![]
         );
         assert_eq!(get_asset_ids_for_coin("unknown", &HashMap::from([("hyperliquid".to_string(), Some("0xfeb2eb8f7d9a2b0f3e2c1f41d2a4c4d3".to_string()))])), vec![]);
     }
