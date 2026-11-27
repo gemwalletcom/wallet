@@ -1,6 +1,6 @@
 use crate::transaction_metadata_types::{TransactionPaymentMetadata, TransactionPerpetualMetadata, TransactionSwapMetadata};
 use crate::transaction_state::TransactionState;
-use num_bigint::{BigInt, BigUint};
+use num_bigint::BigUint;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
@@ -24,7 +24,7 @@ pub enum TransactionChange {
     HashChange { old: String, new: String },
     Metadata(TransactionMetadata),
     BlockNumber(String),
-    NetworkFee(BigInt),
+    NetworkFee(BigUint),
     Value(BigUint),
     ConfirmationEtaSeconds(u32),
 }

@@ -215,7 +215,7 @@ fn perpetual_fill_changes(matching_fills: &[&UserFill], last_fill: &UserFill) ->
     Some(vec![
         TransactionChange::Metadata(TransactionMetadata::Perpetual(metadata)),
         TransactionChange::Value(usdc_value(notional)),
-        TransactionChange::NetworkFee(usdc_value(fee).into()),
+        TransactionChange::NetworkFee(usdc_value(fee)),
     ])
 }
 
@@ -223,7 +223,7 @@ fn perpetual_fill_changes(matching_fills: &[&UserFill], last_fill: &UserFill) ->
 mod tests {
     use super::*;
     use crate::models::order::{FillDirection, UserFill};
-    use num_bigint::{BigInt, BigUint};
+    use num_bigint::BigUint;
 
     #[test]
     fn test_map_transaction_state_order() {
@@ -252,7 +252,7 @@ mod tests {
         assert_eq!(metadata.provider, Some(PerpetualProvider::Hypercore));
 
         let network_fee_change = update.changes.iter().find_map(|change| if let TransactionChange::NetworkFee(fee) = change { Some(fee) } else { None });
-        assert_eq!(network_fee_change, Some(&BigInt::from(441520)));
+        assert_eq!(network_fee_change, Some(&BigUint::from(441520u32)));
 
         let hash_change = update.changes.iter().find_map(|change| if let TransactionChange::HashChange { old, new } = change { Some((old, new)) } else { None });
         let (old, new) = hash_change.unwrap();
@@ -326,7 +326,7 @@ mod tests {
             }
         );
         let network_fee_change = update.changes.iter().find_map(|change| if let TransactionChange::NetworkFee(fee) = change { Some(fee) } else { None });
-        assert_eq!(network_fee_change, Some(&BigInt::from(441520)));
+        assert_eq!(network_fee_change, Some(&BigUint::from(441520u32)));
     }
 
     #[test]
@@ -355,7 +355,7 @@ mod tests {
 
         assert_eq!(update.state, TransactionState::Confirmed);
         let network_fee = update.changes.iter().find_map(|change| if let TransactionChange::NetworkFee(fee) = change { Some(fee) } else { None });
-        assert_eq!(network_fee, Some(&BigInt::from(884_607)));
+        assert_eq!(network_fee, Some(&BigUint::from(884_607u32)));
     }
 
     #[test]

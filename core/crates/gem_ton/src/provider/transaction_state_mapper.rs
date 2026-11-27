@@ -9,7 +9,7 @@ pub fn map_transaction_status(request: TransactionStateRequest, traces: TraceRes
     let transaction = traces.root_transaction().ok_or("Transaction not found")?;
     let state = traces.state().unwrap_or_else(|| map_transaction_state(transaction));
 
-    let mut changes = vec![TransactionChange::NetworkFee(transaction.total_fees.clone().into())];
+    let mut changes = vec![TransactionChange::NetworkFee(transaction.total_fees.clone())];
     if let Some(transaction_hash) = base64_hash_to_hex(&transaction.hash)
         && transaction_hash != request.id
     {

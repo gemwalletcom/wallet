@@ -190,7 +190,7 @@ impl GemTransactionUpdater for GemTransactionStateService {
 mod tests {
     use super::testkit::MemoryTransactionStateStore;
     use super::*;
-    use num_bigint::{BigInt, BigUint};
+    use num_bigint::BigUint;
     use primitives::{AssetId, Chain, DurationExt, TransactionChange, TransactionMetadata, TransactionSwapMetadata, TransactionType};
     use std::time::Duration;
 
@@ -322,7 +322,7 @@ mod tests {
         assert_eq!(unchanged.state, TransactionState::Confirmed);
         assert!(store.updates.lock().unwrap().is_empty(), "a confirmed row is not written back to pending");
 
-        let with_fee = merge_polled_update(&store, polled, Ok(TransactionUpdate::new(TransactionState::Pending, vec![TransactionChange::NetworkFee(BigInt::from(21000))])), now)
+        let with_fee = merge_polled_update(&store, polled, Ok(TransactionUpdate::new(TransactionState::Pending, vec![TransactionChange::NetworkFee(BigUint::from(21000u32))])), now)
             .unwrap()
             .unwrap();
 

@@ -78,7 +78,7 @@ impl<C: Client + Clone> ChainTransactionState for TempoProvider<C> {
         let Some(receipt) = self.provider.get_transaction_receipt(&request.id).await? else {
             return Ok(TransactionUpdate::new_state(TransactionState::Pending));
         };
-        Ok(map_transaction_status_with_fee(&receipt, scale_fee_to_token_units(receipt.get_fee().into())))
+        Ok(map_transaction_status_with_fee(&receipt, scale_fee_to_token_units(receipt.get_fee().into()).try_into()?))
     }
 }
 
@@ -213,9 +213,9 @@ mod tests {
             ..TransactionReceipt::mock()
         };
 
-        let result = map_transaction_status_with_fee(&receipt, scale_fee_to_token_units(receipt.get_fee().into()));
+        let result = map_transaction_status_with_fee(&receipt, scale_fee_to_token_units(receipt.get_fee().into()).try_into().unwrap());
         assert_eq!(result.state, TransactionState::Confirmed);
-        assert_eq!(result.changes, vec![TransactionChange::BlockNumber("291".to_string()), TransactionChange::NetworkFee(BigInt::from(595u64))]);
+        assert_eq!(result.changes, vec![TransactionChange::BlockNumber("291".to_string()), TransactionChange::NetworkFee(BigUint::from(595u64))]);
     }
 
     #[tokio::test]

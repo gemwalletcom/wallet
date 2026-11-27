@@ -1,5 +1,5 @@
 use crate::models::Transaction;
-use num_bigint::BigInt;
+use num_bigint::BigUint;
 use primitives::{TransactionChange, TransactionState, TransactionUpdate};
 
 pub fn map_transaction_status(transaction: &Transaction) -> TransactionUpdate {
@@ -9,7 +9,7 @@ pub fn map_transaction_status(transaction: &Transaction) -> TransactionUpdate {
 
     if let (Some(gas_used), Some(gas_unit_price)) = (transaction.gas_used, transaction.gas_unit_price) {
         let fee = gas_used * gas_unit_price;
-        update.changes.push(TransactionChange::NetworkFee(BigInt::from(fee)));
+        update.changes.push(TransactionChange::NetworkFee(BigUint::from(fee)));
     }
 
     update
@@ -38,7 +38,7 @@ mod tests {
 
         let result = map_transaction_status(&transaction);
         assert_eq!(result.state, TransactionState::Confirmed);
-        assert_eq!(result.changes, vec![TransactionChange::NetworkFee(BigInt::from(100u64))]);
+        assert_eq!(result.changes, vec![TransactionChange::NetworkFee(BigUint::from(100u64))]);
     }
 
     #[test]
@@ -59,6 +59,6 @@ mod tests {
 
         let result = map_transaction_status(&transaction);
         assert_eq!(result.state, TransactionState::Failed);
-        assert_eq!(result.changes, vec![TransactionChange::NetworkFee(BigInt::from(50u64))]);
+        assert_eq!(result.changes, vec![TransactionChange::NetworkFee(BigUint::from(50u64))]);
     }
 }

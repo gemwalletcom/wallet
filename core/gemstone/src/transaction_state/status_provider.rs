@@ -161,7 +161,6 @@ fn get_transaction_update(chain: Chain, destination_chain: Option<Chain>, create
 #[cfg(test)]
 mod tests {
     use super::*;
-    use num_bigint::BigInt;
     use num_bigint::BigUint;
     use primitives::{DurationExt, SwapProvider, TransactionSwapMetadata, swap::SwapStatus};
 
@@ -212,7 +211,7 @@ mod tests {
                     old: "broadcast_hash".into(),
                     new: "source_hash".into(),
                 },
-                TransactionChange::NetworkFee(BigInt::from(123_u32)),
+                TransactionChange::NetworkFee(BigUint::from(123_u32)),
                 TransactionChange::ConfirmationEtaSeconds(60),
             ],
         );
@@ -227,7 +226,7 @@ mod tests {
                     old: "broadcast_hash".into(),
                     new: "source_hash".into(),
                 },
-                TransactionChange::NetworkFee(BigInt::from(123_u32)),
+                TransactionChange::NetworkFee(BigUint::from(123_u32)),
                 TransactionChange::ConfirmationEtaSeconds(0),
             ]
         );
