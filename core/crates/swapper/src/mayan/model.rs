@@ -117,7 +117,6 @@ impl MayanQuoteCommon {
     }
 
     pub(in crate::mayan) fn expected_output_value(&self, output_decimals: u32) -> Result<BigUint, SwapperError> {
-        let output_decimals = if output_decimals == 0 { self.to_token.decimals } else { output_decimals };
         if let Some(value) = &self.expected_amount_out_base_units {
             return BigUint::from_str(value).map(|amount| rescale_base_units(amount, self.to_token.decimals, output_decimals)).map_err(SwapperError::from);
         }
