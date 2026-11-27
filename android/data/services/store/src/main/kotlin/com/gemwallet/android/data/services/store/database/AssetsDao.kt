@@ -156,9 +156,6 @@ interface AssetsDao {
     @Update(entity = DbAsset::class)
     suspend fun updateBasicAssets(assets: List<DbAssetBasicUpdate>)
 
-    @Query("UPDATE asset SET is_stake_enabled = 1 WHERE id IN (:ids) AND is_stake_enabled = 0")
-    suspend fun setStakeEnabled(ids: List<String>)
-
     @Query("UPDATE asset SET is_buy_enabled = 1 WHERE id IN (:ids)")
     suspend fun enableBuy(ids: List<String>)
 
