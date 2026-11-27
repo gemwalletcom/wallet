@@ -84,7 +84,7 @@ mod tests {
     fn test_format() {
         assert_eq!(format("en", id::notification_sent_title, &[("value", &"1 BTC")]), "💸 Sent: \u{2068}1 BTC\u{2069}");
         assert_eq!(format("en", id::notification_sent_title, &[]), "💸 Sent: \u{2068}{$value}\u{2069}");
-        assert_eq!(format("en", id::notification_reward_title, &[("value", &1)]), "💎 Points earned: \u{2068}1\u{2069}");
+        assert_eq!(format("en", id::notification_reward_title, &[("value", &1)]), "Points earned: \u{2068}1\u{2069}");
         assert_eq!(format("en", "missing_message", &[]), "missing_message");
         assert_eq!(format("pt-BR", id::notification_test, &[]), "Teste");
         assert_eq!(format("pt", id::notification_test, &[]), "Test");

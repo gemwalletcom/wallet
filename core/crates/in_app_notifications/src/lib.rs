@@ -3,6 +3,10 @@ use localizer::LanguageLocalizer;
 use number_formatter::{ValueFormatter, ValueStyle};
 use primitives::{CoreEmoji, CoreListItem, CoreListItemBadge, CoreListItemIcon, InAppNotification, JsonDecode, NotificationData, NotificationRewardsMetadata, NotificationRewardsRedeemMetadata, NotificationType, WalletId};
 
+pub fn points_value(points: i32) -> String {
+    format!("{} {}", ValueFormatter::format_f64(ValueStyle::Full, f64::from(points.unsigned_abs())), CoreEmoji::Gem.glyph())
+}
+
 pub fn map_notification(notification: NotificationData, localizer: &LanguageLocalizer) -> Option<InAppNotification> {
     let wallet_id = WalletId::from_id(&notification.wallet_id)?;
     let item = map_to_list_item(&notification, localizer);
@@ -39,7 +43,7 @@ fn map_to_list_item(notification: &NotificationData, localizer: &LanguageLocaliz
                 id,
                 localizer.notification_reward_pending_title(),
                 Some(localizer.notification_reward_invite_description()),
-                Some(format!("+{}", points)),
+                Some(format!("+{}", points_value(points))),
                 None,
                 CoreEmoji::Party,
                 Some(CoreListItemBadge::New),
@@ -73,8 +77,8 @@ fn map_to_list_item(notification: &NotificationData, localizer: &LanguageLocaliz
                 let asset = notification.asset.as_ref()?;
                 ValueFormatter::format_with_symbol(ValueStyle::Auto, &m.value, asset.decimals, &asset.symbol).ok()
             });
-            let subtitle = Some(localizer.notification_reward_redeemed_description(points, value.as_deref()));
-            let subvalue = Some(format!("-{}", points));
+            let subtitle = Some(localizer.notification_reward_redeemed_description(&points_value(points), value.as_deref()));
+            let subvalue = Some(format!("-{}", points_value(points)));
             notification_item(
                 id,
                 localizer.notification_rewards_redeem_points_title(),
@@ -90,9 +94,9 @@ fn map_to_list_item(notification: &NotificationData, localizer: &LanguageLocaliz
             let points = notification.metadata.decode::<NotificationRewardsMetadata>().and_then(|m| m.points).unwrap_or(0);
             notification_item(
                 id,
-                localizer.notification_reward_title(points),
+                localizer.notification_reward_title(&points_value(points)),
                 Some(localizer.notification_reward_create_username_description()),
-                Some(format!("+{}", points)),
+                Some(format!("+{}", points_value(points))),
                 None,
                 CoreEmoji::Gem,
                 Some(CoreListItemBadge::New),
@@ -103,14 +107,26 @@ fn map_to_list_item(notification: &NotificationData, localizer: &LanguageLocaliz
             let points = notification.metadata.decode::<NotificationRewardsMetadata>().and_then(|m| m.points).unwrap_or(0);
             notification_item(
                 id,
-                localizer.notification_reward_title(points),
+                localizer.notification_reward_title(&points_value(points)),
                 Some(localizer.notification_reward_invite_description()),
-                Some(format!("+{}", points)),
+                Some(format!("+{}", points_value(points))),
                 None,
                 CoreEmoji::Party,
                 Some(CoreListItemBadge::New),
                 url,
             )
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_points_value() {
+        assert_eq!(points_value(1575), "1,575 💎");
+        assert_eq!(points_value(-650), "650 💎");
+        assert_eq!(points_value(0), "0 💎");
     }
 }

@@ -120,10 +120,10 @@ impl LanguageLocalizer {
         )
     }
 
-    pub fn notification_reward_redeemed_description(&self, points: i32, value: Option<&str>) -> String {
+    pub fn notification_reward_redeemed_description(&self, points: &str, value: Option<&str>) -> String {
         match value {
-            Some(value) => self.format(id::notification_rewards_redeem_points_for_description, &[("points", &points.abs()), ("value", &value)]),
-            None => self.format(id::notification_rewards_redeem_points_description, &[("value", &points.abs())]),
+            Some(value) => self.format(id::notification_rewards_redeem_points_for_description, &[("points", &points), ("value", &value)]),
+            None => self.format(id::notification_rewards_redeem_points_description, &[("value", &points)]),
         }
     }
 
@@ -166,7 +166,7 @@ messages! {
     notification_swap_description(from_value: &str, to_value: &str);
     notification_fiat_purchase_title(value: &str);
     notification_fiat_sale_title(value: &str);
-    notification_reward_title(value: i32);
+    notification_reward_title(value: &str);
     notification_reward_create_username_description();
     notification_reward_invite_description();
     notification_reward_pending_title();
@@ -232,8 +232,11 @@ mod tests {
     fn test_reward_redeemed_description() {
         let localizer = LanguageLocalizer::new_with_language("en");
 
-        assert_eq!(&localizer.notification_reward_redeemed_description(650, Some("1 USDT")), "💎 Points redeemed: \u{2068}650\u{2069} for \u{2068}1 USDT\u{2069}");
-        assert_eq!(&localizer.notification_reward_redeemed_description(650, None), "💎 Points redeemed: \u{2068}650\u{2069}");
+        assert_eq!(
+            &localizer.notification_reward_redeemed_description("650 💎", Some("1 USDT")),
+            "Points redeemed: \u{2068}650 💎\u{2069} for \u{2068}1 USDT\u{2069}"
+        );
+        assert_eq!(&localizer.notification_reward_redeemed_description("650 💎", None), "Points redeemed: \u{2068}650 💎\u{2069}");
     }
 
     #[test]
