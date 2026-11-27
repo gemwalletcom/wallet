@@ -168,9 +168,11 @@ mod tests {
 
     #[test]
     fn test_sign_message() {
-        let result = SolanaChainSigner.sign_message(b"hello", &TEST_PRIVATE_KEY).unwrap();
+        for message in ["hello", "Élan sign in", "こんにちは", "🔐 Sign in to Example"] {
+            let result = SolanaChainSigner.sign_message(message.as_bytes(), &TEST_PRIVATE_KEY).unwrap();
 
-        assert_eq!(decode_base58(result).unwrap().len(), 64);
+            assert_eq!(decode_base58(result).unwrap().len(), 64);
+        }
     }
 
     #[test]

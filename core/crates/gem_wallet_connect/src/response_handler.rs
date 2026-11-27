@@ -63,6 +63,9 @@ impl WalletConnectResponseHandler {
 
     pub fn encode_send_transaction(chain_type: ChainType, transaction_id: String) -> WalletConnectResponseType {
         match chain_type {
+            ChainType::Solana => WalletConnectResponseType::Object {
+                json: serde_json::json!({ "signature": transaction_id }).to_string(),
+            },
             ChainType::Sui => WalletConnectResponseType::Object {
                 json: serde_json::json!({ "digest": transaction_id }).to_string(),
             },
@@ -113,6 +116,16 @@ mod tests {
             WalletConnectResponseHandler::encode_sign_transaction(ChainType::Sui, "txbytes_sig123".to_string()),
             WalletConnectResponseType::Object {
                 json: r#"{"signature":"sig123","transactionBytes":"txbytes"}"#.to_string()
+            }
+        );
+    }
+
+    #[test]
+    fn test_encode_send_transaction_solana() {
+        assert_eq!(
+            WalletConnectResponseHandler::encode_send_transaction(ChainType::Solana, "sig123".to_string()),
+            WalletConnectResponseType::Object {
+                json: r#"{"signature":"sig123"}"#.to_string()
             }
         );
     }
