@@ -1,8 +1,7 @@
 use std::error::Error;
-use std::sync::Arc;
 use std::time::Duration;
 
-use cacher::DeviceStreamCacher;
+use cacher::CacherClient;
 use gem_tracing::error_fields;
 use primitives::{StreamEvent, unix_timestamp};
 
@@ -14,13 +13,13 @@ pub struct PendingStreamEvent {
 
 #[derive(Clone)]
 pub struct DeviceStreamClient {
-    events: Arc<dyn DeviceStreamCacher>,
+    events: CacherClient,
     retention: Duration,
     history_limit: usize,
 }
 
 impl DeviceStreamClient {
-    pub fn new(events: Arc<dyn DeviceStreamCacher>, retention: Duration, history_limit: usize) -> Self {
+    pub fn new(events: CacherClient, retention: Duration, history_limit: usize) -> Self {
         Self { events, retention, history_limit }
     }
 

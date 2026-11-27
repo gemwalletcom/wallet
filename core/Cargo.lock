@@ -2557,7 +2557,6 @@ dependencies = [
 name = "gem_client"
 version = "2.114.105"
 dependencies = [
- "async-trait",
  "primitives",
  "serde",
  "serde_json",

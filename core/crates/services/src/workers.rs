@@ -1,7 +1,7 @@
 use std::error::Error;
 use std::sync::Arc;
 
-use cacher::{AssetCatalogCacher, ChartsHistoryCacher, ObservedAssetsCacher, PerpetualAddressCacher, PriceMetadataCacher, SwapVaultAddressCacher, ThrottleCacher};
+use cacher::{AssetCatalogCacher, CacherClient};
 use chain_providers::ChainProviders;
 use coingecko::CoinGeckoClient;
 use config_keys::ConfigKey;
@@ -33,7 +33,7 @@ use crate::{ConfigCacher, Services, StaticAssetsClient};
 #[derive(Clone)]
 pub struct AlerterJobs {
     database: Database,
-    throttle: Arc<dyn ThrottleCacher>,
+    throttle: CacherClient,
     config: Arc<ConfigCacher>,
     price_alert_client: PriceAlertClient,
     chain_providers: Arc<ChainProviders>,
@@ -127,7 +127,7 @@ impl FiatJobs {
 #[derive(Clone)]
 pub struct PerpetualJobs {
     repository: Arc<dyn PerpetualsRepository>,
-    addresses: Arc<dyn PerpetualAddressCacher>,
+    addresses: CacherClient,
     config: Arc<ConfigCacher>,
     providers: Arc<ChainProviders>,
     classifier_config: PerpetualPositionClassifierConfig,
@@ -152,9 +152,7 @@ impl PerpetualJobs {
 #[derive(Clone)]
 pub struct PriceJobs {
     database: Database,
-    metadata_cooldowns: Arc<dyn PriceMetadataCacher>,
-    observed_assets: Arc<dyn ObservedAssetsCacher>,
-    charts_history: Arc<dyn ChartsHistoryCacher>,
+    cacher: CacherClient,
     config: Arc<ConfigCacher>,
     price_client: PriceClient,
     markets_client: MarketsClient,
@@ -191,7 +189,7 @@ impl PriceJobs {
     }
 
     pub async fn publish_assets_metadata(&self, kind: PriceProvider) -> Result<usize, Box<dyn Error + Send + Sync>> {
-        self.assets_updater(kind).publish_assets_metadata(self.metadata_cooldowns.as_ref(), &self.config).await
+        self.assets_updater(kind).publish_assets_metadata(&self.cacher, &self.config).await
     }
 
     pub async fn update_observed_prices(&self) -> Result<usize, Box<dyn Error + Send + Sync>> {
@@ -200,16 +198,9 @@ impl PriceJobs {
             min_observers: self.config.get_usize(ConfigKey::PriceObservedMinObservers).await?,
             primary_price_max_age: self.config.get_duration(ConfigKey::PricePrimaryMaxAge).await?,
         };
-        ObservedPricesUpdater::new(
-            self.observed_assets.clone(),
-            self.prices_repository(),
-            self.price_client.clone(),
-            self.providers.clone(),
-            self.prices_producer.clone(),
-            observed_config,
-        )
-        .update()
-        .await
+        ObservedPricesUpdater::new(self.cacher.clone(), self.prices_repository(), self.price_client.clone(), self.providers.clone(), self.prices_producer.clone(), observed_config)
+            .update()
+            .await
     }
 
     pub fn missing_prices_publisher(&self) -> MissingPricesPublisher {
@@ -217,11 +208,11 @@ impl PriceJobs {
     }
 
     pub fn cleanup_updater(&self, kind: PriceProvider) -> PricesCleanupUpdater {
-        PricesCleanupUpdater::new(self.prices_repository(), self.charts_history.clone(), self.config.clone(), kind)
+        PricesCleanupUpdater::new(self.prices_repository(), self.cacher.clone(), self.config.clone(), kind)
     }
 
     pub fn charts_history_updater(&self, kind: PriceProvider, config: ChartsHistoryConfig) -> ChartsHistoryUpdater {
-        ChartsHistoryUpdater::new(self.provider(kind), self.prices_repository(), self.charts_history.clone(), config)
+        ChartsHistoryUpdater::new(self.provider(kind), self.prices_repository(), self.cacher.clone(), config)
     }
 
     pub fn markets_updater(&self) -> MarketsUpdater {
@@ -304,7 +295,7 @@ impl SearchJobs {
 #[derive(Clone)]
 pub struct SystemJobs {
     database: Database,
-    throttle: Arc<dyn ThrottleCacher>,
+    throttle: CacherClient,
     cleanup_config: TransactionCleanupConfig,
     stream_producer: Arc<dyn StreamProducerQueue>,
 }
@@ -341,7 +332,7 @@ pub struct TransactionJobs {
     in_transit_updater: Arc<InTransitUpdater>,
     pending_updater: Arc<PendingTransactionsUpdater>,
     swapper: Arc<GemSwapper>,
-    vault_addresses: Arc<dyn SwapVaultAddressCacher>,
+    vault_addresses: CacherClient,
 }
 
 impl TransactionJobs {
@@ -368,7 +359,7 @@ impl Services {
         let cacher = self.cacher().await?;
         Ok(AlerterJobs {
             database: self.database(),
-            throttle: Arc::new(cacher.clone()),
+            throttle: cacher.clone(),
             price_alert_client: self.price_alerts(),
             chain_providers: Arc::new(self.chain_providers(&service_user_agent("daemon", Some("stake_rewards")))),
             stake_rewards_config: StakeRewardsConfig {
@@ -417,7 +408,7 @@ impl Services {
         let cacher = self.cacher().await?;
         Ok(PerpetualJobs {
             repository: Arc::new(PerpetualsPostgresRepository::new(self.database())),
-            addresses: Arc::new(cacher.clone()),
+            addresses: cacher.clone(),
             providers: Arc::new(self.chain_providers(&service_user_agent("daemon", Some("perpetual_observer")))),
             classifier_config: PerpetualPositionClassifierConfig {
                 trigger_bps: config.get_i64(ConfigKey::PerpetualPriorityTriggerBps).await?,
@@ -447,9 +438,7 @@ impl Services {
             coingecko: CoinGeckoClient::new(self.settings().prices.coingecko.remote_provider_config()),
             config: self.config(),
             database,
-            metadata_cooldowns: Arc::new(cacher.clone()),
-            observed_assets: Arc::new(cacher.clone()),
-            charts_history: Arc::new(cacher),
+            cacher,
             enabled_providers,
             assets_producer: Arc::new(assets_producer),
             prices_producer: Arc::new(prices_producer),
@@ -477,7 +466,7 @@ impl Services {
         let config = self.config();
         Ok(SystemJobs {
             database: self.database(),
-            throttle: Arc::new(self.cacher().await?),
+            throttle: self.cacher().await?,
             cleanup_config: TransactionCleanupConfig {
                 address_max_count: config.get_i64(ConfigKey::TransactionCleanupAddressMaxCount).await?,
                 address_limit: config.get_usize(ConfigKey::TransactionCleanupAddressLimit).await?,
@@ -500,13 +489,13 @@ impl Services {
             config,
             swapper.clone(),
             stream_producer.clone(),
-            SwapVaultAddressClient::new(Arc::new(cacher.clone())),
+            SwapVaultAddressClient::new(cacher.clone()),
             metrics.clone(),
             CheckSchedule::new(Arc::new(cacher.clone()), TransactionQueue::InTransit),
         );
         let pending_updater = PendingTransactionsUpdater::new(
             providers,
-            Arc::new(cacher.clone()),
+            cacher.clone(),
             stream_producer,
             repository,
             pending_config,
@@ -517,7 +506,7 @@ impl Services {
             in_transit_updater: Arc::new(in_transit_updater),
             pending_updater: Arc::new(pending_updater),
             swapper,
-            vault_addresses: Arc::new(cacher),
+            vault_addresses: cacher,
         })
     }
 }

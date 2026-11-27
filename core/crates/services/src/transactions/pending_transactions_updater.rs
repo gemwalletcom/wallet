@@ -5,7 +5,7 @@ use std::time::{Duration, Instant};
 
 use crate::ConfigCacher;
 use crate::transactions::{CheckSchedule, TransactionQueue, TransactionQueueGroup, TransactionQueueMetrics};
-use cacher::PendingTransactionsCacher;
+use cacher::CacherClient;
 use chain_providers::{ChainProviders, TransactionIdRequest};
 use config_keys::{ConfigKey, ConfigParamKey};
 use futures::{StreamExt, TryStreamExt, future::try_join_all, stream};
@@ -46,7 +46,7 @@ impl PendingTransactionsUpdaterConfig {
 
 pub struct PendingTransactionsUpdater {
     providers: Arc<ChainProviders>,
-    pending: Arc<dyn PendingTransactionsCacher>,
+    pending: CacherClient,
     stream_producer: Arc<dyn StreamProducerQueue>,
     repository: Arc<dyn Repository>,
     config: PendingTransactionsUpdaterConfig,
@@ -57,7 +57,7 @@ pub struct PendingTransactionsUpdater {
 impl PendingTransactionsUpdater {
     pub(crate) fn new(
         providers: Arc<ChainProviders>,
-        pending: Arc<dyn PendingTransactionsCacher>,
+        pending: CacherClient,
         stream_producer: Arc<dyn StreamProducerQueue>,
         repository: Arc<dyn Repository>,
         config: PendingTransactionsUpdaterConfig,

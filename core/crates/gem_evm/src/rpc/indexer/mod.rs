@@ -12,7 +12,6 @@ use num_bigint::BigUint;
 use primitives::{AssetBalance, EVMChain, try_in_order};
 
 use super::etherscan::{self as etherscan_indexer, EtherscanClients};
-use super::provider::AssetBalanceProvider;
 use crate::provider::balances_mapper::map_assets_balances;
 
 const MAX_PAGE_SIZE: usize = 50;
@@ -192,11 +191,8 @@ impl<C: Client + Clone> EVMAssetBalanceProvider<C> {
     pub fn new(indexer: Arc<EVMIndexer<C>>) -> Self {
         Self { indexer }
     }
-}
 
-#[async_trait]
-impl<C: Client + Clone> AssetBalanceProvider for EVMAssetBalanceProvider<C> {
-    async fn get_asset_balances(&self, address: String) -> Result<Vec<AssetBalance>, Box<dyn Error + Send + Sync>> {
+    pub async fn get_asset_balances(&self, address: String) -> Result<Vec<AssetBalance>, Box<dyn Error + Send + Sync>> {
         let operations = self.indexer.providers.iter().map(|provider| provider.get_token_balances(&address)).collect::<Vec<_>>();
         let balances = try_in_order(operations).await?.unwrap_or_default();
         Ok(map_assets_balances(balances, self.indexer.chain.to_chain()))

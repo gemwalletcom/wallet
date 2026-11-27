@@ -1,18 +1,10 @@
 use std::collections::HashMap;
 use std::error::Error;
 
-use async_trait::async_trait;
-
 use crate::{CacheKey, CacherClient};
 
-#[async_trait]
-pub trait ObservedAssetsCacher: Send + Sync {
-    async fn observed_assets(&self, min_observers: usize, limit: usize) -> Result<Vec<String>, Box<dyn Error + Send + Sync>>;
-}
-
-#[async_trait]
-impl ObservedAssetsCacher for CacherClient {
-    async fn observed_assets(&self, min_observers: usize, limit: usize) -> Result<Vec<String>, Box<dyn Error + Send + Sync>> {
+impl CacherClient {
+    pub async fn observed_assets(&self, min_observers: usize, limit: usize) -> Result<Vec<String>, Box<dyn Error + Send + Sync>> {
         let subscribers = self.channel_subscribers(&CacheKey::Price("*").key()).await?;
         Ok(most_observed(subscribers, &CacheKey::Price("").key(), min_observers, limit))
     }

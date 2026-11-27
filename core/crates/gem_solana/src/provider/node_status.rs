@@ -19,7 +19,6 @@ impl<C: Client + Clone> ChainTraits for SolanaProvider<C> {
     }
 }
 
-#[async_trait]
 impl<C: Client + Clone> ChainNodeStatus for SolanaProvider<C> {
     async fn get_node_basic_status(&self, status: &NodeSyncStatus, status_latency: Duration, recorder: NodeCheckRecorder) -> NodeCheckRecorder {
         record_node_state(self, status, status_latency, Some(self.get_chain().network_id()), recorder, method::GET_GENESIS_HASH, method::GET_SLOT).await

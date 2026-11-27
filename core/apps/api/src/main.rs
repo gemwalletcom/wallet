@@ -52,7 +52,6 @@ async fn api_clients(settings: &Settings) -> Result<Clients, Box<dyn Error + Sen
     let metrics = Arc::new(metrics::Metrics::new(&providers));
     let assets = services.assets();
     let ip_security = services.ip_security().await?;
-    let deposit_addresses = Arc::new(cacher_client.clone());
 
     Ok(Clients {
         auth_config: device_auth_config(settings),
@@ -84,15 +83,15 @@ async fn api_clients(settings: &Settings) -> Result<Clients, Box<dyn Error + Sen
         indexer: Arc::new(services.indexer(cacher_client.clone(), stream_producer.clone())),
         rewards: Arc::new(services.rewards(cacher_client.clone(), stream_producer.clone(), ip_security)),
         rewards_redemption: Arc::new(services.rewards_redemption(stream_producer.clone())),
-        wallets: Arc::new(services.wallets(stream_producer, cacher_client)),
+        wallets: Arc::new(services.wallets(stream_producer, cacher_client.clone())),
         notifications: Arc::new(services.notifications()),
         support: Arc::new(services.support_api()),
         support_images: Arc::new(SupportImageUploadConfig::new(&settings.support.types.images)?),
-        near_intents: Arc::new(services.near_intents(deposit_addresses.clone())),
-        swaps_xyz: Arc::new(services.swaps_xyz(deposit_addresses.clone())),
-        relay: Arc::new(services.relay(deposit_addresses.clone())),
-        bridgers: Arc::new(services.bridgers(deposit_addresses.clone())),
-        chainflip: Arc::new(services.chainflip(deposit_addresses)),
+        near_intents: Arc::new(services.near_intents(cacher_client.clone())),
+        swaps_xyz: Arc::new(services.swaps_xyz(cacher_client.clone())),
+        relay: Arc::new(services.relay(cacher_client.clone())),
+        bridgers: Arc::new(services.bridgers(cacher_client.clone())),
+        chainflip: Arc::new(services.chainflip(cacher_client)),
         okx: Arc::new(OkxProviderProxy::new(
             settings.swap.okx.url.clone(),
             OkxClientConfig {

@@ -2,8 +2,7 @@ use std::error::Error;
 use std::sync::Arc;
 
 use super::repository::Repository;
-use async_trait::async_trait;
-use cacher::{ThrottleCacher, ThrottledTask};
+use cacher::{CacherClient, ThrottledTask};
 use chain_providers::ChainProviders;
 use primitives::{Transaction, TransactionId, TransactionIdRequest};
 use streamer::{StreamProducerQueue, TransactionsPayload, consumer::MessageConsumer};
@@ -15,12 +14,12 @@ pub struct FetchTransactionConsumer {
     pub providers: ChainProviders,
     pub swapper: Arc<GemSwapper>,
     pub producer: Arc<dyn StreamProducerQueue>,
-    pub throttle: Arc<dyn ThrottleCacher>,
+    pub throttle: CacherClient,
     pub(crate) repository: Arc<dyn Repository>,
 }
 
 impl FetchTransactionConsumer {
-    pub(crate) fn new(providers: ChainProviders, swapper: Arc<GemSwapper>, producer: Arc<dyn StreamProducerQueue>, throttle: Arc<dyn ThrottleCacher>, repository: Arc<dyn Repository>) -> Self {
+    pub(crate) fn new(providers: ChainProviders, swapper: Arc<GemSwapper>, producer: Arc<dyn StreamProducerQueue>, throttle: CacherClient, repository: Arc<dyn Repository>) -> Self {
         Self {
             providers,
             swapper,
@@ -36,7 +35,6 @@ impl FetchTransactionConsumer {
     }
 }
 
-#[async_trait]
 impl MessageConsumer<TransactionIdRequest, usize> for FetchTransactionConsumer {
     async fn should_consume(&self, payload: &TransactionIdRequest) -> Result<bool, Box<dyn Error + Send + Sync>> {
         self.throttle

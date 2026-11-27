@@ -1,7 +1,7 @@
 use std::error::Error;
 use std::sync::Arc;
 
-use cacher::{ThrottleCacher, ThrottledTask};
+use cacher::{CacherClient, ThrottledTask};
 use primitives::{AssetId, ChainAddress, NFTAssetId, TransactionIdRequest};
 use streamer::{ChainAddressPayload, FetchAssetAssociationsPayload, FetchListPayload, FetchPricesPayload, StreamProducerQueue};
 
@@ -9,12 +9,12 @@ use crate::assets::repository::Repository;
 
 pub struct IndexerClient {
     assets: Arc<dyn Repository>,
-    throttle: Arc<dyn ThrottleCacher>,
+    throttle: CacherClient,
     stream_producer: Arc<dyn StreamProducerQueue>,
 }
 
 impl IndexerClient {
-    pub(crate) fn new(assets: Arc<dyn Repository>, throttle: Arc<dyn ThrottleCacher>, stream_producer: Arc<dyn StreamProducerQueue>) -> Self {
+    pub(crate) fn new(assets: Arc<dyn Repository>, throttle: CacherClient, stream_producer: Arc<dyn StreamProducerQueue>) -> Self {
         Self { assets, throttle, stream_producer }
     }
 

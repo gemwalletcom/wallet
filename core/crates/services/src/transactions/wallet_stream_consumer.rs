@@ -2,8 +2,7 @@ use std::error::Error;
 use std::sync::Arc;
 use std::time::Duration;
 
-use async_trait::async_trait;
-use cacher::DeviceStreamCacher;
+use cacher::CacherClient;
 use primitives::{StreamEvent, StreamTransactionsUpdate, StreamWalletUpdate, WalletId, unix_timestamp};
 
 use super::repository::Repository;
@@ -11,7 +10,7 @@ use streamer::{WalletStreamEvent, WalletStreamPayload, consumer::MessageConsumer
 
 pub struct WalletStreamConsumer {
     pub(crate) repository: Arc<dyn Repository>,
-    pub device_stream: Arc<dyn DeviceStreamCacher>,
+    pub device_stream: CacherClient,
     pub retention: Duration,
 }
 
@@ -29,7 +28,6 @@ fn stream_events(wallet_id: WalletId, event: WalletStreamEvent) -> Vec<StreamEve
     }
 }
 
-#[async_trait]
 impl MessageConsumer<WalletStreamPayload, usize> for WalletStreamConsumer {
     async fn should_consume(&self, _payload: &WalletStreamPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
         Ok(true)

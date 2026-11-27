@@ -3,7 +3,7 @@ use std::error::Error;
 use std::sync::Arc;
 
 use crate::ConfigCacher;
-use cacher::{PerpetualAddressCacher, PerpetualAddressTier};
+use cacher::{CacherClient, PerpetualAddressTier};
 use chain_providers::ChainProviders;
 use chain_traits::TransactionsRequest;
 use config_keys::ConfigParamKey;
@@ -15,13 +15,13 @@ use streamer::steam_producer_queue::StreamProducerQueue;
 pub struct PerpetualPositionObserver {
     chain: Chain,
     providers: Arc<ChainProviders>,
-    addresses: Arc<dyn PerpetualAddressCacher>,
+    addresses: CacherClient,
     config: Arc<ConfigCacher>,
     stream_producer: Arc<dyn StreamProducerQueue>,
 }
 
 impl PerpetualPositionObserver {
-    pub fn new(chain: Chain, providers: Arc<ChainProviders>, addresses: Arc<dyn PerpetualAddressCacher>, config: Arc<ConfigCacher>, stream_producer: Arc<dyn StreamProducerQueue>) -> Self {
+    pub fn new(chain: Chain, providers: Arc<ChainProviders>, addresses: CacherClient, config: Arc<ConfigCacher>, stream_producer: Arc<dyn StreamProducerQueue>) -> Self {
         Self {
             chain,
             providers,

@@ -1,7 +1,6 @@
 use std::error::Error;
 
 use crate::assets::ListsClient;
-use async_trait::async_trait;
 use gem_tracing::info_with_fields;
 use streamer::{FetchListPayload, consumer::MessageConsumer};
 
@@ -9,7 +8,6 @@ pub struct FetchListConsumer {
     pub lists_client: ListsClient,
 }
 
-#[async_trait]
 impl MessageConsumer<FetchListPayload, u32> for FetchListConsumer {
     async fn should_consume(&self, _payload: &FetchListPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
         Ok(true)

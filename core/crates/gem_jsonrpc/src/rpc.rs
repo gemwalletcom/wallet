@@ -73,7 +73,6 @@ where
     }
 }
 
-#[async_trait]
 impl<E> Client for RpcClient<E>
 where
     E: RpcClientError,

@@ -89,7 +89,7 @@ impl ProviderFactory {
                     if let Some(indexer) = indexer {
                         let indexer = Arc::new(indexer);
                         let transactions = Box::new(EVMTransactionsByAddressProvider::new(indexer.clone()));
-                        let asset_balances = Box::new(EVMAssetBalanceProvider::new(indexer));
+                        let asset_balances = EVMAssetBalanceProvider::new(indexer);
                         Box::new(match evm_chain {
                             EVMChain::Ethereum => EthereumProvider::new_with_provider(client.clone(), transactions, asset_balances, Box::new(EverstakeStakingClient::new(client, Some(everstake)))),
                             EVMChain::Monad => EthereumProvider::new_with_provider(client.clone(), transactions, asset_balances, Box::new(MonadStakingClient::new(client))),

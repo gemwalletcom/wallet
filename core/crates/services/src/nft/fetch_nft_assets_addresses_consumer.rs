@@ -1,19 +1,16 @@
 use std::collections::HashMap;
 use std::error::Error;
-use std::sync::Arc;
 
-use async_trait::async_trait;
-use cacher::{ThrottleCacher, ThrottledTask};
+use cacher::{CacherClient, ThrottledTask};
 use streamer::{ChainAddressPayload, consumer::MessageConsumer};
 
 use super::NFTClient;
 
 pub struct FetchNftAssetsAddressesConsumer {
-    pub throttle: Arc<dyn ThrottleCacher>,
+    pub throttle: CacherClient,
     pub nft_client: NFTClient,
 }
 
-#[async_trait]
 impl MessageConsumer<ChainAddressPayload, usize> for FetchNftAssetsAddressesConsumer {
     async fn should_consume(&self, payload: &ChainAddressPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
         self.throttle

@@ -3,18 +3,18 @@ use std::sync::Arc;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
 use async_trait::async_trait;
-use cacher::JobStatusCacher;
+use cacher::CacherClient;
 use job_runner::{JobContext, JobError, JobSchedule, RunDecision};
 
 use crate::Services;
 
 struct CacherJobTracker {
-    statuses: Arc<dyn JobStatusCacher>,
+    statuses: CacherClient,
     service: String,
 }
 
 impl CacherJobTracker {
-    fn new(statuses: Arc<dyn JobStatusCacher>, service: &str) -> Self {
+    fn new(statuses: CacherClient, service: &str) -> Self {
         Self { statuses, service: service.to_string() }
     }
 
@@ -51,6 +51,6 @@ impl JobSchedule for CacherJobTracker {
 
 impl Services {
     pub async fn job_schedule(&self, service: &str) -> Result<Arc<dyn JobSchedule>, Box<dyn Error + Send + Sync>> {
-        Ok(Arc::new(CacherJobTracker::new(Arc::new(self.cacher().await?), service)))
+        Ok(Arc::new(CacherJobTracker::new(self.cacher().await?, service)))
     }
 }

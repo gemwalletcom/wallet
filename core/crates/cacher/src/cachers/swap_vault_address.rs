@@ -1,7 +1,6 @@
 use std::error::Error;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use async_trait::async_trait;
 use primitives::SwapProvider;
 
 use crate::{CacheKey, CacherClient};
@@ -12,15 +11,8 @@ pub enum SwapVaultAddressKind {
     Send,
 }
 
-#[async_trait]
-pub trait SwapVaultAddressCacher: Send + Sync {
-    async fn add_vault_addresses(&self, provider: SwapProvider, kind: SwapVaultAddressKind, addresses: &[String]) -> Result<usize, Box<dyn Error + Send + Sync>>;
-    async fn vault_addresses(&self, providers: &[SwapProvider], kind: SwapVaultAddressKind) -> Result<Vec<Vec<String>>, Box<dyn Error + Send + Sync>>;
-}
-
-#[async_trait]
-impl SwapVaultAddressCacher for CacherClient {
-    async fn add_vault_addresses(&self, provider: SwapProvider, kind: SwapVaultAddressKind, addresses: &[String]) -> Result<usize, Box<dyn Error + Send + Sync>> {
+impl CacherClient {
+    pub async fn add_vault_addresses(&self, provider: SwapProvider, kind: SwapVaultAddressKind, addresses: &[String]) -> Result<usize, Box<dyn Error + Send + Sync>> {
         let key = vault_key(provider.as_ref(), kind);
         match kind {
             SwapVaultAddressKind::Deposit => self.add_to_expiring_set(key, addresses, SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs_f64()).await,
@@ -28,7 +20,7 @@ impl SwapVaultAddressCacher for CacherClient {
         }
     }
 
-    async fn vault_addresses(&self, providers: &[SwapProvider], kind: SwapVaultAddressKind) -> Result<Vec<Vec<String>>, Box<dyn Error + Send + Sync>> {
+    pub async fn vault_addresses(&self, providers: &[SwapProvider], kind: SwapVaultAddressKind) -> Result<Vec<Vec<String>>, Box<dyn Error + Send + Sync>> {
         let keys = providers.iter().map(|provider| vault_key(provider.as_ref(), kind)).collect::<Vec<_>>();
         match kind {
             SwapVaultAddressKind::Deposit => self.expiring_set_members(&keys).await,

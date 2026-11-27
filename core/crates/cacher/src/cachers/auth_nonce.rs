@@ -1,23 +1,15 @@
 use std::error::Error;
 
-use async_trait::async_trait;
 use primitives::AuthNonce;
 
 use crate::{CacheKey, CacherClient};
 
-#[async_trait]
-pub trait AuthNonceCacher: Send + Sync {
-    async fn add_nonce(&self, device_id: &str, nonce: &AuthNonce) -> Result<(), Box<dyn Error + Send + Sync>>;
-    async fn take_nonce(&self, device_id: &str, nonce: &str) -> Result<AuthNonce, Box<dyn Error + Send + Sync>>;
-}
-
-#[async_trait]
-impl AuthNonceCacher for CacherClient {
-    async fn add_nonce(&self, device_id: &str, nonce: &AuthNonce) -> Result<(), Box<dyn Error + Send + Sync>> {
+impl CacherClient {
+    pub async fn add_nonce(&self, device_id: &str, nonce: &AuthNonce) -> Result<(), Box<dyn Error + Send + Sync>> {
         self.set(CacheKey::AuthNonce(device_id, &nonce.nonce), nonce).await
     }
 
-    async fn take_nonce(&self, device_id: &str, nonce: &str) -> Result<AuthNonce, Box<dyn Error + Send + Sync>> {
+    pub async fn take_nonce(&self, device_id: &str, nonce: &str) -> Result<AuthNonce, Box<dyn Error + Send + Sync>> {
         self.take(CacheKey::AuthNonce(device_id, nonce)).await
     }
 }

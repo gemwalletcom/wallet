@@ -2,7 +2,7 @@ use std::error::Error;
 use std::sync::Arc;
 
 use super::repository::Repository;
-use cacher::DeviceStreamCacher;
+use cacher::CacherClient;
 use localizer::LanguageLocalizer;
 use primitives::{Device, StreamEvent, SupportMessage, SupportStreamEvent, SupportTypingStatus};
 use push_notification::{GorushNotification, PushNotification, PushNotificationSupport, PushNotificationTypes};
@@ -21,11 +21,11 @@ pub struct SupportWebhookResult {
 pub struct SupportClient {
     repository: Arc<dyn Repository>,
     stream_producer: Arc<dyn StreamProducerQueue>,
-    device_stream: Arc<dyn DeviceStreamCacher>,
+    device_stream: CacherClient,
 }
 
 impl SupportClient {
-    pub(crate) fn new(repository: Arc<dyn Repository>, stream_producer: Arc<dyn StreamProducerQueue>, device_stream: Arc<dyn DeviceStreamCacher>) -> Self {
+    pub(crate) fn new(repository: Arc<dyn Repository>, stream_producer: Arc<dyn StreamProducerQueue>, device_stream: CacherClient) -> Self {
         Self { repository, stream_producer, device_stream }
     }
 

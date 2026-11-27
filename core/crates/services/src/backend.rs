@@ -3,7 +3,7 @@ use std::error::Error;
 use std::str::FromStr;
 use std::sync::Arc;
 
-use cacher::{AccessTokenCacherClient, AssetCatalogCacher, CacherClient, SwapVaultAddressCacher};
+use cacher::{AccessTokenCacherClient, AssetCatalogCacher, CacherClient};
 use chain_providers::{ChainProviders, ProviderFactory};
 use coingecko::CoinGeckoClient;
 use config_keys::ConfigKey;
@@ -106,8 +106,7 @@ impl Services {
     }
 
     pub async fn auth(&self) -> Result<AuthClient, Box<dyn Error + Send + Sync>> {
-        let cacher = Arc::new(self.cacher().await?);
-        Ok(AuthClient::new(cacher))
+        Ok(AuthClient::new(self.cacher().await?))
     }
 
     pub async fn stream_producer(&self, name: &str, shutdown: ShutdownReceiver) -> Result<StreamProducer, Box<dyn Error + Send + Sync>> {
@@ -118,7 +117,7 @@ impl Services {
 
     pub async fn support(&self, shutdown: ShutdownReceiver) -> Result<SupportClient, Box<dyn Error + Send + Sync>> {
         let stream_producer = self.stream_producer("daemon_support_producer", shutdown).await?;
-        Ok(SupportClient::new(self.support_repository(), Arc::new(stream_producer), Arc::new(self.cacher().await?)))
+        Ok(SupportClient::new(self.support_repository(), Arc::new(stream_producer), self.cacher().await?))
     }
 
     pub async fn search_index(&self) -> Result<SearchIndexClient, Box<dyn Error + Send + Sync>> {
@@ -141,7 +140,7 @@ impl Services {
         Ok(FiatClient::new(
             self.fiat_repository(),
             self.config(),
-            Arc::new(cacher.clone()),
+            cacher.clone(),
             Arc::new(cacher),
             providers,
             self.ip_address_provider().await?,
@@ -193,7 +192,7 @@ impl Services {
             Arc::new(AbuseIPDBClient::new(security.abuseipdb.url.clone(), security.abuseipdb.key.secret.clone())),
             Arc::new(IpApiClient::new(security.ipapi.url.clone(), security.ipapi.key.secret.clone())),
         ];
-        Ok(IpSecurityClient::new(providers, Arc::new(self.cacher().await?)))
+        Ok(IpSecurityClient::new(providers, self.cacher().await?))
     }
 
     pub fn redemption_service(&self) -> Result<TransferRedemptionService, Box<dyn Error + Send + Sync>> {
@@ -290,7 +289,7 @@ impl Services {
     }
 
     pub fn wallet_configuration(&self, cacher: CacherClient, user_agent: &str) -> WalletConfigurationClient {
-        WalletConfigurationClient::new(self.devices_repository(), self.chain_providers(user_agent), Arc::new(cacher))
+        WalletConfigurationClient::new(self.devices_repository(), self.chain_providers(user_agent), cacher)
     }
 
     pub fn notifications(&self) -> NotificationsClient {
@@ -322,7 +321,7 @@ impl Services {
     }
 
     pub fn indexer(&self, cacher: CacherClient, stream_producer: StreamProducer) -> IndexerClient {
-        IndexerClient::new(self.assets_repository(), Arc::new(cacher), Arc::new(stream_producer))
+        IndexerClient::new(self.assets_repository(), cacher, Arc::new(stream_producer))
     }
 
     pub fn access(&self) -> AccessClient {
@@ -343,7 +342,7 @@ impl Services {
 
     async fn ip_address_provider(&self) -> Result<Arc<dyn IpAddressProvider>, Box<dyn Error + Send + Sync>> {
         let provider = Arc::new(FiatProviderFactory::new_ip_check_client(&self.settings));
-        Ok(Arc::new(CachedIpAddressProvider::new(Arc::new(self.cacher().await?), provider)))
+        Ok(Arc::new(CachedIpAddressProvider::new(self.cacher().await?, provider)))
     }
 
     pub fn chain(&self, user_agent: &str) -> ChainClient {
@@ -363,7 +362,7 @@ impl Services {
     }
 
     pub fn scan(&self, providers: TransactionScanProviders, cacher: CacherClient, metrics: Arc<dyn ScanMetrics>) -> ScanClient {
-        ScanClient::new(Arc::new(crate::security::repository::PostgresRepository::new(self.database())), self.config(), Arc::new(cacher), providers, metrics)
+        ScanClient::new(Arc::new(crate::security::repository::PostgresRepository::new(self.database())), self.config(), cacher, providers, metrics)
     }
 
     pub fn support_api(&self) -> SupportApiClient {
@@ -378,7 +377,7 @@ impl Services {
     pub async fn device_stream(&self, cacher: CacherClient) -> Result<DeviceStreamClient, Box<dyn Error + Send + Sync>> {
         let config = self.config();
         Ok(DeviceStreamClient::new(
-            Arc::new(cacher),
+            cacher,
             config.get_duration(ConfigKey::DeviceStreamRetention).await?,
             config.get_usize(ConfigKey::DeviceStreamHistoryLimit).await?,
         ))
@@ -388,23 +387,23 @@ impl Services {
         Ok(SwapClient::new(self.asset_catalog().await?))
     }
 
-    pub fn near_intents(&self, deposit_addresses: Arc<dyn SwapVaultAddressCacher>) -> NearIntentsProxyClient {
+    pub fn near_intents(&self, deposit_addresses: CacherClient) -> NearIntentsProxyClient {
         NearIntentsProxyClient::new(self.settings.swap.nearintents.url.clone(), deposit_addresses)
     }
 
-    pub fn swaps_xyz(&self, deposit_addresses: Arc<dyn SwapVaultAddressCacher>) -> SwapsXyzProxyClient {
+    pub fn swaps_xyz(&self, deposit_addresses: CacherClient) -> SwapsXyzProxyClient {
         SwapsXyzProxyClient::new(self.settings.swap.swapsxyz.url.clone(), deposit_addresses)
     }
 
-    pub fn relay(&self, deposit_addresses: Arc<dyn SwapVaultAddressCacher>) -> RelayProxyClient {
+    pub fn relay(&self, deposit_addresses: CacherClient) -> RelayProxyClient {
         RelayProxyClient::new(self.settings.swap.relay.url.clone(), deposit_addresses)
     }
 
-    pub fn bridgers(&self, deposit_addresses: Arc<dyn SwapVaultAddressCacher>) -> BridgersProxyClient {
+    pub fn bridgers(&self, deposit_addresses: CacherClient) -> BridgersProxyClient {
         BridgersProxyClient::new(self.settings.swap.bridgers.url.clone(), deposit_addresses)
     }
 
-    pub fn chainflip(&self, deposit_addresses: Arc<dyn SwapVaultAddressCacher>) -> ChainflipProxyClient {
+    pub fn chainflip(&self, deposit_addresses: CacherClient) -> ChainflipProxyClient {
         ChainflipProxyClient::new(self.settings.swap.chainflip.url.clone(), deposit_addresses)
     }
 }

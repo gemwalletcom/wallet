@@ -1,6 +1,5 @@
-use std::{collections::HashMap, fmt::Debug, time::Duration};
+use std::{collections::HashMap, fmt::Debug, future::Future, time::Duration};
 
-use async_trait::async_trait;
 use serde::{Serialize, de::DeserializeOwned};
 
 mod content_type;
@@ -27,28 +26,26 @@ pub use types::{ClientError, Response, decode_json_byte_array, deserialize_respo
 
 pub const DEFAULT_REQUEST_TIMEOUT: Duration = Duration::from_secs(30);
 
-#[async_trait]
 pub trait Client: Send + Sync + Debug {
-    async fn get_with<R>(&self, path: &str, headers: HashMap<String, String>) -> Result<R, ClientError>
+    fn get_with<R>(&self, path: &str, headers: HashMap<String, String>) -> impl Future<Output = Result<R, ClientError>> + Send
     where
         R: DeserializeOwned;
 
-    async fn get_url<R>(&self, url: &str) -> Result<R, ClientError>
+    fn get_url<R>(&self, url: &str) -> impl Future<Output = Result<R, ClientError>> + Send
     where
         R: DeserializeOwned;
 
-    async fn post_with<T, R>(&self, path: &str, body: &T, headers: HashMap<String, String>) -> Result<R, ClientError>
+    fn post_with<T, R>(&self, path: &str, body: &T, headers: HashMap<String, String>) -> impl Future<Output = Result<R, ClientError>> + Send
     where
         T: Serialize + Send + Sync,
         R: DeserializeOwned;
 
-    async fn patch_with<T, R>(&self, path: &str, body: &T, headers: HashMap<String, String>) -> Result<R, ClientError>
+    fn patch_with<T, R>(&self, path: &str, body: &T, headers: HashMap<String, String>) -> impl Future<Output = Result<R, ClientError>> + Send
     where
         T: Serialize + Send + Sync,
         R: DeserializeOwned;
 }
 
-#[async_trait]
 pub trait ClientExt: Client {
     fn get<R>(&self, target: impl Target) -> GetRequest<'_, Self, R> {
         GetRequest::new(self, target.path(), target.headers())
@@ -68,21 +65,21 @@ pub trait ClientExt: Client {
         PostRequest::new(self, BodyMethod::Patch, target.path(), body_headers(&target), body)
     }
 
-    async fn get_or_error<R, E>(&self, target: impl Target + Send) -> Result<R, ClientError<Option<E>>>
+    fn get_or_error<R, E>(&self, target: impl Target + Send) -> impl Future<Output = Result<R, ClientError<Option<E>>>> + Send
     where
         R: DeserializeOwned + Send,
         E: DeserializeOwned + Send,
     {
-        self.get(target).await.map_err(ClientError::decode_body)
+        async move { self.get(target).await.map_err(ClientError::decode_body) }
     }
 
-    async fn post_or_error<T, R, E>(&self, target: impl Target + Send, body: &T) -> Result<R, ClientError<Option<E>>>
+    fn post_or_error<T, R, E>(&self, target: impl Target + Send, body: &T) -> impl Future<Output = Result<R, ClientError<Option<E>>>> + Send
     where
         T: Serialize + Send + Sync,
         R: DeserializeOwned + Send,
         E: DeserializeOwned + Send,
     {
-        self.post(target, body).await.map_err(ClientError::decode_body)
+        async move { self.post(target, body).await.map_err(ClientError::decode_body) }
     }
 }
 

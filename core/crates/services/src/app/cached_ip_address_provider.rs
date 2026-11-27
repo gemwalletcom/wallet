@@ -2,17 +2,17 @@ use std::error::Error;
 use std::sync::Arc;
 
 use async_trait::async_trait;
-use cacher::IpAddressCacher;
+use cacher::CacherClient;
 use fiat::IpAddressProvider;
 use primitives::IPAddressInfo;
 
 pub(crate) struct CachedIpAddressProvider {
-    addresses: Arc<dyn IpAddressCacher>,
+    addresses: CacherClient,
     provider: Arc<dyn IpAddressProvider>,
 }
 
 impl CachedIpAddressProvider {
-    pub(crate) fn new(addresses: Arc<dyn IpAddressCacher>, provider: Arc<dyn IpAddressProvider>) -> Self {
+    pub(crate) fn new(addresses: CacherClient, provider: Arc<dyn IpAddressProvider>) -> Self {
         Self { addresses, provider }
     }
 }

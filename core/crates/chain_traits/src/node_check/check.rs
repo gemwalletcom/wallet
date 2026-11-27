@@ -4,7 +4,6 @@ use std::{
     time::{Duration, Instant},
 };
 
-use async_trait::async_trait;
 use primitives::{NodeSyncStatus, TransactionIdRequest};
 
 use super::{NodeCheckReport, NodeCheckRequest, NodeCheckResult, NodeCheckStatus};
@@ -119,29 +118,30 @@ fn format_result(value: &impl Display) -> String {
     if result.len() > MAX_RESULT_LENGTH { "available".to_string() } else { result }
 }
 
-#[async_trait]
 pub trait ChainNodeStatus: ChainBlockTransactions + ChainState {
-    async fn get_node_status(&self, request: &NodeCheckRequest, status: &NodeSyncStatus, status_latency: Duration) -> NodeCheckReport {
-        let recorder = self.get_node_basic_status(status, status_latency, NodeCheckRecorder::default()).await;
-        if recorder.has_failed() {
-            return recorder.finish();
-        }
-        let Some(block_number) = recorder.block_number else {
-            return recorder.finish();
-        };
+    fn get_node_status(&self, request: &NodeCheckRequest, status: &NodeSyncStatus, status_latency: Duration) -> impl Future<Output = NodeCheckReport> + Send {
+        async move {
+            let recorder = self.get_node_basic_status(status, status_latency, NodeCheckRecorder::default()).await;
+            if recorder.has_failed() {
+                return recorder.finish();
+            }
+            let Some(block_number) = recorder.block_number else {
+                return recorder.finish();
+            };
 
-        let probe = request.wallet();
-        let recorder = self.get_node_wallet_status(&probe.address, probe.transaction_id.as_deref(), block_number, recorder).await;
-        let recorder = match request {
-            NodeCheckRequest::Parser(_) => record_parser_blocks(self, recorder).await,
-            NodeCheckRequest::Wallet(_) => recorder,
-        };
-        recorder.finish()
+            let probe = request.wallet();
+            let recorder = self.get_node_wallet_status(&probe.address, probe.transaction_id.as_deref(), block_number, recorder).await;
+            let recorder = match request {
+                NodeCheckRequest::Parser(_) => record_parser_blocks(self, recorder).await,
+                NodeCheckRequest::Wallet(_) => recorder,
+            };
+            recorder.finish()
+        }
     }
 
-    async fn get_node_basic_status(&self, status: &NodeSyncStatus, status_latency: Duration, recorder: NodeCheckRecorder) -> NodeCheckRecorder;
+    fn get_node_basic_status(&self, status: &NodeSyncStatus, status_latency: Duration, recorder: NodeCheckRecorder) -> impl Future<Output = NodeCheckRecorder> + Send;
 
-    async fn get_node_wallet_status(&self, address: &str, transaction_id: Option<&str>, block_number: u64, recorder: NodeCheckRecorder) -> NodeCheckRecorder;
+    fn get_node_wallet_status(&self, address: &str, transaction_id: Option<&str>, block_number: u64, recorder: NodeCheckRecorder) -> impl Future<Output = NodeCheckRecorder> + Send;
 }
 
 async fn record_wallet<T>(state: &T, address: &str, transaction_id: Option<&str>, recorder: NodeCheckRecorder) -> NodeCheckRecorder
@@ -225,6 +225,7 @@ mod tests {
     use super::*;
     use crate::node_check::WalletProbe;
     use crate::{ChainBalances, ChainBlockTransactions, ChainProvider, ChainTransaction};
+    use async_trait::async_trait;
 
     #[derive(Default)]
     struct TestState {

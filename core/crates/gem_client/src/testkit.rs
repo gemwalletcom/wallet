@@ -1,5 +1,4 @@
 use crate::{Client, ClientError, Response, deserialize_response, encode_request_body};
-use async_trait::async_trait;
 use serde::{Serialize, de::DeserializeOwned};
 use std::{
     collections::HashMap,
@@ -60,7 +59,6 @@ impl Debug for MockClient {
     }
 }
 
-#[async_trait]
 impl Client for MockClient {
     async fn get_with<R>(&self, path: &str, headers: HashMap<String, String>) -> Result<R, ClientError>
     where

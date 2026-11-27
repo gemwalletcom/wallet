@@ -1,6 +1,6 @@
-use std::{error::Error, sync::Arc};
+use std::error::Error;
 
-use cacher::SwapVaultAddressCacher;
+use cacher::CacherClient;
 use primitives::SwapProvider;
 use swapper::swaps_xyz::ActionRequest;
 
@@ -11,7 +11,7 @@ pub struct SwapsXyzProxyClient {
 }
 
 impl SwapsXyzProxyClient {
-    pub fn new(url: String, deposit_addresses: Arc<dyn SwapVaultAddressCacher>) -> Self {
+    pub fn new(url: String, deposit_addresses: CacherClient) -> Self {
         Self {
             client: SwapProxyClient::new(url, deposit_addresses, SwapProvider::SwapsXyz),
         }

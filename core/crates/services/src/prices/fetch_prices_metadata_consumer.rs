@@ -2,8 +2,7 @@ use std::error::Error;
 use std::sync::Arc;
 
 use crate::ConfigCacher;
-use async_trait::async_trait;
-use cacher::PriceMetadataCacher;
+use cacher::CacherClient;
 use config_keys::{ConfigKey, ConfigParamKey};
 use gem_tracing::info_with_fields;
 use prices::{AssetPriceMapping, PriceProviders};
@@ -15,12 +14,11 @@ use super::repository::Repository;
 
 pub struct FetchPricesMetadataConsumer {
     pub(crate) repository: Arc<dyn Repository>,
-    pub cooldowns: Arc<dyn PriceMetadataCacher>,
+    pub cooldowns: CacherClient,
     pub config: Arc<ConfigCacher>,
     pub providers: PriceProviders,
 }
 
-#[async_trait]
 impl MessageConsumer<PriceId, usize> for FetchPricesMetadataConsumer {
     async fn should_consume(&self, price_id: &PriceId) -> Result<bool, Box<dyn Error + Send + Sync>> {
         let providers = self.repository.get_price_providers().await?;

@@ -3,7 +3,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use super::repository::Repository;
-use cacher::{ThrottleCacher, ThrottledTask};
+use cacher::{CacherClient, ThrottledTask};
 use chain_providers::ChainProviders;
 use gem_tracing::info_with_fields;
 use localizer::LanguageLocalizer;
@@ -25,7 +25,7 @@ pub struct StakingRewardsNotifier {
     chain_providers: Arc<ChainProviders>,
     repository: Arc<dyn Repository>,
     config: StakeRewardsConfig,
-    throttle: Arc<dyn ThrottleCacher>,
+    throttle: CacherClient,
     stream_producer: Arc<dyn StreamProducerQueue>,
     subscription_lookup: Arc<SubscriptionLookup>,
 }
@@ -35,7 +35,7 @@ impl StakingRewardsNotifier {
         chain_providers: Arc<ChainProviders>,
         repository: Arc<dyn Repository>,
         config: StakeRewardsConfig,
-        throttle: Arc<dyn ThrottleCacher>,
+        throttle: CacherClient,
         stream_producer: Arc<dyn StreamProducerQueue>,
         subscription_lookup: Arc<SubscriptionLookup>,
     ) -> Self {

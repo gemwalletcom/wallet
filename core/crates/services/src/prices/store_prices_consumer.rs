@@ -1,6 +1,5 @@
 use crate::ConfigCacher;
 use crate::prices::PriceClient;
-use async_trait::async_trait;
 use std::error::Error;
 use std::sync::Arc;
 
@@ -18,7 +17,6 @@ impl StorePricesConsumer {
     }
 }
 
-#[async_trait]
 impl MessageConsumer<PricesPayload, usize> for StorePricesConsumer {
     async fn should_consume(&self, _payload: &PricesPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
         Ok(true)

@@ -1,17 +1,14 @@
 use std::error::Error;
-use std::sync::Arc;
 
 use crate::nft::NFTClient;
-use async_trait::async_trait;
-use cacher::{ThrottleCacher, ThrottledTask};
+use cacher::{CacherClient, ThrottledTask};
 use streamer::{FetchNFTAssetPayload, consumer::MessageConsumer};
 
 pub struct FetchNftAssetConsumer {
     pub nft_client: NFTClient,
-    pub throttle: Arc<dyn ThrottleCacher>,
+    pub throttle: CacherClient,
 }
 
-#[async_trait]
 impl MessageConsumer<FetchNFTAssetPayload, usize> for FetchNftAssetConsumer {
     async fn should_consume(&self, payload: &FetchNFTAssetPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
         let asset_id = payload.asset_id.to_string();

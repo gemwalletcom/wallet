@@ -1,7 +1,6 @@
 use std::error::Error;
 use std::sync::Arc;
 
-use async_trait::async_trait;
 use gem_tracing::info_with_fields;
 use pusher::PushProvider;
 use streamer::{NotificationsFailedPayload, NotificationsPayload, StreamProducerQueue, consumer::MessageConsumer};
@@ -17,7 +16,6 @@ impl NotificationsConsumer {
     }
 }
 
-#[async_trait]
 impl MessageConsumer<NotificationsPayload, usize> for NotificationsConsumer {
     async fn should_consume(&self, _payload: &NotificationsPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
         Ok(true)

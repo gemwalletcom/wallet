@@ -1,7 +1,5 @@
 use std::error::Error;
 
-use async_trait::async_trait;
-
 use crate::{CacheKey, CacherClient};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -33,19 +31,12 @@ impl<'a> ThrottledTask<'a> {
     }
 }
 
-#[async_trait]
-pub trait ThrottleCacher: Send + Sync {
-    async fn try_start(&self, task: ThrottledTask<'_>) -> Result<bool, Box<dyn Error + Send + Sync>>;
-    async fn reset(&self, tasks: &[ThrottledTask<'_>]) -> Result<(), Box<dyn Error + Send + Sync>>;
-}
-
-#[async_trait]
-impl ThrottleCacher for CacherClient {
-    async fn try_start(&self, task: ThrottledTask<'_>) -> Result<bool, Box<dyn Error + Send + Sync>> {
+impl CacherClient {
+    pub async fn try_start(&self, task: ThrottledTask<'_>) -> Result<bool, Box<dyn Error + Send + Sync>> {
         self.set_if_absent(task.cache_key()).await
     }
 
-    async fn reset(&self, tasks: &[ThrottledTask<'_>]) -> Result<(), Box<dyn Error + Send + Sync>> {
+    pub async fn reset(&self, tasks: &[ThrottledTask<'_>]) -> Result<(), Box<dyn Error + Send + Sync>> {
         let keys = tasks.iter().map(|task| task.cache_key()).collect::<Vec<_>>();
         self.delete(&keys).await?;
         Ok(())

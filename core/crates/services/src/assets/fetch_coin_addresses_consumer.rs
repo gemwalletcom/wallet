@@ -1,8 +1,7 @@
 use std::error::Error;
 use std::sync::Arc;
 
-use async_trait::async_trait;
-use cacher::{ThrottleCacher, ThrottledTask};
+use cacher::{CacherClient, ThrottledTask};
 use chain_providers::ChainProviders;
 use streamer::{ChainAddressPayload, consumer::MessageConsumer};
 
@@ -11,16 +10,15 @@ use crate::assets::repository::Repository;
 pub struct FetchCoinAddressesConsumer {
     pub provider: ChainProviders,
     pub(crate) repository: Arc<dyn Repository>,
-    pub throttle: Arc<dyn ThrottleCacher>,
+    pub throttle: CacherClient,
 }
 
 impl FetchCoinAddressesConsumer {
-    pub(crate) fn new(provider: ChainProviders, repository: Arc<dyn Repository>, throttle: Arc<dyn ThrottleCacher>) -> Self {
+    pub(crate) fn new(provider: ChainProviders, repository: Arc<dyn Repository>, throttle: CacherClient) -> Self {
         Self { provider, repository, throttle }
     }
 }
 
-#[async_trait]
 impl MessageConsumer<ChainAddressPayload, String> for FetchCoinAddressesConsumer {
     async fn should_consume(&self, payload: &ChainAddressPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
         self.throttle

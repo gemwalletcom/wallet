@@ -1,12 +1,12 @@
 use std::{
     error::Error,
     fmt::Display,
+    future::Future,
     sync::Arc,
     time::{Duration, Instant},
 };
 
 use crate::{ConsumerStatus, ConsumerStatusReporter, QueueName, ShutdownReceiver, StreamMessage, StreamReader};
-use async_trait::async_trait;
 use gem_tracing::{DurationMs, error_with_fields, info_with_fields};
 use primitives::unix_seconds;
 use serde::Deserialize;
@@ -26,10 +26,9 @@ enum ConsumeResult<R> {
     Error(Box<dyn Error + Send + Sync>),
 }
 
-#[async_trait]
 pub trait MessageConsumer<P, R> {
-    async fn consume(&self, payload: P) -> Result<R, Box<dyn Error + Send + Sync>>;
-    async fn should_consume(&self, payload: &P) -> Result<bool, Box<dyn Error + Send + Sync>>;
+    fn consume(&self, payload: P) -> impl Future<Output = Result<R, Box<dyn Error + Send + Sync>>> + Send;
+    fn should_consume(&self, payload: &P) -> impl Future<Output = Result<bool, Box<dyn Error + Send + Sync>>> + Send;
 }
 
 pub async fn run_consumer<P, C, R>(

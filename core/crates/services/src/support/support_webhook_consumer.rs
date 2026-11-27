@@ -1,6 +1,5 @@
 use std::error::Error;
 
-use async_trait::async_trait;
 use gem_tracing::{error_with_fields, info_with_fields};
 use streamer::SupportWebhookPayload;
 use streamer::consumer::MessageConsumer;
@@ -17,7 +16,6 @@ impl SupportWebhookConsumer {
     }
 }
 
-#[async_trait]
 impl MessageConsumer<SupportWebhookPayload, bool> for SupportWebhookConsumer {
     async fn should_consume(&self, _payload: &SupportWebhookPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
         Ok(true)

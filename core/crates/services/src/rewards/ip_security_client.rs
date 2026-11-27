@@ -1,17 +1,17 @@
 use std::error::Error;
 use std::sync::Arc;
 
-use cacher::IpCheckCacher;
+use cacher::CacherClient;
 use primitives::{IpCheckResult, try_in_order};
 use rewards::IpCheckProvider;
 
 pub struct IpSecurityClient {
     providers: Vec<Arc<dyn IpCheckProvider>>,
-    checks: Arc<dyn IpCheckCacher>,
+    checks: CacherClient,
 }
 
 impl IpSecurityClient {
-    pub fn new(providers: Vec<Arc<dyn IpCheckProvider>>, checks: Arc<dyn IpCheckCacher>) -> Self {
+    pub fn new(providers: Vec<Arc<dyn IpCheckProvider>>, checks: CacherClient) -> Self {
         Self { providers, checks }
     }
 

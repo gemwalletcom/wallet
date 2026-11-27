@@ -1,7 +1,6 @@
 use std::error::Error;
 use std::sync::Arc;
 
-use async_trait::async_trait;
 use futures::future;
 use gem_tracing::{error_with_fields, info_with_fields};
 use primitives::{AssetId, asset_score::AssetRank};
@@ -33,7 +32,6 @@ impl AssetStatusVerdict {
     }
 }
 
-#[async_trait]
 impl MessageConsumer<AssetId, bool> for FetchAssetStatusConsumer {
     async fn should_consume(&self, asset_id: &AssetId) -> Result<bool, Box<dyn Error + Send + Sync>> {
         Ok(asset_id.is_token() && self.providers.iter().any(|provider| provider.supports_chain(asset_id.chain)))

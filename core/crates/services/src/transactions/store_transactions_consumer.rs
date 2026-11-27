@@ -3,7 +3,6 @@ use std::sync::Arc;
 use std::time::Duration;
 use std::{collections::HashMap, error::Error};
 
-use async_trait::async_trait;
 use futures::{StreamExt, TryStreamExt, stream};
 use gem_tracing::info_with_fields;
 use nft::NFTChain;
@@ -34,7 +33,6 @@ pub struct StoreTransactionsConsumer {
     pub(crate) subscription_lookup: Arc<SubscriptionLookup>,
 }
 
-#[async_trait]
 impl MessageConsumer<TransactionsPayload, usize> for StoreTransactionsConsumer {
     async fn should_consume(&self, _payload: &TransactionsPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
         Ok(true)

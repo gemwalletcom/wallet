@@ -1,4 +1,3 @@
-use async_trait::async_trait;
 use gem_tracing::info_with_fields;
 use primitives::rewards::RedemptionStatus;
 use primitives::{NotificationRewardsRedeemMetadata, NotificationType, TransactionId};
@@ -54,7 +53,6 @@ impl<S: RedemptionService> RewardsRedemptionConsumer<S> {
     }
 }
 
-#[async_trait]
 impl<S: RedemptionService> MessageConsumer<RewardsRedemptionPayload, RedemptionStatus> for RewardsRedemptionConsumer<S> {
     async fn should_consume(&self, payload: &RewardsRedemptionPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
         let redemption_id = payload.redemption_id;

@@ -154,8 +154,6 @@ mod chain_integration_tests {
     use primitives::{BroadcastOptions, Chain};
     use std::error::Error;
 
-    use crate::rpc::AssetBalanceProvider;
-
     #[tokio::test]
     async fn test_ethereum_get_transactions_by_address() -> Result<(), Box<dyn Error + Send + Sync>> {
         let transactions_by_address = create_ethereum_test_transactions_by_address_provider();
@@ -170,7 +168,7 @@ mod chain_integration_tests {
     #[tokio::test]
     async fn test_ethereum_get_assets_balances() -> Result<(), Box<dyn Error + Send + Sync>> {
         let asset_balances = create_ethereum_test_asset_balance_provider();
-        let balances = AssetBalanceProvider::get_asset_balances(&asset_balances, TEST_ADDRESS.to_string()).await?;
+        let balances = asset_balances.get_asset_balances(TEST_ADDRESS.to_string()).await?;
 
         println!("Balances: {:#?}", balances);
 

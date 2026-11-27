@@ -1,7 +1,6 @@
 use std::error::Error;
 use std::sync::Arc;
 
-use async_trait::async_trait;
 use number_formatter::BigNumberFormatter;
 use primitives::{Transaction, TransactionId, TransactionState};
 use storage::TransactionPerpetualRecord;
@@ -42,7 +41,6 @@ impl StoreTransactionsPerpetualsConsumer {
     }
 }
 
-#[async_trait]
 impl MessageConsumer<TransactionId, usize> for StoreTransactionsPerpetualsConsumer {
     async fn should_consume(&self, _payload: &TransactionId) -> Result<bool, Box<dyn Error + Send + Sync>> {
         Ok(true)

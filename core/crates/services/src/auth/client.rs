@@ -1,15 +1,15 @@
-use std::{error::Error, sync::Arc};
+use std::error::Error;
 
-use cacher::AuthNonceCacher;
+use cacher::CacherClient;
 use gem_crypto::random;
 use primitives::{AuthNonce, DateTime, hex};
 
 pub struct AuthClient {
-    nonces: Arc<dyn AuthNonceCacher>,
+    nonces: CacherClient,
 }
 
 impl AuthClient {
-    pub fn new(nonces: Arc<dyn AuthNonceCacher>) -> Self {
+    pub fn new(nonces: CacherClient) -> Self {
         Self { nonces }
     }
 

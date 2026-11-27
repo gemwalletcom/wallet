@@ -3,7 +3,7 @@ use std::error::Error;
 use std::sync::Arc;
 
 use super::repository::Repository;
-use cacher::AddressStatusCacher;
+use cacher::CacherClient;
 use chain_providers::ChainProviders;
 use futures::future::join_all;
 use primitives::{AddressStatus, Chain, ChainAddress, WalletConfiguration, WalletConfigurationResult, WalletId, WalletType};
@@ -13,11 +13,11 @@ const ADDRESS_STATUS_CHAINS: [Chain; 7] = [Chain::Tron, Chain::Solana, Chain::Xr
 pub struct WalletConfigurationClient {
     repository: Arc<dyn Repository>,
     providers: ChainProviders,
-    statuses: Arc<dyn AddressStatusCacher>,
+    statuses: CacherClient,
 }
 
 impl WalletConfigurationClient {
-    pub(crate) fn new(repository: Arc<dyn Repository>, providers: ChainProviders, statuses: Arc<dyn AddressStatusCacher>) -> Self {
+    pub(crate) fn new(repository: Arc<dyn Repository>, providers: ChainProviders, statuses: CacherClient) -> Self {
         Self { repository, providers, statuses }
     }
 

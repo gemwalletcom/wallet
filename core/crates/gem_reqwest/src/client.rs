@@ -1,6 +1,5 @@
 use std::{collections::HashMap, time::Duration};
 
-use async_trait::async_trait;
 use reqwest::header::{HeaderMap, USER_AGENT};
 use reqwest::{Method, RequestBuilder};
 use serde::{Serialize, de::DeserializeOwned};
@@ -92,7 +91,6 @@ impl ReqwestClient {
     }
 }
 
-#[async_trait]
 impl Client for ReqwestClient {
     async fn get_with<R>(&self, path: &str, headers: HashMap<String, String>) -> Result<R, ClientError>
     where

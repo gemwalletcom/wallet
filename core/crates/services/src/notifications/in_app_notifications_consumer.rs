@@ -1,7 +1,6 @@
 use std::error::Error;
 use std::sync::Arc;
 
-use async_trait::async_trait;
 use localizer::LanguageLocalizer;
 use number_formatter::{ValueFormatter, ValueStyle};
 use primitives::{Device, JsonDecode, NotificationRewardsRedeemMetadata, NotificationType, RewardEventType};
@@ -32,7 +31,6 @@ impl InAppNotificationsConsumer {
     }
 }
 
-#[async_trait]
 impl MessageConsumer<InAppNotificationPayload, usize> for InAppNotificationsConsumer {
     async fn should_consume(&self, _payload: &InAppNotificationPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
         Ok(true)

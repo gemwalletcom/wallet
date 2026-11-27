@@ -3,7 +3,7 @@ use std::sync::Arc;
 
 use crate::devices::repository::Repository as DeviceRepository;
 use crate::system::repository::Repository;
-use cacher::{ThrottleCacher, ThrottledTask};
+use cacher::{CacherClient, ThrottledTask};
 use localizer::LanguageLocalizer;
 use primitives::{Asset, Chain};
 use push_notification::{GorushNotification, PushNotification};
@@ -12,12 +12,12 @@ use streamer::{NotificationsPayload, StreamProducerQueue};
 pub struct InactiveDevicesObserver {
     repository: Arc<dyn Repository>,
     devices: Arc<dyn DeviceRepository>,
-    throttle: Arc<dyn ThrottleCacher>,
+    throttle: CacherClient,
     stream_producer: Arc<dyn StreamProducerQueue>,
 }
 
 impl InactiveDevicesObserver {
-    pub(crate) fn new(repository: Arc<dyn Repository>, devices: Arc<dyn DeviceRepository>, throttle: Arc<dyn ThrottleCacher>, stream_producer: Arc<dyn StreamProducerQueue>) -> Self {
+    pub(crate) fn new(repository: Arc<dyn Repository>, devices: Arc<dyn DeviceRepository>, throttle: CacherClient, stream_producer: Arc<dyn StreamProducerQueue>) -> Self {
         Self {
             repository,
             devices,

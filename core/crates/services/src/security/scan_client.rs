@@ -4,7 +4,7 @@ use std::future::Future;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
-use cacher::{AccessTokenCacherClient, CacherClient, SafeScanTarget, ScanSafeCacher};
+use cacher::{AccessTokenCacherClient, CacherClient, SafeScanTarget};
 use futures::future;
 use gem_reqwest::ReqwestClient;
 use gem_tracing::{error_with_fields, info_with_fields};
@@ -31,13 +31,13 @@ pub fn scan_providers(settings: &Settings, cacher: CacherClient, timeout: Durati
 pub struct ScanClient {
     repository: Arc<dyn Repository>,
     config_cacher: Arc<ConfigCacher>,
-    safe_targets: Arc<dyn ScanSafeCacher>,
+    safe_targets: CacherClient,
     providers: TransactionScanProviders,
     metrics: Arc<dyn ScanMetrics>,
 }
 
 impl ScanClient {
-    pub(crate) fn new(repository: Arc<dyn Repository>, config_cacher: Arc<ConfigCacher>, safe_targets: Arc<dyn ScanSafeCacher>, providers: TransactionScanProviders, metrics: Arc<dyn ScanMetrics>) -> Self {
+    pub(crate) fn new(repository: Arc<dyn Repository>, config_cacher: Arc<ConfigCacher>, safe_targets: CacherClient, providers: TransactionScanProviders, metrics: Arc<dyn ScanMetrics>) -> Self {
         Self {
             repository,
             config_cacher,

@@ -1,6 +1,4 @@
-use std::sync::Arc;
-
-use cacher::{SwapVaultAddressCacher, SwapVaultAddressKind};
+use cacher::{CacherClient, SwapVaultAddressKind};
 use gem_client::{ClientError, Response};
 use gem_reqwest::ReqwestClient;
 use gem_tracing::{error_fields, error_with_fields};
@@ -11,12 +9,12 @@ use swapper::cross_chain::deposit_id_from_response;
 
 pub(super) struct SwapProxyClient {
     client: ReqwestClient,
-    deposit_addresses: Arc<dyn SwapVaultAddressCacher>,
+    deposit_addresses: CacherClient,
     provider: SwapProvider,
 }
 
 impl SwapProxyClient {
-    pub(super) fn new(url: String, deposit_addresses: Arc<dyn SwapVaultAddressCacher>, provider: SwapProvider) -> Self {
+    pub(super) fn new(url: String, deposit_addresses: CacherClient, provider: SwapProvider) -> Self {
         Self {
             client: ReqwestClient::new(url, gem_reqwest::reqwest_client()),
             deposit_addresses,

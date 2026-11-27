@@ -1,6 +1,5 @@
 use std::error::Error;
 
-use async_trait::async_trait;
 use primitives::ScanType;
 
 use crate::{CacheKey, CacherClient};
@@ -17,19 +16,12 @@ impl SafeScanTarget {
     }
 }
 
-#[async_trait]
-pub trait ScanSafeCacher: Send + Sync {
-    async fn is_safe(&self, target: &SafeScanTarget) -> Result<bool, Box<dyn Error + Send + Sync>>;
-    async fn add_safe(&self, targets: &[&SafeScanTarget]) -> Result<(), Box<dyn Error + Send + Sync>>;
-}
-
-#[async_trait]
-impl ScanSafeCacher for CacherClient {
-    async fn is_safe(&self, target: &SafeScanTarget) -> Result<bool, Box<dyn Error + Send + Sync>> {
+impl CacherClient {
+    pub async fn is_safe(&self, target: &SafeScanTarget) -> Result<bool, Box<dyn Error + Send + Sync>> {
         Ok(self.get::<bool>(target.cache_key()).await?.is_some())
     }
 
-    async fn add_safe(&self, targets: &[&SafeScanTarget]) -> Result<(), Box<dyn Error + Send + Sync>> {
+    pub async fn add_safe(&self, targets: &[&SafeScanTarget]) -> Result<(), Box<dyn Error + Send + Sync>> {
         let entries = targets.iter().map(|target| (target.cache_key(), &true)).collect::<Vec<_>>();
         self.set_many(&entries).await?;
         Ok(())

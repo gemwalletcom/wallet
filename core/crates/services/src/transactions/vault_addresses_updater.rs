@@ -1,17 +1,17 @@
 use std::error::Error;
 use std::sync::Arc;
 
-use cacher::{SwapVaultAddressCacher, SwapVaultAddressKind};
+use cacher::{CacherClient, SwapVaultAddressKind};
 use primitives::SwapProvider;
 use swapper::swapper::GemSwapper;
 
 pub struct VaultAddressesUpdater {
     swapper: Arc<GemSwapper>,
-    cacher: Arc<dyn SwapVaultAddressCacher>,
+    cacher: CacherClient,
 }
 
 impl VaultAddressesUpdater {
-    pub fn new(swapper: Arc<GemSwapper>, cacher: Arc<dyn SwapVaultAddressCacher>) -> Self {
+    pub fn new(swapper: Arc<GemSwapper>, cacher: CacherClient) -> Self {
         Self { swapper, cacher }
     }
 

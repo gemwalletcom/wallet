@@ -1,7 +1,6 @@
 use std::error::Error;
 use std::sync::Arc;
 
-use async_trait::async_trait;
 use num_bigint::BigUint;
 use number_formatter::BigNumberFormatter;
 use primitives::{AssetId, DAY, DateTime, PriceData, SwapProvider, Transaction, TransactionId, TransactionType, swap::SwapStatus};
@@ -74,7 +73,6 @@ impl StoreTransactionsSwapsConsumer {
     }
 }
 
-#[async_trait]
 impl MessageConsumer<TransactionId, usize> for StoreTransactionsSwapsConsumer {
     async fn should_consume(&self, _payload: &TransactionId) -> Result<bool, Box<dyn Error + Send + Sync>> {
         Ok(true)

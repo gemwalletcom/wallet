@@ -1,24 +1,21 @@
-use cacher::PendingTransactionsCacher;
+use cacher::CacherClient;
 use primitives::unix_seconds;
 use std::error::Error;
-use std::sync::Arc;
 
-use async_trait::async_trait;
 use gem_tracing::info_with_fields;
 use primitives::{TransactionId, chain_transaction_timeout};
 use streamer::consumer::MessageConsumer;
 
 pub struct StorePendingTransactionsConsumer {
-    pending: Arc<dyn PendingTransactionsCacher>,
+    pending: CacherClient,
 }
 
 impl StorePendingTransactionsConsumer {
-    pub fn new(pending: Arc<dyn PendingTransactionsCacher>) -> Self {
+    pub fn new(pending: CacherClient) -> Self {
         Self { pending }
     }
 }
 
-#[async_trait]
 impl MessageConsumer<TransactionId, usize> for StorePendingTransactionsConsumer {
     async fn should_consume(&self, _payload: &TransactionId) -> Result<bool, Box<dyn Error + Send + Sync>> {
         Ok(true)

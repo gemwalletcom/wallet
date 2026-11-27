@@ -1,8 +1,7 @@
 use std::error::Error;
 use std::sync::Arc;
 
-use async_trait::async_trait;
-use cacher::{ThrottleCacher, ThrottledTask};
+use cacher::{CacherClient, ThrottledTask};
 use chain_providers::ChainProviders;
 use gem_tracing::info_with_fields;
 use streamer::{FetchAssetsPayload, StreamProducerQueue, consumer::MessageConsumer};
@@ -13,12 +12,11 @@ use crate::assets::repository::Repository;
 pub struct FetchAssetsConsumer {
     pub(crate) repository: Arc<dyn Repository>,
     pub providers: ChainProviders,
-    pub throttle: Arc<dyn ThrottleCacher>,
+    pub throttle: CacherClient,
     pub classification_rules: AssetClassificationRules,
     pub stream_producer: Arc<dyn StreamProducerQueue>,
 }
 
-#[async_trait]
 impl MessageConsumer<FetchAssetsPayload, usize> for FetchAssetsConsumer {
     async fn should_consume(&self, payload: &FetchAssetsPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
         self.throttle.try_start(ThrottledTask::FetchAssets { asset_id: &payload.asset_id.to_string() }).await

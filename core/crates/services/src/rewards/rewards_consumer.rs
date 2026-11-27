@@ -1,7 +1,6 @@
 use std::error::Error;
 use std::sync::Arc;
 
-use async_trait::async_trait;
 use streamer::{RewardsNotificationPayload, StreamProducerQueue, consumer::MessageConsumer};
 
 use super::repository::Repository;
@@ -11,7 +10,6 @@ pub struct RewardsConsumer {
     stream_producer: Arc<dyn StreamProducerQueue>,
 }
 
-#[async_trait]
 impl MessageConsumer<RewardsNotificationPayload, usize> for RewardsConsumer {
     async fn should_consume(&self, _payload: &RewardsNotificationPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
         Ok(true)

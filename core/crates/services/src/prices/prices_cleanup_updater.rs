@@ -1,5 +1,5 @@
 use crate::ConfigCacher;
-use cacher::ChartsHistoryCacher;
+use cacher::CacherClient;
 use config_keys::ConfigKey;
 use primitives::{DateTime, PriceProvider};
 use std::error::Error;
@@ -10,13 +10,13 @@ use super::repository::Repository;
 
 pub struct PricesCleanupUpdater {
     repository: Arc<dyn Repository>,
-    history: Arc<dyn ChartsHistoryCacher>,
+    history: CacherClient,
     config: Arc<ConfigCacher>,
     provider: PriceProvider,
 }
 
 impl PricesCleanupUpdater {
-    pub(crate) fn new(repository: Arc<dyn Repository>, history: Arc<dyn ChartsHistoryCacher>, config: Arc<ConfigCacher>, provider: PriceProvider) -> Self {
+    pub(crate) fn new(repository: Arc<dyn Repository>, history: CacherClient, config: Arc<ConfigCacher>, provider: PriceProvider) -> Self {
         Self { repository, history, config, provider }
     }
 

@@ -2,7 +2,7 @@ use std::collections::HashSet;
 use std::error::Error;
 use std::sync::Arc;
 
-use cacher::{PerpetualAddressCacher, PerpetualAddressTier};
+use cacher::{CacherClient, PerpetualAddressTier};
 use chain_providers::ChainProviders;
 use futures::{StreamExt, stream};
 use gem_tracing::{error_with_fields, info_with_fields};
@@ -18,12 +18,12 @@ pub struct PerpetualPositionClassifierConfig {
 pub struct PerpetualPositionClassifier {
     chain: Chain,
     providers: Arc<ChainProviders>,
-    addresses: Arc<dyn PerpetualAddressCacher>,
+    addresses: CacherClient,
     config: PerpetualPositionClassifierConfig,
 }
 
 impl PerpetualPositionClassifier {
-    pub fn new(chain: Chain, providers: Arc<ChainProviders>, addresses: Arc<dyn PerpetualAddressCacher>, config: PerpetualPositionClassifierConfig) -> Self {
+    pub fn new(chain: Chain, providers: Arc<ChainProviders>, addresses: CacherClient, config: PerpetualPositionClassifierConfig) -> Self {
         Self { chain, providers, addresses, config }
     }
 

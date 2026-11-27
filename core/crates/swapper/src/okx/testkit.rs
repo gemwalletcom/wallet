@@ -69,7 +69,6 @@ pub(super) struct ProxyPassthroughClient {
 }
 
 #[cfg(feature = "swap_integration_tests")]
-#[async_trait::async_trait]
 impl gem_client::Client for ProxyPassthroughClient {
     async fn get_with<R: DeserializeOwned>(&self, _path: &str, _headers: HashMap<String, String>) -> Result<R, ClientError> {
         Err(ClientError::Network("not supported".into()))

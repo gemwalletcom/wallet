@@ -2,8 +2,7 @@ use std::error::Error;
 use std::sync::Arc;
 
 use crate::ConfigCacher;
-use async_trait::async_trait;
-use cacher::{ThrottleCacher, ThrottledTask};
+use cacher::{CacherClient, ThrottledTask};
 use chain_providers::{ChainProviders, TransactionsRequest, TransactionsResult};
 use config_keys::ConfigParamKey;
 use streamer::{ChainAddressPayload, StreamProducerQueue, TransactionsPayload, consumer::MessageConsumer};
@@ -11,17 +10,16 @@ use streamer::{ChainAddressPayload, StreamProducerQueue, TransactionsPayload, co
 pub struct FetchAddressTransactionsConsumer {
     pub providers: ChainProviders,
     pub producer: Arc<dyn StreamProducerQueue>,
-    pub throttle: Arc<dyn ThrottleCacher>,
+    pub throttle: CacherClient,
     pub config: Arc<ConfigCacher>,
 }
 
 impl FetchAddressTransactionsConsumer {
-    pub fn new(providers: ChainProviders, producer: Arc<dyn StreamProducerQueue>, throttle: Arc<dyn ThrottleCacher>, config: Arc<ConfigCacher>) -> Self {
+    pub fn new(providers: ChainProviders, producer: Arc<dyn StreamProducerQueue>, throttle: CacherClient, config: Arc<ConfigCacher>) -> Self {
         Self { providers, producer, throttle, config }
     }
 }
 
-#[async_trait]
 impl MessageConsumer<ChainAddressPayload, usize> for FetchAddressTransactionsConsumer {
     async fn should_consume(&self, payload: &ChainAddressPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
         self.throttle

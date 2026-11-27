@@ -2,7 +2,6 @@ use std::collections::HashSet;
 use std::error::Error;
 use std::sync::Arc;
 
-use async_trait::async_trait;
 use gem_tracing::info_with_fields;
 use prices::{AssetPriceMapping, PriceProviders};
 use primitives::{AssetAssociation, AssetAssociationType, AssetId};
@@ -15,7 +14,6 @@ pub struct FetchAssetAssociationsConsumer {
     pub providers: PriceProviders,
 }
 
-#[async_trait]
 impl MessageConsumer<FetchAssetAssociationsPayload, usize> for FetchAssetAssociationsConsumer {
     async fn should_consume(&self, _payload: &FetchAssetAssociationsPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
         Ok(true)

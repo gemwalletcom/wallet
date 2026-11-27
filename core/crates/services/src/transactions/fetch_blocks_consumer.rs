@@ -1,7 +1,6 @@
 use std::error::Error;
 use std::sync::Arc;
 
-use async_trait::async_trait;
 use chain_providers::ChainProviders;
 use streamer::{FetchBlocksPayload, StreamProducerQueue, TransactionsPayload, consumer::MessageConsumer};
 
@@ -16,7 +15,6 @@ impl FetchBlocksConsumer {
     }
 }
 
-#[async_trait]
 impl MessageConsumer<FetchBlocksPayload, usize> for FetchBlocksConsumer {
     async fn should_consume(&self, _payload: &FetchBlocksPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
         Ok(true)

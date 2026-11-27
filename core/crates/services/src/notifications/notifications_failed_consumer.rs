@@ -1,7 +1,6 @@
 use std::error::Error;
 use std::sync::Arc;
 
-use async_trait::async_trait;
 use storage::{DeviceFilter, DeviceUpdate};
 use streamer::{NotificationsFailedPayload, consumer::MessageConsumer};
 
@@ -17,7 +16,6 @@ impl NotificationsFailedConsumer {
     }
 }
 
-#[async_trait]
 impl MessageConsumer<NotificationsFailedPayload, usize> for NotificationsFailedConsumer {
     async fn should_consume(&self, _payload: &NotificationsFailedPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
         Ok(true)

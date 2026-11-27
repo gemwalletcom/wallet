@@ -1,7 +1,6 @@
 use std::error::Error;
 use std::sync::Arc;
 
-use async_trait::async_trait;
 use fiat::FiatProvider;
 use gem_tracing::{error_with_fields, info_with_fields};
 use localizer::LanguageLocalizer;
@@ -48,7 +47,6 @@ impl FiatWebhookConsumer {
     }
 }
 
-#[async_trait]
 impl MessageConsumer<FiatWebhookPayload, bool> for FiatWebhookConsumer {
     async fn should_consume(&self, _payload: &FiatWebhookPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
         Ok(true)

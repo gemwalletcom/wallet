@@ -2,7 +2,7 @@ use std::collections::HashSet;
 use std::error::Error;
 use std::sync::Arc;
 
-use cacher::{PerpetualAddressCacher, PerpetualAddressTier};
+use cacher::{CacherClient, PerpetualAddressTier};
 use chain_providers::ChainProviders;
 use gem_tracing::info_with_fields;
 use primitives::Chain;
@@ -14,11 +14,11 @@ pub struct PerpetualAddressRefresher {
     providers: Arc<ChainProviders>,
     repository: Arc<dyn Repository>,
     subscription_lookup: Arc<SubscriptionLookup>,
-    addresses: Arc<dyn PerpetualAddressCacher>,
+    addresses: CacherClient,
 }
 
 impl PerpetualAddressRefresher {
-    pub(crate) fn new(providers: Arc<ChainProviders>, repository: Arc<dyn Repository>, subscription_lookup: Arc<SubscriptionLookup>, addresses: Arc<dyn PerpetualAddressCacher>) -> Self {
+    pub(crate) fn new(providers: Arc<ChainProviders>, repository: Arc<dyn Repository>, subscription_lookup: Arc<SubscriptionLookup>, addresses: CacherClient) -> Self {
         Self {
             providers,
             repository,

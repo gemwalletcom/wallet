@@ -1,8 +1,7 @@
 use std::collections::{BTreeMap, HashMap};
 use std::error::Error;
-use std::sync::Arc;
 
-use cacher::{SwapVaultAddressCacher, SwapVaultAddressKind};
+use cacher::{CacherClient, SwapVaultAddressKind};
 use primitives::SwapProvider;
 use swapper::SwapperProvider;
 
@@ -10,11 +9,11 @@ type AddressMap = HashMap<String, SwapperProvider>;
 
 #[derive(Clone)]
 pub struct SwapVaultAddressClient {
-    cacher: Arc<dyn SwapVaultAddressCacher>,
+    cacher: CacherClient,
 }
 
 impl SwapVaultAddressClient {
-    pub fn new(cacher: Arc<dyn SwapVaultAddressCacher>) -> Self {
+    pub fn new(cacher: CacherClient) -> Self {
         Self { cacher }
     }
 

@@ -1,7 +1,6 @@
 use std::error::Error;
 
 use crate::prices::PriceClient;
-use async_trait::async_trait;
 use gem_tracing::info_with_fields;
 use prices::PriceProviders;
 use streamer::{FetchPricesPayload, consumer::MessageConsumer};
@@ -11,7 +10,6 @@ pub struct FetchPricesConsumer {
     pub providers: PriceProviders,
 }
 
-#[async_trait]
 impl MessageConsumer<FetchPricesPayload, usize> for FetchPricesConsumer {
     async fn should_consume(&self, _payload: &FetchPricesPayload) -> Result<bool, Box<dyn Error + Send + Sync>> {
         Ok(true)

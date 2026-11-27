@@ -1,6 +1,6 @@
-use std::{error::Error, sync::Arc};
+use std::error::Error;
 
-use cacher::SwapVaultAddressCacher;
+use cacher::CacherClient;
 use gem_jsonrpc::types::ToJsonRpcRequest;
 use primitives::{Chain, RequestError, SwapProvider};
 use swapper::chainflip::broker::DepositChannelRequest;
@@ -12,7 +12,7 @@ pub struct ChainflipProxyClient {
 }
 
 impl ChainflipProxyClient {
-    pub fn new(url: String, deposit_addresses: Arc<dyn SwapVaultAddressCacher>) -> Self {
+    pub fn new(url: String, deposit_addresses: CacherClient) -> Self {
         Self {
             client: SwapProxyClient::new(url, deposit_addresses, SwapProvider::Chainflip),
         }

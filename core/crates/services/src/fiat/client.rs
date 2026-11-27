@@ -2,7 +2,7 @@ use std::collections::HashSet;
 use std::error::Error;
 use std::sync::Arc;
 
-use cacher::{CachedFiatQuote, FiatQuoteCacher, RateLimitCacher};
+use cacher::{CachedFiatQuote, CacherClient, RateLimitCacher};
 use config_keys::{ConfigKey, RateLimitKey};
 use fiat::FiatQuoteRequest;
 use fiat::error::FiatQuoteError;
@@ -26,7 +26,7 @@ use crate::assets::AssetCatalogClient;
 pub struct FiatClient {
     repository: Arc<dyn Repository>,
     config: Arc<ConfigCacher>,
-    quote_cacher: Arc<dyn FiatQuoteCacher>,
+    quote_cacher: CacherClient,
     rate_limiter: Arc<dyn RateLimitCacher>,
     providers: Vec<Box<dyn FiatProvider + Send + Sync>>,
     ip_address_provider: Arc<dyn IpAddressProvider>,
@@ -38,7 +38,7 @@ impl FiatClient {
     pub(crate) fn new(
         repository: Arc<dyn Repository>,
         config: Arc<ConfigCacher>,
-        quote_cacher: Arc<dyn FiatQuoteCacher>,
+        quote_cacher: CacherClient,
         rate_limiter: Arc<dyn RateLimitCacher>,
         providers: Vec<Box<dyn FiatProvider + Send + Sync>>,
         ip_address_provider: Arc<dyn IpAddressProvider>,

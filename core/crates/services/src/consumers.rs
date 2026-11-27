@@ -39,7 +39,7 @@ impl Services {
         Ok(FetchAssetsConsumer {
             repository: self.assets_repository(),
             providers: self.chain_providers(user_agent),
-            throttle: Arc::new(self.cacher().await?),
+            throttle: self.cacher().await?,
             classification_rules: AssetClassificationRules::from_config(&self.config()).await?,
             stream_producer: Arc::new(stream_producer),
         })
@@ -66,7 +66,7 @@ impl Services {
     pub async fn fetch_prices_metadata_consumer(&self) -> Result<FetchPricesMetadataConsumer, Box<dyn Error + Send + Sync>> {
         Ok(FetchPricesMetadataConsumer {
             repository: self.prices_repository(),
-            cooldowns: Arc::new(self.cacher().await?),
+            cooldowns: self.cacher().await?,
             config: self.config(),
             providers: self.price_providers(PriceProvider::all()),
         })
@@ -77,24 +77,24 @@ impl Services {
             self.chain_providers_for(chain, user_agent),
             self.assets_repository(),
             Arc::new(stream_producer),
-            Arc::new(self.cacher().await?),
+            self.cacher().await?,
         ))
     }
 
     pub async fn fetch_coin_addresses_consumer(&self, chain: Chain, user_agent: &str) -> Result<FetchCoinAddressesConsumer, Box<dyn Error + Send + Sync>> {
-        Ok(FetchCoinAddressesConsumer::new(self.chain_providers_for(chain, user_agent), self.assets_repository(), Arc::new(self.cacher().await?)))
+        Ok(FetchCoinAddressesConsumer::new(self.chain_providers_for(chain, user_agent), self.assets_repository(), self.cacher().await?))
     }
 
     pub async fn fetch_nft_asset_consumer(&self) -> Result<FetchNftAssetConsumer, Box<dyn Error + Send + Sync>> {
         Ok(FetchNftAssetConsumer {
             nft_client: self.nft(),
-            throttle: Arc::new(self.cacher().await?),
+            throttle: self.cacher().await?,
         })
     }
 
     pub async fn fetch_nft_assets_addresses_consumer(&self) -> Result<FetchNftAssetsAddressesConsumer, Box<dyn Error + Send + Sync>> {
         Ok(FetchNftAssetsAddressesConsumer {
-            throttle: Arc::new(self.cacher().await?),
+            throttle: self.cacher().await?,
             nft_client: self.nft(),
         })
     }
@@ -103,7 +103,7 @@ impl Services {
         Ok(FetchAddressTransactionsConsumer::new(
             self.chain_providers_for(chain, user_agent),
             Arc::new(stream_producer),
-            Arc::new(self.cacher().await?),
+            self.cacher().await?,
             self.config(),
         ))
     }
@@ -113,7 +113,7 @@ impl Services {
             self.chain_providers_for(chain, user_agent),
             self.swapper(),
             Arc::new(stream_producer),
-            Arc::new(self.cacher().await?),
+            self.cacher().await?,
             self.transactions_repository(),
         ))
     }
@@ -126,7 +126,7 @@ impl Services {
             stream_producer: Arc::new(stream_producer),
             pusher: Pusher::new(self.notifications_repository()),
             config: self.config(),
-            vault_client: SwapVaultAddressClient::new(Arc::new(cacher.clone())),
+            vault_client: SwapVaultAddressClient::new(cacher.clone()),
             subscription_lookup: self.subscription_lookup(cacher),
         })
     }
@@ -138,13 +138,13 @@ impl Services {
     pub async fn wallet_stream_consumer(&self) -> Result<WalletStreamConsumer, Box<dyn Error + Send + Sync>> {
         Ok(WalletStreamConsumer {
             repository: self.transactions_repository(),
-            device_stream: Arc::new(self.cacher().await?),
+            device_stream: self.cacher().await?,
             retention: self.config().get_duration(ConfigKey::DeviceStreamRetention).await?,
         })
     }
 
     pub async fn store_pending_transactions_consumer(&self) -> Result<StorePendingTransactionsConsumer, Box<dyn Error + Send + Sync>> {
-        Ok(StorePendingTransactionsConsumer::new(Arc::new(self.cacher().await?)))
+        Ok(StorePendingTransactionsConsumer::new(self.cacher().await?))
     }
 
     pub fn store_transactions_swaps_consumer(&self) -> StoreTransactionsSwapsConsumer {

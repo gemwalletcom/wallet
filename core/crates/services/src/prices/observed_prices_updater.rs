@@ -5,7 +5,7 @@ use std::time::Duration;
 
 use super::repository::Repository;
 use crate::prices::PriceClient;
-use cacher::ObservedAssetsCacher;
+use cacher::CacherClient;
 use prices::AssetPriceMapping;
 use primitives::{AssetId, PriceProvider};
 use streamer::StreamProducerQueue;
@@ -20,7 +20,7 @@ pub struct ObservedPricesConfig {
 }
 
 pub struct ObservedPricesUpdater {
-    observed: Arc<dyn ObservedAssetsCacher>,
+    observed: CacherClient,
     repository: Arc<dyn Repository>,
     price_client: PriceClient,
     providers: AssetsProviders,
@@ -29,7 +29,7 @@ pub struct ObservedPricesUpdater {
 }
 
 impl ObservedPricesUpdater {
-    pub(crate) fn new(observed: Arc<dyn ObservedAssetsCacher>, repository: Arc<dyn Repository>, price_client: PriceClient, providers: AssetsProviders, stream_producer: Arc<dyn StreamProducerQueue>, config: ObservedPricesConfig) -> Self {
+    pub(crate) fn new(observed: CacherClient, repository: Arc<dyn Repository>, price_client: PriceClient, providers: AssetsProviders, stream_producer: Arc<dyn StreamProducerQueue>, config: ObservedPricesConfig) -> Self {
         Self {
             observed,
             repository,
