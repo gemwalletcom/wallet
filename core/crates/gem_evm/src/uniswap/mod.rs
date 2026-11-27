@@ -10,6 +10,7 @@ pub mod path;
 #[repr(u32)]
 pub enum FeeTier {
     One = 1,
+    Five = 5,
     Ten = 10,
     Fifty = 50,
     Hundred = 100,
@@ -34,7 +35,7 @@ impl FeeTier {
 
     pub fn default_tick_spacing(&self) -> Option<I24> {
         match self {
-            FeeTier::Hundred => Some(I24::unchecked_from(1)),
+            FeeTier::Five | FeeTier::Hundred => Some(I24::unchecked_from(1)),
             FeeTier::FiveHundred => Some(I24::unchecked_from(10)),
             FeeTier::ThreeThousand => Some(I24::unchecked_from(60)),
             FeeTier::TenThousand => Some(I24::unchecked_from(200)),
@@ -58,6 +59,7 @@ impl TryFrom<u32> for FeeTier {
     fn try_from(value: u32) -> Result<Self, Self::Error> {
         match value {
             1 => Ok(FeeTier::One),
+            5 => Ok(FeeTier::Five),
             10 => Ok(FeeTier::Ten),
             50 => Ok(FeeTier::Fifty),
             100 => Ok(FeeTier::Hundred),

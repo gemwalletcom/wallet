@@ -22,10 +22,10 @@ use gem_evm::uniswap::{
     FeeTier,
     command::{Permit2Permit, encode_commands},
     deployment::v4::get_uniswap_deployment_by_chain,
-    path::BasePair,
+    path::{BasePair, TokenPair},
 };
 use gem_hash::keccak::keccak256;
-use primitives::{AssetId, Chain, EVMChain};
+use primitives::{AssetId, Chain, EVMChain, known_assets::STABLECOIN_ASSET_IDS};
 
 use super::{
     DEFAULT_SWAP_GAS_LIMIT, TEMPO_SWAP_GAS_LIMIT,
@@ -58,7 +58,7 @@ impl UniswapV4 {
     }
 
     fn get_tiers(&self) -> Vec<FeeTier> {
-        vec![FeeTier::Hundred, FeeTier::FiveHundred, FeeTier::ThreeThousand, FeeTier::TenThousand]
+        vec![FeeTier::Five, FeeTier::Hundred, FeeTier::FiveHundred, FeeTier::ThreeThousand, FeeTier::TenThousand]
     }
 
     fn routed_request(request: &QuoteRequest) -> Result<(EVMChain, RoutedAsset, RoutedAsset, u128), SwapperError> {
@@ -78,6 +78,7 @@ impl UniswapV4 {
             .pool_discovery
             .missing_pools(chain, &pairs, &fee_tiers)
             .into_iter()
+            .filter(|pool| is_pool_candidate(chain, pool))
             .filter_map(|pool| {
                 let pool_key = build_pool_key(&pool.token_in, &pool.token_out, &pool.fee_tier)?;
                 Some((pool, B256::from(keccak256(&pool_key.abi_encode()))))
@@ -90,6 +91,10 @@ impl UniswapV4 {
         self.pool_discovery.record_pools(chain, &discovered);
         Ok(())
     }
+}
+
+fn is_pool_candidate(chain: Chain, pair: &TokenPair) -> bool {
+    pair.fee_tier != FeeTier::Five || [pair.token_in, pair.token_out].iter().all(|token| STABLECOIN_ASSET_IDS.contains(&AssetId::from_token(chain, &token.to_checksum(None))))
 }
 
 fn route_intermediaries(token_in: &Address, token_out: &Address, base_pair: &BasePair) -> Vec<Address> {
@@ -146,7 +151,10 @@ impl Swapper for UniswapV4 {
         let multi_hop_paths = build_quote_exact_params(quote_amount_in, &token_in, &token_out, &fee_tiers, &intermediaries)
             .into_iter()
             .map(|(pairs, params)| (PoolPath::new(PROTOCOL, pairs), build_quote_exact_request(deployment.quoter, &params)));
-        let paths = direct_paths.chain(multi_hop_paths).filter(|(path, _)| self.pool_discovery.path_may_exist(from_chain, &path.pairs)).collect();
+        let paths = direct_paths
+            .chain(multi_hop_paths)
+            .filter(|(path, _)| path.pairs.iter().all(|pair| is_pool_candidate(from_chain, pair)) && self.pool_discovery.path_may_exist(from_chain, &path.pairs))
+            .collect();
         let client = create_client_with_chain(self.rpc_provider.clone(), from_chain)?;
         let quote_result = get_best_quote(&client, &self.outpriced_paths, (from_chain, token_in), (from_chain, token_out), quote_amount_in, paths, super::quoter::decode_quoter_response).await?;
 
@@ -197,8 +205,43 @@ impl Swapper for UniswapV4 {
 mod tests {
     use super::*;
     use crate::alien::mock::ProviderMock;
-    use primitives::asset_constants::TEMPO_BRIDGED_USDC_ASSET_ID;
+    use primitives::asset_constants::{ETHEREUM_USDC_TOKEN_ID, ETHEREUM_USDS_TOKEN_ID, ETHEREUM_USDT_TOKEN_ID, ETHEREUM_WETH_TOKEN_ID, TEMPO_BRIDGED_USDC_ASSET_ID};
     use std::sync::Arc;
+
+    #[test]
+    fn test_is_pool_candidate() {
+        let (usdt, usds, usdc, weth) = (
+            ETHEREUM_USDT_TOKEN_ID.parse().unwrap(),
+            ETHEREUM_USDS_TOKEN_ID.parse().unwrap(),
+            ETHEREUM_USDC_TOKEN_ID.parse().unwrap(),
+            ETHEREUM_WETH_TOKEN_ID.parse().unwrap(),
+        );
+
+        assert!(is_pool_candidate(
+            Chain::Ethereum,
+            &TokenPair {
+                token_in: usdt,
+                token_out: usds,
+                fee_tier: FeeTier::Five
+            }
+        ));
+        assert!(!is_pool_candidate(
+            Chain::Ethereum,
+            &TokenPair {
+                token_in: weth,
+                token_out: usdc,
+                fee_tier: FeeTier::Five
+            }
+        ));
+        assert!(is_pool_candidate(
+            Chain::Ethereum,
+            &TokenPair {
+                token_in: weth,
+                token_out: usdc,
+                fee_tier: FeeTier::Hundred
+            }
+        ));
+    }
 
     #[test]
     fn test_route_intermediaries() {
@@ -230,15 +273,39 @@ mod tests {
 #[cfg(all(test, feature = "swap_integration_tests"))]
 mod swap_integration_tests {
     use crate::testkit::mock_quote;
-    use crate::{FetchQuoteData, Options, QuoteRequest, SwapperError, client_factory::create_eth_client, uniswap};
+    use crate::{FetchQuoteData, Options, QuoteRequest, SwapperError, client_factory::create_eth_client, uniswap, uniswap::swap_route::route_fee_tier};
+    use gem_evm::uniswap::FeeTier;
     use gem_reqwest::NativeProvider;
     use num_bigint::BigUint;
     use num_traits::ToPrimitive;
     use primitives::{
         AssetId, Chain,
-        asset_constants::{ARC_EURC_ASSET_ID, ETHEREUM_USDC_ASSET_ID, ROBINHOOD_USDG_TOKEN_ID, TEMPO_BRIDGED_USDC_ASSET_ID, TEMPO_PATHUSD_ASSET_ID},
+        asset_constants::{ARC_EURC_ASSET_ID, ETHEREUM_USDC_ASSET_ID, ETHEREUM_USDS_ASSET_ID, ETHEREUM_USDT_ASSET_ID, ROBINHOOD_USDG_TOKEN_ID, TEMPO_BRIDGED_USDC_ASSET_ID, TEMPO_PATHUSD_ASSET_ID},
     };
     use std::sync::Arc;
+
+    #[tokio::test]
+    async fn test_ethereum_usdt_to_usds_uses_fee_five() -> Result<(), SwapperError> {
+        let swap_provider = uniswap::default::boxed_uniswap_v4(Arc::new(NativeProvider::default()));
+        let wallet = "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7";
+        let request = QuoteRequest {
+            from_asset: ETHEREUM_USDT_ASSET_ID.clone().into(),
+            to_asset: ETHEREUM_USDS_ASSET_ID.clone().into(),
+            wallet_address: wallet.into(),
+            destination_address: wallet.into(),
+            value: BigUint::from(1_000_000_000u64),
+            options: Options { slippage: 100.into(), use_max_amount: false },
+        };
+
+        let quote = swap_provider.get_quote(&request).await?;
+        let quote_data = swap_provider.get_quote_data(&quote, FetchQuoteData::None).await?;
+
+        assert_eq!(quote.data.routes.len(), 1);
+        assert_eq!(route_fee_tier(&quote.data.routes[0])?, FeeTier::Five);
+        assert!(quote.to_value > BigUint::from(990_000_000_000_000_000_000u128));
+        assert!(!quote_data.data.is_empty());
+        Ok(())
+    }
 
     #[tokio::test]
     async fn test_ethereum_usdc_to_cfg_routes_through_eth() -> Result<(), SwapperError> {
