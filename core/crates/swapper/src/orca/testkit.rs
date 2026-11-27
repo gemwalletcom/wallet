@@ -20,6 +20,10 @@ pub(super) const TEST_PUMP_WHIRLPOOL: &str = "BofA2ViUSudPBTUms2KRuG6AHNeMawjNfw
 pub(super) const TEST_XAUT0_MINT: &str = "AymATz4TCL9sWNEEV9Kvyz45CHVhDZ6kUgjTJPzLpU9P";
 pub(super) const TEST_XAUT0_SOL_WHIRLPOOL: &str = "B2q3X5QA47NTaVrQKNhGo2ii1Zs8x5h6CZK6qydRdJrA";
 pub(super) const TEST_XAUT0_USDC_WHIRLPOOL: &str = "B3QsKvpsBYVAuJBzyKRBWBJw8CAM45zStdJhtE1miBri";
+pub(super) const TEST_MNDE_MINT: &str = "MNDEFzGvMt87ueuHvVU9VcTqsAP5b3fTGPsHuuPA5ey";
+pub(super) const TEST_MNDE_SOL_WHIRLPOOL: &str = "ByXmPDEzK68zV2werup4fhhhUPwXDWD1PWBqkXEdbQyi";
+pub(super) const TEST_MON_MINT: &str = "CrAr4RRJMBVwRsZtT62pEhfA9H5utymC2mVx8e7FreP2";
+pub(super) const TEST_MON_SOL_WHIRLPOOL: &str = "14K3BM1FA6gn4F9X1h5E9uriMZZY2xyz3fQ72bL628un";
 pub(super) const TEST_TOKEN_2022_SNAPSHOT: &str = include_str!("../../testdata/orca/token_2022_snapshot.json");
 pub(super) const TEST_PUMP_SNAPSHOT: &str = include_str!("../../testdata/orca/pump_snapshot.json");
 const TEST_CLOCK: &str = "+ZJIGwAAAAB7mtFqAAAAACMEAAAAAAAAJAQAAAAAAAD0b9JqAAAAAA==";

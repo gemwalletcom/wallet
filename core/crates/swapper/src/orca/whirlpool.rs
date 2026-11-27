@@ -9,7 +9,7 @@ use crate::{
 };
 
 const WHIRLPOOLS_CONFIG: Pubkey = Pubkey::new(decode_hex_literal("13e441f83913ca68b0634fb025fdeaa88737e84110d1255e357b3377ddee1ccd"));
-pub(super) const FEE_TIER_INDEXES: [u16; 9] = [1, 4, 8, 16, 64, 1025, 1026, 1028, 1030];
+pub(super) const FEE_TIER_INDEXES: [u16; 11] = [1, 4, 8, 16, 64, 128, 1025, 1026, 1028, 1030, 1032];
 pub(super) const TICK_ARRAY_SIZE: i32 = 88;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -126,13 +126,15 @@ mod tests {
     use super::*;
     use gem_solana::{USDC_TOKEN_MINT, WSOL_TOKEN_ADDRESS};
 
-    use crate::orca::testkit::{TEST_AQUA_MINT, TEST_WHIRLPOOL, TEST_XAUT0_MINT, TEST_XAUT0_SOL_WHIRLPOOL, TEST_XAUT0_USDC_WHIRLPOOL, mock_aqua_whirlpool};
+    use crate::orca::testkit::{TEST_AQUA_MINT, TEST_MNDE_MINT, TEST_MNDE_SOL_WHIRLPOOL, TEST_MON_MINT, TEST_MON_SOL_WHIRLPOOL, TEST_WHIRLPOOL, TEST_XAUT0_MINT, TEST_XAUT0_SOL_WHIRLPOOL, TEST_XAUT0_USDC_WHIRLPOOL, mock_aqua_whirlpool};
 
     #[test]
     fn test_addresses() {
         let sol = Pubkey::from_base58(WSOL_TOKEN_ADDRESS).unwrap();
         let usdc = Pubkey::from_base58(USDC_TOKEN_MINT).unwrap();
         let xaut0 = Pubkey::from_base58(TEST_XAUT0_MINT).unwrap();
+        let mnde = Pubkey::from_base58(TEST_MNDE_MINT).unwrap();
+        let mon = Pubkey::from_base58(TEST_MON_MINT).unwrap();
         let addresses = Whirlpool::addresses(&usdc, &sol).unwrap();
         let contains = |mint_a: &Pubkey, mint_b: &Pubkey, pool: &str| Whirlpool::addresses(mint_a, mint_b).unwrap().contains(&Pubkey::from_base58(pool).unwrap());
 
@@ -140,6 +142,8 @@ mod tests {
         assert_eq!(addresses[4].to_base58(), TEST_WHIRLPOOL);
         assert!(contains(&sol, &xaut0, TEST_XAUT0_SOL_WHIRLPOOL));
         assert!(contains(&xaut0, &usdc, TEST_XAUT0_USDC_WHIRLPOOL));
+        assert!(contains(&mnde, &sol, TEST_MNDE_SOL_WHIRLPOOL));
+        assert!(contains(&sol, &mon, TEST_MON_SOL_WHIRLPOOL));
     }
 
     #[test]

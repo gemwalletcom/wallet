@@ -386,14 +386,14 @@ impl<P: DexProtocol, C: Client + Clone + Send + Sync + 'static> SolanaDex<P, C> 
 
     async fn fetch_accounts(&self, addresses: Vec<Pubkey>) -> Result<Accounts, SwapperError> {
         let addresses = addresses.into_iter().collect::<BTreeSet<_>>().into_iter().collect::<Vec<_>>();
-        if addresses.is_empty() {
-            return Ok(Accounts::new());
-        }
-        let response: AccountsResult = self.client.request(accounts_request(&addresses)).await?;
-        if response.value.len() != addresses.len() {
-            return Err(SwapperError::compute_quote_error("Unexpected Solana accounts response"));
-        }
-        Ok(addresses.into_iter().zip(response.value).collect())
+        let requests = addresses.chunks(MAX_ACCOUNTS_PER_REQUEST).map(|chunk| async move {
+            let response: AccountsResult = self.client.request(accounts_request(chunk)).await?;
+            if response.value.len() != chunk.len() {
+                return Err(SwapperError::compute_quote_error("Unexpected Solana accounts response"));
+            }
+            Ok(chunk.iter().copied().zip(response.value).collect::<Vec<_>>())
+        });
+        Ok(try_join_all(requests).await?.into_iter().flatten().collect())
     }
 
     async fn fetch_pools(&self, addresses: Vec<Pubkey>) -> Result<Vec<(Pubkey, P::Pool)>, SwapperError> {

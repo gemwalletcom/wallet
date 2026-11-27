@@ -86,7 +86,7 @@ mod swap_integration_tests {
     use super::*;
     use crate::{
         SwapperQuoteAsset,
-        orca::testkit::TEST_PUMP_MINT,
+        orca::testkit::{TEST_MNDE_MINT, TEST_PUMP_MINT},
         solana_dex::testkit::{TEST_FUNDED_WALLET, assert_swaps_simulate, mock_solana_asset},
     };
     use gem_solana::USDC_TOKEN_MINT;
@@ -103,6 +103,7 @@ mod swap_integration_tests {
             ..mock_solana_asset(Some(TEST_PUMP_MINT), 6)
         };
         let jup = mock_solana_asset(Some(TEST_JUP_MINT), 6);
+        let mnde = mock_solana_asset(Some(TEST_MNDE_MINT), 9);
 
         assert_swaps_simulate(
             Orca,
@@ -110,6 +111,7 @@ mod swap_integration_tests {
                 (sol.clone(), usdc.clone(), 1_000_000_000, TEST_FUNDED_WALLET),
                 (usdc.clone(), sol.clone(), 100_000_000, TEST_FUNDED_WALLET),
                 (sol, pump, 100_000_000, TEST_FUNDED_WALLET),
+                (usdc.clone(), mnde, 100_000_000, TEST_FUNDED_WALLET),
                 (usdc, jup, 1_000_000_000, TEST_FUNDED_WALLET),
             ],
         )
@@ -222,7 +224,7 @@ mod tests {
 
         assert_eq!(orca.get_quote(&request).await, Err(SwapperError::NoQuoteAvailable));
         assert_eq!(orca.get_quote(&request).await, Err(SwapperError::NoQuoteAvailable));
-        assert_eq!(*sizes.lock().unwrap(), [50, 47, 93]);
+        assert_eq!(*sizes.lock().unwrap(), [60, 54, 100, 10]);
     }
 
     #[tokio::test]
