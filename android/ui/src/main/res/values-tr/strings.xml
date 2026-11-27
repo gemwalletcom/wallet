@@ -594,7 +594,7 @@
   <string name="rewards_share_text">Referans linkimle Gem Wallet\'a katılın ve ödüller kazanın: %1$s</string>
   <string name="rewards_my_referral_code">Benim referans kodum</string>
   <string name="rewards_invite_friends_title">Arkadaşlarınızı Davet Edin</string>
-  <string name="rewards_invite_friends_description">Katılan her arkadaşınız için %1$s puan kazanın.</string>
+  <string name="rewards_invite_friends_description">Katılan her arkadaşınız için %1$s kazanın.</string>
   <string name="rewards_referral_code">Referans Kodu</string>
   <string name="rewards_invited_by">Davet Eden</string>
   <string name="rewards_points">Puanlar</string>

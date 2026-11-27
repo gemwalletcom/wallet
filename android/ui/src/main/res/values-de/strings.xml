@@ -594,7 +594,7 @@
   <string name="rewards_share_text">Treten Sie Gem Wallet mit meinem Empfehlungslink bei und verdienen Sie Prämien: %1$s</string>
   <string name="rewards_my_referral_code">Mein Empfehlungscode</string>
   <string name="rewards_invite_friends_title">Freunde einladen</string>
-  <string name="rewards_invite_friends_description">Sammeln Sie %1$s Punkte für jeden geworbenen Freund.</string>
+  <string name="rewards_invite_friends_description">Sammeln Sie %1$s für jeden geworbenen Freund.</string>
   <string name="rewards_referral_code">Empfehlungscode</string>
   <string name="rewards_invited_by">Eingeladen von</string>
   <string name="rewards_points">Punkte</string>

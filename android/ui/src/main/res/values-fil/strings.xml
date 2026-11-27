@@ -594,7 +594,7 @@
   <string name="rewards_share_text">Sumali Gem Wallet gamit ang aking referral link at kumita ng mga gantimpala: %1$s</string>
   <string name="rewards_my_referral_code">Ang aking referral code</string>
   <string name="rewards_invite_friends_title">Mag-imbita ng mga Kaibigan</string>
-  <string name="rewards_invite_friends_description">Kumita %1$s puntos para sa bawat kaibigang sasali.</string>
+  <string name="rewards_invite_friends_description">Kumita %1$s para sa bawat kaibigang sasali.</string>
   <string name="rewards_referral_code">Kodigo ng Referral</string>
   <string name="rewards_invited_by">Inimbitahan Ni</string>
   <string name="rewards_points">Mga Puntos</string>

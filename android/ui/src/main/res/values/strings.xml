@@ -594,7 +594,7 @@
   <string name="rewards_share_text">Join Gem Wallet with my referral link and earn rewards: %1$s</string>
   <string name="rewards_my_referral_code">My referral code</string>
   <string name="rewards_invite_friends_title">Invite Friends</string>
-  <string name="rewards_invite_friends_description">Earn %1$s points for each friend who joins.</string>
+  <string name="rewards_invite_friends_description">Earn %1$s for each friend who joins.</string>
   <string name="rewards_referral_code">Referral Code</string>
   <string name="rewards_invited_by">Invited By</string>
   <string name="rewards_points">Points</string>

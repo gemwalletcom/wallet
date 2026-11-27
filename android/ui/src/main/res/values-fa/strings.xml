@@ -594,7 +594,7 @@
   <string name="rewards_share_text">با لینک معرفی من به Gem Wallet بپیوندید و پاداش کسب کنید: %1$s</string>
   <string name="rewards_my_referral_code">کد معرف من</string>
   <string name="rewards_invite_friends_title">دعوت از دوستان</string>
-  <string name="rewards_invite_friends_description">برای هر دوستی که عضو می‌شود %1$s امتیاز کسب کنید.</string>
+  <string name="rewards_invite_friends_description">برای هر دوستی که عضو می‌شود %1$s کسب کنید.</string>
   <string name="rewards_referral_code">کد ارجاع</string>
   <string name="rewards_invited_by">دعوت شده توسط</string>
   <string name="rewards_points">امتیازها</string>

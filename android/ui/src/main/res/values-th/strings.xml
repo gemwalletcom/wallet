@@ -594,7 +594,7 @@
   <string name="rewards_share_text">เข้าร่วม Gem Wallet ใช้ลิงก์แนะนำของฉันเพื่อรับรางวัล: %1$s</string>
   <string name="rewards_my_referral_code">รหัสแนะนำของฉัน</string>
   <string name="rewards_invite_friends_title">เชิญเพื่อนๆ</string>
-  <string name="rewards_invite_friends_description">รับ %1$s คะแนนสำหรับเพื่อนแต่ละคนที่เข้าร่วม</string>
+  <string name="rewards_invite_friends_description">รับ %1$s สำหรับเพื่อนแต่ละคนที่เข้าร่วม</string>
   <string name="rewards_referral_code">รหัสแนะนำ</string>
   <string name="rewards_invited_by">ได้รับเชิญจาก</string>
   <string name="rewards_points">คะแนน</string>

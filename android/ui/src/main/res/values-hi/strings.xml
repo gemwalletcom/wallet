@@ -594,7 +594,7 @@
   <string name="rewards_share_text">मेरे रेफरल लिंक से Gem Wallet से जुड़ें और पुरस्कार कमाएं: %1$s</string>
   <string name="rewards_my_referral_code">मेरा रेफरल कोड</string>
   <string name="rewards_invite_friends_title">मित्रों को आमंत्रित करें</string>
-  <string name="rewards_invite_friends_description">जुड़ने वाले हर दोस्त के लिए %1$s अंक कमाएं।</string>
+  <string name="rewards_invite_friends_description">जुड़ने वाले हर दोस्त के लिए %1$s कमाएं।</string>
   <string name="rewards_referral_code">रेफरल कोड</string>
   <string name="rewards_invited_by">द्वारा आमंत्रित</string>
   <string name="rewards_points">अंक</string>

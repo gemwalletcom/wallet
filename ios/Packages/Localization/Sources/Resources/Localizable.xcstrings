@@ -75834,187 +75834,187 @@
         "ar": {
           "stringUnit": {
             "state": "translated",
-            "value": "اكسب %@ من النقاط عن كل صديق ينضم."
+            "value": "اكسب %@ عن كل صديق ينضم."
           }
         },
         "bn": {
           "stringUnit": {
             "state": "translated",
-            "value": "যোগদানকারী প্রতিটি বন্ধুর জন্য %@ পয়েন্ট অর্জন করুন।"
+            "value": "যোগদানকারী প্রতিটি বন্ধুর জন্য %@ অর্জন করুন।"
           }
         },
         "cs": {
           "stringUnit": {
             "state": "translated",
-            "value": "Získejte %@ bodů za každého přítele, který se připojí."
+            "value": "Získejte %@ za každého přítele, který se připojí."
           }
         },
         "da": {
           "stringUnit": {
             "state": "translated",
-            "value": "Optjen %@ point for hver ven, der tilmelder sig."
+            "value": "Optjen %@ for hver ven, der tilmelder sig."
           }
         },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sammeln Sie %@ Punkte für jeden geworbenen Freund."
+            "value": "Sammeln Sie %@ für jeden geworbenen Freund."
           }
         },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Earn %@ points for each friend who joins."
+            "value": "Earn %@ for each friend who joins."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Gana %@ puntos por cada amigo que se una."
+            "value": "Gana %@ por cada amigo que se una."
           }
         },
         "fa": {
           "stringUnit": {
             "state": "translated",
-            "value": "برای هر دوستی که عضو می‌شود %@ امتیاز کسب کنید."
+            "value": "برای هر دوستی که عضو می‌شود %@ کسب کنید."
           }
         },
         "fil": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kumita %@ puntos para sa bawat kaibigang sasali."
+            "value": "Kumita %@ para sa bawat kaibigang sasali."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Gagnez %@ points pour chaque ami qui s'inscrit."
+            "value": "Gagnez %@ pour chaque ami qui s'inscrit."
           }
         },
         "ha": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sami %@ maki ga kowane aboki da ya shiga."
+            "value": "Sami %@ ga kowane aboki da ya shiga."
           }
         },
         "he": {
           "stringUnit": {
             "state": "translated",
-            "value": "צברו %@ נקודות על כל חבר שמצטרף."
+            "value": "צברו %@ על כל חבר שמצטרף."
           }
         },
         "hi": {
           "stringUnit": {
             "state": "translated",
-            "value": "जुड़ने वाले हर दोस्त के लिए %@ अंक कमाएं।"
+            "value": "जुड़ने वाले हर दोस्त के लिए %@ कमाएं।"
           }
         },
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Menghasilkan %@ poin untuk setiap teman yang bergabung."
+            "value": "Menghasilkan %@ untuk setiap teman yang bergabung."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Guadagnare %@ punti per ogni amico che si iscrive."
+            "value": "Guadagnare %@ per ogni amico che si iscrive."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "友達が1人参加するごとに、%@ ポイントを獲得できます。"
+            "value": "友達が1人参加するごとに、%@ を獲得できます。"
           }
         },
         "ko": {
           "stringUnit": {
             "state": "translated",
-            "value": "친구가 가입할 때마다 %@ 포인트를 받으세요."
+            "value": "친구가 가입할 때마다 %@ 받으세요."
           }
         },
         "ms": {
           "stringUnit": {
             "state": "translated",
-            "value": "Dapatkan %@ mata untuk setiap rakan yang menyertai."
+            "value": "Dapatkan %@ untuk setiap rakan yang menyertai."
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Verdienen %@ punten voor elke vriend die meedoet."
+            "value": "Verdienen %@ voor elke vriend die meedoet."
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Zarabiaj %@ punktów za każdego dołączonego znajomego."
+            "value": "Zarabiaj %@ za każdego dołączonego znajomego."
           }
         },
         "pt-BR": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ganhe %@ pontos por cada amigo que se inscrever."
+            "value": "Ganhe %@ por cada amigo que se inscrever."
           }
         },
         "ro": {
           "stringUnit": {
             "state": "translated",
-            "value": "Câştiga %@ puncte pentru fiecare prieten care se alătură."
+            "value": "Câştiga %@ pentru fiecare prieten care se alătură."
           }
         },
         "ru": {
           "stringUnit": {
             "state": "translated",
-            "value": "Зарабатывайте %@ баллов за каждого друга, который присоединится."
+            "value": "Зарабатывайте %@ за каждого друга, который присоединится."
           }
         },
         "sw": {
           "stringUnit": {
             "state": "translated",
-            "value": "Pata %@ pointi kwa kila rafiki anayejiunga."
+            "value": "Pata %@ kwa kila rafiki anayejiunga."
           }
         },
         "th": {
           "stringUnit": {
             "state": "translated",
-            "value": "รับ %@ คะแนนสำหรับเพื่อนแต่ละคนที่เข้าร่วม"
+            "value": "รับ %@ สำหรับเพื่อนแต่ละคนที่เข้าร่วม"
           }
         },
         "tr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Katılan her arkadaşınız için %@ puan kazanın."
+            "value": "Katılan her arkadaşınız için %@ kazanın."
           }
         },
         "uk": {
           "stringUnit": {
             "state": "translated",
-            "value": "Отримуйте %@ балів за кожного друга, який долучиться."
+            "value": "Отримуйте %@ за кожного друга, який долучиться."
           }
         },
         "ur": {
           "stringUnit": {
             "state": "translated",
-            "value": "شامل ہونے والے ہر دوست پر %@ پوائنٹس حاصل کریں۔"
+            "value": "شامل ہونے والے ہر دوست پر %@ حاصل کریں۔"
           }
         },
         "vi": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kiếm %@ Điểm thưởng cho mỗi người bạn tham gia."
+            "value": "Kiếm %@ cho mỗi người bạn tham gia."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "每邀请一位好友加入，即可赚取 %@ 积分。"
+            "value": "每邀请一位好友加入，即可赚取 %@。"
           }
         },
         "zh-Hant": {
           "stringUnit": {
             "state": "translated",
-            "value": "每邀請一位好友加入，即可獲得 %@ 積分。"
+            "value": "每邀請一位好友加入，即可獲得 %@。"
           }
         }
       }

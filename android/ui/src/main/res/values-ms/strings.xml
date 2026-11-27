@@ -594,7 +594,7 @@
   <string name="rewards_share_text">Sertai Gem Wallet dengan pautan rujukan saya dan dapatkan ganjaran: %1$s</string>
   <string name="rewards_my_referral_code">Kod rujukan saya</string>
   <string name="rewards_invite_friends_title">Jemput Rakan-rakan</string>
-  <string name="rewards_invite_friends_description">Dapatkan %1$s mata untuk setiap rakan yang menyertai.</string>
+  <string name="rewards_invite_friends_description">Dapatkan %1$s untuk setiap rakan yang menyertai.</string>
   <string name="rewards_referral_code">Kod Rujukan</string>
   <string name="rewards_invited_by">Dijemput Oleh</string>
   <string name="rewards_points">Mata</string>

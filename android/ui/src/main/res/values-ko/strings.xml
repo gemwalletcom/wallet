@@ -594,7 +594,7 @@
   <string name="rewards_share_text">제 추천 링크로 Gem Wallet에 가입하고 보상을 받으세요: %1$s</string>
   <string name="rewards_my_referral_code">내 추천 코드</string>
   <string name="rewards_invite_friends_title">친구 초대하기</string>
-  <string name="rewards_invite_friends_description">친구가 가입할 때마다 %1$s 포인트를 받으세요.</string>
+  <string name="rewards_invite_friends_description">친구가 가입할 때마다 %1$s 받으세요.</string>
   <string name="rewards_referral_code">추천 코드</string>
   <string name="rewards_invited_by">초대자</string>
   <string name="rewards_points">포인트</string>

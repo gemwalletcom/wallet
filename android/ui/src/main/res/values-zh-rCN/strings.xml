@@ -594,7 +594,7 @@
   <string name="rewards_share_text">通过我的邀请链接加入 Gem Wallet，即可获得积分：%1$s</string>
   <string name="rewards_my_referral_code">我的邀请码</string>
   <string name="rewards_invite_friends_title">邀请好友</string>
-  <string name="rewards_invite_friends_description">每邀请一位好友加入，即可赚取 %1$s 积分。</string>
+  <string name="rewards_invite_friends_description">每邀请一位好友加入，即可赚取 %1$s。</string>
   <string name="rewards_referral_code">邀请码</string>
   <string name="rewards_invited_by">邀请者</string>
   <string name="rewards_points">积分</string>

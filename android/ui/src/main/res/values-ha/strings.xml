@@ -594,7 +594,7 @@
   <string name="rewards_share_text">Shiga Gem Wallet tare da hanyar haɗin yanar gizo na kuma sami lada: %1$s</string>
   <string name="rewards_my_referral_code">Lambar gayyatata</string>
   <string name="rewards_invite_friends_title">Gayyaci Abokai</string>
-  <string name="rewards_invite_friends_description">Sami %1$s maki ga kowane aboki da ya shiga.</string>
+  <string name="rewards_invite_friends_description">Sami %1$s ga kowane aboki da ya shiga.</string>
   <string name="rewards_referral_code">Lambar Gayyata</string>
   <string name="rewards_invited_by">Gayyatar Ta</string>
   <string name="rewards_points">Maki</string>

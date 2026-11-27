@@ -1325,8 +1325,8 @@ rewards_share_text = Join Gem Wallet with my referral link and earn rewards: %@
 rewards_my_referral_code = My referral code
 # Used in rewards UI for the invite friends title.
 rewards_invite_friends_title = Invite Friends
-# Used in rewards UI for the invite friends description. Contains 1 string placeholder.
-rewards_invite_friends_description = Earn %@ points for each friend who joins.
+# Rewards invite row. %@ is the points earned for each friend, shown with the gem, for example 100 💎.
+rewards_invite_friends_description = Earn %@ for each friend who joins.
 # Used in rewards UI for the referral code label.
 rewards_referral_code = Referral Code
 # Used in rewards UI for the invited by label.

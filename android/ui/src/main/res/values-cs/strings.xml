@@ -594,7 +594,7 @@
   <string name="rewards_share_text">Připojte se ke Gem Wallet pomocí mého doporučovacího odkazu a získejte odměny: %1$s</string>
   <string name="rewards_my_referral_code">Můj doporučovací kód</string>
   <string name="rewards_invite_friends_title">Pozvat přátele</string>
-  <string name="rewards_invite_friends_description">Získejte %1$s bodů za každého přítele, který se připojí.</string>
+  <string name="rewards_invite_friends_description">Získejte %1$s za každého přítele, který se připojí.</string>
   <string name="rewards_referral_code">Doporučovací kód</string>
   <string name="rewards_invited_by">Pozván od</string>
   <string name="rewards_points">Body</string>

@@ -1203,9 +1203,9 @@ public enum Localized {
       public static let title = Localized.tr("Localizable", "rewards.get_rewards.title", fallback: "Get Rewards")
     }
     public enum InviteFriends {
-      /// Earn %@ points for each friend who joins.
+      /// Earn %@ for each friend who joins.
       public static func description(_ p1: Any) -> String {
-        return Localized.tr("Localizable", "rewards.invite_friends.description", String(describing: p1), fallback: "Earn %@ points for each friend who joins.")
+        return Localized.tr("Localizable", "rewards.invite_friends.description", String(describing: p1), fallback: "Earn %@ for each friend who joins.")
       }
       /// Invite Friends
       public static let title = Localized.tr("Localizable", "rewards.invite_friends.title", fallback: "Invite Friends")

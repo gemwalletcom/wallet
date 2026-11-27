@@ -594,7 +594,7 @@
   <string name="rewards_share_text">Tham gia Gem Wallet bằng liên kết giới thiệu của tôi và nhận phần thưởng: %1$s</string>
   <string name="rewards_my_referral_code">Mã giới thiệu của tôi</string>
   <string name="rewards_invite_friends_title">Mời bạn bè</string>
-  <string name="rewards_invite_friends_description">Kiếm %1$s Điểm thưởng cho mỗi người bạn tham gia.</string>
+  <string name="rewards_invite_friends_description">Kiếm %1$s cho mỗi người bạn tham gia.</string>
   <string name="rewards_referral_code">Mã giới thiệu</string>
   <string name="rewards_invited_by">Được mời bởi</string>
   <string name="rewards_points">Điểm</string>

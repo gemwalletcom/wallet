@@ -594,7 +594,7 @@
   <string name="rewards_share_text">私の紹介リンクから Gem Wallet に参加して、ポイントを獲得しましょう：%1$s</string>
   <string name="rewards_my_referral_code">私の紹介コード</string>
   <string name="rewards_invite_friends_title">友達を招待</string>
-  <string name="rewards_invite_friends_description">友達が1人参加するごとに、%1$s ポイントを獲得できます。</string>
+  <string name="rewards_invite_friends_description">友達が1人参加するごとに、%1$s を獲得できます。</string>
   <string name="rewards_referral_code">紹介コード</string>
   <string name="rewards_invited_by">招待者</string>
   <string name="rewards_points">ポイント</string>

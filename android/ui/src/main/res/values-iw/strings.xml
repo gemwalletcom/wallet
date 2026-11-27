@@ -594,7 +594,7 @@
   <string name="rewards_share_text">הצטרפו ל-Gem Wallet דרך קישור ההפניה שלי וצברו תגמולים: %1$s</string>
   <string name="rewards_my_referral_code">קוד ההפניה שלי</string>
   <string name="rewards_invite_friends_title">הזמן חברים</string>
-  <string name="rewards_invite_friends_description">צברו %1$s נקודות על כל חבר שמצטרף.</string>
+  <string name="rewards_invite_friends_description">צברו %1$s על כל חבר שמצטרף.</string>
   <string name="rewards_referral_code">קוד הפניה</string>
   <string name="rewards_invited_by">מוזמן על ידי</string>
   <string name="rewards_points">נקודות</string>

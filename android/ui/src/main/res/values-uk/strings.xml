@@ -594,7 +594,7 @@
   <string name="rewards_share_text">Приєднуйтеся до Gem Wallet за моїм реферальним посиланням та отримуйте винагороди: %1$s</string>
   <string name="rewards_my_referral_code">Мій реферальний код</string>
   <string name="rewards_invite_friends_title">Запросити друзів</string>
-  <string name="rewards_invite_friends_description">Отримуйте %1$s балів за кожного друга, який долучиться.</string>
+  <string name="rewards_invite_friends_description">Отримуйте %1$s за кожного друга, який долучиться.</string>
   <string name="rewards_referral_code">Реферальний код</string>
   <string name="rewards_invited_by">Запрошено</string>
   <string name="rewards_points">Бали</string>

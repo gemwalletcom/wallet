@@ -594,7 +594,7 @@
   <string name="rewards_share_text">Alătură-te Gem Wallet cu linkul meu de recomandare și câștigă recompense: %1$s</string>
   <string name="rewards_my_referral_code">Codul meu de recomandare</string>
   <string name="rewards_invite_friends_title">Invită prieteni</string>
-  <string name="rewards_invite_friends_description">Câştiga %1$s puncte pentru fiecare prieten care se alătură.</string>
+  <string name="rewards_invite_friends_description">Câştiga %1$s pentru fiecare prieten care se alătură.</string>
   <string name="rewards_referral_code">Cod de recomandare</string>
   <string name="rewards_invited_by">Invitat de</string>
   <string name="rewards_points">Puncte</string>

@@ -594,7 +594,7 @@
   <string name="rewards_share_text">Dołącz do Gem Wallet z moim linkiem polecającym i zyskaj nagrody: %1$s</string>
   <string name="rewards_my_referral_code">Mój kod polecający</string>
   <string name="rewards_invite_friends_title">Zaproś znajomych</string>
-  <string name="rewards_invite_friends_description">Zarabiaj %1$s punktów za każdego dołączonego znajomego.</string>
+  <string name="rewards_invite_friends_description">Zarabiaj %1$s za każdego dołączonego znajomego.</string>
   <string name="rewards_referral_code">Kod polecający</string>
   <string name="rewards_invited_by">Zaproszony przez</string>
   <string name="rewards_points">Punkty</string>

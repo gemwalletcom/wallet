@@ -11,7 +11,7 @@ Use this skill for shared localization flow and generated output locations.
 - Fluent comments are supported (`#`, `##`, `###`) and ignored by generation; put source context comments in English `en.ftl`
 - Add new keys in the matching prefix section (`common_*` under `# Common`, `wallet_*` under `# Wallet`, etc.)
 - Add each new app key to every language file, translated for the context where the string is used
-- Write a string so it reads correctly with any number in any language: put a count after a label (`Points: %@`), never inside a sentence that needs a singular or plural form (`%@ points`)
+- Write a string so it reads correctly with any number in any language: put a count after a label (`Points: %@`) or pass it as an amount with its unit (`Earn %@ for each friend who joins.` with `100 💎`), never inside a sentence that needs a singular or plural form (`%@ points`)
 - iOS InfoPlist localization source lives in `localization/InfoPlist/*.ftl`
 - iOS localization output lives under `ios/Packages/Localization/`: one `.xcstrings` String Catalog per table (app, InfoPlist) plus the typed accessor `Localized.swift`, all written by the generator
 - Android localization output lives under `android/ui/src/main/res/`

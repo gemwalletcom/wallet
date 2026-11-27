@@ -594,7 +594,7 @@
   <string name="rewards_share_text">انضم إلى Gem Wallet عبر رابط الإحالة الخاص بي واربح مكافآت: %1$s</string>
   <string name="rewards_my_referral_code">رمز الإحالة الخاص بي</string>
   <string name="rewards_invite_friends_title">ادعُ الأصدقاء</string>
-  <string name="rewards_invite_friends_description">اكسب %1$s من النقاط عن كل صديق ينضم.</string>
+  <string name="rewards_invite_friends_description">اكسب %1$s عن كل صديق ينضم.</string>
   <string name="rewards_referral_code">رمز الإحالة</string>
   <string name="rewards_invited_by">بدعوة من</string>
   <string name="rewards_points">نقاط</string>

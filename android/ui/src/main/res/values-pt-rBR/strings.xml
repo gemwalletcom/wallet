@@ -594,7 +594,7 @@
   <string name="rewards_share_text">Entre na Gem Wallet com meu link de indicação e ganhe recompensas: %1$s</string>
   <string name="rewards_my_referral_code">Meu código de indicação</string>
   <string name="rewards_invite_friends_title">Convide amigos</string>
-  <string name="rewards_invite_friends_description">Ganhe %1$s pontos por cada amigo que se inscrever.</string>
+  <string name="rewards_invite_friends_description">Ganhe %1$s por cada amigo que se inscrever.</string>
   <string name="rewards_referral_code">Código de indicação</string>
   <string name="rewards_invited_by">Convidado por</string>
   <string name="rewards_points">Pontos</string>

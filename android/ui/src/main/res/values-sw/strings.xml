@@ -594,7 +594,7 @@
   <string name="rewards_share_text">Jiunge Gem Wallet kwa kutumia kiungo changu cha rufaa na upate zawadi: %1$s</string>
   <string name="rewards_my_referral_code">Nambari yangu ya rufaa</string>
   <string name="rewards_invite_friends_title">Alika Marafiki</string>
-  <string name="rewards_invite_friends_description">Pata %1$s pointi kwa kila rafiki anayejiunga.</string>
+  <string name="rewards_invite_friends_description">Pata %1$s kwa kila rafiki anayejiunga.</string>
   <string name="rewards_referral_code">Nambari ya Rufaa</string>
   <string name="rewards_invited_by">Alialikwa Na</string>
   <string name="rewards_points">Pointi</string>

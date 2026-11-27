@@ -594,7 +594,7 @@
   <string name="rewards_share_text">Deltag Gem Wallet med mit henvisningslink og optjen belønninger: %1$s</string>
   <string name="rewards_my_referral_code">Min henvisningskode</string>
   <string name="rewards_invite_friends_title">Inviter venner</string>
-  <string name="rewards_invite_friends_description">Optjen %1$s point for hver ven, der tilmelder sig.</string>
+  <string name="rewards_invite_friends_description">Optjen %1$s for hver ven, der tilmelder sig.</string>
   <string name="rewards_referral_code">Henvisningskode</string>
   <string name="rewards_invited_by">Inviteret af</string>
   <string name="rewards_points">Point</string>
