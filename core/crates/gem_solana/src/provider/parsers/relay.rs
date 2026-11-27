@@ -72,13 +72,12 @@ fn decode_deposit(context: &ParseContext<'_>, instruction: &Instruction) -> Opti
     let data = decode_base58(&instruction.data).ok()?;
     let discriminator = data.get(..DEPOSIT_NATIVE_DISCRIMINATOR.len())?;
     let arguments = DepositArguments::try_from_slice(data.get(DEPOSIT_NATIVE_DISCRIMINATOR.len()..)?).ok()?;
-    let account = |position: usize| context.transaction.instruction_account(instruction, position).cloned();
-    let sender = account(SENDER_ACCOUNT_INDEX)?;
+    let sender = context.transaction.instruction_signer(instruction, SENDER_ACCOUNT_INDEX)?.clone();
     let asset_id = if discriminator == DEPOSIT_NATIVE_DISCRIMINATOR {
         Chain::Solana.as_asset_id()
     } else if discriminator == DEPOSIT_TOKEN_DISCRIMINATOR {
-        let mint = account(TOKEN_MINT_ACCOUNT_INDEX)?;
-        AssetId::from_token(Chain::Solana, &mint)
+        let mint = context.transaction.instruction_account(instruction, TOKEN_MINT_ACCOUNT_INDEX)?;
+        AssetId::from_token(Chain::Solana, mint)
     } else {
         return None;
     };
@@ -98,7 +97,7 @@ fn decode_forward(context: &ParseContext<'_>, instruction: &Instruction) -> Opti
     if *discriminator != FORWARD_TOKEN_DISCRIMINATOR || id.len() != 32 {
         return None;
     }
-    let sender = context.transaction.instruction_account(instruction, FORWARDER_SENDER_ACCOUNT_INDEX)?.clone();
+    let sender = context.transaction.instruction_signer(instruction, FORWARDER_SENDER_ACCOUNT_INDEX)?.clone();
     let spent = spent_balance_change(context.transaction, &sender)?;
 
     Some(DecodedDeposit {
@@ -131,14 +130,18 @@ mod tests {
     use super::*;
     use crate::provider::parsers::ProtocolParsers;
 
-    fn parse_transaction(payload: &str) -> Transaction {
+    fn map_transaction(payload: &str) -> Option<Transaction> {
         let result: JsonRpcResult<SingleTransaction> = serde_json::from_str(payload).unwrap();
         let created_at = result.result.block_time;
         let transaction = BlockTransaction {
             meta: result.result.meta,
             transaction: result.result.transaction,
         };
-        ProtocolParsers::map_transaction(&transaction, created_at, None).unwrap()
+        ProtocolParsers::map_transaction(&transaction, created_at, None)
+    }
+
+    fn parse_transaction(payload: &str) -> Transaction {
+        map_transaction(payload).unwrap()
     }
 
     #[test]
@@ -183,5 +186,10 @@ mod tests {
         assert_eq!(transaction.value, BigUint::from(13_002_173_634u64));
         assert!(transaction.metadata.is_none());
         assert_eq!(transaction.data.as_deref(), Some("0x9d537021bf32ab25f9acf2b30950256def67cea790e16eaaa70a9f91bf4b4d64f33e9a217f8a42f6"));
+    }
+
+    #[test]
+    fn test_parse_native_deposit_from_unsigned_sender() {
+        assert!(map_transaction(include_str!("../../../testdata/relay_deposit_native_unsigned_sender.json")).is_none());
     }
 }
