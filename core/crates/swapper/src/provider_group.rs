@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use futures::future::{join_all, try_join_all};
 use primitives::{AssetId, Chain};
 
-use crate::{Contracts, FetchQuoteData, ProviderType, Quote, QuoteRequest, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData, cross_chain::VaultAddresses};
+use crate::{Contracts, QuoteDataInput, ProviderType, Quote, QuoteRequest, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData, cross_chain::VaultAddresses};
 
 #[derive(Debug)]
 pub(crate) struct ProviderGroup {
@@ -63,7 +63,7 @@ impl Swapper for ProviderGroup {
         }
     }
 
-    async fn get_quote_data(&self, quote: &Quote, data: FetchQuoteData) -> Result<SwapperQuoteData, SwapperError> {
+    async fn get_quote_data(&self, quote: &Quote, data: QuoteDataInput) -> Result<SwapperQuoteData, SwapperError> {
         let (_, member) = self.members.iter().find(|(protocol_id, _)| *protocol_id == quote.data.provider.protocol_id).ok_or(SwapperError::InvalidRoute)?;
         member.get_quote_data(&quote.with_provider(member.provider().clone()), data).await
     }
@@ -112,11 +112,11 @@ mod tests {
             (SwapperProvider::RaydiumClmm, "Raydium", "high")
         );
 
-        group.get_quote_data(&quote, FetchQuoteData::None).await.unwrap();
+        group.get_quote_data(&quote, QuoteDataInput::None).await.unwrap();
         assert_eq!((low_builds.lock().unwrap().len(), high_builds.lock().unwrap().len()), (0, 1));
 
         let unknown = quote.with_provider(group.quote_provider("unknown"));
-        assert_eq!(group.get_quote_data(&unknown, FetchQuoteData::None).await.err(), Some(SwapperError::InvalidRoute));
+        assert_eq!(group.get_quote_data(&unknown, QuoteDataInput::None).await.err(), Some(SwapperError::InvalidRoute));
     }
 
     #[tokio::test]

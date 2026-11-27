@@ -5,7 +5,7 @@ use super::{
     supported_assets,
 };
 use crate::{
-    FetchQuoteData, ProviderType, Quote, QuoteRequest, RpcClient, RpcProvider, SwapAmountMode, SwapResult, SwapResultRequest, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteAsset, SwapperQuoteData, amount_to_value,
+    QuoteDataInput, ProviderType, Quote, QuoteRequest, RpcClient, RpcProvider, SwapAmountMode, SwapResult, SwapResultRequest, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteAsset, SwapperQuoteData, amount_to_value,
     cross_chain::VaultAddresses,
     fees::default_referral_fees,
     fees::{DEFAULT_REFERRER, bps_of},
@@ -261,7 +261,7 @@ where
         })
     }
 
-    async fn get_quote_data(&self, quote: &Quote, _data: FetchQuoteData) -> Result<SwapperQuoteData, SwapperError> {
+    async fn get_quote_data(&self, quote: &Quote, _data: QuoteDataInput) -> Result<SwapperQuoteData, SwapperError> {
         let route = quote.data.routes.first().ok_or(SwapperError::InvalidRoute)?;
         let mut quote_request: NearQuoteRequest = serde_json::from_str(&route.route_data)?;
         let request_deposit_mode = quote_request.deposit_mode.clone();
@@ -344,7 +344,7 @@ mod tests {
     async fn test_hypercore_quote_data() {
         let provider = NearIntents::new(Arc::new(ProviderMock::new(include_str!("testdata/quote_hypercore_to_ethereum_usdc.json").to_string())));
         let quote = provider.get_quote(&mock_hypercore_quote_request()).await.unwrap();
-        let data = provider.get_quote_data(&quote, FetchQuoteData::None).await.unwrap();
+        let data = provider.get_quote_data(&quote, QuoteDataInput::None).await.unwrap();
 
         assert_eq!(quote.from_value, BigUint::from(10002430500_u64));
         assert_eq!(data, SwapperQuoteData::new_transfer("0x1085c5f70F7F7591D97da281A64688385455c2bD".into(), BigUint::from(10002430500_u64), None));
@@ -535,7 +535,7 @@ mod swap_integration_tests {
     use super::*;
     use crate::near_intents::assets::NEAR_INTENTS_BTC_NATIVE;
     use crate::near_intents::testkit::mock_hypercore_quote_request;
-    use crate::{FetchQuoteData, SwapperQuoteAsset, models::Options};
+    use crate::{QuoteDataInput, SwapperQuoteAsset, models::Options};
     use gem_reqwest::NativeProvider;
     use primitives::{
         AssetId, Chain,
@@ -573,7 +573,7 @@ mod swap_integration_tests {
         let quote = provider.get_quote(&request).await?;
         assert!(quote.to_value > BigUint::ZERO);
 
-        let quote_data = provider.get_quote_data(&quote, FetchQuoteData::None).await?;
+        let quote_data = provider.get_quote_data(&quote, QuoteDataInput::None).await?;
         assert!(!quote_data.to.is_empty());
 
         Ok(())
@@ -663,7 +663,7 @@ mod swap_integration_tests {
             Err(SwapperError::ComputeQuoteError(_)) => return Ok(()),
             Err(error) => return Err(error),
         };
-        let quote_data = match provider.get_quote_data(&quote, FetchQuoteData::None).await {
+        let quote_data = match provider.get_quote_data(&quote, QuoteDataInput::None).await {
             Ok(data) => data,
             Err(SwapperError::TransactionError(_)) => return Ok(()),
             Err(error) => return Err(error),

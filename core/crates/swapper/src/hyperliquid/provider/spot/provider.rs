@@ -17,7 +17,7 @@ use primitives::{
 };
 
 use crate::{
-    FetchQuoteData, ProviderType, Quote, QuoteRequest, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteAsset, SwapperQuoteData,
+    QuoteDataInput, ProviderType, Quote, QuoteRequest, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteAsset, SwapperQuoteData,
     alien::{RpcClient, RpcProvider},
     client_factory::create_rpc_client,
     error::INVALID_AMOUNT,
@@ -220,7 +220,7 @@ impl Swapper for HyperCoreSpot {
         })
     }
 
-    async fn get_quote_data(&self, quote: &Quote, _data: FetchQuoteData) -> Result<SwapperQuoteData, SwapperError> {
+    async fn get_quote_data(&self, quote: &Quote, _data: QuoteDataInput) -> Result<SwapperQuoteData, SwapperError> {
         let order: PlaceOrder = quote.route_data()?;
         let order_json = serde_json::to_string(&order).map_err(SwapperError::transaction_error)?;
 
@@ -337,7 +337,7 @@ mod unit_tests {
             route_data: serde_json::to_string(&make_market_order(10_001, false, "1", "1", false, None)).unwrap(),
         }];
 
-        let data = spot.get_quote_data(&quote, FetchQuoteData::None).await.unwrap();
+        let data = spot.get_quote_data(&quote, QuoteDataInput::None).await.unwrap();
 
         assert_eq!(data.value, quote.from_value);
     }
@@ -365,7 +365,7 @@ mod swap_integration_tests {
         assert_eq!(order.r#type, "order");
         assert!(order.orders[0].asset >= SPOT_ASSET_OFFSET);
 
-        let quote_data = spot.get_quote_data(&quote, FetchQuoteData::None).await.unwrap();
+        let quote_data = spot.get_quote_data(&quote, QuoteDataInput::None).await.unwrap();
         assert_eq!(quote.data.provider.id, SwapperProvider::Hyperliquid);
         assert!(quote.to_value > BigUint::ZERO);
         assert_eq!(quote_data.data_type, SwapQuoteDataType::Contract);

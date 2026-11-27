@@ -1,4 +1,4 @@
-use crate::{FetchQuoteData, ProviderType, Quote, QuoteRequest, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData};
+use crate::{QuoteDataInput, ProviderType, Quote, QuoteRequest, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData};
 use async_trait::async_trait;
 
 /// Providers that no longer quote. They stay registered so lookups by provider still find them.
@@ -33,7 +33,7 @@ impl Swapper for RetiredSwapper {
         Err(SwapperError::NotSupportedChain)
     }
 
-    async fn get_quote_data(&self, _quote: &Quote, _data: FetchQuoteData) -> Result<SwapperQuoteData, SwapperError> {
+    async fn get_quote_data(&self, _quote: &Quote, _data: QuoteDataInput) -> Result<SwapperQuoteData, SwapperError> {
         Err(SwapperError::NotSupportedChain)
     }
 }

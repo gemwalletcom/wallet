@@ -13,7 +13,7 @@ use super::{
 use crate::amount_to_value;
 use crate::client_factory::create_eth_client;
 use crate::{
-    Contracts, FetchQuoteData, ProviderType, Quote, QuoteRequest, RpcClient, RpcProvider, SwapAmountMode, SwapResult, SwapResultRequest, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData,
+    Contracts, QuoteDataInput, ProviderType, Quote, QuoteRequest, RpcClient, RpcProvider, SwapAmountMode, SwapResult, SwapResultRequest, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData,
     config::get_swap_proxy_url,
     cross_chain::VaultAddresses,
     fees::{default_referral_address, default_referral_fees},
@@ -167,7 +167,7 @@ where
         })
     }
 
-    async fn get_quote_data(&self, quote: &Quote, _data: FetchQuoteData) -> Result<SwapperQuoteData, SwapperError> {
+    async fn get_quote_data(&self, quote: &Quote, _data: QuoteDataInput) -> Result<SwapperQuoteData, SwapperError> {
         let route: MayanQuote = quote.route_data()?;
         match (quote.request.from_asset.chain().chain_type(), &route) {
             (ChainType::Ethereum, MayanQuote::Swift(route)) => swift::evm::build_quote_data(&self.price_client, quote, route, self.rpc_provider.clone()).await,
@@ -399,7 +399,7 @@ mod tests {
 mod swap_integration_tests {
     use super::*;
     use crate::testkit::mock_quote;
-    use crate::{FetchQuoteData, SwapperQuoteAsset, mayan::constants::MAYAN_FORWARDER, models::Options};
+    use crate::{QuoteDataInput, SwapperQuoteAsset, mayan::constants::MAYAN_FORWARDER, models::Options};
     use gem_reqwest::NativeProvider;
     use num_bigint::BigUint;
     use primitives::{
@@ -430,7 +430,7 @@ mod swap_integration_tests {
         };
 
         let quote = timed("mayan swift evm quote", provider.get_quote(&request)).await?;
-        let quote_data = timed("mayan swift evm quote data", provider.get_quote_data(&quote, FetchQuoteData::None)).await?;
+        let quote_data = timed("mayan swift evm quote data", provider.get_quote_data(&quote, QuoteDataInput::None)).await?;
         (&provider as &dyn Swapper).verify_contracts(&quote, &quote_data)?;
 
         assert_eq!(quote.from_value, request.value);
@@ -461,7 +461,7 @@ mod swap_integration_tests {
         };
 
         let quote = timed("mayan swift solana quote", provider.get_quote(&request)).await?;
-        let quote_data = timed("mayan swift solana quote data", provider.get_quote_data(&quote, FetchQuoteData::None)).await?;
+        let quote_data = timed("mayan swift solana quote data", provider.get_quote_data(&quote, QuoteDataInput::None)).await?;
         (&provider as &dyn Swapper).verify_contracts(&quote, &quote_data)?;
 
         assert_eq!(quote.from_value, request.value);
@@ -493,7 +493,7 @@ mod swap_integration_tests {
         };
 
         let quote = timed("mayan swift solana swap-first quote", provider.get_quote(&request)).await?;
-        let quote_data = timed("mayan swift solana swap-first quote data", provider.get_quote_data(&quote, FetchQuoteData::None)).await?;
+        let quote_data = timed("mayan swift solana swap-first quote data", provider.get_quote_data(&quote, QuoteDataInput::None)).await?;
         (&provider as &dyn Swapper).verify_contracts(&quote, &quote_data)?;
 
         let MayanQuote::Swift(route) = quote.route_data()? else {
@@ -518,7 +518,7 @@ mod swap_integration_tests {
         };
 
         let quote = timed("mayan fast mctp sui quote", provider.get_quote(&request)).await?;
-        let quote_data = timed("mayan fast mctp sui quote data", provider.get_quote_data(&quote, FetchQuoteData::None)).await?;
+        let quote_data = timed("mayan fast mctp sui quote data", provider.get_quote_data(&quote, QuoteDataInput::None)).await?;
         (&provider as &dyn Swapper).verify_contracts(&quote, &quote_data)?;
 
         assert_eq!(quote.from_value, request.value);
@@ -550,7 +550,7 @@ mod swap_integration_tests {
         };
 
         let quote = timed("mayan fast mctp solana to sui quote", provider.get_quote(&request)).await?;
-        let quote_data = timed("mayan fast mctp solana to sui quote data", provider.get_quote_data(&quote, FetchQuoteData::None)).await?;
+        let quote_data = timed("mayan fast mctp solana to sui quote data", provider.get_quote_data(&quote, QuoteDataInput::None)).await?;
         (&provider as &dyn Swapper).verify_contracts(&quote, &quote_data)?;
 
         assert_eq!(quote.from_value, request.value);
@@ -580,7 +580,7 @@ mod swap_integration_tests {
         };
 
         let quote = timed("mayan fast mctp evm to sui quote", provider.get_quote(&request)).await?;
-        let quote_data = timed("mayan fast mctp evm to sui quote data", provider.get_quote_data(&quote, FetchQuoteData::None)).await?;
+        let quote_data = timed("mayan fast mctp evm to sui quote data", provider.get_quote_data(&quote, QuoteDataInput::None)).await?;
         (&provider as &dyn Swapper).verify_contracts(&quote, &quote_data)?;
 
         assert_eq!(quote.from_value, request.value);
@@ -609,7 +609,7 @@ mod swap_integration_tests {
         };
 
         let quote = timed("mayan fast mctp sui usdc order quote", provider.get_quote(&request)).await?;
-        let quote_data = timed("mayan fast mctp sui usdc order quote data", provider.get_quote_data(&quote, FetchQuoteData::None)).await?;
+        let quote_data = timed("mayan fast mctp sui usdc order quote data", provider.get_quote_data(&quote, QuoteDataInput::None)).await?;
         (&provider as &dyn Swapper).verify_contracts(&quote, &quote_data)?;
 
         let MayanQuote::FastMctp(route) = quote.route_data()? else {
@@ -633,7 +633,7 @@ mod swap_integration_tests {
         };
 
         let quote = timed("mayan mono-chain hyperevm to hypercore quote", provider.get_quote(&request)).await?;
-        let quote_data = timed("mayan mono-chain hyperevm to hypercore quote data", provider.get_quote_data(&quote, FetchQuoteData::None)).await?;
+        let quote_data = timed("mayan mono-chain hyperevm to hypercore quote data", provider.get_quote_data(&quote, QuoteDataInput::None)).await?;
         (&provider as &dyn Swapper).verify_contracts(&quote, &quote_data)?;
 
         assert_eq!(quote.from_value, request.value);

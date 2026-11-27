@@ -6,7 +6,7 @@ use super::{
     tx_builder::{self, NextSwapParams, ReferralParams, SwapTransactionParams, build_swap_transaction},
 };
 use crate::{
-    FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, RpcClient, RpcProvider, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteAsset, SwapperQuoteData,
+    QuoteDataInput, ProviderData, ProviderType, Quote, QuoteRequest, Route, RpcClient, RpcProvider, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteAsset, SwapperQuoteData,
     client_factory::create_ton_client,
     fees::subtract_bps,
     models::nonzero_swap_value,
@@ -397,7 +397,7 @@ where
         })
     }
 
-    async fn get_quote_data(&self, quote: &Quote, _data: FetchQuoteData) -> Result<SwapperQuoteData, SwapperError> {
+    async fn get_quote_data(&self, quote: &Quote, _data: QuoteDataInput) -> Result<SwapperQuoteData, SwapperError> {
         let simulations = quote
             .data
             .routes
@@ -791,7 +791,7 @@ mod swap_integration_tests {
         assert_eq!(quote.data.routes.len(), 1);
         println!("STON.fi TON -> USDT quote: {quote:?}");
 
-        let quote_data = provider.get_quote_data(&quote, FetchQuoteData::None).await?;
+        let quote_data = provider.get_quote_data(&quote, QuoteDataInput::None).await?;
 
         (&provider as &dyn Swapper).verify_contracts(&quote, &quote_data)?;
         assert!(!quote_data.to.is_empty());
@@ -822,7 +822,7 @@ mod swap_integration_tests {
             assert_eq!(quote.data.routes.len(), 1);
             assert_eq!(quote.data.routes[0].input, request.from_asset.asset_id());
             assert_eq!(quote.data.routes[0].output, request.to_asset.asset_id());
-            let quote_data = provider.get_quote_data(&quote, FetchQuoteData::None).await?;
+            let quote_data = provider.get_quote_data(&quote, QuoteDataInput::None).await?;
             (&provider as &dyn Swapper).verify_contracts(&quote, &quote_data)?;
             assert!(!quote_data.to.is_empty());
             assert!(quote_data.value > BigUint::ZERO);
@@ -854,7 +854,7 @@ mod swap_integration_tests {
         assert_eq!(quote.data.routes[1].output, TON_USDT_ASSET_ID.clone());
         println!("STON.fi NOT -> USDT quote: {quote:?}");
 
-        let quote_data = provider.get_quote_data(&quote, FetchQuoteData::None).await?;
+        let quote_data = provider.get_quote_data(&quote, QuoteDataInput::None).await?;
 
         (&provider as &dyn Swapper).verify_contracts(&quote, &quote_data)?;
         assert!(!quote_data.to.is_empty());

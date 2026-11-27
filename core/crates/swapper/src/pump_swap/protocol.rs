@@ -105,7 +105,7 @@ mod swap_integration_tests {
 mod tests {
     use super::*;
     use crate::{
-        FetchQuoteData, QuoteRequest, Swapper, SwapperQuoteAsset,
+        QuoteDataInput, QuoteRequest, Swapper, SwapperQuoteAsset,
         fees::subtract_bps,
         pump_swap::testkit::{TEST_CASHBACK_POOL, TEST_MAYHEM_POOL, TEST_SOL_POOL, TEST_TOKEN_2022_MINT, TEST_USDC_POOL, mock_pool_snapshot},
         solana_dex::{
@@ -186,7 +186,7 @@ mod tests {
         assert_eq!(route["intermediate_value"], intermediate);
         assert_eq!(route["output_value"], quote(&coin_pool, &wrapped_sol_mint(), intermediate));
 
-        let transaction = decode_transaction(&pump_swap.get_quote_data(&result, FetchQuoteData::None).await.unwrap().data).unwrap();
+        let transaction = decode_transaction(&pump_swap.get_quote_data(&result, QuoteDataInput::None).await.unwrap().data).unwrap();
         let programs = transaction.instructions().iter().map(|instruction| transaction.account_keys()[usize::from(instruction.program_id_index)]).collect::<Vec<_>>();
         assert_eq!(programs.iter().filter(|program| **program == pump_amm_program()).count(), 2);
     }
@@ -236,7 +236,7 @@ mod tests {
         assert_eq!(pump_swap.get_quote(&QuoteRequest { to_asset: usdc, ..sol_to_tos }).await, Err(SwapperError::NoQuoteAvailable));
         assert_eq!(requests.load(Ordering::SeqCst), 6);
 
-        let quote_data = pump_swap.get_quote_data(&quote, FetchQuoteData::None).await.unwrap();
+        let quote_data = pump_swap.get_quote_data(&quote, QuoteDataInput::None).await.unwrap();
         crate::contract_check::verify_solana_programs(&quote_data.data, &pump_swap.contracts(&quote.request.from_asset.asset_id()).targets).unwrap();
         assert_eq!(requests.load(Ordering::SeqCst), 7);
         assert_eq!(quote_data.to, pump_amm_program().to_base58());

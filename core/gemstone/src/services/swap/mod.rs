@@ -18,7 +18,7 @@ use std::time::Duration;
 use primitives::swap::Permit2ApprovalData;
 use primitives::{Asset, Wallet};
 use swapper::permit2_data::{Permit2Data, PermitSingle, permit2_data_to_eip712_json};
-use swapper::{AssetList, FetchQuoteData, Quote, QuoteRequest, SwapperError, SwapperProvider};
+use swapper::{AssetList, QuoteDataInput, Quote, QuoteRequest, SwapperError, SwapperProvider};
 
 use crate::config::swap_config::get_swap_config;
 use crate::gem_swapper::GemSwapper;
@@ -76,7 +76,7 @@ impl GemSwapService {
         }))
     }
 
-    pub async fn build_transfer(&self, wallet: &Wallet, quote: &Quote, assets: (Asset, Asset), data: FetchQuoteData) -> Result<GemTransferData, SwapperError> {
+    pub async fn build_transfer(&self, wallet: &Wallet, quote: &Quote, assets: (Asset, Asset), data: QuoteDataInput) -> Result<GemTransferData, SwapperError> {
         let data = self.swapper.get_quote_data(quote, data).await?;
         rules::swap_transfer(wallet, quote, data, assets)
     }
@@ -88,7 +88,7 @@ impl GemSwapService {
     pub async fn requote_at(&self, wallet: &Wallet, transfer: &GemTransferData, value: &GemBigInt) -> Result<GemSwapRequote, SwapperError> {
         let (provider, request) = rules::requote_request(wallet, transfer, value)?;
         let quote = self.swapper.get_quote_by_provider(&provider, &request).await?;
-        let transfer = self.build_transfer(wallet, &quote, rules::swap_assets(transfer)?, FetchQuoteData::None).await?;
+        let transfer = self.build_transfer(wallet, &quote, rules::swap_assets(transfer)?, QuoteDataInput::None).await?;
         Ok(GemSwapRequote { quote, transfer })
     }
 
@@ -102,7 +102,7 @@ impl GemSwapService {
     ) -> Result<GemTransferData, E> {
         let (permit_single, message) = self.permit2_message(quote, approval)?;
         let signature = sign(message)?;
-        Ok(self.build_transfer(wallet, quote, rules::swap_assets(transfer)?, FetchQuoteData::Permit2(Permit2Data { permit_single, signature })).await?)
+        Ok(self.build_transfer(wallet, quote, rules::swap_assets(transfer)?, QuoteDataInput::Permit2(Permit2Data { permit_single, signature })).await?)
     }
 
     pub fn pair_for_asset(&self, asset_id: AssetId, has_balance: bool) -> GemSwapPairSuggestion {

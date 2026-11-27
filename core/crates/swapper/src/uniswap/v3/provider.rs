@@ -1,5 +1,5 @@
 use crate::{
-    FetchQuoteData, ProviderType, Quote, QuoteRequest, RpcClient, SwapAmountMode, Swapper, SwapperError, SwapperQuoteData,
+    QuoteDataInput, ProviderType, Quote, QuoteRequest, RpcClient, SwapAmountMode, Swapper, SwapperError, SwapperQuoteData,
     alien::RpcProvider,
     approval::check_permit2_approvals,
     client_factory::create_client_with_chain,
@@ -304,7 +304,7 @@ impl Swapper for UniswapV3 {
         Ok(quote_result.into_quote(request, self.provider().clone(), fee_token_is_input, output.scale))
     }
 
-    async fn get_quote_data(&self, quote: &Quote, data: FetchQuoteData) -> Result<SwapperQuoteData, SwapperError> {
+    async fn get_quote_data(&self, quote: &Quote, data: QuoteDataInput) -> Result<SwapperQuoteData, SwapperError> {
         let request = &quote.request;
         let from_chain = request.from_asset.chain();
         let (evm_chain, input, output, amount_in) = routed_request(request, PROTOCOL)?;
@@ -503,7 +503,7 @@ mod tests {
 
     async fn assert_wrapped_swap(swapper: &UniswapV3, request: &QuoteRequest, path: PoolPath, provider: SwapperProvider) -> Bytes {
         let quote = QuoteResult { amount_out: U256::from(2_000_000u64), path }.into_quote(request, swapper.provider().clone(), true, U256::from(1));
-        let quote_data = swapper.get_quote_data(&quote, FetchQuoteData::None).await.unwrap();
+        let quote_data = swapper.get_quote_data(&quote, QuoteDataInput::None).await.unwrap();
         let execute = IUniversalRouter::executeCall::abi_decode(&decode_hex(&quote_data.data).unwrap()).unwrap();
         let transaction: Transaction = serde_json::from_value(json!({
             "from": request.wallet_address,
@@ -547,7 +547,7 @@ mod tests {
 mod swap_integration_tests {
     use crate::testkit::{dynode_provider, mock_quote, simulate_swap};
     use crate::{
-        FetchQuoteData, Options, QuoteRequest, Swapper, SwapperError,
+        QuoteDataInput, Options, QuoteRequest, Swapper, SwapperError,
         client_factory::{create_client_with_chain, create_eth_client},
         eth_address,
         fees::{bps_of, default_referral_fees},
@@ -608,7 +608,7 @@ mod swap_integration_tests {
     async fn simulate_native_to_token(chain: Chain, swap_provider: &dyn Swapper, token: &str, value: u64) -> Result<Protocol, SwapperError> {
         let quote = swap_provider.get_quote(&v2_request(AssetId::from_chain(chain), AssetId::from_token(chain, token), value)).await?;
         let protocol = quote.route_data::<RouteData>()?.protocol;
-        let quote_data = swap_provider.get_quote_data(&quote, FetchQuoteData::None).await?;
+        let quote_data = swap_provider.get_quote_data(&quote, QuoteDataInput::None).await?;
         let calldata = decode_hex(&quote_data.data).unwrap();
         let execute = IUniversalRouter::executeCall::abi_decode(&calldata).unwrap();
         let referral = eth_address::parse_str(EVM_REFERRAL_ADDRESS)?;
@@ -744,7 +744,7 @@ mod swap_integration_tests {
         };
         let quote = swap_provider.get_quote(&request).await?;
         assert!(quote.to_value > BigUint::from(500_000u64) && quote.to_value < BigUint::from(1_000_000u64));
-        let quote_data = swap_provider.get_quote_data(&quote, FetchQuoteData::None).await?;
+        let quote_data = swap_provider.get_quote_data(&quote, QuoteDataInput::None).await?;
         assert_eq!(quote_data.value, BigUint::from(1_000_000_000_000_000_000u64));
         assert!(quote_data.approval.is_none());
         Ok(())
@@ -760,7 +760,7 @@ mod swap_integration_tests {
             ..mock_quote(AssetId::from_chain(Chain::Stable).into(), AssetId::from(Chain::Stable, Some(TEST_STABLE_TOKEN.to_string())).into())
         };
         let quote = swap_provider.get_quote(&request).await?;
-        let quote_data = swap_provider.get_quote_data(&quote, FetchQuoteData::None).await?;
+        let quote_data = swap_provider.get_quote_data(&quote, QuoteDataInput::None).await?;
 
         assert!(quote.to_value > BigUint::from(10u64.pow(18)));
         assert_eq!(quote_data.value, BigUint::from(1_000_000_000_000_000_000u64));
@@ -806,7 +806,7 @@ mod swap_integration_tests {
         let quote = swap_provider.get_quote(&request).await?;
         assert!(quote.to_value > BigUint::ZERO);
 
-        let quote_data = swap_provider.get_quote_data(&quote, FetchQuoteData::EstimateGas).await?;
+        let quote_data = swap_provider.get_quote_data(&quote, QuoteDataInput::EstimateGas).await?;
 
         let estimate_value = format!("0x{:x}", quote_data.value.to_u128().ok_or_else(|| SwapperError::ComputeQuoteError("quote value is too large".to_string()))?);
         let gas = create_eth_client(network_provider.clone(), chain)?

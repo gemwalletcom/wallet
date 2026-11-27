@@ -4,7 +4,7 @@ use async_trait::async_trait;
 use std::{fmt, str::FromStr, sync::Arc, vec};
 
 use crate::{
-    FetchQuoteData, ProviderType, Quote, QuoteRequest, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData,
+    QuoteDataInput, ProviderType, Quote, QuoteRequest, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData,
     alien::RpcProvider,
     approval::check_permit2_approvals,
     client_factory::create_client_with_chain,
@@ -161,7 +161,7 @@ impl Swapper for UniswapV4 {
         Ok(quote_result.into_quote(request, self.provider().clone(), fee_token_is_input, output.scale))
     }
 
-    async fn get_quote_data(&self, quote: &Quote, data: FetchQuoteData) -> Result<SwapperQuoteData, SwapperError> {
+    async fn get_quote_data(&self, quote: &Quote, data: QuoteDataInput) -> Result<SwapperQuoteData, SwapperError> {
         let request = &quote.request;
         let from_asset = request.from_asset.asset_id();
         let (evm_chain, input, output, amount_in) = Self::routed_request(request)?;
@@ -273,7 +273,7 @@ mod tests {
 #[cfg(all(test, feature = "swap_integration_tests"))]
 mod swap_integration_tests {
     use crate::testkit::mock_quote;
-    use crate::{FetchQuoteData, Options, QuoteRequest, SwapperError, client_factory::create_eth_client, uniswap, uniswap::swap_route::route_fee_tier};
+    use crate::{QuoteDataInput, Options, QuoteRequest, SwapperError, client_factory::create_eth_client, uniswap, uniswap::swap_route::route_fee_tier};
     use gem_evm::uniswap::FeeTier;
     use gem_reqwest::NativeProvider;
     use num_bigint::BigUint;
@@ -298,7 +298,7 @@ mod swap_integration_tests {
         };
 
         let quote = swap_provider.get_quote(&request).await?;
-        let quote_data = swap_provider.get_quote_data(&quote, FetchQuoteData::None).await?;
+        let quote_data = swap_provider.get_quote_data(&quote, QuoteDataInput::None).await?;
 
         assert_eq!(quote.data.routes.len(), 1);
         assert_eq!(route_fee_tier(&quote.data.routes[0])?, FeeTier::Five);
@@ -321,7 +321,7 @@ mod swap_integration_tests {
         };
 
         let quote = swap_provider.get_quote(&request).await?;
-        let quote_data = swap_provider.get_quote_data(&quote, FetchQuoteData::None).await?;
+        let quote_data = swap_provider.get_quote_data(&quote, QuoteDataInput::None).await?;
 
         assert!(quote.to_value > BigUint::ZERO);
         assert_eq!(quote.data.routes.len(), 2);
@@ -347,7 +347,7 @@ mod swap_integration_tests {
         };
         let quote = swap_provider.get_quote(&request).await?;
         assert!(quote.to_value > BigUint::from(500_000u64) && quote.to_value < BigUint::from(1_000_000u64));
-        let quote_data = swap_provider.get_quote_data(&quote, FetchQuoteData::None).await?;
+        let quote_data = swap_provider.get_quote_data(&quote, QuoteDataInput::None).await?;
         assert_eq!(quote_data.value, BigUint::from(1_000_000_000_000_000_000u64));
         assert!(quote_data.approval.is_none());
 
@@ -384,7 +384,7 @@ mod swap_integration_tests {
 
         assert!(quote.to_value > BigUint::ZERO);
 
-        swap_provider.get_quote_data(&quote, FetchQuoteData::EstimateGas).await?;
+        swap_provider.get_quote_data(&quote, QuoteDataInput::EstimateGas).await?;
 
         Ok(())
     }
@@ -407,7 +407,7 @@ mod swap_integration_tests {
         let quote = swap_provider.get_quote(&request).await?;
         assert!(quote.to_value > BigUint::ZERO);
 
-        let quote_data = swap_provider.get_quote_data(&quote, FetchQuoteData::EstimateGas).await?;
+        let quote_data = swap_provider.get_quote_data(&quote, QuoteDataInput::EstimateGas).await?;
 
         let estimate_value = format!("0x{:x}", quote_data.value.to_u128().ok_or_else(|| SwapperError::ComputeQuoteError("quote value is too large".to_string()))?);
         let gas = create_eth_client(network_provider.clone(), Chain::Robinhood)?

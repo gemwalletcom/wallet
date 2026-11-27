@@ -333,7 +333,7 @@ impl Swapper for Across {
         })
     }
 
-    async fn get_quote_data(&self, quote: &Quote, data: FetchQuoteData) -> Result<SwapperQuoteData, SwapperError> {
+    async fn get_quote_data(&self, quote: &Quote, data: QuoteDataInput) -> Result<SwapperQuoteData, SwapperError> {
         let from_chain = quote.request.from_asset.chain();
         let deployment = AcrossDeployment::deployment_by_chain(&from_chain).ok_or(SwapperError::NotSupportedChain)?;
         let destination_deployment = AcrossDeployment::deployment_by_chain(&quote.request.to_asset.chain()).ok_or(SwapperError::NotSupportedChain)?;
@@ -377,11 +377,11 @@ impl Swapper for Across {
 
         let gas_limit = match (from_chain, data) {
             (Chain::Tron, _) => None,
-            (_, FetchQuoteData::EstimateGas) => {
+            (_, QuoteDataInput::EstimateGas) => {
                 let tx = TransactionObject::new_call_to_value(deployment.spoke_pool, &format!("{value:#x}"), deposit_v3_call.clone());
                 Some(self.estimate_gas_transaction(from_chain, tx).await?.to_string())
             }
-            (_, FetchQuoteData::Permit2(_) | FetchQuoteData::None) => get_swap_gas_limit_with_approval(&approval, None, DEFAULT_DEPOSIT_GAS_LIMIT),
+            (_, QuoteDataInput::Permit2(_) | QuoteDataInput::None) => get_swap_gas_limit_with_approval(&approval, None, DEFAULT_DEPOSIT_GAS_LIMIT),
         };
 
         Ok(SwapperQuoteData::new_contract(deployment.spoke_pool.into(), value, HexEncode(deposit_v3_call), approval, gas_limit))
@@ -501,7 +501,7 @@ mod tests {
         let provider = Across::new(Arc::new(ProviderMock::mock_tron_constant_result("0")));
         let relay_data = mock_v3_relay_data();
         let quote = Quote::mock_across_tron();
-        let quote_data = provider.get_quote_data(&quote, FetchQuoteData::None).await.unwrap();
+        let quote_data = provider.get_quote_data(&quote, QuoteDataInput::None).await.unwrap();
         let expected_data = V3SpokePoolInterface::depositV3Call {
             depositor: relay_data.depositor,
             recipient: relay_data.recipient,
@@ -538,7 +538,7 @@ mod tests {
     async fn test_direct_quote_data_skips_tron_approval_when_allowance_covers_amount() {
         let provider = Across::new(Arc::new(ProviderMock::mock_tron_constant_result("989680")));
         let quote = Quote::mock_across_tron();
-        let quote_data = provider.get_quote_data(&quote, FetchQuoteData::None).await.unwrap();
+        let quote_data = provider.get_quote_data(&quote, QuoteDataInput::None).await.unwrap();
 
         assert_eq!(quote_data.approval, None);
         assert_eq!(quote_data.gas_limit, None);
@@ -547,7 +547,7 @@ mod tests {
     #[tokio::test]
     async fn test_direct_quote_data_approves_the_token_behind_native_arc_usdc() {
         let provider = Across::new(Arc::new(ProviderMock::mock_json_rpc_result(&HexEncode([0u8; 32]))));
-        let quote_data = provider.get_quote_data(&Quote::mock_across_arc(), FetchQuoteData::None).await.unwrap();
+        let quote_data = provider.get_quote_data(&Quote::mock_across_arc(), QuoteDataInput::None).await.unwrap();
 
         assert_eq!(quote_data.to, ARC_ACROSS_SPOKE_POOL_CONTRACT);
         assert_eq!(quote_data.value, BigUint::ZERO);
@@ -619,7 +619,7 @@ mod tests {
     #[cfg(all(test, feature = "swap_integration_tests"))]
     mod swap_integration_tests {
         use super::*;
-        use crate::{FetchQuoteData, Options, QuoteRequest, SwapperError};
+        use crate::{QuoteDataInput, Options, QuoteRequest, SwapperError};
         use gem_reqwest::NativeProvider;
         use primitives::{AssetId, Chain, swap::SwapStatus};
         use std::{sync::Arc, time::SystemTime};
@@ -705,7 +705,7 @@ mod tests {
             println!("<== quote: {:?}", quote);
             assert!(quote.to_value > BigUint::ZERO);
 
-            let quote_data = swap_provider.get_quote_data(&quote, FetchQuoteData::EstimateGas).await?;
+            let quote_data = swap_provider.get_quote_data(&quote, QuoteDataInput::EstimateGas).await?;
             println!("<== quote_data: {:?}", quote_data);
 
             Ok(())
@@ -737,7 +737,7 @@ mod tests {
             println!("<== quote: {:?}", quote);
             assert!(quote.to_value > BigUint::ZERO);
 
-            let quote_data = swap_provider.get_quote_data(&quote, FetchQuoteData::None).await?;
+            let quote_data = swap_provider.get_quote_data(&quote, QuoteDataInput::None).await?;
             println!("<== quote_data: {:?}", quote_data);
 
             Ok(())
@@ -761,7 +761,7 @@ mod tests {
             assert!(quote.to_value > BigUint::ZERO);
             assert!(!quote.data.routes[0].route_data.is_empty());
 
-            let quote_data = swap_provider.get_quote_data(&quote, FetchQuoteData::None).await?;
+            let quote_data = swap_provider.get_quote_data(&quote, QuoteDataInput::None).await?;
             assert_eq!(quote_data.data_type, SwapQuoteDataType::Contract);
 
             Ok(())
@@ -805,7 +805,7 @@ mod tests {
             println!("<== quote: {:?}", quote);
             assert!(quote.to_value > BigUint::from(4_900_000u64) && quote.to_value < BigUint::from(5_000_000u64));
 
-            let quote_data = swap_provider.get_quote_data(&quote, FetchQuoteData::None).await?;
+            let quote_data = swap_provider.get_quote_data(&quote, QuoteDataInput::None).await?;
             println!("<== quote_data: {:?}", quote_data);
             assert_eq!(quote_data.value, BigUint::ZERO);
 

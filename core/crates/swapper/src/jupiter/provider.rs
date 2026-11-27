@@ -12,7 +12,7 @@ use primitives::{AssetId, Chain, SolanaTokenProgramId};
 
 use super::{client::JupiterClient, model::BuildRequest};
 use crate::{
-    Contracts, FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteAsset, SwapperQuoteData,
+    Contracts, QuoteDataInput, ProviderData, ProviderType, Quote, QuoteRequest, Route, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteAsset, SwapperQuoteData,
     error::INVALID_ADDRESS,
     fees::{SOLANA_FEE_MINTS, on_chain_referral_fees},
 };
@@ -136,7 +136,7 @@ where
         })
     }
 
-    async fn get_quote_data(&self, quote: &Quote, _data: FetchQuoteData) -> Result<SwapperQuoteData, SwapperError> {
+    async fn get_quote_data(&self, quote: &Quote, _data: QuoteDataInput) -> Result<SwapperQuoteData, SwapperError> {
         let route = quote.data.routes.first().ok_or(SwapperError::InvalidRoute)?;
 
         Ok(SwapperQuoteData::new_contract(
@@ -201,7 +201,7 @@ mod tests {
 #[cfg(all(test, feature = "swap_integration_tests"))]
 mod swap_integration_tests {
     use super::*;
-    use crate::{FetchQuoteData, SwapperQuoteAsset, models::Options};
+    use crate::{QuoteDataInput, SwapperQuoteAsset, models::Options};
     use gem_encoding::decode_base64;
     use gem_reqwest::NativeProvider;
     use gem_solana::{MAX_TRANSACTION_SIZE, USDC_TOKEN_MINT, WSOL_TOKEN_ADDRESS};
@@ -233,7 +233,7 @@ mod swap_integration_tests {
         assert_eq!(route.input, AssetId::from(Chain::Solana, Some(WSOL_TOKEN_ADDRESS.to_string())));
         assert_eq!(route.output, AssetId::from(Chain::Solana, Some(USDC_TOKEN_MINT.to_string())));
 
-        let quote_data = provider.get_quote_data(&quote, FetchQuoteData::None).await?;
+        let quote_data = provider.get_quote_data(&quote, QuoteDataInput::None).await?;
         let swapper: &dyn Swapper = &provider;
         swapper.verify_contracts(&quote, &quote_data)?;
         assert_eq!(quote_data.to, JUPITER_PROGRAM_ID);

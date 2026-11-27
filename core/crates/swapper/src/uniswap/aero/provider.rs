@@ -1,6 +1,6 @@
 use super::commands::{SwapCommands, build_commands, encode_execute};
 use crate::{
-    Contracts, FetchQuoteData, ProviderType, Quote, QuoteRequest, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData,
+    Contracts, QuoteDataInput, ProviderType, Quote, QuoteRequest, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData,
     alien::RpcProvider,
     approval::{DEFAULT_EVM_SWAP_GAS_LIMIT, check_approval_erc20, get_swap_gas_limit_with_approval},
     client_factory::create_client_with_chain,
@@ -147,7 +147,7 @@ impl Swapper for Aero {
         Ok(quote.into_quote(request, self.provider.clone(), fee_token_is_input, output.scale))
     }
 
-    async fn get_quote_data(&self, quote: &Quote, _data: FetchQuoteData) -> Result<SwapperQuoteData, SwapperError> {
+    async fn get_quote_data(&self, quote: &Quote, _data: QuoteDataInput) -> Result<SwapperQuoteData, SwapperError> {
         let request = &quote.request;
         let chain = request.from_asset.chain();
         let factory = get_factory_by_chain(&chain).ok_or(SwapperError::NotSupportedChain)?;
@@ -284,7 +284,7 @@ mod tests {
             path: PoolPath::new(PROTOCOL, vec![weth_to_usdc]),
         }
         .into_quote(&native, aero.provider().clone(), true, U256::from(1));
-        let data = aero.get_quote_data(&quote, FetchQuoteData::None).await.unwrap();
+        let data = aero.get_quote_data(&quote, QuoteDataInput::None).await.unwrap();
         (&aero as &dyn Swapper).verify_contracts(&quote, &data).unwrap();
         let swap = SwapExactIn {
             pools: vec![pool],
@@ -314,7 +314,7 @@ mod tests {
             path: PoolPath::new(PROTOCOL, vec![usdc_to_weth.clone()]),
         }
         .into_quote(&token, aero.provider().clone(), false, U256::from(1));
-        let data = aero.get_quote_data(&quote, FetchQuoteData::None).await.unwrap();
+        let data = aero.get_quote_data(&quote, QuoteDataInput::None).await.unwrap();
         (&aero as &dyn Swapper).verify_contracts(&quote, &data).unwrap();
         let swap = SwapExactIn {
             tokenIn: usdc,
@@ -360,7 +360,7 @@ mod tests {
             }
             .into_quote(&token, aero.provider().clone(), false, U256::from(1)),
         ] {
-            assert_eq!(aero.get_quote_data(&refused, FetchQuoteData::None).await, Err(SwapperError::InvalidRoute));
+            assert_eq!(aero.get_quote_data(&refused, QuoteDataInput::None).await, Err(SwapperError::InvalidRoute));
         }
     }
 }
@@ -388,7 +388,7 @@ mod swap_integration_tests {
                 ..mock_quote(AssetId::from_chain(chain).into(), to_asset.into())
             };
             let quote = provider.get_quote(&request).await?;
-            let data = provider.get_quote_data(&quote, FetchQuoteData::None).await?;
+            let data = provider.get_quote_data(&quote, QuoteDataInput::None).await?;
             (&provider as &dyn Swapper).verify_contracts(&quote, &data)?;
             println!("{chain} native -> {} through {:?}", quote.to_value, quote.data.routes);
 

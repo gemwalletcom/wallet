@@ -66,7 +66,7 @@ mod swap_integration_tests {
 mod tests {
     use super::*;
     use crate::{
-        FetchQuoteData, QuoteRequest, Swapper,
+        QuoteDataInput, QuoteRequest, Swapper,
         raydium_amm::testkit::TEST_SOL_USDC_POOL,
         solana_dex::{
             SolanaDex,
@@ -111,7 +111,7 @@ mod tests {
         assert_eq!(amm.get_quote(&usdc_to_sol).await.unwrap().to_value, BigUint::from(959_847_099u64));
         assert_eq!(requests.load(Ordering::SeqCst), 6);
 
-        let quote_data = amm.get_quote_data(&quote, FetchQuoteData::None).await.unwrap();
+        let quote_data = amm.get_quote_data(&quote, QuoteDataInput::None).await.unwrap();
         crate::contract_check::verify_solana_programs(&quote_data.data, &amm.contracts(&quote.request.from_asset.asset_id()).targets).unwrap();
         assert_eq!(requests.load(Ordering::SeqCst), 7);
         assert_eq!(quote_data.to, raydium_amm_program().to_base58());

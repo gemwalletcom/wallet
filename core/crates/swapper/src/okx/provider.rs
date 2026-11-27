@@ -6,7 +6,7 @@ use super::{
     quote_data::build_swap_quote_data,
 };
 use crate::{
-    Contracts, FetchQuoteData, ProviderType, Quote, QuoteRequest, SwapAmountMode, Swapper, SwapperError, SwapperProvider, SwapperQuoteData,
+    Contracts, QuoteDataInput, ProviderType, Quote, QuoteRequest, SwapAmountMode, Swapper, SwapperError, SwapperProvider, SwapperQuoteData,
     alien::{RpcClient, RpcProvider},
     config::get_swap_provider_url,
     models::SwapperChainAsset,
@@ -77,7 +77,7 @@ where
         Quote::from_route(request, &self.provider, to_value, max_slippage_bps(request), &route, None)
     }
 
-    async fn get_quote_data(&self, quote: &Quote, _data: FetchQuoteData) -> Result<SwapperQuoteData, SwapperError> {
+    async fn get_quote_data(&self, quote: &Quote, _data: QuoteDataInput) -> Result<SwapperQuoteData, SwapperError> {
         let request = &quote.request;
         let route_data: QuoteData = quote.route_data()?;
         let params = build_swap_params(request, &route_data)?;
@@ -193,7 +193,7 @@ mod tests {
         let provider = OkxProvider::mock(client, "{}");
 
         let quote = provider.get_quote(&mock_solana_request()).await.unwrap();
-        let quote_data = provider.get_quote_data(&quote, FetchQuoteData::None).await.unwrap();
+        let quote_data = provider.get_quote_data(&quote, QuoteDataInput::None).await.unwrap();
 
         let response: serde_json::Value = serde_json::from_str(include_str!("testdata/swap_sol_to_usdc.json")).unwrap();
         let okx_bytes = decode_base58(response["data"][0]["tx"]["data"].as_str().unwrap()).unwrap();
@@ -230,7 +230,7 @@ mod tests {
         request.wallet_address = TEST_EVM_SENDER.to_string();
 
         let quote = provider.get_quote(&request).await.unwrap();
-        let quote_data = provider.get_quote_data(&quote, FetchQuoteData::None).await.unwrap();
+        let quote_data = provider.get_quote_data(&quote, QuoteDataInput::None).await.unwrap();
 
         assert_eq!(quote_data.to, EVM_ROUTER);
         assert_eq!(quote_data.value, BigUint::from(0u64));
@@ -275,7 +275,7 @@ mod swap_integration_tests {
             let quote = provider.get_quote(&request).await?;
             assert!(quote.to_value > BigUint::ZERO);
 
-            let quote_data = provider.get_quote_data(&quote, FetchQuoteData::None).await?;
+            let quote_data = provider.get_quote_data(&quote, QuoteDataInput::None).await?;
 
             (&provider as &dyn Swapper).verify_contracts(&quote, &quote_data)?;
             assert!(!quote_data.to.is_empty());
@@ -293,7 +293,7 @@ mod swap_integration_tests {
         let quote = provider.get_quote(&request).await?;
         assert!(quote.to_value > BigUint::ZERO);
 
-        let quote_data = provider.get_quote_data(&quote, FetchQuoteData::None).await?;
+        let quote_data = provider.get_quote_data(&quote, QuoteDataInput::None).await?;
 
         (&provider as &dyn Swapper).verify_contracts(&quote, &quote_data)?;
         assert!(!quote_data.to.is_empty());

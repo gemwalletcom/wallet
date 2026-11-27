@@ -79,7 +79,7 @@ mod swap_integration_tests {
 mod tests {
     use super::*;
     use crate::{
-        FetchQuoteData, QuoteRequest, Swapper,
+        QuoteDataInput, QuoteRequest, Swapper,
         raydium_cpmm::testkit::TEST_JUP_SOL_POOL,
         solana_dex::{
             SolanaDex,
@@ -123,7 +123,7 @@ mod tests {
         assert_eq!(cpmm.get_quote(&jup_to_sol).await.unwrap().to_value, BigUint::from(274_233_898u64));
         assert_eq!(requests.load(Ordering::SeqCst), 5);
 
-        let quote_data = cpmm.get_quote_data(&quote, FetchQuoteData::None).await.unwrap();
+        let quote_data = cpmm.get_quote_data(&quote, QuoteDataInput::None).await.unwrap();
         assert_eq!(requests.load(Ordering::SeqCst), 6);
         assert_eq!(quote_data.to, raydium_cpmm_program().to_base58());
     }

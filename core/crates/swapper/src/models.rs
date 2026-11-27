@@ -239,13 +239,13 @@ pub struct Route {
 }
 
 #[derive(Debug, Clone, PartialEq)]
-pub enum FetchQuoteData {
+pub enum QuoteDataInput {
     Permit2(Permit2Data),
     EstimateGas,
     None,
 }
 
-impl FetchQuoteData {
+impl QuoteDataInput {
     pub fn permit2_data(&self) -> Option<Permit2Data> {
         match self {
             Self::Permit2(data) => Some(data.clone()),

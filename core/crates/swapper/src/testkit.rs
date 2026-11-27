@@ -1,5 +1,5 @@
 use crate::{
-    AssetList, Contracts, FetchQuoteData, Permit2ApprovalData, ProviderData, ProviderType, Route, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteAsset, SwapperQuoteData, SwapperSlippage,
+    AssetList, Contracts, QuoteDataInput, Permit2ApprovalData, ProviderData, ProviderType, Route, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteAsset, SwapperQuoteData, SwapperSlippage,
     SwapperSlippageMode,
 };
 use async_trait::async_trait;
@@ -199,7 +199,7 @@ pub struct MockSwapper {
     pending_permit: Option<Permit2ApprovalData>,
     contracts: Vec<&'static str>,
     quote_data: SwapperQuoteData,
-    builds: Arc<Mutex<Vec<FetchQuoteData>>>,
+    builds: Arc<Mutex<Vec<QuoteDataInput>>>,
 }
 
 impl MockSwapper {
@@ -236,7 +236,7 @@ impl MockSwapper {
         Self { pending_permit: Some(permit), ..self }
     }
 
-    pub fn builds(&self) -> Arc<Mutex<Vec<FetchQuoteData>>> {
+    pub fn builds(&self) -> Arc<Mutex<Vec<QuoteDataInput>>> {
         self.builds.clone()
     }
 }
@@ -265,10 +265,10 @@ impl Swapper for MockSwapper {
         Ok(quote)
     }
 
-    async fn get_quote_data(&self, _quote: &Quote, data: FetchQuoteData) -> Result<SwapperQuoteData, SwapperError> {
+    async fn get_quote_data(&self, _quote: &Quote, data: QuoteDataInput) -> Result<SwapperQuoteData, SwapperError> {
         let permit2 = match data {
-            FetchQuoteData::Permit2(_) => None,
-            FetchQuoteData::EstimateGas | FetchQuoteData::None => self.pending_permit.clone(),
+            QuoteDataInput::Permit2(_) => None,
+            QuoteDataInput::EstimateGas | QuoteDataInput::None => self.pending_permit.clone(),
         };
         self.builds.lock().unwrap().push(data);
         Ok(SwapperQuoteData { permit2, ..self.quote_data.clone() })

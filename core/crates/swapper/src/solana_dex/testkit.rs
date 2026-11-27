@@ -42,7 +42,7 @@ pub(crate) const TEST_TOS_HOLDER: &str = "2keyaLG5fUBEGFAboUZ7LajhpGygXSxKJBovHy
 
 #[cfg(feature = "swap_integration_tests")]
 pub(crate) async fn assert_swaps_simulate<P: DexProtocol>(protocol: P, swaps: Vec<(SwapperQuoteAsset, SwapperQuoteAsset, u64, &str)>) -> Result<(), crate::SwapperError> {
-    use crate::{FetchQuoteData, QuoteRequest, Swapper, client_factory::create_client_with_chain, models::Options, solana_dex::SolanaDex};
+    use crate::{QuoteDataInput, QuoteRequest, Swapper, client_factory::create_client_with_chain, models::Options, solana_dex::SolanaDex};
     use gem_solana::SolanaClient;
     use num_bigint::BigUint;
 
@@ -59,7 +59,7 @@ pub(crate) async fn assert_swaps_simulate<P: DexProtocol>(protocol: P, swaps: Ve
             options: Options::default(),
         };
         let quote = dex.get_quote(&request).await?;
-        let quote_data = dex.get_quote_data(&quote, FetchQuoteData::None).await?;
+        let quote_data = dex.get_quote_data(&quote, QuoteDataInput::None).await?;
         let simulation = client.simulate_encoded_transaction(&quote_data.data).await?;
         let units = simulation.units_consumed.unwrap();
         let gas_limit: u64 = quote_data.gas_limit.as_deref().unwrap().parse().unwrap();

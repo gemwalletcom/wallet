@@ -4,7 +4,7 @@ use super::{
     tx_builder,
 };
 use crate::{
-    FetchQuoteData, ProviderType, Quote, QuoteRequest, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperQuoteData,
+    QuoteDataInput, ProviderType, Quote, QuoteRequest, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperQuoteData,
     sui_swap::{self, coin_type, discovery_pairs, fee_side, is_move_abort, route_paths, upgraded_error},
 };
 use async_trait::async_trait;
@@ -59,7 +59,7 @@ impl Swapper for Deepbook {
         Quote::from_route(request, self.provider(), BigUint::from(to_value), request.options.slippage.bps, &route, Some(0))
     }
 
-    async fn get_quote_data(&self, quote: &Quote, _data: FetchQuoteData) -> Result<SwapperQuoteData, SwapperError> {
+    async fn get_quote_data(&self, quote: &Quote, _data: QuoteDataInput) -> Result<SwapperQuoteData, SwapperError> {
         let route: Route = quote.route_data()?;
         let sender = quote.request.wallet_address.as_str();
         let input_coin_type = coin_type(&quote.request.from_asset.asset_id());
@@ -116,7 +116,7 @@ mod swap_integration_tests {
                 options: Options::new_with_slippage(50.into()),
             };
             let quote = provider.get_quote(&request).await?;
-            let quote_data = provider.get_quote_data(&quote, FetchQuoteData::None).await?;
+            let quote_data = provider.get_quote_data(&quote, QuoteDataInput::None).await?;
             let simulated = provider.sui_client.simulate_encoded_transaction(&quote_data.data).await.map_err(SwapperError::transaction_error)?;
             let gem_fee_paid = simulated.balance_changes.iter().any(|change| {
                 change.address.as_deref() == Some(SUI_REFERRAL_ADDRESS)

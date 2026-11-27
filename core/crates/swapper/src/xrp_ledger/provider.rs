@@ -15,7 +15,7 @@ use primitives::{
 
 use super::model::{ledger_value, map_swap, path_destination, send_max};
 use crate::{
-    FetchQuoteData, ProviderType, Quote, QuoteRequest, RpcClient, RpcProvider, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData, client_factory::create_xrp_client, fees::fee_side,
+    QuoteDataInput, ProviderType, Quote, QuoteRequest, RpcClient, RpcProvider, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData, client_factory::create_xrp_client, fees::fee_side,
     models::nonzero_swap_value,
 };
 
@@ -77,7 +77,7 @@ where
         Quote::from_route(&request, self.provider(), to_value, request.options.slippage.bps, &swap, None)
     }
 
-    async fn get_quote_data(&self, quote: &Quote, _data: FetchQuoteData) -> Result<SwapperQuoteData, SwapperError> {
+    async fn get_quote_data(&self, quote: &Quote, _data: QuoteDataInput) -> Result<SwapperQuoteData, SwapperError> {
         let swap: XrpSwap = quote.route_data()?;
         if swap.input_value(&quote.request.from_asset.asset_id()) != quote.from_value {
             return Err(SwapperError::InvalidRoute);
@@ -113,7 +113,7 @@ mod swap_integration_tests {
         ] {
             let pair = format!("{} to {}", from.symbol, to.symbol);
             let quote = provider.get_quote(&mock_request(from, to, value)).await?;
-            let data = provider.get_quote_data(&quote, FetchQuoteData::None).await?;
+            let data = provider.get_quote_data(&quote, QuoteDataInput::None).await?;
             let swap: XrpSwap = serde_json::from_str(&data.data)?;
             println!(
                 "{pair}: from_value={} to_value={} send_max={} deliver_min={} fee={:?} paths={}",
@@ -224,7 +224,7 @@ mod tests {
             let provider = XrpLedger::with_client(mock_xrp_client(path_find, has_rlusd_line, Arc::default()));
             let quote = provider.get_quote(&request).await.unwrap();
 
-            let data = provider.get_quote_data(&quote, FetchQuoteData::None).await.unwrap();
+            let data = provider.get_quote_data(&quote, QuoteDataInput::None).await.unwrap();
             let tampered = Quote {
                 from_value: &quote.from_value + 1u32,
                 ..quote.clone()
@@ -232,7 +232,7 @@ mod tests {
 
             assert_eq!((data.data_type.clone(), data.to.as_str(), data.value.clone(), data.gas_limit.clone()), (SwapQuoteDataType::Contract, "", BigUint::ZERO, None));
             assert_eq!(serde_json::from_str::<XrpSwap>(&data.data).unwrap(), XrpSwap { trust_line, ..quote.route_data().unwrap() });
-            assert_eq!(provider.get_quote_data(&tampered, FetchQuoteData::None).await, Err(SwapperError::InvalidRoute));
+            assert_eq!(provider.get_quote_data(&tampered, QuoteDataInput::None).await, Err(SwapperError::InvalidRoute));
         }
     }
 }

@@ -6,7 +6,7 @@ use gem_client::Client;
 
 use super::client::SquidClient;
 use crate::{
-    FetchQuoteData, ProviderType, Quote, QuoteRequest, RpcClient, RpcProvider, SwapAmountMode, SwapResult, SwapResultRequest, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData, config::get_swap_proxy_url,
+    QuoteDataInput, ProviderType, Quote, QuoteRequest, RpcClient, RpcProvider, SwapAmountMode, SwapResult, SwapResultRequest, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData, config::get_swap_proxy_url,
 };
 
 #[derive(Debug)]
@@ -48,7 +48,7 @@ where
         Err(SwapperError::NotSupportedChain)
     }
 
-    async fn get_quote_data(&self, _quote: &Quote, _data: FetchQuoteData) -> Result<SwapperQuoteData, SwapperError> {
+    async fn get_quote_data(&self, _quote: &Quote, _data: QuoteDataInput) -> Result<SwapperQuoteData, SwapperError> {
         Err(SwapperError::NotSupportedChain)
     }
 

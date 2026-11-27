@@ -1,6 +1,6 @@
 use super::{client::CetusClmm, constants::CETUS_CLMM_PUBLISHED_AT, model::PoolRoute, tx_builder};
 use crate::{
-    FetchQuoteData, ProviderType, Quote, QuoteRequest, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperQuoteData,
+    QuoteDataInput, ProviderType, Quote, QuoteRequest, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperQuoteData,
     sui_swap::{coin_type, fee_side},
 };
 use async_trait::async_trait;
@@ -53,7 +53,7 @@ impl Swapper for CetusClmm {
         Quote::from_route(request, self.provider(), BigUint::from(route.net_amount_out()), request.options.slippage.bps, &route, Some(0))
     }
 
-    async fn get_quote_data(&self, quote: &Quote, _data: FetchQuoteData) -> Result<SwapperQuoteData, SwapperError> {
+    async fn get_quote_data(&self, quote: &Quote, _data: QuoteDataInput) -> Result<SwapperQuoteData, SwapperError> {
         let route: PoolRoute = quote.route_data()?;
 
         let request_from = coin_type(&quote.request.from_asset.asset_id());
@@ -70,7 +70,7 @@ impl Swapper for CetusClmm {
 mod swap_integration_tests {
     use super::*;
     use crate::{
-        FetchQuoteData, SwapperQuoteAsset,
+        QuoteDataInput, SwapperQuoteAsset,
         models::Options,
         testkit::{TEST_SUI_SMALL_GAS_BALANCE_WALLET, TEST_SUI_WALLET},
     };
@@ -116,7 +116,7 @@ mod swap_integration_tests {
         };
 
         let quote = provider.get_quote(&request).await?;
-        let quote_data = provider.get_quote_data(&quote, FetchQuoteData::None).await?;
+        let quote_data = provider.get_quote_data(&quote, QuoteDataInput::None).await?;
         (&provider as &dyn Swapper).verify_contracts(&quote, &quote_data)?;
         print_quote("SUI->USDC", &quote)?;
         print_quote_data("SUI->USDC", &quote_data);
@@ -143,7 +143,7 @@ mod swap_integration_tests {
             };
 
             let quote = provider.get_quote(&request).await?;
-            let quote_data = provider.get_quote_data(&quote, FetchQuoteData::None).await?;
+            let quote_data = provider.get_quote_data(&quote, QuoteDataInput::None).await?;
             (&provider as &dyn Swapper).verify_contracts(&quote, &quote_data)?;
             print_quote("USDC->SUI", &quote)?;
             print_quote_data("USDC->SUI", &quote_data);

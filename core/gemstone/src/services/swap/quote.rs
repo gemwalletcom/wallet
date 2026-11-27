@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use primitives::{Asset, AssetId, Currency, Feature, Wallet};
-use swapper::{FetchQuoteData, Quote, QuoteRequest, SwapperError, SwapperProvider};
+use swapper::{QuoteDataInput, Quote, QuoteRequest, SwapperError, SwapperProvider};
 
 use super::model::{GemSwapPairSelection, GemSwapSide};
 use super::rules;
@@ -123,7 +123,7 @@ impl GemSwapQuoteService {
         let from_asset_id = AssetId::new(&quote.request.from_asset.id).ok_or(SwapperError::NotSupportedAsset)?;
         let to_asset_id = AssetId::new(&quote.request.to_asset.id).ok_or(SwapperError::NotSupportedAsset)?;
         let (wallet, from_asset, to_asset) = self.pair(from_asset_id, to_asset_id).await.map_err(|error| SwapperError::TransactionError(error.to_string()))?;
-        self.swap.build_transfer(&wallet, &quote, (from_asset, to_asset), FetchQuoteData::None).await
+        self.swap.build_transfer(&wallet, &quote, (from_asset, to_asset), QuoteDataInput::None).await
     }
 
     pub async fn refresh_pair(&self, asset_ids: Vec<AssetId>) -> Vec<GemSwapPairFailure> {
@@ -158,7 +158,7 @@ mod tests {
 
     use primitives::TransactionInputType;
     use swapper::testkit::MockSwapper;
-    use swapper::{FetchQuoteData, SwapperProvider};
+    use swapper::{QuoteDataInput, SwapperProvider};
 
     use super::super::session::GemSwapRequest;
     use super::super::testkit::SwapQuoteTestkit;
@@ -223,7 +223,7 @@ mod tests {
             };
             assert_eq!(from_asset, &Asset::mock_eth());
             assert_eq!(to_asset, &Asset::mock_ethereum_usdc());
-            assert_eq!(builds.lock().unwrap().clone(), vec![FetchQuoteData::None], "the transfer is built without a signature");
+            assert_eq!(builds.lock().unwrap().clone(), vec![QuoteDataInput::None], "the transfer is built without a signature");
         })
     }
 

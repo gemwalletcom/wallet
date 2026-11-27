@@ -252,8 +252,8 @@ impl GemFiatSession {
         is_screen_active && !matches!(self.current().phase, GemFiatQuotePhase::Failed { .. })
     }
 
-    pub fn on_fetch_started(&self, request: GemFiatQuoteRequest) -> GemFiatSession {
-        self.with_operation(self.operation(request.quote_type).on_fetch_started(&request, &self.format))
+    pub fn on_quote_start(&self, request: GemFiatQuoteRequest) -> GemFiatSession {
+        self.with_operation(self.operation(request.quote_type).on_quote_start(&request, &self.format))
     }
 
     pub fn on_quote_results(&self, results: GemFiatQuotesResult) -> GemFiatSession {
@@ -311,7 +311,7 @@ impl GemFiatOperation {
         }
     }
 
-    fn on_fetch_started(&self, request: &GemFiatQuoteRequest, format: &GemNumberFormat) -> Self {
+    fn on_quote_start(&self, request: &GemFiatQuoteRequest, format: &GemNumberFormat) -> Self {
         if self.parsed_amount(format) != Some(request.amount) {
             return self.clone();
         }
@@ -446,14 +446,14 @@ mod tests {
         assert_eq!(ready.button_state(false), GemButtonState::Enabled);
         assert_eq!(ready.button_action(), GemFiatButtonAction::Continue);
 
-        let refreshed = ready.on_fetch_started(GemFiatQuoteRequest {
+        let refreshed = ready.on_quote_start(GemFiatQuoteRequest {
             quote_type: FiatQuoteType::Buy,
             amount: 50.0,
         });
         assert_eq!(refreshed.current().phase, GemFiatQuotePhase::Loading { amount: 50.0 });
         assert!(refreshed.current().quotes.is_empty());
         assert_eq!(
-            ready.on_fetch_started(GemFiatQuoteRequest {
+            ready.on_quote_start(GemFiatQuoteRequest {
                 quote_type: FiatQuoteType::Buy,
                 amount: 60.0
             }),
@@ -510,7 +510,7 @@ mod tests {
         assert_eq!(session.on_provider_selected(FiatProviderName::Banxa), session);
 
         let refreshed = selected
-            .on_fetch_started(GemFiatQuoteRequest {
+            .on_quote_start(GemFiatQuoteRequest {
                 quote_type: FiatQuoteType::Buy,
                 amount: 50.0,
             })
@@ -546,7 +546,7 @@ mod tests {
         assert_eq!(selected.on_amount_changed("050".to_string()).selected_quote().map(|quote| quote.provider.id), Some(FiatProviderName::MoonPay));
 
         let gone = selected
-            .on_fetch_started(GemFiatQuoteRequest {
+            .on_quote_start(GemFiatQuoteRequest {
                 quote_type: FiatQuoteType::Buy,
                 amount: 50.0,
             })
@@ -617,7 +617,7 @@ mod tests {
     #[test]
     fn test_view_state_carries_the_rows_selection_and_button_at_once() {
         let session = GemFiatSession::mock(FiatQuoteType::Buy, Some(100))
-            .on_fetch_started(GemFiatQuoteRequest {
+            .on_quote_start(GemFiatQuoteRequest {
                 quote_type: FiatQuoteType::Buy,
                 amount: 100.0,
             })
@@ -719,7 +719,7 @@ mod tests {
         assert!(session.refreshes_quotes(true));
         assert!(!session.refreshes_quotes(false), "a backgrounded screen asks for nothing");
 
-        let failed = session.on_fetch_started(request.clone()).on_quote_results(GemFiatQuotesResult {
+        let failed = session.on_quote_start(request.clone()).on_quote_results(GemFiatQuotesResult {
             request,
             quotes: vec![],
             error: Some(GemServiceError::Offline),
@@ -733,7 +733,7 @@ mod tests {
     fn test_the_other_side_of_the_session_keeps_its_own_clock() {
         let session = GemFiatSession::mock(FiatQuoteType::Buy, Some(50));
         let request = session.quote_request().unwrap();
-        let failed = session.on_fetch_started(request.clone()).on_quote_results(GemFiatQuotesResult {
+        let failed = session.on_quote_start(request.clone()).on_quote_results(GemFiatQuotesResult {
             request,
             quotes: vec![],
             error: Some(GemServiceError::Offline),

@@ -1,7 +1,7 @@
 use crate::ranking::{leaves_no_dust, rank_quotes};
 use crate::retired::{RETIRED_PROVIDERS, RetiredSwapper};
 use crate::{
-    AssetList, FetchQuoteData, ProviderType, Quote, QuoteRequest, SwapAmountMode, SwapQuoteError, SwapQuotes, SwapResult, SwapResultRequest, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperProviderMode, SwapperQuoteData,
+    AssetList, QuoteDataInput, ProviderType, Quote, QuoteRequest, SwapAmountMode, SwapQuoteError, SwapQuotes, SwapResult, SwapResultRequest, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperProviderMode, SwapperQuoteData,
     across, alien::RpcProvider, bridgers, cetus_clmm, chainflip, config::quote_preferences, cross_chain::VaultAddresses, dedust, deepbook, hyperion, hyperliquid, jupiter, mayan, meteora_damm_v2, meteora_dlmm, near_intents, okx, orca,
     provider_group::ProviderGroup, pump_swap, raydium_amm, raydium_clmm, raydium_cpmm, relay, solana_dex, squid, stellar_dex, stonfi, swaps_xyz, thorchain, uniswap, xrp_ledger,
 };
@@ -200,7 +200,7 @@ impl GemSwapper {
         swapper.get_quote(request).await
     }
 
-    pub async fn get_quote_data(&self, quote: &Quote, data: FetchQuoteData) -> Result<SwapperQuoteData, SwapperError> {
+    pub async fn get_quote_data(&self, quote: &Quote, data: QuoteDataInput) -> Result<SwapperQuoteData, SwapperError> {
         let swapper = self.get_swapper_by_provider(&quote.data.provider.id)?;
         let quote_data = swapper.get_quote_data(quote, data).await?;
         swapper.verify_contracts(quote, &quote_data)?;
@@ -368,7 +368,7 @@ mod tests {
         };
         async fn quote_data(swapper: &GemSwapper, request: &QuoteRequest) -> Result<SwapperQuoteData, SwapperError> {
             let quote = swapper.get_quotes(request).await?.quotes.remove(0);
-            swapper.get_quote_data(&quote, FetchQuoteData::None).await
+            swapper.get_quote_data(&quote, QuoteDataInput::None).await
         }
 
         let bound = swapper(&router.to_uppercase().replace("0X", "0x"), token_approve);
@@ -519,7 +519,7 @@ mod swap_integration_tests {
             options: Options::default(),
         };
         let quote = swapper.get_quote(&request).await.ok()?;
-        let data = swapper.get_quote_data(&quote, FetchQuoteData::None).await.ok()?;
+        let data = swapper.get_quote_data(&quote, QuoteDataInput::None).await.ok()?;
         Some(swapper.verify_contracts(&quote, &data).map_err(|_| {
             let spender = data.approval.map(|approval| approval.spender).or(data.permit2.map(|permit2| permit2.spender));
             format!("{} {from} -> {to}: calls {}, spender {spender:?}, data {:.200}", swapper.provider().id.as_ref(), data.to, data.data)
@@ -582,7 +582,7 @@ mod swap_integration_tests {
 
             assert_eq!(quote.data.provider.id, provider);
             assert!(members.contains(&quote.data.provider.protocol_id.as_str()));
-            assert!(!swapper.get_quote_data(&quote, FetchQuoteData::None).await.unwrap().data.is_empty());
+            assert!(!swapper.get_quote_data(&quote, QuoteDataInput::None).await.unwrap().data.is_empty());
         }
     }
 

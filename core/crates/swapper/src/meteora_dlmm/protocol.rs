@@ -105,7 +105,7 @@ mod swap_integration_tests {
 mod tests {
     use super::*;
     use crate::{
-        FetchQuoteData, QuoteRequest, Swapper,
+        QuoteDataInput, QuoteRequest, Swapper,
         meteora_dlmm::testkit::{TEST_SOL_USDC_POOL, mock_pool_snapshot},
         solana_dex::{
             SolanaDex,
@@ -181,7 +181,7 @@ mod tests {
         assert_eq!(dlmm.get_quote(&sol_to_usdc).await.unwrap(), quote);
         assert_eq!(requests.load(Ordering::SeqCst), 6);
 
-        let quote_data = dlmm.get_quote_data(&quote, FetchQuoteData::None).await.unwrap();
+        let quote_data = dlmm.get_quote_data(&quote, QuoteDataInput::None).await.unwrap();
         assert_eq!(requests.load(Ordering::SeqCst), 7);
         assert_eq!(quote_data.to, meteora_dlmm_program().to_base58());
         assert_eq!(decode_transaction(&quote_data.data).unwrap().get_compute_unit_limit().map(|limit| limit.to_string()), quote_data.gas_limit);

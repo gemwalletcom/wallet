@@ -16,7 +16,7 @@ use super::{
     quote_data_mapper, quote_mapper, swap_mapper,
 };
 use crate::{
-    Contracts, Deployment, FetchQuoteData, ProviderType, Quote, QuoteRequest, RpcClient, RpcProvider, SwapAmountMode, SwapResult, SwapResultRequest, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData,
+    Contracts, Deployment, QuoteDataInput, ProviderType, Quote, QuoteRequest, RpcClient, RpcProvider, SwapAmountMode, SwapResult, SwapResultRequest, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData,
     approval::check_approval_erc20, client_factory::create_rpc_client, cross_chain::VaultAddresses, fees::default_referral_fees, route_cache::Cache, thorchain::client::ThorChainSwapClient,
 };
 
@@ -174,7 +174,7 @@ where
         )
     }
 
-    async fn get_quote_data(&self, quote: &Quote, _data: FetchQuoteData) -> Result<SwapperQuoteData, SwapperError> {
+    async fn get_quote_data(&self, quote: &Quote, _data: QuoteDataInput) -> Result<SwapperQuoteData, SwapperError> {
         let fee = default_referral_fees().thorchain;
         let from_asset = THORChainAsset::from_asset_id(&quote.request.from_asset.id).ok_or(SwapperError::NotSupportedAsset)?;
         let to_asset = THORChainAsset::from_asset_id(&quote.request.to_asset.id).ok_or(SwapperError::NotSupportedAsset)?;
@@ -342,7 +342,7 @@ mod tests {
             eta_in_seconds: None,
         };
 
-        let data = swapper.get_quote_data(&quote, FetchQuoteData::None).await.unwrap();
+        let data = swapper.get_quote_data(&quote, QuoteDataInput::None).await.unwrap();
 
         assert_eq!(data.to, "t1Ku2KLyndDPsR32jwnrTMd3yvi9tfFP8ML");
         assert_eq!(data.value, BigUint::from(10000000u64));

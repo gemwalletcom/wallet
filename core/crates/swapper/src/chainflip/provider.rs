@@ -26,7 +26,7 @@ use super::{
     tx_builder,
 };
 use crate::{
-    Contracts, Deployment, FetchQuoteData, ProviderType, Quote, QuoteRequest, SwapAmountMode, SwapResult, SwapResultRequest, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData, SwapperSlippage,
+    Contracts, Deployment, QuoteDataInput, ProviderType, Quote, QuoteRequest, SwapAmountMode, SwapResult, SwapResultRequest, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData, SwapperSlippage,
     alien::RpcProvider,
     approval::{check_approval_erc20, get_swap_gas_limit_with_approval},
     cross_chain::VaultAddresses,
@@ -378,7 +378,7 @@ where
         })
     }
 
-    async fn get_quote_data(&self, quote: &Quote, _data: FetchQuoteData) -> Result<SwapperQuoteData, SwapperError> {
+    async fn get_quote_data(&self, quote: &Quote, _data: QuoteDataInput) -> Result<SwapperQuoteData, SwapperError> {
         let from_asset = quote.request.from_asset.asset_id();
         let source_asset = ChainflipAsset::from_asset_id(&from_asset)?;
         let destination_asset = ChainflipAsset::from_asset_id(&quote.request.to_asset.asset_id())?;
@@ -601,7 +601,7 @@ mod tests {
         quote.from_value = BigUint::from(40_000_000_000u64);
         quote.data.routes = mock_routes(&quote, 0.0004);
 
-        let data = provider.get_quote_data(&quote, FetchQuoteData::None).await.unwrap();
+        let data = provider.get_quote_data(&quote, QuoteDataInput::None).await.unwrap();
         assert_eq!(data, SwapperQuoteData::new_transfer("1599j8DFFZutdkvmxe81QNCpjNWAmmLD5pHSYph6gPVbp6av".to_string(), BigUint::from(40_000_000_000u64), None));
     }
 
@@ -801,7 +801,7 @@ mod tests {
             ..quote
         };
 
-        let data = provider.get_quote_data(&quote, FetchQuoteData::None).await.unwrap();
+        let data = provider.get_quote_data(&quote, QuoteDataInput::None).await.unwrap();
         assert_eq!(data.to, TRON_VAULT);
         assert_eq!(data.value, quote.from_value);
     }
@@ -975,7 +975,7 @@ mod tests {
         quote.request.wallet_address = TEST_TRON_SENDER.to_string();
         quote.data.routes = mock_routes(&quote, 1.0);
 
-        assert_eq!(provider.get_quote_data(&quote, FetchQuoteData::None).await.unwrap_err(), SwapperError::InvalidRoute);
+        assert_eq!(provider.get_quote_data(&quote, QuoteDataInput::None).await.unwrap_err(), SwapperError::InvalidRoute);
     }
 
     #[test]
@@ -1256,7 +1256,7 @@ mod swap_integration_tests {
         assert!(quote.to_value > BigUint::ZERO);
         assert_eq!(quote.data.slippage_bps, request.options.slippage.bps);
 
-        let quote_data = swap_provider.get_quote_data(&quote, FetchQuoteData::None).await?;
+        let quote_data = swap_provider.get_quote_data(&quote, QuoteDataInput::None).await?;
         assert_eq!(quote_data.data_type, SwapQuoteDataType::Contract);
         assert_eq!(quote_data.to, primitives::asset_constants::TRON_USDT_TOKEN_ID);
         assert_eq!(quote_data.value, BigUint::from(0u64));
@@ -1282,7 +1282,7 @@ mod swap_integration_tests {
         assert_eq!(quote.from_value, request.value);
         assert!(quote.to_value > BigUint::ZERO);
 
-        let quote_data = swap_provider.get_quote_data(&quote, FetchQuoteData::None).await?;
+        let quote_data = swap_provider.get_quote_data(&quote, QuoteDataInput::None).await?;
         assert_eq!(quote_data.data_type, SwapQuoteDataType::Contract);
         assert_eq!(quote_data.to, TRON_USDT_TOKEN_ID);
         assert_eq!(quote_data.value, BigUint::ZERO);

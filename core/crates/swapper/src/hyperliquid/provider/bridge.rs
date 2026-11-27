@@ -13,7 +13,7 @@ use primitives::{
     swap::{SwapResult, SwapResultRequest, SwapStatus},
 };
 
-use crate::{FetchQuoteData, ProviderData, ProviderType, Quote, QuoteRequest, Route, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData};
+use crate::{QuoteDataInput, ProviderData, ProviderType, Quote, QuoteRequest, Route, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData};
 
 #[derive(Debug)]
 pub struct HyperCoreBridge {
@@ -83,7 +83,7 @@ impl Swapper for HyperCoreBridge {
         Ok(quote)
     }
 
-    async fn get_quote_data(&self, quote: &Quote, _data: FetchQuoteData) -> Result<SwapperQuoteData, SwapperError> {
+    async fn get_quote_data(&self, quote: &Quote, _data: QuoteDataInput) -> Result<SwapperQuoteData, SwapperError> {
         match quote.request.from_asset.asset_id().chain {
             Chain::HyperCore => {
                 let amount = BigNumberFormatter::plain_value(&quote.request.value, quote.request.from_asset.decimals)?;

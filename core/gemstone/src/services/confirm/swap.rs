@@ -113,7 +113,7 @@ mod tests {
     use primitives::swap::{Permit2ApprovalData, SwapData};
     use primitives::{Asset, Chain, Currency, SwapProvider, TransactionFee, TransactionInputType, Wallet};
     use swapper::testkit::MockSwapper;
-    use swapper::{FetchQuoteData, Quote, SwapperProvider};
+    use swapper::{QuoteDataInput, Quote, SwapperProvider};
 
     use super::*;
     use crate::services::confirm::GemTransferAmountResult;
@@ -212,7 +212,7 @@ mod tests {
             assert_eq!(swap.quoted_at, built_at + Duration::from_secs(60), "the quote's age restarts at the re-quote");
             assert_eq!(quote.request.value, 5u32.into(), "the provider is asked for the amount the transfer carries");
             assert_eq!(quote.data.provider.id, SwapperProvider::UniswapV3);
-            assert_eq!(builds.lock().unwrap().clone(), vec![FetchQuoteData::None], "a load builds without a signature");
+            assert_eq!(builds.lock().unwrap().clone(), vec![QuoteDataInput::None], "a load builds without a signature");
             assert_eq!(
                 refreshed.input_type.get_swap_data().unwrap().data.permit2,
                 Some(Permit2ApprovalData::mock()),
@@ -268,7 +268,7 @@ mod tests {
             assert_eq!(swap.quoted_at, now, "the fitted quote is the one the screen holds from now on");
             assert_eq!(fitted.confirm_data.input.transfer.value, 990.into());
             assert_eq!(sent(&fitted), Some((990.into(), 10.into())), "what leaves the wallet plus the fee is the whole balance");
-            assert_eq!(builds.lock().unwrap().clone(), vec![FetchQuoteData::None]);
+            assert_eq!(builds.lock().unwrap().clone(), vec![QuoteDataInput::None]);
 
             let deposit = max_swap(SwapData::mock_transfer(SwapProvider::NearIntents, "1000", "1", "0xdeposit"), 1_000);
             let held = ConfirmSwapQuote::initial(&deposit.confirm_data.input.transfer, now).unwrap();
@@ -295,7 +295,7 @@ mod tests {
 
             assert_eq!(testkit.passwords.create_requests.lock().unwrap().clone(), vec![false], "the permit and the transaction share one password read");
             let builds = builds.lock().unwrap().clone();
-            let [FetchQuoteData::Permit2(permit)] = builds.as_slice() else {
+            let [QuoteDataInput::Permit2(permit)] = builds.as_slice() else {
                 panic!("the swap is rebuilt once, with the signed permit: {builds:?}");
             };
             assert_eq!(permit.permit_single.details.token, Permit2ApprovalData::mock().token);

@@ -5,7 +5,7 @@ use super::{
     tx_builder::DedustSwap,
 };
 use crate::{
-    FetchQuoteData, ProviderType, Quote, QuoteRequest, RpcClient, RpcProvider, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData,
+    QuoteDataInput, ProviderType, Quote, QuoteRequest, RpcClient, RpcProvider, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData,
     client_factory::create_ton_client,
     fees::subtract_bps,
     models::nonzero_swap_value,
@@ -115,7 +115,7 @@ where
         Quote::from_route(request, self.provider(), value_out, request.options.slippage.bps, &PoolRoute::new(&pools), None)
     }
 
-    async fn get_quote_data(&self, quote: &Quote, _data: FetchQuoteData) -> Result<SwapperQuoteData, SwapperError> {
+    async fn get_quote_data(&self, quote: &Quote, _data: QuoteDataInput) -> Result<SwapperQuoteData, SwapperError> {
         let swap = DedustSwap::new(quote, &quote.route_data()?, &quote.request.on_chain_referral_fee())?;
         let from = DedustAsset::from_asset_id(&quote.request.from_asset.asset_id())?;
         let vault = from.vault_address()?;
@@ -140,7 +140,7 @@ mod swap_integration_tests {
         let provider = Dedust::new(dynode_provider([Chain::Ton])).unwrap();
         for (from, to, value) in [(ton(), usdt(), 1_000_000_000u64), (usdt(), ton(), 5_000_000), (usdt(), not(), 5_000_000), (ton(), stton(), 10_000_000_000)] {
             let quote = provider.get_quote(&mock_request(from, to, value)).await?;
-            let data = provider.get_quote_data(&quote, FetchQuoteData::None).await?;
+            let data = provider.get_quote_data(&quote, QuoteDataInput::None).await?;
             (&provider as &dyn Swapper).verify_contracts(&quote, &data)?;
             let messages: Vec<TonConnectMessage> = serde_json::from_str(&data.data)?;
             println!("DeDust quote: to_value={} route={} messages={}", quote.to_value, quote.data.routes[0].route_data, messages.len());
@@ -174,7 +174,7 @@ mod tests {
         let provider = Dedust::with_client(mock_ton_client(include_str!("testdata/ton_to_usdt_get_methods.json")));
 
         let quote = provider.get_quote(&mock_request(ton(), usdt(), 1_000_000_000)).await.unwrap();
-        let data = provider.get_quote_data(&quote, FetchQuoteData::None).await.unwrap();
+        let data = provider.get_quote_data(&quote, QuoteDataInput::None).await.unwrap();
 
         assert_eq!(quote.to_value, BigUint::from(1_361_362u64));
         assert_eq!(quote.route_data::<PoolRoute>().unwrap().pools, vec![TON_USDT_POOL]);
@@ -194,7 +194,7 @@ mod tests {
         let provider = Dedust::with_client(mock_ton_client_with_calls(&serde_json::to_string(&records).unwrap(), calls.clone()));
 
         let quote = provider.get_quote(&mock_request(ton(), usdt(), 1_000_000_000)).await.unwrap();
-        let data = provider.get_quote_data(&quote, FetchQuoteData::None).await.unwrap();
+        let data = provider.get_quote_data(&quote, QuoteDataInput::None).await.unwrap();
 
         assert_eq!(data.to, NATIVE_VAULT);
         assert!(!calls.lock().unwrap().iter().any(|method| method == "get_vault_address"));
@@ -234,7 +234,7 @@ mod tests {
         let provider = Dedust::with_client(mock_ton_client(include_str!("testdata/ton_to_stton_get_methods.json")));
 
         let quote = provider.get_quote(&mock_request(ton(), stton(), 10_000_000_000)).await.unwrap();
-        let data = provider.get_quote_data(&quote, FetchQuoteData::None).await.unwrap();
+        let data = provider.get_quote_data(&quote, QuoteDataInput::None).await.unwrap();
 
         assert_eq!(quote.to_value, BigUint::from(8_311_262_099u64));
         assert_eq!(quote.route_data::<PoolRoute>().unwrap().pools, vec![TON_STTON_STABLE_POOL]);
@@ -246,7 +246,7 @@ mod tests {
         let provider = Dedust::with_client(mock_ton_client(include_str!("testdata/usdt_to_not_get_methods.json")));
 
         let quote = provider.get_quote(&mock_request(usdt(), not(), 5_000_000)).await.unwrap();
-        let data = provider.get_quote_data(&quote, FetchQuoteData::None).await.unwrap();
+        let data = provider.get_quote_data(&quote, QuoteDataInput::None).await.unwrap();
 
         assert_eq!(quote.to_value, BigUint::from(12_505_120_147_875u64));
         assert_eq!(quote.route_data::<PoolRoute>().unwrap().pools, vec![TON_USDT_POOL, TON_NOT_POOL]);

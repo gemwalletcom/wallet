@@ -1,5 +1,5 @@
 use super::model::StellarRoute;
-use crate::{FetchQuoteData, ProviderType, Quote, QuoteRequest, RpcClient, RpcProvider, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData, client_factory::create_stellar_client, fees::fee_side};
+use crate::{QuoteDataInput, ProviderType, Quote, QuoteRequest, RpcClient, RpcProvider, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData, client_factory::create_stellar_client, fees::fee_side};
 use async_trait::async_trait;
 use chain_traits::ChainBalances;
 use gem_client::Client;
@@ -65,7 +65,7 @@ impl<C: Client> Swapper for StellarDex<C> {
         Quote::from_route(request, self.provider(), BigUint::from(route.received_value()), request.options.slippage.bps, &route, None)
     }
 
-    async fn get_quote_data(&self, quote: &Quote, _data: FetchQuoteData) -> Result<SwapperQuoteData, SwapperError> {
+    async fn get_quote_data(&self, quote: &Quote, _data: QuoteDataInput) -> Result<SwapperQuoteData, SwapperError> {
         let route: StellarRoute = quote.route_data()?;
         if BigUint::from(route.fee.input_value(route.swap_value)) != quote.from_value {
             return Err(SwapperError::InvalidRoute);
@@ -106,7 +106,7 @@ mod tests {
         let xlm = AssetId::from_chain(Chain::Stellar);
 
         let quote = provider.get_quote(&mock_request(xlm.clone(), eurc(), 502_512_562_814)).await.unwrap();
-        let data: StellarSwapData = serde_json::from_str(&provider.get_quote_data(&quote, FetchQuoteData::None).await.unwrap().data).unwrap();
+        let data: StellarSwapData = serde_json::from_str(&provider.get_quote_data(&quote, QuoteDataInput::None).await.unwrap().data).unwrap();
 
         assert_eq!(quote.to_value, BigUint::from(76_932_168_543u64), "the path through USDC receives more than the direct one");
         assert_eq!(
@@ -130,7 +130,7 @@ mod tests {
             from_value: BigUint::from(502_512_562_815u64),
             ..quote
         };
-        assert_eq!(provider.get_quote_data(&tampered, FetchQuoteData::None).await, Err(SwapperError::InvalidRoute));
+        assert_eq!(provider.get_quote_data(&tampered, QuoteDataInput::None).await, Err(SwapperError::InvalidRoute));
     }
 }
 
@@ -153,7 +153,7 @@ mod swap_integration_tests {
             (STELLAR_USDC_ASSET_ID.clone(), xlm.clone(), 10_000_000_000),
         ] {
             let quote = provider.get_quote(&mock_request(from_asset, to_asset, value)).await?;
-            let data: StellarSwapData = serde_json::from_str(&provider.get_quote_data(&quote, FetchQuoteData::None).await?.data)?;
+            let data: StellarSwapData = serde_json::from_str(&provider.get_quote_data(&quote, QuoteDataInput::None).await?.data)?;
             println!(
                 "{} -> {}: {} for {}, path {:?}, minimum {}",
                 quote.request.from_asset.id, quote.request.to_asset.id, quote.to_value, quote.from_value, data.path, data.destination_min

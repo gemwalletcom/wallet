@@ -61,7 +61,7 @@ mod swap_integration_tests {
 mod tests {
     use super::*;
     use crate::{
-        FetchQuoteData, QuoteRequest, Swapper,
+        QuoteDataInput, QuoteRequest, Swapper,
         meteora_damm_v2::testkit::{TEST_BOTH_TOKEN_POOL, TEST_COMPOUNDING_POOL, TEST_MARKET_CAP_SCHEDULER_POOL, TEST_TIME_SCHEDULER_POOL, mock_pool_snapshot},
         solana_dex::{
             SolanaDex,
@@ -132,7 +132,7 @@ mod tests {
         assert_eq!(damm.get_quote(&sol_to_usdc).await, Err(SwapperError::NoQuoteAvailable));
         assert_eq!(requests.load(Ordering::SeqCst), 7);
 
-        let quote_data = damm.get_quote_data(&quote, FetchQuoteData::None).await.unwrap();
+        let quote_data = damm.get_quote_data(&quote, QuoteDataInput::None).await.unwrap();
         assert_eq!(requests.load(Ordering::SeqCst), 8);
         assert_eq!(quote_data.to, meteora_damm_v2_program().to_base58());
     }

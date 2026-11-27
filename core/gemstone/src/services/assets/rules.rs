@@ -606,7 +606,7 @@ pub fn search_assets_empty_state(shows_add_token: bool) -> GemEmptyState {
 
 pub fn wallet_search_limits(query: &str) -> GemWalletSearchLimits {
     GemWalletSearchLimits {
-        fetch: assets_preview_limit(query) + 1,
+        window: assets_preview_limit(query) + 1,
         results: ASSET_RESULTS_LIMIT,
     }
 }
@@ -1442,7 +1442,7 @@ mod tests {
         };
 
         for query in ["", "usd"] {
-            let limit = wallet_search_limits(query).fetch;
+            let limit = wallet_search_limits(query).window;
             assert!(view(query, limit, 0).has_more_assets, "a full window offers more");
             assert!(view(query, limit, 1).has_more_assets, "a pinned row shares the window, so a full window still offers more");
             assert!(view(query, limit, limit).has_more_assets, "a window full of pinned rows can hide the rest");
@@ -1559,8 +1559,8 @@ mod tests {
 
     #[test]
     fn test_wallet_search_limits_widen_while_searching_and_load_one_more_than_shown() {
-        assert_eq!(wallet_search_limits("  "), GemWalletSearchLimits { fetch: 13, results: 100 });
-        assert_eq!(wallet_search_limits("btc"), GemWalletSearchLimits { fetch: 26, results: 100 });
+        assert_eq!(wallet_search_limits("  "), GemWalletSearchLimits { window: 13, results: 100 });
+        assert_eq!(wallet_search_limits("btc"), GemWalletSearchLimits { window: 26, results: 100 });
     }
 
     #[test]

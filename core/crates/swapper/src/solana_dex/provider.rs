@@ -24,7 +24,7 @@ use super::{
     transaction::DexTransaction,
 };
 use crate::{
-    Contracts, FetchQuoteData, ProviderType, Quote, QuoteRequest, RpcClient, RpcProvider, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperQuoteData,
+    Contracts, QuoteDataInput, ProviderType, Quote, QuoteRequest, RpcClient, RpcProvider, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperQuoteData,
     client_factory::create_client_with_chain,
     error::INVALID_ADDRESS,
     fees::{FeeSide, default_referral_fees, on_chain_referral_fees, subtract_bps},
@@ -518,7 +518,7 @@ impl<P: DexProtocol, C: Client + Clone + Send + Sync + 'static> Swapper for Sola
         Quote::from_route(request, &self.provider, BigUint::from(route.received_value()), request.options.slippage.bps, &route, None)
     }
 
-    async fn get_quote_data(&self, quote: &Quote, _data: FetchQuoteData) -> Result<SwapperQuoteData, SwapperError> {
+    async fn get_quote_data(&self, quote: &Quote, _data: QuoteDataInput) -> Result<SwapperQuoteData, SwapperError> {
         let route: DexRoute = quote.route_data()?;
         let input = SwapToken::from_asset(&quote.request.from_asset)?;
         let output = SwapToken::from_asset(&quote.request.to_asset)?;

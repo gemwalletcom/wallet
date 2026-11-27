@@ -15,7 +15,7 @@ use super::{
     model::{ActionRequest, ActionResponse, AmountLimits, AppFee, StatusResponse},
 };
 use crate::{
-    FetchQuoteData, ProviderType, Quote, QuoteRequest, RpcClient, RpcProvider, SwapAmountMode, SwapResult, SwapResultRequest, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData,
+    QuoteDataInput, ProviderType, Quote, QuoteRequest, RpcClient, RpcProvider, SwapAmountMode, SwapResult, SwapResultRequest, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData,
     client_factory::create_ton_client,
     config::get_swap_provider_url,
     fees::{bps_of, default_referral_fees},
@@ -185,7 +185,7 @@ where
         })
     }
 
-    async fn get_quote_data(&self, quote: &Quote, _data: FetchQuoteData) -> Result<SwapperQuoteData, SwapperError> {
+    async fn get_quote_data(&self, quote: &Quote, _data: QuoteDataInput) -> Result<SwapperQuoteData, SwapperError> {
         let response: ActionResponse = quote.route_data()?;
         let source = SwapsXyzChain::from_chain(quote.request.from_asset.chain()).ok_or(SwapperError::NotSupportedChain)?;
         let destination = SwapsXyzChain::from_chain(quote.request.to_asset.chain()).ok_or(SwapperError::NotSupportedChain)?;
@@ -303,7 +303,7 @@ mod tests {
     async fn test_quote_data_preserves_deposit_memo() {
         let provider = SwapsXyz::with_client(SwapsXyzClient::new(MockClient::new(), MockClient::new()), TonClient::new(MockClient::new()));
         let quote = Quote::mock_swaps_xyz(QuoteRequest::mock_cosmos_to_stellar(), ActionResponse::mock());
-        let data = provider.get_quote_data(&quote, FetchQuoteData::None).await.unwrap();
+        let data = provider.get_quote_data(&quote, QuoteDataInput::None).await.unwrap();
         assert_eq!(data, SwapperQuoteData::new_transfer("deposit".to_string(), BigUint::from(1_000_000_u64), Some("1234".to_string())));
     }
 
@@ -311,7 +311,7 @@ mod tests {
     async fn test_sui_quote_data_is_transfer() {
         let provider = SwapsXyz::with_client(SwapsXyzClient::new(MockClient::new(), MockClient::new()), TonClient::new(MockClient::new()));
         let quote = Quote::mock_swaps_xyz(QuoteRequest::mock_sui_to_ton(), ActionResponse::mock_sui_to_ton());
-        let data = provider.get_quote_data(&quote, FetchQuoteData::None).await.unwrap();
+        let data = provider.get_quote_data(&quote, QuoteDataInput::None).await.unwrap();
         assert_eq!(
             data,
             SwapperQuoteData::new_transfer("0x82d03c6b623f1e15164c9329b1c49e066ff7814be70ff86f8e19125292661040".to_string(), BigUint::from(3_379_105_015_u64), None)

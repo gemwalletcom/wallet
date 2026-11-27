@@ -428,7 +428,7 @@ impl GemSwapSession {
         }
     }
 
-    pub fn on_fetch_started(&self, request: GemSwapRequest) -> GemSwapSession {
+    pub fn on_quote_start(&self, request: GemSwapRequest) -> GemSwapSession {
         if !self.accepts_quote_phase() {
             return self.clone();
         }
@@ -1016,7 +1016,7 @@ mod tests {
         let refreshed = started.on_quote_results(GemSwapQuotesResult::mock(vec![SwapperQuote::mock_with_provider(SwapperProvider::Okx, "99")]));
         assert_eq!(refreshed.quote().unwrap().to_value, BigUint::from(10u32));
         assert!(refreshed.is_transfer_loading());
-        assert_eq!(refreshed.on_fetch_started(GemSwapRequest::mock()), refreshed);
+        assert_eq!(refreshed.on_quote_start(GemSwapRequest::mock()), refreshed);
 
         assert!(start(&GemSwapSession::default()).is_none());
     }
@@ -1079,7 +1079,7 @@ mod tests {
         assert!(!handed_off.refreshes_quotes(true));
         assert!(handed_off.on_refresh_resumed().refreshes_quotes(true));
         assert!(!handed_off.on_refresh_resumed().refreshes_quotes(false));
-        assert_eq!(handed_off.on_fetch_started(GemSwapRequest::mock()), handed_off);
+        assert_eq!(handed_off.on_quote_start(GemSwapRequest::mock()), handed_off);
 
         assert_eq!(GemSwapSession::mock_ready().on_transfer_handed_off(GemSwapTransferPhase::Idle), GemSwapSession::mock_ready());
     }
@@ -1101,7 +1101,7 @@ mod tests {
         assert!(failed.refreshes_quotes(true));
 
         let refreshed = failed
-            .on_fetch_started(GemSwapRequest::mock())
+            .on_quote_start(GemSwapRequest::mock())
             .on_quote_results(GemSwapQuotesResult::mock(vec![SwapperQuote::mock_with_provider(SwapperProvider::Okx, "99")]));
 
         assert_eq!(refreshed.transfer_phase, GemSwapTransferPhase::Idle);
@@ -1201,7 +1201,7 @@ mod tests {
     fn test_quotes_state_puts_loading_before_an_error_and_an_error_before_quotes() {
         assert_eq!(view(&GemSwapSession::default(), 0).quotes_state, GemSwapQuotesState::Empty);
 
-        let loading = GemSwapSession::mock_ready().on_fetch_started(GemSwapRequest::mock());
+        let loading = GemSwapSession::mock_ready().on_quote_start(GemSwapRequest::mock());
         assert_eq!(view(&loading, 0).quotes_state, GemSwapQuotesState::Loading);
 
         let failed = GemSwapSession {
@@ -1474,7 +1474,7 @@ mod tests {
 
     #[test]
     fn test_a_new_request_drops_the_answers_of_the_one_before() {
-        let restarted = two_of_three().on_fetch_started(GemSwapRequest::mock());
+        let restarted = two_of_three().on_quote_start(GemSwapRequest::mock());
         let late = restarted.on_provider_answer(GemSwapRequest::mock(), failed_answer(SwapperProvider::NearIntents, SwapperError::NoQuoteAvailable));
         assert_eq!(late, restarted, "an answer from the fetch before is not counted");
 
@@ -1521,7 +1521,7 @@ mod tests {
             ..mock_asset_data(Chain::Solana, 0)
         };
         let shown = ready.view_state(Some(mock_asset_data(Chain::Ethereum, 1000)), Some(receive.clone()), Currency::USD);
-        let refreshing = ready.on_fetch_started(request).view_state(Some(mock_asset_data(Chain::Ethereum, 1000)), Some(receive), Currency::USD);
+        let refreshing = ready.on_quote_start(request).view_state(Some(mock_asset_data(Chain::Ethereum, 1000)), Some(receive), Currency::USD);
 
         assert!(shown.receive_amount.is_some() && shown.receive.fiat.is_some());
         assert!(refreshing.is_receive_loading);

@@ -3,7 +3,7 @@ use std::sync::{Arc, Mutex};
 use num_bigint::{BigInt, BigUint};
 use primitives::{Asset, AssetData, AssetId, Balance, Chain, RecentActivityType, WalletId};
 use swapper::testkit::MockSwapper;
-use swapper::{FetchQuoteData, ProviderType, Quote, QuoteRequest, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData};
+use swapper::{QuoteDataInput, ProviderType, Quote, QuoteRequest, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData};
 
 use super::GemSwapService;
 use super::model::{GemSwapButtonInput, GemSwapPair};
@@ -182,7 +182,7 @@ impl Swapper for SilentSwapper {
         futures::future::pending().await
     }
 
-    async fn get_quote_data(&self, _quote: &Quote, _data: FetchQuoteData) -> Result<SwapperQuoteData, SwapperError> {
+    async fn get_quote_data(&self, _quote: &Quote, _data: QuoteDataInput) -> Result<SwapperQuoteData, SwapperError> {
         Err(SwapperError::NoQuoteAvailable)
     }
 }

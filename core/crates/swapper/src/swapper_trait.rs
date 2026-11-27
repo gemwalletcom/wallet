@@ -2,7 +2,7 @@ use super::{
     Contracts, SwapperQuoteData, contract_check,
     cross_chain::VaultAddresses,
     error::SwapperError,
-    models::{FetchQuoteData, ProviderType, Quote, QuoteRequest, SwapAmountMode, SwapResult, SwapResultRequest, SwapperChainAsset},
+    models::{QuoteDataInput, ProviderType, Quote, QuoteRequest, SwapAmountMode, SwapResult, SwapResultRequest, SwapperChainAsset},
 };
 use async_trait::async_trait;
 use num_bigint::BigUint;
@@ -23,7 +23,7 @@ pub trait Swapper: Send + Sync + Debug {
     }
     async fn preload_routes(&self, _from_asset: &AssetId, _to_asset: &AssetId) {}
     async fn get_quote(&self, request: &QuoteRequest) -> Result<Quote, SwapperError>;
-    async fn get_quote_data(&self, quote: &Quote, data: FetchQuoteData) -> Result<SwapperQuoteData, SwapperError>;
+    async fn get_quote_data(&self, quote: &Quote, data: QuoteDataInput) -> Result<SwapperQuoteData, SwapperError>;
     async fn get_vault_addresses(&self) -> Result<VaultAddresses, SwapperError> {
         Ok(VaultAddresses { deposit: vec![], send: vec![] })
     }

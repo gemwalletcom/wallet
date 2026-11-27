@@ -19,7 +19,7 @@ use super::{
     solana, ton,
 };
 use crate::{
-    Contracts, FetchQuoteData, ProviderType, Quote, QuoteRequest, RpcClient, RpcProvider, SwapAmountMode, SwapResult, SwapResultRequest, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData,
+    Contracts, QuoteDataInput, ProviderType, Quote, QuoteRequest, RpcClient, RpcProvider, SwapAmountMode, SwapResult, SwapResultRequest, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData,
     approval::check_token_approval,
     client_factory::create_ton_client,
     config::get_swap_proxy_url,
@@ -123,7 +123,7 @@ where
         })
     }
 
-    async fn get_quote_data(&self, quote: &Quote, _data: FetchQuoteData) -> Result<SwapperQuoteData, SwapperError> {
+    async fn get_quote_data(&self, quote: &Quote, _data: QuoteDataInput) -> Result<SwapperQuoteData, SwapperError> {
         let response: RelayQuoteResponse = quote.route_data()?;
 
         let from_asset_id = quote.request.from_asset.asset_id();
@@ -283,7 +283,7 @@ mod tests {
         }];
         let relay = Relay::new(Arc::new(ProviderMock::new(String::new())));
         assert_eq!(relay.amount_mode(&quote.request), SwapAmountMode::Flexible);
-        let data = relay.get_quote_data(&quote, FetchQuoteData::None).await.unwrap();
+        let data = relay.get_quote_data(&quote, QuoteDataInput::None).await.unwrap();
         assert_eq!(
             (data.to.as_str(), data.value, data.data_type, data.memo),
             ("bc1qa0z550eacdsxytnxf9yk7xvvhqzqvlx2tl44z2", quote.from_value, SwapQuoteDataType::Transfer, None)
@@ -331,7 +331,7 @@ mod tests {
         quote.request.wallet_address = "TW1dU4L3eNm7Lw8WvieLKEHpXWAussRG9Z".to_string();
 
         let relay = Relay::new(Arc::new(ProviderMock::mock_tron_constant_result("0")));
-        let quote_data = relay.get_quote_data(&quote, FetchQuoteData::None).await?;
+        let quote_data = relay.get_quote_data(&quote, QuoteDataInput::None).await?;
         let approval = quote_data.approval.unwrap();
         assert_eq!(quote_data.to, "TXtEs6t2oUWQsNos7m68gbHdE9Q5n6x2oN");
         assert_eq!(approval.token, TRON_USDT_TOKEN_ID);
@@ -341,7 +341,7 @@ mod tests {
         assert_eq!(quote_data.gas_limit, Some(DEFAULT_TRON_SWAP_ENERGY_LIMIT.to_string()));
 
         let relay = Relay::new(Arc::new(ProviderMock::mock_tron_constant_result("f4240")));
-        let quote_data = relay.get_quote_data(&quote, FetchQuoteData::None).await?;
+        let quote_data = relay.get_quote_data(&quote, QuoteDataInput::None).await?;
         assert!(quote_data.approval.is_none());
         assert!(quote_data.gas_limit.is_none());
 
@@ -356,7 +356,7 @@ mod tests {
         }];
         native_quote.request.wallet_address = quote.request.wallet_address.clone();
         native_quote.from_value = native_quote.request.value.clone();
-        let quote_data = relay.get_quote_data(&native_quote, FetchQuoteData::None).await?;
+        let quote_data = relay.get_quote_data(&native_quote, QuoteDataInput::None).await?;
         assert_eq!(quote_data.value, native_quote.from_value);
         assert!(quote_data.approval.is_none());
 
@@ -391,7 +391,7 @@ mod swap_integration_tests {
             options: Options::default(),
         };
         let quote = relay.get_quote(&request).await?;
-        let data = relay.get_quote_data(&quote, FetchQuoteData::None).await?;
+        let data = relay.get_quote_data(&quote, QuoteDataInput::None).await?;
         assert_eq!(quote.from_value, request.value);
         assert!(quote.to_value > BigUint::ZERO);
         assert_eq!((data.value, data.data_type, data.approval), (quote.from_value, SwapQuoteDataType::Transfer, None));
@@ -416,7 +416,7 @@ mod swap_integration_tests {
         };
 
         let quote = relay.get_quote(&request).await?;
-        let quote_data = relay.get_quote_data(&quote, FetchQuoteData::None).await?;
+        let quote_data = relay.get_quote_data(&quote, QuoteDataInput::None).await?;
 
         println!("quote: from_value={}, to_value={}", quote.from_value, quote.to_value);
         println!("quote_data: to={}, value={}, data_len={}", quote_data.to, quote_data.value, quote_data.data.len());
@@ -501,7 +501,7 @@ mod swap_integration_tests {
         assert_eq!(quote.from_value, request.value);
         assert!(quote.to_value > BigUint::ZERO);
 
-        let quote_data = relay.get_quote_data(&quote, FetchQuoteData::None).await?;
+        let quote_data = relay.get_quote_data(&quote, QuoteDataInput::None).await?;
         println!("solana transaction: {}", quote_data.data);
         let transaction = gem_solana::decode_transaction(&quote_data.data)?;
         assert_eq!(transaction.num_required_signatures(), 1);
@@ -518,7 +518,7 @@ mod swap_integration_tests {
         };
         let quote = relay.get_quote(&usdt_request).await?;
         assert_eq!(quote.from_value, usdt_request.value);
-        let quote_data = relay.get_quote_data(&quote, FetchQuoteData::None).await?;
+        let quote_data = relay.get_quote_data(&quote, QuoteDataInput::None).await?;
         assert!(gem_solana::decode_transaction(&quote_data.data).is_ok());
         assert!(quote_data.approval.is_none());
 
@@ -555,7 +555,7 @@ mod swap_integration_tests {
         assert_eq!(quote.from_value, request.value);
         assert!(quote.to_value > BigUint::ZERO);
 
-        let quote_data = relay.get_quote_data(&quote, FetchQuoteData::None).await?;
+        let quote_data = relay.get_quote_data(&quote, QuoteDataInput::None).await?;
         println!("ton quote_data: to={}, value={}, data={}", quote_data.to, quote_data.value, quote_data.data);
         assert!(quote_data.to.starts_with("EQ"));
         assert_eq!(quote_data.value, request.value);
@@ -597,7 +597,7 @@ mod swap_integration_tests {
         };
 
         let quote = relay.get_quote(&request).await?;
-        let quote_data = relay.get_quote_data(&quote, FetchQuoteData::None).await?;
+        let quote_data = relay.get_quote_data(&quote, QuoteDataInput::None).await?;
 
         println!("quote: from_value={}, to_value={}", quote.from_value, quote.to_value);
         println!("quote_data: to={}, value={}, data_len={}", quote_data.to, quote_data.value, quote_data.data.len());
@@ -624,7 +624,7 @@ mod swap_integration_tests {
         };
 
         let quote = relay.get_quote(&request).await?;
-        let quote_data = relay.get_quote_data(&quote, FetchQuoteData::None).await?;
+        let quote_data = relay.get_quote_data(&quote, QuoteDataInput::None).await?;
 
         println!("quote: from_value={}, to_value={}", quote.from_value, quote.to_value);
         println!("quote_data: to={}, value={}, gas_limit={:?}", quote_data.to, quote_data.value, quote_data.gas_limit);
@@ -650,7 +650,7 @@ mod swap_integration_tests {
         };
 
         let quote = relay.get_quote(&request).await?;
-        let quote_data = relay.get_quote_data(&quote, FetchQuoteData::None).await?;
+        let quote_data = relay.get_quote_data(&quote, QuoteDataInput::None).await?;
 
         println!("quote: from_value={}, to_value={}", quote.from_value, quote.to_value);
         println!("quote_data: to={}, value={}, data_len={}", quote_data.to, quote_data.value, quote_data.data.len());
@@ -675,7 +675,7 @@ mod swap_integration_tests {
         };
 
         let quote = relay.get_quote(&request).await?;
-        let quote_data = relay.get_quote_data(&quote, FetchQuoteData::None).await?;
+        let quote_data = relay.get_quote_data(&quote, QuoteDataInput::None).await?;
 
         assert!(quote.to_value > BigUint::ZERO);
         assert_eq!(quote_data.value, request.value);
@@ -695,7 +695,7 @@ mod swap_integration_tests {
         };
 
         let quote = relay.get_quote(&request).await?;
-        let quote_data = relay.get_quote_data(&quote, FetchQuoteData::None).await?;
+        let quote_data = relay.get_quote_data(&quote, QuoteDataInput::None).await?;
 
         assert_eq!(quote_data.value, BigUint::from(0u64));
         assert!(!quote_data.to.is_empty());

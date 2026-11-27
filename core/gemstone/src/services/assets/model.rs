@@ -496,7 +496,7 @@ mod tests {
 
 #[derive(Debug, Clone, PartialEq, uniffi::Record)]
 pub struct GemWalletSearchLimits {
-    pub fetch: usize,
+    pub window: usize,
     pub results: usize,
 }
 

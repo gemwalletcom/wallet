@@ -22,7 +22,7 @@ use super::{
     xrp::get_transaction_memo,
 };
 use crate::{
-    Contracts, FetchQuoteData, ProviderType, Quote, QuoteRequest, RpcClient, RpcProvider, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData,
+    Contracts, QuoteDataInput, ProviderType, Quote, QuoteRequest, RpcClient, RpcProvider, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData,
     approval::{check_approval_erc20, get_swap_gas_limit_with_approval},
     client_factory::{create_ton_client, create_xrp_client},
     config::get_swap_proxy_url,
@@ -174,7 +174,7 @@ impl Swapper for Bridgers {
         Ok(vault_addresses())
     }
 
-    async fn get_quote_data(&self, quote: &Quote, _data: FetchQuoteData) -> Result<SwapperQuoteData, SwapperError> {
+    async fn get_quote_data(&self, quote: &Quote, _data: QuoteDataInput) -> Result<SwapperQuoteData, SwapperError> {
         let request = &quote.request;
         let network = Network::from_chain(request.from_asset.chain())?;
         let to_code = get_token_code(&request.to_asset.asset_id())?;
@@ -229,7 +229,7 @@ mod swap_integration_tests {
 
         for request in [mock_base_usdc_to_ton_usdt_request(), mock_ton_to_bsc_usdt_request(), mock_xrp_to_bsc_usdt_request()] {
             let quote = provider.get_quote(&request).await?;
-            let data = provider.get_quote_data(&quote, FetchQuoteData::None).await?;
+            let data = provider.get_quote_data(&quote, QuoteDataInput::None).await?;
             (&provider as &dyn Swapper).verify_contracts(&quote, &data)?;
             let network = Network::from_chain(request.from_asset.chain())?;
 
@@ -252,7 +252,7 @@ mod swap_integration_tests {
         );
 
         let quote = provider.get_quote(&mock_ton_usdt_to_bsc_usdt_request()).await?;
-        let data = provider.get_quote_data(&quote, FetchQuoteData::None).await?;
+        let data = provider.get_quote_data(&quote, QuoteDataInput::None).await?;
         (&provider as &dyn Swapper).verify_contracts(&quote, &data)?;
 
         assert_eq!((data.to.as_str(), data.value), ("EQCcPR6bD3c161LJe1hVCFni-z9y7fCkFtpSYwrKncccG4nG", BigUint::from(60_000_000u64)));
