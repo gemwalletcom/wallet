@@ -1,7 +1,7 @@
 use super::{AlienError, AlienProvider, AlienResponse, AlienTarget};
 
 use async_trait::async_trait;
-use futures_channel::oneshot;
+use futures::channel::oneshot;
 use std::{
     collections::HashMap,
     mem::DropGuard,
@@ -128,7 +128,7 @@ mod tests {
         async fn request(&self, _target: AlienTarget) -> Result<Arc<AlienResponse>, AlienError> {
             let count = self.count.fetch_add(1, Ordering::SeqCst);
             if count == 0 {
-                futures_util::future::pending().await
+                futures::future::pending().await
             } else {
                 Ok(Arc::new(AlienResponse::new(Some(200), HashMap::new(), b"{}".to_vec())))
             }

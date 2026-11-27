@@ -2,7 +2,6 @@ use async_trait::async_trait;
 use chain_traits::ChainStaking;
 use std::error::Error;
 
-use futures_util::future::{try_join, try_join3};
 use gem_client::Client;
 use primitives::{DateTime, DelegationBase, DelegationValidator};
 
@@ -14,7 +13,7 @@ use crate::{
 #[async_trait]
 impl<C: Client + Clone> ChainStaking for SolanaProvider<C> {
     async fn get_staking_apy(&self) -> Result<Option<f64>, Box<dyn Error + Sync + Send>> {
-        let (inflation_rate, supply, accounts) = try_join3(self.get_inflation_rate(), self.get_supply(), self.get_vote_accounts(false)).await?;
+        let (inflation_rate, supply, accounts) = futures::try_join!(self.get_inflation_rate(), self.get_supply(), self.get_vote_accounts(false))?;
         let total_active_stake = accounts.current.iter().map(|validator| validator.activated_stake).sum();
         Ok(Some(calculate_network_apy(inflation_rate.validator, supply.value.total, total_active_stake)))
     }
@@ -24,7 +23,7 @@ impl<C: Client + Clone> ChainStaking for SolanaProvider<C> {
         let network_apy = match apy {
             Some(apy) => apy,
             None => {
-                let (inflation_rate, supply) = try_join(self.get_inflation_rate(), self.get_supply()).await?;
+                let (inflation_rate, supply) = futures::try_join!(self.get_inflation_rate(), self.get_supply())?;
                 let total_active_stake = accounts.current.iter().map(|validator| validator.activated_stake).sum();
                 calculate_network_apy(inflation_rate.validator, supply.value.total, total_active_stake)
             }
@@ -33,7 +32,7 @@ impl<C: Client + Clone> ChainStaking for SolanaProvider<C> {
     }
 
     async fn get_staking_delegations(&self, address: String) -> Result<Vec<DelegationBase>, Box<dyn Error + Sync + Send>> {
-        let (epoch, accounts) = try_join(self.get_epoch_info(), self.get_staking_balance(&address)).await?;
+        let (epoch, accounts) = futures::try_join!(self.get_epoch_info(), self.get_staking_balance(&address))?;
         Ok(map_staking_delegations(accounts, epoch, self.get_chain().as_asset_id(), DateTime::now()))
     }
 }

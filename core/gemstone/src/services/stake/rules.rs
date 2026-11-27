@@ -7,16 +7,14 @@ use crate::services::collections::{stale, unique};
 use gem_crypto::random;
 use num_bigint::{BigInt, BigUint};
 use primitives::Platform;
-use primitives::{
-    AddressFormatStyle, AddressFormatter, AddressType, Asset, BlockExplorerLink, Chain, Currency, Delegation, DelegationBase, DelegationState, DelegationValidator, EarnType, RedelegateData, Resource, StakeChain, StakeProviderType,
-    StakeType, VerificationStatus, WalletType, YieldProvider,
-};
+use primitives::{AddressFormatStyle, AddressFormatter, AddressType, Asset, BlockExplorerLink, Chain, Currency, Delegation, DelegationBase, DelegationState, DelegationValidator, EarnType, RedelegateData, Resource, StakeChain, StakeProviderType, StakeType, VerificationStatus, WalletType, YieldProvider};
 use primitives::{AddressName, DateTime, OptionStringExt};
 use std::str::FromStr;
 
 use super::model::{
     GemDelegationAction, GemDelegationActionItem, GemDelegationActionTarget, GemDelegationAmountInput, GemDelegationDestination, GemDelegationDetails, GemDelegationListRow, GemDelegationStatus, GemEarnInput, GemEarnSection, GemEarnView,
-    GemStakeAction, GemStakeActionItem, GemStakeActionKind, GemStakeAmountInput, GemStakeAmountSelection, GemStakeDelegationItem, GemStakeDestination, GemStakeInput, GemStakeSection, GemStakeViewState, GemValidatorRow,
+    GemStakeAction, GemStakeActionItem, GemStakeActionKind, GemStakeAmountInput, GemStakeAmountSelection, GemStakeDelegationItem, GemStakeDestination, GemStakeInput, GemStakeSection, GemStakeViewState,
+    GemValidatorRow,
 };
 use crate::config::image::GemImage;
 use crate::config::stake::EARN_OFFERED;
@@ -2282,11 +2280,7 @@ mod tests {
         assert_eq!(empty.positions_phase, Some(GemListPhase::Empty { state: empty_state(GemEmptyStateKind::Earn) }));
         assert_eq!(empty.sections, vec![GemEarnSection::Manage]);
 
-        assert_eq!(
-            view(error, vec![provider.clone()], vec![position.clone()]).positions_phase,
-            Some(GemListPhase::Rows),
-            "a failed refresh keeps the shown positions"
-        );
+        assert_eq!(view(error, vec![provider.clone()], vec![position.clone()]).positions_phase, Some(GemListPhase::Rows), "a failed refresh keeps the shown positions");
 
         let invested = view(GemLoadState::Data, vec![provider], vec![position]);
         assert_eq!(invested.positions_phase, Some(GemListPhase::Rows));

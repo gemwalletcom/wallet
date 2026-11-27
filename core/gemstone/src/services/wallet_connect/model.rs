@@ -1,13 +1,13 @@
 use crate::application::GemConnectionRow;
 use crate::formatted_number::GemValueTone;
 use crate::models::list::{GemGroup, GemGroupList, GemListRow, GemListRowTitle, GemRowAction};
-use crate::services::error_text::GemErrorText;
-use crate::services::localization::GemLocalizedText;
-use crate::services::transfer::GemTransferData;
 use crate::services::wallet::model::wallet_row;
 use crate::services::wallet_connect::sign_message::network_row;
 use crate::services::wallet_session::rules::can_choose_wallet;
-use primitives::{Account, Asset, Chain, SimulationResult, VerificationStatus, Wallet, WalletConnection, WalletConnectionSession, WalletConnectionSessionProposal, WalletConnectionVerificationStatus, WalletId};
+use crate::services::error_text::GemErrorText;
+use crate::services::localization::GemLocalizedText;
+use crate::services::transfer::GemTransferData;
+use primitives::{Account, Asset, Chain, SimulationResult, VerificationStatus, Wallet, WalletConnection, WalletId, WalletConnectionSession, WalletConnectionSessionProposal, WalletConnectionVerificationStatus};
 
 use crate::message::sign_type::SignMessage;
 use gem_wallet_connect::WalletConnectResponseType;
@@ -182,7 +182,9 @@ fn verification_row(status: WalletConnectionVerificationStatus) -> GemListRow {
 }
 
 fn review_wallet_row(proposal: &WalletConnectionSessionProposal, wallet_id: Option<WalletId>) -> GemListRow {
-    let wallet = wallet_id.and_then(|wallet_id| proposal.wallets.iter().find(|wallet| wallet.id == wallet_id)).unwrap_or(&proposal.default_wallet);
+    let wallet = wallet_id
+        .and_then(|wallet_id| proposal.wallets.iter().find(|wallet| wallet.id == wallet_id))
+        .unwrap_or(&proposal.default_wallet);
     GemListRow::Wallet {
         title: GemListRowTitle::Wallet,
         wallet: wallet_row(wallet.clone()),

@@ -1,4 +1,6 @@
-use futures_util::future::{try_join, try_join4};
+use std::{collections::HashMap, fmt::Debug, sync::Arc};
+
+use futures::try_join;
 use gem_client::Client;
 use gem_sui::tx_builder::{Argument, TransactionBuilder};
 use gem_sui::types::Address;
@@ -7,7 +9,6 @@ use gem_sui::{
     models::{Coin, OwnedCoins, TxOutput},
     tx_builder::{ResolvedObjectInput, TransactionBuilderInput, finish_transaction, move_call},
 };
-use std::{collections::HashMap, fmt::Debug, sync::Arc};
 
 use super::{FAST_MCTP_PAYLOAD_TYPE_DEFAULT, circle_max_fee64, fast_mctp_input_contract, fast_mctp_min_finality, redeem_relayer_fee, referrer_bytes, token_out};
 use crate::{
@@ -60,7 +61,7 @@ impl PrefetchedFastMctpData {
         let input_coins = get_sui_input_coins(client, sender, route, input_contract);
         let objects = get_sui_objects(client, object_ids);
         let package_id = get_package_id(client, SUI_FAST_MCTP_STATE, package_id_cache);
-        let (transaction, input_coins, objects, package_id) = try_join4(transaction, input_coins, objects, package_id).await?;
+        let (transaction, input_coins, objects, package_id) = try_join!(transaction, input_coins, objects, package_id)?;
 
         Ok(Self {
             transaction,
@@ -83,7 +84,7 @@ where
     let sui_client = create_sui_client(rpc_provider)?;
     let prefetched = PrefetchedFastMctpData::prefetch(&sui_client, &quote.request.wallet_address, route, package_id_cache);
     let swap = get_swap_transaction(client, &sui_client, quote, route);
-    let (prefetched, swap) = try_join(prefetched, swap).await?;
+    let (prefetched, swap) = try_join!(prefetched, swap)?;
 
     sui_swap::build_quote_data(&sui_client, prefetched.transaction.gas_coin_total, |gas_budget| {
         build_fast_mctp_transaction(quote, route, &prefetched, swap.as_ref(), gas_budget)

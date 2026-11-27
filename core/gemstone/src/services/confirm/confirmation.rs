@@ -2,7 +2,6 @@ use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, Mutex, MutexGuard};
 use std::time::Instant;
 
-use futures_util::future::join3;
 use primitives::{AddressName, AssetId, ChainAddress, PaymentVerification, PerpetualType, SimulationResult, TransactionInputType, Wallet};
 
 use super::error::GemConfirmErrorInfo;
@@ -76,7 +75,7 @@ impl GemConfirmation {
                 None => None,
             }
         };
-        let (screen, fee, requested) = join3(Box::pin(self.state()), Box::pin(self.load_fee(&input, options)), Box::pin(requested)).await;
+        let (screen, fee, requested) = futures::join!(Box::pin(self.state()), Box::pin(self.load_fee(&input, options)), Box::pin(requested));
         let (fee, swap) = Box::pin(self.service.fitted_max_swap(&self.wallet, fee?, swap, now)).await?;
         let requested = requested.transpose()?;
         let screen = GemConfirmLoad {

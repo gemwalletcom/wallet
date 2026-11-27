@@ -2,7 +2,6 @@ use std::collections::HashSet;
 use std::error::Error;
 
 use ankr::Client as AnkrClient;
-use futures_util::future::try_join;
 use gem_client::Client as Transport;
 use num_bigint::BigUint;
 
@@ -10,7 +9,7 @@ use super::{EVMIndexerClient, TransactionReference};
 
 impl<C: Transport + Clone> EVMIndexerClient for AnkrClient<C> {
     async fn get_transactions_by_address(&self, address: &str, limit: usize) -> Result<Vec<TransactionReference>, Box<dyn Error + Send + Sync>> {
-        let (transactions, token_transfers) = try_join(self.get_transactions(address, limit), self.get_token_transfers(address, limit)).await?;
+        let (transactions, token_transfers) = futures::try_join!(self.get_transactions(address, limit), self.get_token_transfers(address, limit))?;
         let hashes = transactions.into_iter().map(|transaction| transaction.hash).chain(token_transfers.into_iter().map(|transfer| transfer.transaction_hash));
         let mut seen = HashSet::new();
         Ok(hashes.filter(|hash| seen.insert(hash.clone())).map(|hash| TransactionReference::new(hash, None)).collect())

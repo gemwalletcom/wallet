@@ -11,7 +11,6 @@ use crate::models::{
 use crate::provider::state_mapper::map_transfer_fee;
 use crate::rpc::target::CosmosTarget;
 use chain_traits::{ChainAccount, ChainAddressStatus, ChainPerpetual, ChainSimulation, ChainTraits};
-use futures_util::future::try_join;
 use gem_client::{Client, ClientError, ClientExt};
 use gem_encoding::encode_base64;
 use num_bigint::BigInt;
@@ -62,7 +61,7 @@ impl<C: Client> CosmosClient<C> {
 
         let outbound_query = format!("message.sender='{address}'");
         let inbound_query = format!("transfer.recipient='{address}'");
-        let (outbound, inbound) = try_join(self.get_transactions_by_query(key, &outbound_query, limit), self.get_transactions_by_query(key, &inbound_query, limit)).await?;
+        let (outbound, inbound) = futures::try_join!(self.get_transactions_by_query(key, &outbound_query, limit), self.get_transactions_by_query(key, &inbound_query, limit))?;
         let responses = outbound.tx_responses.into_iter().chain(inbound.tx_responses);
         let txs = outbound.txs.into_iter().chain(inbound.txs).collect::<Vec<_>>();
         Ok(responses.zip(txs).map(|(response, tx)| TransactionResponse { tx, tx_response: response }).collect::<Vec<_>>())

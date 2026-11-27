@@ -4,7 +4,6 @@ use std::error::Error;
 use async_trait::async_trait;
 #[cfg(feature = "rpc")]
 use chain_traits::{ChainBlockTransactions, ChainTransaction, TransactionIdRequest};
-use futures_util::future::try_join3;
 use gem_client::Client;
 use gem_jsonrpc::types::JsonRpcError;
 use num_bigint::BigUint;
@@ -45,12 +44,11 @@ impl<C: Client + Clone> EthereumProvider<C> {
 
     pub async fn get_transaction_with_receipt(&self, request: TransactionIdRequest) -> Result<Option<(Transaction, TransactionReceipt)>, Box<dyn Error + Sync + Send>> {
         let TransactionIdRequest { hash, block_number, .. } = request;
-        let (transaction, receipt, timestamp) = try_join3(
+        let (transaction, receipt, timestamp) = futures::try_join!(
             self.client.request::<Option<RpcTransaction>, _>(EthereumRpc::GetTransactionByHash { hash: hash.clone() }),
             self.client.request::<Option<TransactionReceipt>, _>(EthereumRpc::GetTransactionReceipt { hash }),
             self.known_block_timestamp(block_number),
-        )
-        .await?;
+        )?;
         let (Some(transaction), Some(receipt)) = (transaction, receipt) else {
             return Ok(None);
         };

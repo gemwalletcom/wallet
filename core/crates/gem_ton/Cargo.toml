@@ -9,7 +9,7 @@ rpc = [
     "dep:async-trait",
     "dep:gem_client",
     "dep:chain_traits",
-    "dep:futures-util",
+    "dep:futures",
 ]
 tvm = ["dep:gem_hash"]
 signer = ["tvm", "dep:signer"]
@@ -29,7 +29,7 @@ serde_serializers = { path = "../serde_serializers", features = ["bigint"] }
 async-trait = { workspace = true, optional = true }
 gem_client = { path = "../gem_client", optional = true }
 chain_traits = { path = "../chain_traits", optional = true }
-futures-util = { workspace = true, optional = true }
+futures = { workspace = true, optional = true }
 
 # Optional signer dependencies
 signer = { path = "../signer", optional = true }

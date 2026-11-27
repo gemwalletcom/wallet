@@ -1,6 +1,6 @@
 use async_trait::async_trait;
 use chain_traits::{ChainBlockTransactions, ChainTransaction, ChainTransactions, TransactionIdRequest, TransactionsRequest, TransactionsResult};
-use futures_util::{StreamExt, TryStreamExt, stream};
+use futures::{StreamExt, TryStreamExt, stream};
 use std::error::Error;
 
 use gem_client::Client;

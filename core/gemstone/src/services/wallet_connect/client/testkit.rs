@@ -38,7 +38,7 @@ pub struct MemoryTransport {
 impl GemSocketTransport for MemoryTransport {
     async fn send(&self, message: String) -> Result<(), GemServiceError> {
         if self.stalled.load(Ordering::SeqCst) {
-            return futures_util::future::pending().await;
+            return futures::future::pending().await;
         }
         self.frames.lock().unwrap().push(message);
         Ok(())

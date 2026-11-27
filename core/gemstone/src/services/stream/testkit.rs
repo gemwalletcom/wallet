@@ -3,7 +3,7 @@ use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use async_trait::async_trait;
-use futures_channel::oneshot;
+use futures::channel::oneshot;
 use primitives::{AssetId, Chain, PriceAlert, StreamMessage, WalletId};
 
 use super::{GemStreamConnection, GemStreamSubscriptionService};

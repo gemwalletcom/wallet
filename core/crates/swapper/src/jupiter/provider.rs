@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use futures_util::future::try_join;
+use futures::try_join;
 use gem_client::Client;
 use gem_jsonrpc::client::JsonRpcClient;
 use gem_solana::{
@@ -65,7 +65,7 @@ where
             return Ok(get_token_account(referral_address, mint, TOKEN_PROGRAM)?);
         }
 
-        let (input_program, output_program) = try_join(self.get_token_program(from_asset), self.get_token_program(to_asset)).await?;
+        let (input_program, output_program) = try_join!(self.get_token_program(from_asset), self.get_token_program(to_asset))?;
         let candidates = vec![get_token_account(referral_address, &input_mint, &input_program)?, get_token_account(referral_address, &output_mint, &output_program)?];
         let accounts: ValueResult<Vec<Option<AccountData>>> = self.rpc_client.request(SolanaRpc::GetMultipleAccounts(candidates.clone())).await?;
         candidates

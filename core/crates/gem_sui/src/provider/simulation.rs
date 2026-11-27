@@ -2,7 +2,7 @@ use std::error::Error;
 
 use async_trait::async_trait;
 use chain_traits::{ChainSimulation, ChainToken};
-use futures_util::future::join_all;
+use futures::future::join_all;
 use primitives::{Asset, Chain, SimulationBalanceChange, SimulationInput, SimulationResult};
 
 use crate::decode_transaction;

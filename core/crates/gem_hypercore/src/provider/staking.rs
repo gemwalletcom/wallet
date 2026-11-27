@@ -1,8 +1,8 @@
 use async_trait::async_trait;
 use chain_traits::ChainStaking;
+use futures::try_join;
 use std::error::Error;
 
-use futures_util::future::try_join;
 use gem_client::Client;
 use primitives::{DateTime, DelegationBase, DelegationValidator};
 
@@ -22,7 +22,7 @@ impl<C: Client> ChainStaking for HyperCoreClient<C> {
     }
 
     async fn get_staking_delegations(&self, address: String) -> Result<Vec<DelegationBase>, Box<dyn Error + Sync + Send>> {
-        let (delegations, history) = try_join(self.get_staking_delegations(&address), self.get_delegator_history(&address)).await?;
+        let (delegations, history) = try_join!(self.get_staking_delegations(&address), self.get_delegator_history(&address))?;
         Ok(staking_mapper::map_staking_delegations(delegations, history, DateTime::now(), self.chain))
     }
 }

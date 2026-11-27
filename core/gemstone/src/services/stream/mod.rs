@@ -12,7 +12,6 @@ pub use subscription::GemStreamSubscriptionService;
 use crate::services::error::GemServiceError;
 use std::sync::Arc;
 
-use futures_util::future::join;
 use primitives::{Chain, StreamEvent, SupportMessageSender, SupportStreamEvent, SupportTypingStatus};
 
 use crate::services::balance::GemBalanceService;
@@ -112,7 +111,7 @@ impl GemStreamService {
             GemStreamEvent::Prices { .. } | GemStreamEvent::Notification { .. } | GemStreamEvent::SupportMessage { .. } | GemStreamEvent::SupportTyping { .. } => Ok(()),
             GemStreamEvent::Balances { wallet_id, asset_ids } => self.balance.update(wallet_id, asset_ids).await,
             GemStreamEvent::Transactions { wallet_id, asset_ids, .. } => {
-                let (transactions, balances) = join(self.transactions.sync_wallet(wallet_id.clone(), None), self.balance.sync_assets_and_update(wallet_id, asset_ids)).await;
+                let (transactions, balances) = futures::join!(self.transactions.sync_wallet(wallet_id.clone(), None), self.balance.sync_assets_and_update(wallet_id, asset_ids));
                 transactions.and(balances)
             }
             GemStreamEvent::PriceAlerts { .. } => self.price_alert.sync(None).await,

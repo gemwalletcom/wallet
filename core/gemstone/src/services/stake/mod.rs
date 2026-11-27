@@ -7,7 +7,6 @@ pub(crate) mod testkit;
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use futures_util::future::join4;
 use primitives::{Asset, AssetId, Chain, ContractCallData, Currency, DateTime, Delegation, DelegationBase, DelegationValidator, EarnType, Feature, Platform, StakeProviderType, WalletId, WalletType};
 
 use crate::api::GemStaticApiClient;
@@ -152,13 +151,12 @@ impl GemStakeService {
 
     pub async fn sync_wallet(&self, wallet_id: WalletId, chain: Chain, address: String) -> Result<(), GemServiceError> {
         let apr = self.assets.asset_properties(AssetId::from_chain(chain)).await?.and_then(|properties| properties.staking_apr).unwrap_or_default();
-        let (names, validators, delegation_validators, delegations) = join4(
+        let (names, validators, delegation_validators, delegations) = futures::join!(
             self.static_api.client.get_validators(chain),
             self.gateway.get_staking_validators(chain, Some(apr)),
             self.gateway.get_staking_delegation_validators(chain, address.clone()),
             self.gateway.get_staking_delegations(chain, address),
-        )
-        .await;
+        );
         let names: HashMap<String, String> = match names {
             Ok(validators) => validators.into_iter().map(|validator| (validator.id, validator.name)).collect(),
             Err(_) => rules::validator_names(self.store.get_validators(AssetId::from_chain(chain), StakeProviderType::Stake).await?),

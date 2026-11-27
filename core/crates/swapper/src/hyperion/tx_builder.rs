@@ -1,6 +1,5 @@
 use super::model::{PartnerSwap, PoolRoute};
 use crate::{Quote, SwapperError, SwapperQuoteData, fees::ReferralFee};
-use futures_util::future::try_join;
 use gem_aptos::{AccountAddress, AptosClient, GAS_LIMIT_MULTIPLIER};
 use gem_client::Client;
 use num_bigint::BigUint;
@@ -10,7 +9,7 @@ pub(super) async fn build_quote_data<C: Client>(client: &AptosClient<C>, quote: 
     let swap = PartnerSwap::new(quote, route, referral_fee)?;
     let payload = swap.payload();
 
-    let (account, gas_price) = try_join(client.get_account(wallet), client.get_gas_price()).await.map_err(SwapperError::transaction_error)?;
+    let (account, gas_price) = futures::try_join!(client.get_account(wallet), client.get_gas_price()).map_err(SwapperError::transaction_error)?;
     let simulation = client
         .get_simulated_transaction(wallet, account.sequence_number, payload.clone(), &gas_price.gas_estimate.to_string())
         .await

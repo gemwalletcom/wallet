@@ -4,7 +4,6 @@ use std::error::Error;
 use async_trait::async_trait;
 #[cfg(feature = "rpc")]
 use chain_traits::ChainStaking;
-use futures_util::future::try_join;
 use primitives::{DelegationBase, DelegationValidator};
 
 use crate::provider::staking_mapper;
@@ -26,7 +25,7 @@ impl ChainStaking for SuiProvider {
     }
 
     async fn get_staking_delegations(&self, address: String) -> Result<Vec<DelegationBase>, Box<dyn Error + Sync + Send>> {
-        let (delegations, system_state) = try_join(self.get_stake_delegations(address), self.get_system_state()).await?;
+        let (delegations, system_state) = futures::try_join!(self.get_stake_delegations(address), self.get_system_state())?;
         let delegation_bases = staking_mapper::map_delegations(delegations, &system_state);
         Ok(delegation_bases)
     }

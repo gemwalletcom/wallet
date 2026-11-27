@@ -2,7 +2,7 @@ use std::{collections::HashSet, error::Error};
 
 use async_trait::async_trait;
 use chain_traits::{ChainSimulation, ChainToken};
-use futures_util::future::join_all;
+use futures::future::join_all;
 use gem_client::Client;
 use gem_encoding::decode_base64;
 use primitives::{Asset, OptionStringExt, SimulationBalanceChange, SimulationInput, SimulationResult};

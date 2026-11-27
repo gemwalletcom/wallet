@@ -55,8 +55,8 @@ impl CetusClmm {
     }
 
     pub(super) async fn find_route_hops(&self, from: &str, to: &str, swap_amount: u64) -> Result<Vec<Hop>, SwapperError> {
-        let (direct, multi_hop) = futures_util::future::join(self.discover_direct_pools(from, to), self.multi_hop_candidates(from, to)).await;
-        let (direct_quotes, multi_hop_quotes) = futures_util::future::join(self.quote_direct_batched(direct, from, swap_amount), self.quote_multi_hop_fused(multi_hop, from, swap_amount)).await;
+        let (direct, multi_hop) = futures::future::join(self.discover_direct_pools(from, to), self.multi_hop_candidates(from, to)).await;
+        let (direct_quotes, multi_hop_quotes) = futures::future::join(self.quote_direct_batched(direct, from, swap_amount), self.quote_multi_hop_fused(multi_hop, from, swap_amount)).await;
         direct_quotes
             .into_iter()
             .chain(multi_hop_quotes)
@@ -67,15 +67,15 @@ impl CetusClmm {
 
     pub(super) async fn preload_pair(&self, from: &str, to: &str) {
         let discoveries = discovery_pairs(from, to).into_iter().map(|(pair_from, pair_to)| async move { self.discover_direct_pools(&pair_from, &pair_to).await });
-        futures_util::future::join_all(discoveries).await;
+        futures::future::join_all(discoveries).await;
     }
 
     async fn multi_hop_candidates(&self, from: &str, to: &str) -> Vec<(DiscoveredPool, DiscoveredPool)> {
         let discoveries = route_paths(from, to).into_iter().filter_map(|path| match path {
             RoutePath::Direct => None,
-            RoutePath::Intermediary(intermediate) => Some(async move { futures_util::future::join(self.discover_direct_pools(from, &intermediate), self.discover_direct_pools(&intermediate, to)).await }),
+            RoutePath::Intermediary(intermediate) => Some(async move { futures::future::join(self.discover_direct_pools(from, &intermediate), self.discover_direct_pools(&intermediate, to)).await }),
         });
-        futures_util::future::join_all(discoveries)
+        futures::future::join_all(discoveries)
             .await
             .into_iter()
             .flat_map(|(firsts, seconds)| firsts.into_iter().flat_map(move |first| seconds.clone().into_iter().map(move |second| (first.clone(), second))))

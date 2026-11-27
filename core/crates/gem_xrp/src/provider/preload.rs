@@ -2,7 +2,6 @@ use async_trait::async_trait;
 use chain_traits::ChainTransactionLoad;
 use std::error::Error;
 
-use futures_util::future::try_join;
 use gem_client::Client;
 use primitives::{FeeRate, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput};
 
@@ -15,7 +14,7 @@ use crate::{
 impl<C: Client + Clone> ChainTransactionLoad for XrpClient<C> {
     async fn get_transaction_preload(&self, input: TransactionPreloadInput) -> Result<TransactionLoadMetadata, Box<dyn Error + Send + Sync>> {
         let destination = input.input_type.swap_to_address().or(Some(input.destination_address.as_str())).filter(|address| !address.is_empty());
-        let (sender, destination_exists) = try_join(self.get_account_info_full(&input.sender_address), self.destination_exists(destination)).await?;
+        let (sender, destination_exists) = futures::try_join!(self.get_account_info_full(&input.sender_address), self.destination_exists(destination))?;
         map_transaction_preload(sender, destination_exists)
     }
 

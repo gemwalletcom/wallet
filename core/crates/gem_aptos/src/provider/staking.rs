@@ -1,8 +1,8 @@
 use async_trait::async_trait;
 use chain_traits::ChainStaking;
+use futures::try_join;
 use std::error::Error;
 
-use futures_util::future::try_join;
 use gem_client::Client;
 use primitives::{DelegationBase, DelegationValidator};
 
@@ -21,13 +21,13 @@ impl<C: Client> ChainStaking for AptosClient<C> {
     }
 
     async fn get_staking_validators(&self, apy: Option<f64>) -> Result<Vec<DelegationValidator>, Box<dyn Error + Sync + Send>> {
-        let (validator_set, commission) = try_join(self.get_validator_set(), self.get_operator_commission_percentage(KNOWN_VALIDATOR_POOL)).await?;
+        let (validator_set, commission) = try_join!(self.get_validator_set(), self.get_operator_commission_percentage(KNOWN_VALIDATOR_POOL))?;
 
         Ok(map_validators(validator_set, apy.unwrap_or(0.0), KNOWN_VALIDATOR_POOL, commission))
     }
 
     async fn get_staking_delegations(&self, address: String) -> Result<Vec<DelegationBase>, Box<dyn Error + Sync + Send>> {
-        let (delegation, lockup_secs) = try_join(self.get_delegation_for_pool(&address, KNOWN_VALIDATOR_POOL), self.get_stake_lockup_secs(KNOWN_VALIDATOR_POOL)).await?;
+        let (delegation, lockup_secs) = try_join!(self.get_delegation_for_pool(&address, KNOWN_VALIDATOR_POOL), self.get_stake_lockup_secs(KNOWN_VALIDATOR_POOL))?;
         Ok(staking_mapper::map_delegations(vec![delegation], lockup_secs))
     }
 }

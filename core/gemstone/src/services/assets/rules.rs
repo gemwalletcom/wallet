@@ -221,11 +221,13 @@ pub fn verification_status(asset: &Asset, rank: i32) -> Option<VerificationStatu
 }
 
 fn verification_row(asset: &Asset, rank: i32) -> Option<GemListRow> {
-    verification_status(asset, rank).filter(|status| *status == VerificationStatus::Unverified).map(|status| GemListRow::Verification {
-        title: GemListRowTitle::Status,
-        status,
-        info: Some(GemInfoTopic::AssetStatus { status }),
-    })
+    verification_status(asset, rank)
+        .filter(|status| *status == VerificationStatus::Unverified)
+        .map(|status| GemListRow::Verification {
+            title: GemListRowTitle::Status,
+            status,
+            info: Some(GemInfoTopic::AssetStatus { status }),
+        })
 }
 
 fn with_filter(mut flow: GemSelectAssetFlow, filter: Option<GemAssetFilter>) -> GemSelectAssetFlow {
@@ -1578,7 +1580,9 @@ mod tests {
             Some(GemListRow::Verification {
                 title: GemListRowTitle::Status,
                 status: VerificationStatus::Unverified,
-                info: Some(GemInfoTopic::AssetStatus { status: VerificationStatus::Unverified }),
+                info: Some(GemInfoTopic::AssetStatus {
+                    status: VerificationStatus::Unverified
+                }),
             })
         );
         assert_eq!(verification_row(&token, 3), None);

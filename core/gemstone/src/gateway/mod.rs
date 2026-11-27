@@ -15,7 +15,6 @@ use crate::services::preferences::{GemPreferencesStore, GemSecureStore};
 use crate::alien::{AlienProvider, AlienRpcProvider, coalescing_provider};
 use crate::transaction_state::StatusProvider;
 use chain_traits::ChainTraits;
-use futures_util::future::try_join;
 use std::future::Future;
 use std::sync::Arc;
 use swapper::swapper::GemSwapper as Swapper;
@@ -99,7 +98,7 @@ impl GemGateway {
 
     pub async fn check_node(&self, chain: Chain, url: &str) -> Result<GemNodeCheck, GatewayError> {
         let provider = self.chain_factory.create_with_url(chain, url.to_string())?;
-        let (chain_id, status) = try_join(provider.get_chain_id(), provider.get_nodes_status()).await.map_err(map_network_error)?;
+        let (chain_id, status) = futures::try_join!(provider.get_chain_id(), provider.get_nodes_status()).map_err(map_network_error)?;
         if let Some(network_id) = chain_rules::mismatched_network_id(chain, chain_id.as_deref()) {
             return Err(GatewayError::NetworkIdMismatch { chain: chain.to_string(), network_id });
         }

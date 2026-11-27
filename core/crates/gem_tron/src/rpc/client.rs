@@ -1,5 +1,4 @@
 use alloy_sol_types::SolCall;
-use futures_util::future::try_join3;
 use primitives::hex;
 use primitives::{Asset, AssetId, asset_type::AssetType, chain::Chain, decode_hex};
 use std::error::Error;
@@ -123,12 +122,11 @@ impl<C: Client> TronClient<C> {
     }
 
     pub async fn get_token_data(&self, token_id: String) -> Result<Asset, Box<dyn Error + Send + Sync>> {
-        let (name, symbol, decimals) = try_join3(
+        let (name, symbol, decimals) = futures::try_join!(
             self.trigger_constant_contract(&token_id, NAME_SELECTOR, ""),
             self.trigger_constant_contract(&token_id, SYMBOL_SELECTOR, ""),
             self.trigger_constant_contract(&token_id, DECIMALS_SELECTOR, ""),
-        )
-        .await?;
+        )?;
 
         let (name, symbol, decimals) = decode_token_metadata(&name, &symbol, &decimals)?;
         let asset_id = AssetId::from(Chain::Tron, Some(token_id));

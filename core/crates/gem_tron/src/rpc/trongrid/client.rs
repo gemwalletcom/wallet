@@ -6,7 +6,6 @@ use crate::rpc::trongrid::{
 };
 use async_trait::async_trait;
 use chain_traits::{ChainTransactions, TransactionsRequest, TransactionsResult};
-use futures_util::future::try_join;
 use gem_client::{Client, ClientError, ClientExt};
 use serde::de::DeserializeOwned;
 use std::collections::HashMap;
@@ -89,7 +88,7 @@ impl<C: Client> TronGridClient<C> {
 impl<C: Client> ChainTransactions for TronGridClient<C> {
     async fn get_transactions_by_address(&self, request: TransactionsRequest) -> Result<TransactionsResult, Box<dyn Error + Sync + Send>> {
         let TransactionsRequest { address, limit, .. } = request;
-        let (transactions, trc20_transactions) = try_join(self.get_transactions(&address, limit), self.get_trc20_transactions(&address, limit)).await?;
+        let (transactions, trc20_transactions) = futures::try_join!(self.get_transactions(&address, limit), self.get_trc20_transactions(&address, limit))?;
         Ok(TransactionsResult::TransactionRequests(TronGridMapper::map_transaction_requests(transactions, trc20_transactions, limit)))
     }
 }

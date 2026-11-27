@@ -3,7 +3,7 @@ use crate::{
     fees::{FeeSide, ReferralFee, ReferralTransfer},
     route_path::RoutePath,
 };
-use futures_util::future::join_all;
+use futures::future::join_all;
 use gem_sui::{
     EMPTY_ADDRESS, ESTIMATION_GAS_BUDGET, SUI_COIN_TYPE, SUI_COIN_TYPE_FULL, SuiClient,
     address::SuiAddress,

@@ -2,7 +2,10 @@ use std::{error::Error, future::Future};
 
 use async_trait::async_trait;
 use chain_traits::{ChainAddressStatus, ChainPerpetual};
-use futures_util::future::{join_all, try_join, try_join_all, try_join3};
+use futures::{
+    future::{join_all, try_join_all},
+    try_join,
+};
 use gem_client::Client;
 use primitives::{
     ChartPeriod, DateTime, PerpetualPosition,
@@ -68,7 +71,7 @@ impl<C: Client> HyperCoreClient<C> {
 #[async_trait]
 impl<C: Client> ChainPerpetual for HyperCoreClient<C> {
     async fn get_positions(&self, address: String) -> Result<PerpetualAccountPositions, Box<dyn Error + Sync + Send>> {
-        let (mode, dexes) = try_join(self.get_user_abstraction(&address), self.answered_dexes(|dex| self.get_dex_positions(&address, dex))).await?;
+        let (mode, dexes) = try_join!(self.get_user_abstraction(&address), self.answered_dexes(|dex| self.get_dex_positions(&address, dex)))?;
         let mode = PerpetualAccountMode::from(mode);
         let spot_collateral = self.get_spot_collateral(&address, mode).await?;
         let is_complete = dexes.len() == self.config.perp_dexes.len();
@@ -116,7 +119,7 @@ impl<C: Client> ChainPerpetual for HyperCoreClient<C> {
     }
 
     async fn get_perpetual_portfolio(&self, address: String, mode: PerpetualAccountMode) -> Result<PerpetualPortfolio, Box<dyn Error + Sync + Send>> {
-        let (response, states, spot_collateral) = try_join3(self.get_perpetual_portfolio(&address), self.get_clearinghouse_states(&address), self.get_spot_collateral(&address, mode)).await?;
+        let (response, states, spot_collateral) = try_join!(self.get_perpetual_portfolio(&address), self.get_clearinghouse_states(&address), self.get_spot_collateral(&address, mode))?;
         let balance = spot_collateral.unwrap_or_else(|| map_perpetual_dexes_balance(&states));
         let positions: Vec<AssetPositions> = states.into_iter().map(|(_, positions)| positions).collect();
         Ok(map_perpetual_portfolio(response, mode, &positions, &balance))

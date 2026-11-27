@@ -3,9 +3,8 @@ use crate::{
     SuiClient, SuiError, is_sui_coin,
     models::{Coin, OwnedCoins},
 };
+use futures::try_join;
 use std::collections::HashMap;
-
-use futures_util::future::try_join4;
 
 pub struct PrefetchedTransactionData {
     pub transaction: TransactionBuilderInput,
@@ -22,13 +21,12 @@ impl PrefetchedTransactionData {
                 None => Ok(OwnedCoins::default()),
             }
         };
-        let (transaction, input_coins, output_owned, resolver) = try_join4(
+        let (transaction, input_coins, output_owned, resolver) = try_join!(
             TransactionBuilderInput::prefetch(client, sender, gas_budget),
             get_user_coins(client, sender, input_coin_type),
             output_coins_fut,
             ObjectResolver::prefetch(client, object_ids, pinned),
-        )
-        .await?;
+        )?;
         let input_coins = if is_sui_coin(input_coin_type) { OwnedCoins::sui_address_balance(transaction.address_balance) } else { input_coins };
 
         Ok(Self {

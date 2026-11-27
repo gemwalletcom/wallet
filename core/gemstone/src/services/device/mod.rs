@@ -17,7 +17,7 @@ pub use signer::GemDeviceRequestSigner;
 use crate::api::{GemApiError, GemDeviceApiClient};
 use crate::services::preferences::GemPreferencesService;
 use crate::services::subscription::GemSubscriptionService;
-use futures_util::lock::Mutex;
+use futures::lock::Mutex;
 use gem_api::WalletRequestPreflight;
 use gem_client::ClientError;
 use std::sync::Weak;

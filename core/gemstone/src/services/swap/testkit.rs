@@ -179,7 +179,7 @@ impl Swapper for SilentSwapper {
     }
 
     async fn get_quote(&self, _request: &QuoteRequest) -> Result<Quote, SwapperError> {
-        futures_util::future::pending().await
+        futures::future::pending().await
     }
 
     async fn get_quote_data(&self, _quote: &Quote, _data: FetchQuoteData) -> Result<SwapperQuoteData, SwapperError> {

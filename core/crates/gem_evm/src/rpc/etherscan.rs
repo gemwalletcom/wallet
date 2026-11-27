@@ -2,7 +2,6 @@ use std::error::Error;
 
 use etherscan::EtherscanApi;
 use etherscan::client::EtherscanClient;
-use futures_util::future::try_join;
 use gem_client::Client;
 use primitives::EVMChain;
 
@@ -23,7 +22,7 @@ impl<C: Client> EtherscanClients<C> {
 }
 
 pub(crate) async fn get_transactions_by_address<C: Client>(client: &EtherscanClient<C>, chain: EVMChain, address: &str, limit: usize) -> Result<Vec<TransactionReference>, Box<dyn Error + Send + Sync>> {
-    let (transactions, token_transfers) = try_join(client.get_transactions(chain, address, limit), client.get_token_transfers(chain, address, limit)).await?;
+    let (transactions, token_transfers) = futures::try_join!(client.get_transactions(chain, address, limit), client.get_token_transfers(chain, address, limit))?;
     Ok(TransactionReference::unique_newest_first(
         transactions.into_iter().chain(token_transfers).map(|transaction| (transaction.block_number, transaction.hash)),
     ))

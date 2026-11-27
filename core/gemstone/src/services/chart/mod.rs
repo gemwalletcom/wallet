@@ -8,7 +8,6 @@ pub mod zoom;
 
 use std::sync::Arc;
 
-use futures_util::future::join;
 use primitives::currency::Currency;
 use primitives::{AssetId, ChartCandleStick, ChartDateValue, ChartPeriod, DateTime};
 
@@ -165,7 +164,7 @@ impl GemChartService {
     }
 
     async fn sync_charts(&self, asset_id: AssetId, period: ChartPeriod, currency: Currency, rate: Option<f64>) -> Result<GemChart, GemServiceError> {
-        let (charts, _) = join(self.api.client.get_charts(asset_id.clone(), period), self.assets.update_asset(asset_id.clone())).await;
+        let (charts, _) = futures::join!(self.api.client.get_charts(asset_id.clone(), period), self.assets.update_asset(asset_id.clone()));
         let charts = charts.map_err(GemApiError::from)?;
         if let Some(market) = charts.market {
             self.price.update_market(asset_id.clone(), market).await?;
@@ -259,7 +258,12 @@ mod tests {
         assert!(!titles(&pending).contains(&GemListRowTitle::MarketCap), "a market the session cannot convert yet is not shown");
         assert!(titles(&pending).contains(&GemListRowTitle::SetPriceAlert), "the rows that need no rate do not wait for it");
         assert!(titles(&shown).contains(&GemListRowTitle::MarketCap));
-        match shown.sections.iter().flat_map(|section| section.rows()).find(|row| matches!(row, GemListRow::Ranked { title: GemListRowTitle::MarketCap, .. })) {
+        match shown
+            .sections
+            .iter()
+            .flat_map(|section| section.rows())
+            .find(|row| matches!(row, GemListRow::Ranked { title: GemListRowTitle::MarketCap, .. }))
+        {
             Some(GemListRow::Ranked { amount, .. }) => assert_eq!(amount.value, 50.0, "the market cap is converted with the session's rate"),
             other => panic!("expected a market cap row, got {other:?}"),
         }

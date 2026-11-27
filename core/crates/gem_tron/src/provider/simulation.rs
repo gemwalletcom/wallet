@@ -1,10 +1,10 @@
-use futures_util::future::join_all;
 use num_bigint::BigUint;
 use primitives::hex;
 use std::error::Error;
 
 use async_trait::async_trait;
 use chain_traits::ChainSimulation;
+use futures::future::join_all;
 use gem_client::Client;
 use primitives::Address as _;
 use primitives::{Asset, AssetId, Chain, DateTime, SimulationBalanceChange, SimulationHeader, SimulationInput, SimulationResult};

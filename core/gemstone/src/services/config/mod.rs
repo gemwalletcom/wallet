@@ -72,7 +72,7 @@ mod tests {
         async fn request(&self, _target: AlienTarget) -> Result<Arc<AlienResponse>, AlienError> {
             let request = self.requests.fetch_add(1, Ordering::SeqCst);
             let mut yielded = false;
-            futures_util::future::poll_fn(|context| {
+            futures::future::poll_fn(|context| {
                 if yielded {
                     Poll::Ready(())
                 } else {

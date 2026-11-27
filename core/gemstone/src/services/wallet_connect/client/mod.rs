@@ -10,7 +10,7 @@ use std::collections::hash_map::Entry;
 use std::sync::{Arc, Mutex, MutexGuard, PoisonError};
 use std::time::Duration;
 
-use futures_util::future::{Either, select};
+use futures::future::{Either, select};
 use gem_crypto::random;
 use gem_encoding::encode_hex;
 use links::WalletConnectLink;
@@ -990,8 +990,8 @@ mod tests {
     use super::testkit::{TEST_AUTHENTICATION, TEST_PROPOSAL, TestDapp, TestSignatureVerifier};
     use super::*;
     use crate::testkit::TestAlienProvider;
+    use futures::FutureExt;
     use futures::executor::block_on;
-    use futures_util::FutureExt;
     use primitives::{Chain, WalletConnectionVerificationStatus};
     use serde_json::Value;
     use wallet_connect_protocol::testkit::{TEST_PEER_PUBLIC_KEY, TEST_SYM_KEY, TEST_TOPIC, test_key};

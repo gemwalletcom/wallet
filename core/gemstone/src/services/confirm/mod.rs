@@ -35,7 +35,6 @@ use crate::services::simulation::GemSimulationService;
 use crate::services::transaction_state::{GemTransactionStateService, GemTransactionStatusService};
 use crate::services::transfer::rules::TransferInput;
 use crate::services::wallet_preferences::GemWalletPreferencesService;
-use futures_util::future::{join, join3, join5};
 use num_bigint::BigInt;
 use primitives::TransactionInputType;
 use primitives::currency::Currency;
@@ -85,7 +84,7 @@ impl GemConfirmService {
 impl GemConfirmService {
     pub async fn metadata(&self, wallet_id: WalletId, asset_id: AssetId, fee_asset_id: AssetId, extra_asset_ids: Vec<AssetId>) -> Result<GemConfirmMetadata, GemConfirmError> {
         let asset_ids = rules::metadata_asset_ids(&asset_id, &fee_asset_id, extra_asset_ids);
-        let (balances, prices) = join(self.balance.balances(wallet_id, asset_ids.clone()), self.price.prices(asset_ids)).await;
+        let (balances, prices) = futures::join!(self.balance.balances(wallet_id, asset_ids.clone()), self.price.prices(asset_ids));
         rules::build_metadata(asset_id, fee_asset_id, balances?, prices?)
     }
 
@@ -103,14 +102,13 @@ impl GemConfirmService {
 
         let scan_payload = scan_rules::transaction_payload(&preload_input, &transfer.value);
         let scan_future = async { self.scanner.scan(scan_payload?).await };
-        let (metadata, fee_rates, scan, simulation, pending_nonces) = join5(
+        let (metadata, fee_rates, scan, simulation, pending_nonces) = futures::join!(
             self.gateway.get_transaction_preload(chain, preload_input),
             self.gateway.get_fee_rates(chain, transfer.input_type.clone()),
             scan_future,
             self.simulate(chain, input),
             self.pending_nonces(chain, &input.from.address),
-        )
-        .await;
+        );
         let metadata = metadata.map_err(|error| error::load_error(&transfer.input_type, error))?.with_nonce_after_pending(&pending_nonces?);
         let network_rates = fee_rates.map_err(|error| error::load_error(&transfer.input_type, error))?;
         let base_fee = rules::base_fee(&network_rates);
@@ -138,7 +136,7 @@ impl GemConfirmService {
         }
 
         let fee_asset_id = fee.fee_asset.clone();
-        let (confirm_metadata, fee_asset) = join(self.input_metadata(wallet_id.clone(), &transfer.input_type, fee_asset_id.clone()), self.fee_asset(fee_asset_id)).await;
+        let (confirm_metadata, fee_asset) = futures::join!(self.input_metadata(wallet_id.clone(), &transfer.input_type, fee_asset_id.clone()), self.fee_asset(fee_asset_id));
         let confirm_data = GemConfirmData {
             input: input.clone(),
             fee,
@@ -181,7 +179,7 @@ impl GemConfirmService {
         if fee_asset_ids.is_empty() {
             return Ok(Vec::new());
         }
-        let (assets, balances, prices) = join3(self.assets.assets(fee_asset_ids.clone()), self.balance.balances(wallet_id, fee_asset_ids.clone()), self.price.prices(fee_asset_ids)).await;
+        let (assets, balances, prices) = futures::join!(self.assets.assets(fee_asset_ids.clone()), self.balance.balances(wallet_id, fee_asset_ids.clone()), self.price.prices(fee_asset_ids),);
         Ok(rules::selectable_fee_assets(assets?, balances?, prices?, &currency))
     }
 

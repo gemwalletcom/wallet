@@ -14,8 +14,7 @@ use crate::{
     route_path::RoutePath,
 };
 use async_trait::async_trait;
-use futures_util::future::join_all;
-use futures_util::future::try_join;
+use futures::future::join_all;
 use gem_client::Client;
 use gem_ton::{address::Address, models::TonConnectMessage, rpc::client::TonClient};
 use num_bigint::BigUint;
@@ -252,7 +251,7 @@ where
     }
 
     async fn discover_candidate(&self, from_token: &str, to_token: &str, router: &RouterInfo) -> Result<(DiscoveredPool, PoolData), SwapperError> {
-        let (wallet0, wallet1) = try_join(self.client.router_jetton_wallet(router, from_token), self.client.router_jetton_wallet(router, to_token)).await?;
+        let (wallet0, wallet1) = futures::try_join!(self.client.router_jetton_wallet(router, from_token), self.client.router_jetton_wallet(router, to_token))?;
         let pool_address = self.client.get_pool_address(router, &wallet0, &wallet1).await?;
         let pool_data = self.client.get_pool_data(&pool_address).await?;
         Ok((

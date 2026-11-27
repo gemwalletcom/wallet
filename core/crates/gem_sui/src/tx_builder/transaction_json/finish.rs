@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use futures_util::future::try_join;
+use futures::try_join;
 
 use super::{
     builder::digest,
@@ -23,7 +23,7 @@ pub async fn finish_transaction_json(client: &SuiClient, transaction_json: &str,
 
     let gas_data = transaction.gas_data.clone().unwrap_or_default();
     let replay = prepare_replay(client, transaction).await?;
-    let (gas_price, (gas_objects, gas_coin_total)) = try_join(gas_price(client, &gas_data), gas_payment(client, &replay, &gas_data, sender)).await?;
+    let (gas_price, (gas_objects, gas_coin_total)) = try_join!(gas_price(client, &gas_data), gas_payment(client, &replay, &gas_data, sender))?;
 
     let builder_input = TransactionBuilderInput {
         gas_coin_total,

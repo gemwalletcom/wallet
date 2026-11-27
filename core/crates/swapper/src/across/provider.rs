@@ -13,7 +13,7 @@ use crate::{
 use alloy_primitives::{Address, Bytes, U256, hex::decode as HexDecode, hex::encode_prefixed as HexEncode};
 use alloy_sol_types::{SolCall, SolValue};
 use async_trait::async_trait;
-use futures_util::future::try_join;
+use futures::try_join;
 use gem_evm::u256::u256_to_biguint;
 use gem_evm::{
     across::{
@@ -140,10 +140,10 @@ impl Across {
         let prices = async {
             match fill_cost.gas_token == output_price {
                 true => Ok((U256::from(1), U256::from(1))),
-                false => try_join(self.usd_price(fill_cost.gas_token), self.usd_price(output_price)).await,
+                false => try_join!(self.usd_price(fill_cost.gas_token), self.usd_price(output_price)),
             }
         };
-        let (gas_price, (gas_token_usd, output_usd)) = try_join(gas_price, prices).await?;
+        let (gas_price, (gas_token_usd, output_usd)) = try_join!(gas_price, prices)?;
         Ok(Self::gas_fee_in_output(U256::from(fill_cost.gas) * gas_price, gas_token_usd, output_usd, decimals))
     }
 
@@ -282,11 +282,10 @@ impl Swapper for Across {
         let mainnet_amount = rescale(mapping(asset_mainnet)?.capital_cost.decimals)?;
         let output_amount = rescale(output_decimals)?;
 
-        let (hub_pool, gas_fee) = try_join(
+        let (hub_pool, gas_fee) = try_join!(
             self.hub_pool_quote(&mainnet_token, mainnet_amount, &input.asset_id, &output.asset_id),
             self.gas_fee(to_chain, fill_cost, output_price, output_decimals),
-        )
-        .await?;
+        )?;
 
         let lp_fee = fees::multiply(output_amount, hub_pool.lp_fee_percent, output_decimals);
         let relayer_fee_percent = RelayerFeeCalculator::default().capital_fee_percent(&BigInt::from_str(&from_amount.to_string())?, cost_config);

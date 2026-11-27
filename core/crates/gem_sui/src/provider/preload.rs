@@ -4,7 +4,6 @@ use std::{collections::HashMap, error::Error};
 use async_trait::async_trait;
 #[cfg(feature = "rpc")]
 use chain_traits::{ChainTransactionLoad, TransactionFeeOperation};
-use futures_util::future::try_join;
 use num_bigint::BigInt;
 use primitives::swap::SwapQuoteDataType;
 use primitives::{AssetId, Chain, FeeRate, GasPriceType, StakeType, TransactionFee, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput, TransferDataExtra};
@@ -145,7 +144,7 @@ impl SuiClient {
             TransactionInputType::Stake { stake_type, .. } => match stake_type {
                 StakeType::Stake(_) => Ok((self.get_gas_coins(address).await?, None, Vec::new())),
                 StakeType::Unstake(delegation) => {
-                    let (gas_coins, staked_object) = try_join(self.get_gas_coins(address), self.get_object(delegation.base.delegation_id.clone())).await?;
+                    let (gas_coins, staked_object) = futures::try_join!(self.get_gas_coins(address), self.get_object(delegation.base.delegation_id.clone()))?;
                     Ok((gas_coins, None, vec![staked_object]))
                 }
                 StakeType::Redelegate(_) | StakeType::Rewards(_) | StakeType::Withdraw(_) | StakeType::Freeze(_) | StakeType::Unfreeze(_) => Err("Unsupported stake type for Sui".into()),
@@ -168,7 +167,7 @@ impl SuiClient {
         match token_id {
             None => Ok((self.get_gas_coins(address).await?, None, Vec::new())),
             Some(token_id) => {
-                let (gas_coins, token_coins) = try_join(self.get_gas_coins(address), self.get_coins(address, token_id)).await?;
+                let (gas_coins, token_coins) = futures::try_join!(self.get_gas_coins(address), self.get_coins(address, token_id))?;
                 Ok((gas_coins, Some(token_coins), Vec::new()))
             }
         }

@@ -1,7 +1,6 @@
 use std::sync::Arc;
 
 use async_trait::async_trait;
-use futures_util::future::try_join;
 use gem_evm::{
     constants::TOKEN_TRANSFER_GAS_LIMIT,
     u256::{biguint_to_u256, u256_to_biguint},
@@ -48,7 +47,7 @@ impl Bridgers {
 
     async fn get_evm_quote_data(&self, network: Network, from_asset: &AssetId, to_code: &str, swap: &SwapRequest) -> Result<SwapperQuoteData, SwapperError> {
         let router = network.router()?;
-        let (swap_data, approval) = try_join(self.client.get_swap(swap), self.get_approval(network, router, from_asset, swap)).await?;
+        let (swap_data, approval) = futures::try_join!(self.client.get_swap(swap), self.get_approval(network, router, from_asset, swap))?;
         let SwapTransaction::Evm(transaction) = swap_data.tx_data else {
             return Err(SwapperError::InvalidRoute);
         };
@@ -147,7 +146,7 @@ impl Swapper for Bridgers {
 
     async fn get_quote(&self, request: &QuoteRequest) -> Result<Quote, SwapperError> {
         let bridgers_request = BridgersQuoteRequest::new(request, request.value.clone())?;
-        let (quote, _) = try_join(self.client.get_quote(&bridgers_request), self.check_destination(request)).await?;
+        let (quote, _) = futures::try_join!(self.client.get_quote(&bridgers_request), self.check_destination(request))?;
         let quote = quote.tx_data;
 
         let min_value = get_min_from_value(&quote, request)?;

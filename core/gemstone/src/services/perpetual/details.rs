@@ -1,6 +1,5 @@
 use std::sync::Arc;
 
-use futures_util::future::join3;
 use primitives::{Asset, AssetId, Chain, ChartPeriod, Perpetual, PerpetualPosition};
 
 use super::candles::{GemCandleRequest, GemCandleResult};
@@ -91,7 +90,7 @@ impl GemPerpetualDetailsService {
 
     pub async fn refresh(&self, asset_id: AssetId) -> Vec<GemPerpetualRefreshFailure> {
         let mut failures = Vec::new();
-        let (positions, transactions, asset) = join3(self.sync_positions(), self.sync_transactions(asset_id.clone()), self.assets.update_asset(asset_id)).await;
+        let (positions, transactions, asset) = futures::join!(self.sync_positions(), self.sync_transactions(asset_id.clone()), self.assets.update_asset(asset_id));
         record_result(&mut failures, GemPerpetualRefreshStep::Positions, positions);
         record_result(&mut failures, GemPerpetualRefreshStep::Transactions, transactions);
         record_result(&mut failures, GemPerpetualRefreshStep::Asset, asset);

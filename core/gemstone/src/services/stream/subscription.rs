@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 use std::sync::Arc;
 
-use futures_util::lock::Mutex;
+use futures::lock::Mutex;
 
 use primitives::{AssetId, StreamMessage, StreamMessagePrices, WalletId};
 

@@ -13,7 +13,6 @@ pub(crate) mod testkit;
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 
-use futures_util::future::join;
 use gem_wallet_connect::{WalletConnectVerifier, validate_domain, validate_sign_message_account};
 use primitives::{Account, ApplicationMetadata, Chain, DateTime, Platform, Wallet, WalletConnection, WalletConnectionSession, WalletConnectionSessionProposal, WalletConnectionVerificationStatus};
 
@@ -258,7 +257,7 @@ impl GemWalletConnectService {
                 validate_sign_message_account(&sign_type, &data, &account.address).map_err(|msg| GemServiceError::InvalidInput { msg })?;
                 let simulation = self.simulation.simulate_sign_message(chain, sign_type.clone(), data.clone(), domain.clone()).await?;
                 let payload = scan_rules::sign_message_payload(chain, &account.address, &simulation, domain);
-                let (assets, scan) = join(self.assets.ensure_simulation_assets(simulation.asset_ids()), self.scanner.scan(payload.clone())).await;
+                let (assets, scan) = futures::join!(self.assets.ensure_simulation_assets(simulation.asset_ids()), self.scanner.scan(payload.clone()));
                 let assets = assets?.into_iter().map(|basic| basic.asset).collect();
                 let simulation = match scan_rules::sign_message_verdict(scan.as_ref(), &payload) {
                     SignMessageVerdict::MaliciousWebsite => return Ok(GemWalletConnectOutcome::failed(GemWalletConnectFailure::MaliciousOrigin)),

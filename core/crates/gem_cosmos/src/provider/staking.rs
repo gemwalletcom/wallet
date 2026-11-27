@@ -1,6 +1,6 @@
 use async_trait::async_trait;
 use chain_traits::{ChainBalances, ChainStaking};
-use futures_util::future::{try_join, try_join3};
+use futures::try_join;
 use number_formatter::BigNumberFormatter;
 use std::error::Error;
 
@@ -21,21 +21,20 @@ impl<C: Client> ChainStaking for CosmosClient<C> {
             CosmosChain::Noble | CosmosChain::Thorchain | CosmosChain::Mayachain => Ok(None),
             CosmosChain::Cosmos | CosmosChain::Injective => {
                 let denom = chain.denom();
-                let (inflation, supply, staking_pool) = try_join3(self.get_inflation(), self.get_supply_by_denom(denom.as_ref()), self.get_staking_pool()).await?;
+                let (inflation, supply, staking_pool) = try_join!(self.get_inflation(), self.get_supply_by_denom(denom.as_ref()), self.get_staking_pool())?;
                 let annual_rewards = inflation.inflation * supply.amount.amount;
 
                 Ok(Some(calculate_network_apy(annual_rewards, staking_pool.pool.bonded_tokens)))
             }
             CosmosChain::Osmosis => {
-                let (pool_manager_params, staking_rewards_buffer, staking_pool) =
-                    try_join3(self.get_osmosis_pool_manager_params(), self.get_balance_coin(OSMOSIS_TAKER_FEE_STAKING_REWARDS_BUFFER.to_string()), self.get_staking_pool()).await?;
+                let (pool_manager_params, staking_rewards_buffer, staking_pool) = try_join!(self.get_osmosis_pool_manager_params(), self.get_balance_coin(OSMOSIS_TAKER_FEE_STAKING_REWARDS_BUFFER.to_string()), self.get_staking_pool())?;
                 let staking_rewards_buffer = BigNumberFormatter::value_as_f64(&staking_rewards_buffer.balance.available, 0)?;
                 let annual_rewards = pool_manager_params.params.taker_fee_params.annual_staking_rewards(staking_rewards_buffer);
 
                 Ok(Some(calculate_network_apy(annual_rewards, staking_pool.pool.bonded_tokens)))
             }
             CosmosChain::Celestia => {
-                let (annual_provisions, staking_pool) = try_join(self.get_celestia_annual_provisions(), self.get_staking_pool()).await?;
+                let (annual_provisions, staking_pool) = try_join!(self.get_celestia_annual_provisions(), self.get_staking_pool())?;
                 Ok(Some(calculate_network_apy(annual_provisions.annual_provisions, staking_pool.pool.bonded_tokens)))
             }
             CosmosChain::Sei => Ok(Some(5.62)),
@@ -66,7 +65,7 @@ impl<C: Client> ChainStaking for CosmosClient<C> {
             return Ok(vec![]);
         }
         let denom = chain.as_denom().unwrap_or_default();
-        let (active_delegations, unbonding, rewards) = try_join3(self.get_delegations(&address), self.get_unbonding_delegations(&address), self.get_delegation_rewards(&address)).await?;
+        let (active_delegations, unbonding, rewards) = try_join!(self.get_delegations(&address), self.get_unbonding_delegations(&address), self.get_delegation_rewards(&address),)?;
 
         Ok(map_staking_delegations(active_delegations, unbonding, rewards, self.get_chain(), denom))
     }

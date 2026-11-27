@@ -109,7 +109,6 @@ mod tests {
     use super::testkit::MemoryNodeStore;
     use super::*;
     use crate::services::preferences::testkit::MemoryPreferencesStore;
-    use futures_util::future::join;
     use primitives::node_config::NodeRegion;
 
     #[test]
@@ -169,7 +168,7 @@ mod tests {
             let asia_url = NodeRegion::Asia.url(Chain::Sui);
             preferences.set(node_key(Chain::Sui), "https://removed.example".to_string()).unwrap();
 
-            let (selected, checked) = join(service.select_node(Chain::Sui, asia_url.clone()), service.ensure_selected_nodes()).await;
+            let (selected, checked) = futures::join!(service.select_node(Chain::Sui, asia_url.clone()), service.ensure_selected_nodes());
             selected.unwrap();
             checked.unwrap();
 

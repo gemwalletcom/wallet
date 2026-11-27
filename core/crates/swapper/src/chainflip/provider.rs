@@ -1,7 +1,6 @@
 use alloy_primitives::Address;
 use alloy_sol_types::SolCall;
 use async_trait::async_trait;
-use futures_util::future::try_join;
 use gem_client::Client;
 use gem_evm::contracts::IERC20;
 use gem_evm::u256::biguint_to_u256;
@@ -437,7 +436,7 @@ where
             extra_params,
             route_data.dca_parameters,
         );
-        let (response, approval) = try_join(broker, self.vault_approval(&from_asset, &quote.request.wallet_address, &input_amount)).await?;
+        let (response, approval) = futures::try_join!(broker, self.vault_approval(&from_asset, &quote.request.wallet_address, &input_amount))?;
         match (source_chain_type, response) {
             (ChainType::Ethereum, VaultSwapResponse::Evm(response)) => {
                 let value = validate_evm_vault_swap(from_asset.chain, from_asset.token_id.as_deref(), &input_amount, &destination, &refund, &response)?;
@@ -467,7 +466,7 @@ where
 
     async fn get_swap_result(&self, request: &SwapResultRequest) -> Result<SwapResult, SwapperError> {
         if !is_vault_swap(request.chain)? {
-            let (assets, response) = try_join(self.get_assets(), self.broker_client.get_status_by_transaction_hash(&request.transaction_hash)).await?;
+            let (assets, response) = futures::try_join!(self.get_assets(), self.broker_client.get_status_by_transaction_hash(&request.transaction_hash))?;
             return Ok(response.map_or_else(SwapResult::pending, |response| response.status.swap_result(&assets)));
         }
         let response = self.chainflip_client.get_tx_status(&request.transaction_hash).await?;

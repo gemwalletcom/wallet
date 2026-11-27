@@ -1,7 +1,6 @@
 use async_trait::async_trait;
 use chain_traits::ChainBalances;
-use futures_util::future::join_all;
-use futures_util::future::try_join;
+use futures::future::join_all;
 use std::error::Error;
 
 use gem_client::Client;
@@ -46,7 +45,7 @@ impl<C: Client> ChainBalances for TronProvider<C> {
     async fn get_balance_staking(&self, address: String) -> Result<Option<AssetBalance>, Box<dyn Error + Sync + Send>> {
         let account = self.get_account(&address).await?;
         if let Some(address) = &account.address {
-            let (reward, usage) = try_join(self.get_reward(address), self.get_account_usage(address)).await?;
+            let (reward, usage) = futures::try_join!(self.get_reward(address), self.get_account_usage(address))?;
             Ok(Some(map_balance_staking(&account, &reward, &usage)?))
         } else {
             Ok(Some(AssetBalance::new_staking_with_metadata(

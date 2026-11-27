@@ -1,8 +1,8 @@
 use async_trait::async_trait;
 use chain_traits::ChainBalances;
+use futures::future::try_join_all;
 use std::{error::Error, sync::Arc};
 
-use futures_util::future::try_join_all;
 use gem_client::Client;
 use primitives::AssetBalance;
 

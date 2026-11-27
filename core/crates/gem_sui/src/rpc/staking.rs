@@ -1,8 +1,7 @@
 use std::{error::Error, str::FromStr};
 
 use crate::types::Address;
-use futures_util::future::try_join;
-use futures_util::future::try_join_all;
+use futures::future::try_join_all;
 use num_bigint::BigUint;
 
 use super::client::{PATH_LIST_OWNED_OBJECTS, PATH_SIMULATE_TRANSACTION, SuiClient};
@@ -123,7 +122,7 @@ impl SuiClient {
         }
         let ids = staked_sui.iter().map(|stake| stake.id).collect::<Vec<_>>();
         let pool_ids = staked_sui.iter().map(|stake| stake.pool_id).collect::<Vec<_>>();
-        let (rewards, validator_addresses) = try_join(self.calculate_rewards(&ids), self.get_validator_address_by_pool_id(&pool_ids)).await?;
+        let (rewards, validator_addresses) = futures::try_join!(self.calculate_rewards(&ids), self.get_validator_address_by_pool_id(&pool_ids))?;
 
         Ok(staked_sui
             .into_iter()

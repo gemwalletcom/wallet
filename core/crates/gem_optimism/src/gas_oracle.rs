@@ -2,7 +2,7 @@ use std::error::Error;
 
 use alloy_primitives::Bytes;
 use async_trait::async_trait;
-use futures_util::future::try_join_all;
+use futures::future::try_join_all;
 use gem_client::Client;
 use gem_evm::provider::preload;
 use gem_evm::rpc::{EthereumClient, EvmFeeCalculator, EvmStakingClient};
