@@ -26,10 +26,7 @@ notification_fiat_sale_title = 💰 Sold {$value}
 support_new_message_title = New message from Support
 notification_freeze_title = { notification_action_freeze } {$value}
 notification_unfreeze_title = { notification_action_unfreeze } {$value}
-notification_reward_title = 💎 You earned { $value ->
-     [one] {$value} point
-    *[other] {$value} points
-    }!
+notification_reward_title = 💎 Points earned: {$value}
 notification_reward_create_username_description = Username ready. Invite friends to earn rewards.
 notification_reward_invite_description = Referral joined using your code.
 notification_rewards_joined_description = You joined using a referral code.
@@ -46,10 +43,7 @@ fiat_error_region_unavailable = Not available in your region.
 rewards_error_referral_country_ineligible = Referrals are currently unavailable for your country: {$value}.
 notification_rewards_disabled_title = Referral code deactivated
 notification_rewards_disabled_description = This referral code has been disabled due to repeated violations of our referral program terms.
-rewards_error_referral_eligibility_expired = Referral codes can only be used on a device and wallet set up in the last { $value ->
-     [one] day
-    *[other] {$value} days
-    }.
+rewards_error_referral_eligibility_expired = Referral codes only work on a new device and wallet. Maximum age in days: {$value}.
 notification_reward_pending_title = 💎 New Referral
 rewards_error_username_too_short = Username is too short. Minimum length: {$value}.
 rewards_error_username_too_long = Username is too long. Maximum length: {$value}.
@@ -71,8 +65,8 @@ notification_stake_rewards_description = {$value} rewards available on {$chain}
 notification_rewards_enabled_title = 💎 Rewards Unlocked
 notification_rewards_enabled_description = You can now earn rewards by inviting friends.
 notification_rewards_redeem_points_title = 🎁 Reward Redeemed
-notification_rewards_redeem_points_description = You redeemed {$value} points.
-notification_rewards_redeem_points_for_description = You redeemed {$points} points for {$value}.
+notification_rewards_redeem_points_description = 💎 Points redeemed: {$value}
+notification_rewards_redeem_points_for_description = 💎 Points redeemed: {$points} for {$value}
 notification_perpetual_long_title = 📈 Long {$coin}
 notification_perpetual_open_description = Entered at {$price} 🚀
 notification_perpetual_short_title = 📉 Short {$coin}

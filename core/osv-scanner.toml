@@ -8,7 +8,7 @@ reason = "paste is unmaintained. It is a compile-time macro used by alloy-primit
 
 [[IgnoredVulns]]
 id = "RUSTSEC-2026-0374"
-reason = "basic-toml is unmaintained. It reads TOML at compile time in askama (via uniffi_bindgen) and i18n-config (via i18n-embed-fl), both of which still depend on it in their latest release, and it only parses our own config files."
+reason = "basic-toml is unmaintained. It reads TOML at compile time in askama (via uniffi_bindgen), which still depends on it in its latest release, and it only parses our own config files."
 
 [[IgnoredVulns]]
 id = "RUSTSEC-2026-0543"

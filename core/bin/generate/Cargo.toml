@@ -4,7 +4,7 @@ version = { workspace = true }
 edition = { workspace = true }
 
 [dependencies]
-fluent-syntax = { workspace = true }
+gem_fluent = { path = "../../crates/gem_fluent" }
 primitives = { path = "../../crates/primitives" }
 config = { workspace = true }
 serde = { workspace = true }

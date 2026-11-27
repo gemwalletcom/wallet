@@ -26,7 +26,7 @@ notification_fiat_sale_title = 💰 Hai venduto {$value}
 support_new_message_title = Nuovo messaggio dal supporto
 notification_freeze_title = { notification_action_freeze } {$value}
 notification_unfreeze_title = { notification_action_unfreeze } {$value}
-notification_reward_title = 💎 Hai guadagnato {$value} punti!
+notification_reward_title = 💎 Punti guadagnati: {$value}
 notification_reward_create_username_description = Nome utente pronto. Invita gli amici per guadagnare premi.
 notification_reward_invite_description = Referral iscritto tramite il tuo codice.
 notification_rewards_joined_description = Ti sei iscritto utilizzando un codice di riferimento.
@@ -43,10 +43,7 @@ fiat_error_region_unavailable = Non disponibile nella tua regione.
 rewards_error_referral_country_ineligible = Al momento i referral non sono disponibili per il tuo Paese: {$value}.
 notification_rewards_disabled_title = Codice di riferimento disattivato
 notification_rewards_disabled_description = Questo codice di riferimento è stato disattivato a causa di ripetute violazioni dei termini del nostro programma di riferimento.
-rewards_error_referral_eligibility_expired = I codici di riferimento possono essere usati solo su un dispositivo e un portafoglio configurati { $value ->
-     [one] nell'ultimo giorno
-    *[other] negli ultimi {$value} giorni
-    }.
+rewards_error_referral_eligibility_expired = I codici di riferimento funzionano solo su un dispositivo e un portafoglio nuovi. Età massima in giorni: {$value}.
 notification_reward_pending_title = 💎 Nuovo referral
 rewards_error_username_too_short = Il nome utente è troppo corto. Lunghezza minima: {$value}.
 rewards_error_username_too_long = Il nome utente è troppo lungo. Lunghezza massima: {$value}.
@@ -68,8 +65,8 @@ notification_stake_rewards_description = {$value} premi disponibili su {$chain}
 notification_rewards_enabled_title = 💎 Premi sbloccati
 notification_rewards_enabled_description = Ora puoi guadagnare premi invitando i tuoi amici.
 notification_rewards_redeem_points_title = 🎁 Premio riscattato
-notification_rewards_redeem_points_description = Hai riscattato {$value} punti.
-notification_rewards_redeem_points_for_description = Hai riscattato {$points} punti per {$value}.
+notification_rewards_redeem_points_description = 💎 Punti riscattati: {$value}
+notification_rewards_redeem_points_for_description = 💎 Punti riscattati: {$points} per {$value}
 notification_perpetual_long_title = 📈 Posizione long su {$coin}
 notification_perpetual_open_description = Ingresso a {$price} 🚀
 notification_perpetual_short_title = 📉 Posizione short su {$coin}

@@ -75,7 +75,16 @@ fn map_to_list_item(notification: &NotificationData, localizer: &LanguageLocaliz
             });
             let subtitle = Some(localizer.notification_reward_redeemed_description(points, value.as_deref()));
             let subvalue = Some(format!("-{}", points));
-            notification_item(id, localizer.notification_reward_redeemed_title(), subtitle, value.map(|value| format!("+{}", value)), subvalue, CoreEmoji::Gift, None, url)
+            notification_item(
+                id,
+                localizer.notification_rewards_redeem_points_title(),
+                subtitle,
+                value.map(|value| format!("+{}", value)),
+                subvalue,
+                CoreEmoji::Gift,
+                None,
+                url,
+            )
         }
         NotificationType::RewardsCreateUsername => {
             let points = notification.metadata.decode::<NotificationRewardsMetadata>().and_then(|m| m.points).unwrap_or(0);

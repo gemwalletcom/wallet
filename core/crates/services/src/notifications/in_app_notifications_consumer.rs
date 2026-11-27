@@ -74,9 +74,9 @@ fn notification_content(localizer: &LanguageLocalizer, notification_type: Notifi
     match notification_type {
         NotificationType::RewardsCreateUsername => (localizer.notification_reward_title(RewardEventType::CreateUsername.points()), localizer.notification_reward_create_username_description()),
         NotificationType::RewardsInvite => (localizer.notification_reward_title(RewardEventType::InviteNew.points()), localizer.notification_reward_invite_description()),
-        NotificationType::ReferralJoined => (localizer.notification_reward_title(RewardEventType::Joined.points()), localizer.notification_reward_joined_description()),
+        NotificationType::ReferralJoined => (localizer.notification_reward_title(RewardEventType::Joined.points()), localizer.notification_rewards_joined_description()),
         NotificationType::RewardsEnabled => (localizer.notification_rewards_enabled_title(), localizer.notification_rewards_enabled_description()),
         NotificationType::RewardsCodeDisabled => (localizer.notification_rewards_disabled_title(), localizer.notification_rewards_disabled_description()),
-        NotificationType::RewardsRedeemed => (localizer.notification_reward_redeemed_title(), localizer.notification_reward_redeemed_description(points, reward_value)),
+        NotificationType::RewardsRedeemed => (localizer.notification_rewards_redeem_points_title(), localizer.notification_reward_redeemed_description(points, reward_value)),
     }
 }

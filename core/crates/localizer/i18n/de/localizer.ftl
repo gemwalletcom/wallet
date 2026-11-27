@@ -26,10 +26,7 @@ notification_fiat_sale_title = 💰 {$value} verkauft
 support_new_message_title = Neue Nachricht vom Support
 notification_freeze_title = {$value} einfrieren
 notification_unfreeze_title = {$value} freigeben
-notification_reward_title = 💎 Sie haben { $value ->
-     [one] {$value} Punkt
-    *[other] {$value} Punkte
-    } verdient!
+notification_reward_title = 💎 Verdiente Punkte: {$value}
 notification_reward_create_username_description = Benutzername bereit. Laden Sie Freunde ein, um Prämien zu verdienen.
 notification_reward_invite_description = Ein geworbener Nutzer hat sich über Ihren Code angemeldet.
 notification_rewards_joined_description = Sie haben sich mit einem Empfehlungscode angemeldet.
@@ -46,10 +43,7 @@ fiat_error_region_unavailable = In Ihrer Region nicht verfügbar.
 rewards_error_referral_country_ineligible = Empfehlungen sind in Ihrem Land derzeit nicht verfügbar: {$value}.
 notification_rewards_disabled_title = Empfehlungscode deaktiviert
 notification_rewards_disabled_description = Dieser Empfehlungscode wurde aufgrund wiederholter Verstöße gegen die Bedingungen unseres Empfehlungsprogramms deaktiviert.
-rewards_error_referral_eligibility_expired = Empfehlungscodes können nur auf einem Gerät und mit einer Wallet verwendet werden, die { $value ->
-     [one] innerhalb des letzten Tages
-    *[other] in den letzten {$value} Tagen
-    } eingerichtet wurden.
+rewards_error_referral_eligibility_expired = Empfehlungscodes funktionieren nur auf einem neuen Gerät mit einer neuen Wallet. Maximales Alter in Tagen: {$value}.
 notification_reward_pending_title = 💎 Neue Empfehlung
 rewards_error_username_too_short = Der Benutzername ist zu kurz. Mindestlänge: {$value}.
 rewards_error_username_too_long = Der Benutzername ist zu lang. Maximale Länge: {$value}.
@@ -71,8 +65,8 @@ notification_stake_rewards_description = {$value} Belohnungen auf {$chain} verf�
 notification_rewards_enabled_title = 💎 Prämien freigeschaltet
 notification_rewards_enabled_description = Sie können jetzt Prämien verdienen, indem Sie Freunde einladen.
 notification_rewards_redeem_points_title = 🎁 Prämie eingelöst
-notification_rewards_redeem_points_description = Sie haben {$value} Punkte eingelöst.
-notification_rewards_redeem_points_for_description = Sie haben {$points} Punkte gegen {$value} eingelöst.
+notification_rewards_redeem_points_description = 💎 Eingelöste Punkte: {$value}
+notification_rewards_redeem_points_for_description = 💎 Eingelöste Punkte: {$points} für {$value}
 notification_perpetual_long_title = 📈 Long {$coin}
 notification_perpetual_open_description = Einstieg bei {$price} 🚀
 notification_perpetual_short_title = 📉 Short {$coin}

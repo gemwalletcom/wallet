@@ -26,7 +26,7 @@ notification_fiat_sale_title = 💰 {$value} बेचा गया
 support_new_message_title = समर्थन से नया संदेश
 notification_freeze_title = {$value} फ़्रीज़ किया गया
 notification_unfreeze_title = {$value} अनफ़्रीज़ किया गया
-notification_reward_title = 💎 आपने {$value} अंक कमाए!
+notification_reward_title = 💎 अर्जित अंक: {$value}
 notification_reward_create_username_description = आपका यूज़रनेम तैयार है। इनाम जीतने के लिए दोस्तों को आमंत्रित करें।
 notification_reward_invite_description = आपके कोड का उपयोग करके रेफरल ने ज्वाइन किया।
 notification_rewards_joined_description = आपने रेफरल कोड का उपयोग करके सदस्यता ली।
@@ -43,10 +43,7 @@ fiat_error_region_unavailable = आपके क्षेत्र में उ
 rewards_error_referral_country_ineligible = आपके देश के लिए फिलहाल रेफरल उपलब्ध नहीं हैं: {$value}.
 notification_rewards_disabled_title = रेफरल कोड निष्क्रिय कर दिया गया है
 notification_rewards_disabled_description = हमारे रेफरल प्रोग्राम की शर्तों के बार-बार उल्लंघन के कारण इस रेफरल कोड को निष्क्रिय कर दिया गया है।
-rewards_error_referral_eligibility_expired = रेफरल कोड का उपयोग केवल उसी डिवाइस और वॉलेट पर किया जा सकता है जिसे { $value ->
-     [one] पिछले 1 दिन
-    *[other] पिछले {$value} दिनों
-    } में सेट किया गया हो।
+rewards_error_referral_eligibility_expired = रेफरल कोड केवल नए डिवाइस और वॉलेट पर काम करते हैं। अधिकतम अवधि दिनों में: {$value}।
 notification_reward_pending_title = 💎 नया रेफरल
 rewards_error_username_too_short = उपयोगकर्ता नाम बहुत छोटा है। न्यूनतम लंबाई: {$value}।
 rewards_error_username_too_long = उपयोगकर्ता नाम बहुत लंबा है। अधिकतम लंबाई: {$value}।
@@ -68,8 +65,8 @@ notification_stake_rewards_description = {$value} पुरस्कार उ�
 notification_rewards_enabled_title = 💎 पुरस्कार अनलॉक हो गए
 notification_rewards_enabled_description = अब आप दोस्तों को आमंत्रित करके पुरस्कार कमा सकते हैं।
 notification_rewards_redeem_points_title = 🎁 पुरस्कार रिडीम किया गया
-notification_rewards_redeem_points_description = आपने {$value} अंक रिडीम किए।
-notification_rewards_redeem_points_for_description = आपने {$value} के लिए {$points} अंक रिडीम किए।
+notification_rewards_redeem_points_description = 💎 रिडीम किए गए अंक: {$value}
+notification_rewards_redeem_points_for_description = 💎 {$value} के लिए रिडीम किए गए अंक: {$points}
 notification_perpetual_long_title = 📈 लॉन्ग {$coin}
 notification_perpetual_open_description = {$price} पर प्रवेश किया 🚀
 notification_perpetual_short_title = 📉 शॉर्ट {$coin}

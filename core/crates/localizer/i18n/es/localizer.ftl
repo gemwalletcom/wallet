@@ -26,10 +26,7 @@ notification_fiat_sale_title = 💰 Vendiste {$value}
 support_new_message_title = Nuevo mensaje de Soporte
 notification_freeze_title = { notification_action_freeze } {$value}
 notification_unfreeze_title = { notification_action_unfreeze } {$value}
-notification_reward_title = 💎 ¡Ganaste { $value ->
-     [one] {$value} punto
-    *[other] {$value} puntos
-    }!
+notification_reward_title = 💎 Puntos ganados: {$value}
 notification_reward_create_username_description = Usuario listo. Invita a tus amigos para ganar recompensas.
 notification_reward_invite_description = El referido se unió usando tu código.
 notification_rewards_joined_description = Te uniste usando un código de referencia.
@@ -46,10 +43,7 @@ fiat_error_region_unavailable = No disponible en tu región.
 rewards_error_referral_country_ineligible = Las referencias no están disponibles actualmente para tu país: {$value}.
 notification_rewards_disabled_title = Código de referencia desactivado
 notification_rewards_disabled_description = Este código de referencia ha sido deshabilitado debido a repetidas violaciones de los términos de nuestro programa de referencia.
-rewards_error_referral_eligibility_expired = Los códigos de referencia solo pueden usarse en un dispositivo y una billetera configurados { $value ->
-     [one] en el último día
-    *[other] en los últimos {$value} días
-    }.
+rewards_error_referral_eligibility_expired = Los códigos de referencia solo funcionan en un dispositivo y una billetera nuevos. Antigüedad máxima en días: {$value}.
 notification_reward_pending_title = 💎 Nueva referencia
 rewards_error_username_too_short = El nombre de usuario es demasiado corto. Longitud mínima: {$value}.
 rewards_error_username_too_long = El nombre de usuario es demasiado largo. Longitud máxima: {$value}.
@@ -71,14 +65,8 @@ notification_stake_rewards_description = {$value} recompensas disponibles para {
 notification_rewards_enabled_title = 💎 Recompensas desbloqueadas
 notification_rewards_enabled_description = Ya puedes ganar recompensas invitando a tus amigos.
 notification_rewards_redeem_points_title = 🎁 Recompensa canjeada
-notification_rewards_redeem_points_description = Canjeaste { $value ->
-     [one] {$value} punto
-    *[other] {$value} puntos
-    }.
-notification_rewards_redeem_points_for_description = Canjeaste { $points ->
-     [one] {$points} punto
-    *[other] {$points} puntos
-    } por {$value}.
+notification_rewards_redeem_points_description = 💎 Puntos canjeados: {$value}
+notification_rewards_redeem_points_for_description = 💎 Puntos canjeados: {$points} por {$value}
 notification_perpetual_long_title = 📈 Largo {$coin}
 notification_perpetual_open_description = Entrada a {$price} 🚀
 notification_perpetual_short_title = 📉 Corto {$coin}

@@ -148,12 +148,6 @@ tower-http = { version = "0.6.11", features = ["timeout", "catch-panic", "set-he
 
 # Logging and metrics
 
-# Localization and embedded assets
-fluent-syntax = { version = "0.12.0" }
-i18n-embed = { version = "0.16.0" }
-i18n-embed-fl = { version = "0.10.0" }
-rust-embed = { version = "8.11.0" }
-
 # Code generation and bindings
 quote = { version = "1.0.47" }
 syn = { version = "3.0.6" }

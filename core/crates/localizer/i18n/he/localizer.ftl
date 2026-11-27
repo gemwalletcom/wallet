@@ -26,7 +26,7 @@ notification_fiat_sale_title = 💰 מכרת {$value}
 support_new_message_title = הודעה חדשה מהתמיכה
 notification_freeze_title = הקפאת {$value}
 notification_unfreeze_title = הפשרת {$value}
-notification_reward_title = 💎 הרווחת {$value} נקודות!
+notification_reward_title = 💎 נקודות שהורווחו: {$value}
 notification_reward_create_username_description = שם המשתמש מוכן. הזמן חברים כדי לצבור פרסים.
 notification_reward_invite_description = הפניה הצטרפה באמצעות הקוד שלך.
 notification_rewards_joined_description = הצטרפת באמצעות קוד הפניה.
@@ -43,11 +43,7 @@ fiat_error_region_unavailable = לא זמין באזור שלך.
 rewards_error_referral_country_ineligible = הפניות אינן זמינות כעת עבור המדינה שלך: {$value}.
 notification_rewards_disabled_title = קוד ההפניה הושבת
 notification_rewards_disabled_description = קוד הפניה זה הושבת עקב הפרות חוזרות ונשנות של תנאי תוכנית ההפניות שלנו.
-rewards_error_referral_eligibility_expired = ניתן להשתמש בקודי הפניה רק במכשיר ובארנק שהוגדרו { $value ->
-     [one] ביום האחרון
-     [two] ביומיים האחרונים
-    *[other] ב־{$value} הימים האחרונים
-    }.
+rewards_error_referral_eligibility_expired = קודי הפניה פועלים רק במכשיר ובארנק חדשים. ותק מרבי בימים: {$value}.
 notification_reward_pending_title = 💎 הפניה חדשה
 rewards_error_username_too_short = שם המשתמש קצר מדי. אורך מינימלי: {$value}.
 rewards_error_username_too_long = שם המשתמש ארוך מדי. אורך מרבי: {$value}.
@@ -69,8 +65,8 @@ notification_stake_rewards_description = {$value} תגמולים זמינים ל
 notification_rewards_enabled_title = 💎 התגמולים הופעלו
 notification_rewards_enabled_description = עכשיו אפשר לצבור תגמולים על ידי הזמנת חברים.
 notification_rewards_redeem_points_title = 🎁 התגמול מומש
-notification_rewards_redeem_points_description = מימשת {$value} נקודות.
-notification_rewards_redeem_points_for_description = מימשת {$points} נקודות תמורת {$value}.
+notification_rewards_redeem_points_description = 💎 נקודות שמומשו: {$value}
+notification_rewards_redeem_points_for_description = 💎 נקודות שמומשו: {$points} תמורת {$value}
 notification_perpetual_long_title = 📈 לונג {$coin}
 notification_perpetual_open_description = נכנסת במחיר {$price} 🚀
 notification_perpetual_short_title = 📉 שורט {$coin}

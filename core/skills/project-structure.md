@@ -50,6 +50,7 @@ Individual `gem_*` crates for each blockchain with unified RPC client patterns:
 - `http_server/`: the hyper accept loop with graceful drain, shutdown signal, JSON error bodies, panic and timeout layers, security headers and per-route HTTP metrics shared by `api`, `daemon` and `dynode`
 - `gem_jsonrpc/`: Internal JSON-RPC client library (replaces external alloy dependencies)
 - `gem_hash/`: Hashing utilities for blockchain operations
+- `gem_fluent/`: Reader for the Fluent subset our `.ftl` files use, shared by `localizer` and the app string generator
 - `chain_primitives/`: Primitive types specific to blockchain operations
 - `chain_traits/`: Common traits for blockchain implementations
 

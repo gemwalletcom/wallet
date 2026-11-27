@@ -1,0 +1,4 @@
+[package]
+name = "gem_fluent"
+version = { workspace = true }
+edition = { workspace = true }

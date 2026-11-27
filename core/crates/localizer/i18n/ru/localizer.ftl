@@ -26,11 +26,7 @@ notification_fiat_sale_title = 💰 Продано {$value}
 support_new_message_title = Новое сообщение от службы поддержки
 notification_freeze_title = { notification_action_freeze } {$value}
 notification_unfreeze_title = { notification_action_unfreeze } {$value}
-notification_reward_title = 💎 Вы заработали { $value ->
-     [one] {$value} балл
-     [few] {$value} балла
-    *[other] {$value} баллов
-    }!
+notification_reward_title = 💎 Заработано баллов: {$value}
 notification_reward_create_username_description = Имя пользователя готово. Приглашайте друзей, чтобы получать награды.
 notification_reward_invite_description = Реферал зарегистрировался, используя ваш код.
 notification_rewards_joined_description = Вы зарегистрировались, используя реферальный код.
@@ -47,11 +43,7 @@ fiat_error_region_unavailable = Недоступно в вашем регион�
 rewards_error_referral_country_ineligible = В настоящее время реферальные программы недоступны для вашей страны: {$value}.
 notification_rewards_disabled_title = Реферальный код деактивирован
 notification_rewards_disabled_description = Данный реферальный код отключен из-за неоднократных нарушений условий нашей реферальной программы.
-rewards_error_referral_eligibility_expired = Реферальные коды можно использовать только на устройстве и с кошельком, настроенными { $value ->
-     [one] за последний {$value} день
-     [few] за последние {$value} дня
-    *[other] за последние {$value} дней
-    }.
+rewards_error_referral_eligibility_expired = Реферальные коды работают только на новых устройстве и кошельке. Максимальный срок в днях: {$value}.
 notification_reward_pending_title = 💎 Новый реферальный аккаунт
 rewards_error_username_too_short = Имя пользователя слишком короткое. Минимальная длина: {$value}.
 rewards_error_username_too_long = Имя пользователя слишком длинное. Максимальная длина: {$value}.
@@ -73,16 +65,8 @@ notification_stake_rewards_description = {$value} вознаграждения, 
 notification_rewards_enabled_title = 💎 Награды доступны
 notification_rewards_enabled_description = Теперь вы можете получать награды, приглашая друзей.
 notification_rewards_redeem_points_title = 🎁 Награда получена
-notification_rewards_redeem_points_description = Вы обменяли { $value ->
-     [one] {$value} балл
-     [few] {$value} балла
-    *[other] {$value} баллов
-    }.
-notification_rewards_redeem_points_for_description = Вы обменяли { $points ->
-     [one] {$points} балл
-     [few] {$points} балла
-    *[other] {$points} баллов
-    } на {$value}.
+notification_rewards_redeem_points_description = 💎 Обменяно баллов: {$value}
+notification_rewards_redeem_points_for_description = 💎 Обменяно баллов: {$points} на {$value}
 notification_perpetual_long_title = 📈 Лонг {$coin}
 notification_perpetual_open_description = Цена входа: {$price} 🚀
 notification_perpetual_short_title = 📉 Шорт {$coin}

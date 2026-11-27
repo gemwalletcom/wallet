@@ -26,7 +26,7 @@ notification_fiat_sale_title = 💰 تم بيع {$value}
 support_new_message_title = رسالة جديدة من الدعم
 notification_freeze_title = { notification_action_freeze } {$value}
 notification_unfreeze_title = { notification_action_unfreeze } {$value}
-notification_reward_title = 💎 لقد ربحت {$value} من النقاط!
+notification_reward_title = 💎 النقاط المكتسبة: {$value}
 notification_reward_create_username_description = اسم المستخدم جاهز. ادعُ أصدقاءك لربح المكافآت.
 notification_reward_invite_description = تم الانضمام عن طريق الإحالة باستخدام رمزك.
 notification_rewards_joined_description = لقد انضممت باستخدام رمز إحالة.
@@ -43,13 +43,7 @@ fiat_error_region_unavailable = غير متاح في منطقتك.
 rewards_error_referral_country_ineligible = خدمة الإحالات غير متاحة حاليًا لبلدك: {$value}.
 notification_rewards_disabled_title = تم تعطيل رمز الإحالة
 notification_rewards_disabled_description = تم تعطيل رمز الإحالة هذا بسبب الانتهاكات المتكررة لشروط برنامج الإحالة الخاص بنا.
-rewards_error_referral_eligibility_expired = لا يمكن استخدام رموز الإحالة إلا على جهاز ومحفظة تم إعدادهما خلال { $value ->
-     [one] اليوم الماضي
-     [two] اليومين الماضيين
-     [few] آخر {$value} أيام
-     [many] آخر {$value} يومًا
-    *[other] آخر {$value} يوم
-    }.
+rewards_error_referral_eligibility_expired = لا تعمل رموز الإحالة إلا على جهاز ومحفظة جديدين. الحد الأقصى للعمر بالأيام: {$value}.
 notification_reward_pending_title = 💎 إحالة جديدة
 rewards_error_username_too_short = اسم المستخدم قصير جدًا. الحد الأدنى للطول: {$value}.
 rewards_error_username_too_long = اسم المستخدم طويل جدًا. الحد الأقصى للطول: {$value}.
@@ -71,8 +65,8 @@ notification_stake_rewards_description = {$value} المكافآت متاحة ل
 notification_rewards_enabled_title = 💎 تم تفعيل المكافآت
 notification_rewards_enabled_description = يمكنك الآن ربح المكافآت بدعوة أصدقائك.
 notification_rewards_redeem_points_title = 🎁 تم استبدال المكافأة
-notification_rewards_redeem_points_description = لقد استبدلت {$value} من النقاط.
-notification_rewards_redeem_points_for_description = لقد استبدلت {$points} من النقاط مقابل {$value}.
+notification_rewards_redeem_points_description = 💎 النقاط المستبدلة: {$value}
+notification_rewards_redeem_points_for_description = 💎 النقاط المستبدلة: {$points} مقابل {$value}
 notification_perpetual_long_title = 📈 مركز طويل على {$coin}
 notification_perpetual_open_description = تم الدخول عند {$price} 🚀
 notification_perpetual_short_title = 📉 مركز قصير على {$coin}

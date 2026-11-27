@@ -26,10 +26,7 @@ notification_fiat_sale_title = 💰 Vous avez vendu {$value}
 support_new_message_title = Nouveau message du support
 notification_freeze_title = { notification_action_freeze } {$value}
 notification_unfreeze_title = { notification_action_unfreeze } {$value}
-notification_reward_title = 💎 Vous avez gagné { $value ->
-     [one] {$value} point
-    *[other] {$value} points
-    } !
+notification_reward_title = 💎 Points gagnés : {$value}
 notification_reward_create_username_description = Nom d'utilisateur prêt. Invitez vos amis pour gagner des récompenses.
 notification_reward_invite_description = Le parrainage a été effectué en utilisant votre code.
 notification_rewards_joined_description = Vous vous êtes inscrit en utilisant un code de parrainage.
@@ -46,10 +43,7 @@ fiat_error_region_unavailable = Indisponible dans votre région.
 rewards_error_referral_country_ineligible = Les parrainages ne sont actuellement pas disponibles pour votre pays : {$value}.
 notification_rewards_disabled_title = Code de parrainage désactivé
 notification_rewards_disabled_description = Ce code de parrainage a été désactivé en raison de violations répétées des conditions de notre programme de parrainage.
-rewards_error_referral_eligibility_expired = Les codes de parrainage ne peuvent être utilisés que sur un appareil et un portefeuille configurés { $value ->
-     [one] au cours du dernier jour
-    *[other] au cours des {$value} derniers jours
-    }.
+rewards_error_referral_eligibility_expired = Les codes de parrainage ne fonctionnent que sur un nouvel appareil et un nouveau portefeuille. Ancienneté maximale en jours : {$value}.
 notification_reward_pending_title = 💎 Nouveau parrainage
 rewards_error_username_too_short = Le nom d'utilisateur est trop court. Longueur minimale : {$value}.
 rewards_error_username_too_long = Le nom d'utilisateur est trop long. Longueur maximale : {$value}.
@@ -71,8 +65,8 @@ notification_stake_rewards_description = {$value} récompenses disponibles sur {
 notification_rewards_enabled_title = 💎 Récompenses débloquées
 notification_rewards_enabled_description = Vous pouvez désormais gagner des récompenses en invitant des amis.
 notification_rewards_redeem_points_title = 🎁 Récompense échangée
-notification_rewards_redeem_points_description = Vous avez échangé {$value} points.
-notification_rewards_redeem_points_for_description = Vous avez échangé {$points} points contre {$value}.
+notification_rewards_redeem_points_description = 💎 Points échangés : {$value}
+notification_rewards_redeem_points_for_description = 💎 Points échangés : {$points} contre {$value}
 notification_perpetual_long_title = 📈 Position longue sur {$coin}
 notification_perpetual_open_description = Entrée à {$price} 🚀
 notification_perpetual_short_title = 📉 Position courte sur {$coin}

@@ -69,7 +69,7 @@ impl SupportClient {
             return None;
         }
 
-        let title = LanguageLocalizer::new_with_language(device.locale.as_ref()).notification_support_new_message_title();
+        let title = LanguageLocalizer::new_with_language(device.locale.as_ref()).support_new_message_title();
         let message = support_message_notification_text(payload.content.as_deref().unwrap_or_default());
         let data = PushNotification {
             notification_type: PushNotificationTypes::Support,

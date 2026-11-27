@@ -26,11 +26,7 @@ notification_fiat_sale_title = 💰 Sprzedano {$value}
 support_new_message_title = Nowa wiadomość od Wsparcia
 notification_freeze_title = { notification_action_freeze } {$value}
 notification_unfreeze_title = { notification_action_unfreeze } {$value}
-notification_reward_title = 💎 Zdobyto { $value ->
-     [one] {$value} punkt
-     [few] {$value} punkty
-    *[other] {$value} punktów
-    }!
+notification_reward_title = 💎 Zdobyte punkty: {$value}
 notification_reward_create_username_description = Nazwa użytkownika gotowa. Zaproś znajomych i zdobądź nagrody.
 notification_reward_invite_description = Polecenie zostało dodane przy użyciu Twojego kodu.
 notification_rewards_joined_description = Dołączyłeś używając kodu polecającego.
@@ -47,10 +43,7 @@ fiat_error_region_unavailable = Niedostępne w Twoim regionie.
 rewards_error_referral_country_ineligible = Polecenia są obecnie niedostępne dla Twojego kraju: {$value}.
 notification_rewards_disabled_title = Kod polecający został dezaktywowany
 notification_rewards_disabled_description = Ten kod polecający został wyłączony z powodu powtarzających się naruszeń warunków naszego programu poleceń.
-rewards_error_referral_eligibility_expired = Kodów polecających można używać tylko na urządzeniu i z portfelem skonfigurowanymi { $value ->
-     [one] w ciągu ostatniego dnia
-    *[other] w ciągu ostatnich {$value} dni
-    }.
+rewards_error_referral_eligibility_expired = Kody polecające działają tylko na nowym urządzeniu i z nowym portfelem. Maksymalny wiek w dniach: {$value}.
 notification_reward_pending_title = 💎 Nowe polecenie
 rewards_error_username_too_short = Nazwa użytkownika jest za krótka. Minimalna długość: {$value}.
 rewards_error_username_too_long = Nazwa użytkownika jest za długa. Maksymalna długość: {$value}.
@@ -72,16 +65,8 @@ notification_stake_rewards_description = {$value} nagrody dostępne dla {$chain}
 notification_rewards_enabled_title = 💎 Nagrody odblokowane
 notification_rewards_enabled_description = Możesz teraz zdobywać nagrody, zapraszając znajomych.
 notification_rewards_redeem_points_title = 🎁 Nagroda odebrana
-notification_rewards_redeem_points_description = Wymieniono { $value ->
-     [one] {$value} punkt
-     [few] {$value} punkty
-    *[other] {$value} punktów
-    }.
-notification_rewards_redeem_points_for_description = Wymieniono { $points ->
-     [one] {$points} punkt
-     [few] {$points} punkty
-    *[other] {$points} punktów
-    } na {$value}.
+notification_rewards_redeem_points_description = 💎 Wymienione punkty: {$value}
+notification_rewards_redeem_points_for_description = 💎 Wymienione punkty: {$points} na {$value}
 notification_perpetual_long_title = 📈 Pozycja długa {$coin}
 notification_perpetual_open_description = Cena wejścia: {$price} 🚀
 notification_perpetual_short_title = 📉 Pozycja krótka {$coin}

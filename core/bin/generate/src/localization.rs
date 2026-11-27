@@ -1,10 +1,7 @@
 mod android;
 mod ios;
 
-use fluent_syntax::{
-    ast::{Entry, Pattern, PatternElement},
-    parser,
-};
+use gem_fluent::Element;
 
 use std::{
     collections::{BTreeMap, BTreeSet},
@@ -49,30 +46,19 @@ fn read_localizations(source_path: &Path) -> Result<BTreeMap<String, Vec<(String
     for path in localization_paths(source_path)? {
         let language = path.file_stem().and_then(|value| value.to_str()).ok_or("invalid localization file name")?.to_string();
         let source = fs::read_to_string(&path)?;
-        let resource = match parser::parse::<&str>(&source) {
-            Ok(resource) => resource,
-            Err((_, errors)) => return Err(format!("failed to parse {}: {:?}", path.display(), errors).into()),
-        };
         let mut entries = Vec::new();
         let mut keys = BTreeSet::new();
-        for entry in resource.body {
-            match entry {
-                Entry::Message(message) => {
-                    if !keys.insert(message.id.name.to_string()) {
-                        return Err(format!("{} contains duplicate key {}", path.display(), message.id.name).into());
-                    }
-                    if !message.attributes.is_empty() {
-                        return Err(format!("{} contains unsupported attributes on {}", path.display(), message.id.name).into());
-                    }
-                    let value = message.value.ok_or_else(|| format!("{} contains empty value for {}", path.display(), message.id.name))?;
-                    let value = pattern_text(&path, message.id.name, value)?;
-                    validate_value(&path, message.id.name, &value)?;
-                    entries.push((message.id.name.to_string(), value.trim().to_string()));
-                }
-                Entry::Comment(_) | Entry::GroupComment(_) | Entry::ResourceComment(_) => {}
-                Entry::Term(term) => return Err(format!("{} contains unsupported term {}", path.display(), term.id.name).into()),
-                Entry::Junk { content } => return Err(format!("{} contains invalid Fluent content: {}", path.display(), content).into()),
+        for message in gem_fluent::parse(&source).map_err(|error| format!("failed to parse {}: {error}", path.display()))? {
+            if !keys.insert(message.id.to_string()) {
+                return Err(format!("{} contains duplicate key {}", path.display(), message.id).into());
             }
+            let value = match message.pattern.as_slice() {
+                [Element::Text(value)] => *value,
+                [] => return Err(format!("{} contains empty value for {}", path.display(), message.id).into()),
+                _ => return Err(format!("{} contains unsupported placeable in {}", path.display(), message.id).into()),
+            };
+            validate_value(&path, message.id, value)?;
+            entries.push((message.id.to_string(), value.trim().to_string()));
         }
         localizations.insert(language, entries);
     }
@@ -117,17 +103,6 @@ fn localization_paths(source_path: &Path) -> Result<Vec<PathBuf>, Box<dyn Error 
         .collect::<Vec<_>>();
     paths.sort();
     Ok(paths)
-}
-
-fn pattern_text(path: &Path, id: &str, pattern: Pattern<&str>) -> Result<String, Box<dyn Error + Send + Sync>> {
-    let mut value = String::new();
-    for element in pattern.elements {
-        match element {
-            PatternElement::TextElement { value: text } => value.push_str(text),
-            PatternElement::Placeable { .. } => return Err(format!("{} contains unsupported placeable in {}", path.display(), id).into()),
-        }
-    }
-    Ok(value)
 }
 
 fn validate_value(path: &Path, id: &str, value: &str) -> Result<(), Box<dyn Error + Send + Sync>> {
