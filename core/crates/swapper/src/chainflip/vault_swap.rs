@@ -13,7 +13,7 @@ use super::{
     broker::{EvmVaultSwapResponse, TronVaultSwapResponse},
     contracts::IVault,
     destination::{NO_CCM, VaultSwapDestination},
-    refund::VaultSwapRefund,
+    parameters::VaultSwapParameters,
 };
 use crate::SwapperError;
 
@@ -49,7 +49,7 @@ pub struct VaultSwap {
     pub(super) token_id: Option<String>,
     pub(super) amount: BigUint,
     pub(super) destination: VaultSwapDestination,
-    pub(super) refund: VaultSwapRefund,
+    pub(super) parameters: VaultSwapParameters,
 }
 
 impl VaultSwap {
@@ -86,7 +86,7 @@ impl VaultSwap {
             }
         };
         let note = decode_hex(&response.note).map_err(|_| SwapperError::InvalidRoute)?;
-        self.refund.validate(self.destination.validate_tron(&note)?)?;
+        self.parameters.validate(self.destination.validate_tron(&note)?)?;
         Ok((to, value))
     }
 
@@ -112,7 +112,7 @@ impl VaultSwap {
 
     fn validate_payout(&self, chain: u32, address: &[u8], asset: u32, cf_parameters: &[u8]) -> Result<(), SwapperError> {
         self.destination.validate_call(chain, address, asset)?;
-        self.refund.validate(cf_parameters)
+        self.parameters.validate(cf_parameters)
     }
 
     fn value(&self, broker_value: &BigUint) -> Result<BigUint, SwapperError> {
@@ -137,7 +137,7 @@ mod tests {
     use crate::chainflip::{
         broker::SolanaVaultSwapResponse,
         provider::TRON_VAULT,
-        testkit::{ETHEREUM_NATIVE_MIN_PRICE, SOLANA_MIN_PRICE, arbitrum_usdc_destination, ethereum_usdc_refund, mock_refund},
+        testkit::{ETHEREUM_NATIVE_MIN_PRICE, SOLANA_MIN_PRICE, arbitrum_usdc_destination, ethereum_usdc_parameters, mock_parameters},
         tx_builder::solana_instruction,
     };
     use gem_solana::anchor::global_discriminator;
@@ -156,7 +156,7 @@ mod tests {
         let token_swap = VaultSwap {
             token_id: Some(ETHEREUM_USDC_TOKEN_ID.to_string()),
             amount: BigUint::from(500_000_000u64),
-            refund: ethereum_usdc_refund(),
+            parameters: ethereum_usdc_parameters(),
             ..VaultSwap::mock_ethereum()
         };
 
@@ -201,7 +201,7 @@ mod tests {
             ),
             (
                 VaultSwap {
-                    refund: mock_refund(Chain::Ethereum, "0x1111111111111111111111111111111111111111", ETHEREUM_NATIVE_MIN_PRICE),
+                    parameters: mock_parameters(Chain::Ethereum, "0x1111111111111111111111111111111111111111", ETHEREUM_NATIVE_MIN_PRICE),
                     ..swap.clone()
                 },
                 native.clone(),
@@ -209,7 +209,7 @@ mod tests {
             ),
             (
                 VaultSwap {
-                    refund: mock_refund(Chain::Ethereum, TEST_EVM_SENDER, "0x3292bb84399604d6d7d2345"),
+                    parameters: mock_parameters(Chain::Ethereum, TEST_EVM_SENDER, "0x3292bb84399604d6d7d2345"),
                     ..swap
                 },
                 native,
@@ -278,7 +278,7 @@ mod tests {
             (
                 VaultSwap {
                     destination: VaultSwap::mock_ethereum().destination,
-                    refund: VaultSwap::mock_solana().refund,
+                    parameters: VaultSwap::mock_solana().parameters,
                     ..swap.clone()
                 },
                 native.clone(),
@@ -286,7 +286,7 @@ mod tests {
             ),
             (
                 VaultSwap {
-                    refund: mock_refund(Chain::Tron, TRON_VAULT, "0x0"),
+                    parameters: mock_parameters(Chain::Tron, TRON_VAULT, "0x0"),
                     ..swap
                 },
                 native,
@@ -326,7 +326,7 @@ mod tests {
             ),
             (
                 VaultSwap {
-                    refund: mock_refund(Chain::Solana, "7g2rVN8fAAQdPh1mkajpvELqYa3gWvFXJsBLnKfEQfqy", SOLANA_MIN_PRICE),
+                    parameters: mock_parameters(Chain::Solana, "7g2rVN8fAAQdPh1mkajpvELqYa3gWvFXJsBLnKfEQfqy", SOLANA_MIN_PRICE),
                     ..swap.clone()
                 },
                 native.clone(),

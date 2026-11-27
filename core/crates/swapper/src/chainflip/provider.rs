@@ -4,6 +4,7 @@ use gem_evm::u256::biguint_to_u256;
 use gem_solana::DEFAULT_SWAP_GAS_LIMIT;
 use num_bigint::BigUint;
 use num_traits::ToPrimitive;
+use number_formatter::BigNumberFormatter;
 use std::{fmt::Debug, sync::Arc, time::Duration};
 
 use super::{
@@ -14,8 +15,8 @@ use super::{
     },
     client::{ChainflipClient, SUPPORTED_ASSETS, map_swap_result},
     destination::VaultSwapDestination,
+    parameters::VaultSwapParameters,
     price::{price_after_slippage, price_to_hex_price},
-    refund::VaultSwapRefund,
     seed::generate_random_seed,
     tx_builder,
     vault_swap::VaultSwap,
@@ -264,7 +265,8 @@ where
         let route = quote.data.routes.first().ok_or(SwapperError::InvalidRoute)?;
         let route_data: ChainflipRouteData = serde_json::from_str(&route.route_data)?;
         let chain = source_asset.chain.clone();
-        let price_slippage = price_after_slippage(route_data.estimated_price, quote.data.slippage_bps);
+        let quoted_price = BigNumberFormatter::f64_value(&quote.to_value, quote.request.to_asset.decimals) / BigNumberFormatter::f64_value(&input_amount, quote.request.from_asset.decimals);
+        let price_slippage = price_after_slippage(route_data.estimated_price.max(quoted_price), quote.data.slippage_bps);
         let min_price = price_to_hex_price(price_slippage, quote.request.to_asset.decimals, quote.request.from_asset.decimals).map_err(SwapperError::TransactionError)?;
         let refund_parameters = refund_parameters(&quote.request.wallet_address, &min_price);
 
@@ -286,7 +288,7 @@ where
             token_id: from_asset.token_id.clone(),
             amount: input_amount.clone(),
             destination: VaultSwapDestination::new(&quote.request.to_asset.asset_id(), &quote.request.destination_address)?,
-            refund: VaultSwapRefund::new(from_asset.chain, refund_parameters.clone()),
+            parameters: VaultSwapParameters::new(from_asset.chain, refund_parameters.clone(), route_data.dca_parameters.clone(), route_data.boost_fee)?,
         };
         let extra_params = match source_chain_type {
             ChainType::Ethereum => VaultSwapExtras::Evm(VaultSwapChainExtras {
@@ -562,17 +564,23 @@ mod tests {
             },
             ..Quote::mock(Chain::Tron, None)
         };
-        let quote = Quote {
+        let priced = Quote {
             data: ProviderData {
                 routes: mock_routes(&quote, 0.0),
                 ..quote.data.clone()
             },
             ..quote
         };
+        let quote = Quote { to_value: BigUint::ZERO, ..priced.clone() };
 
         let data = provider.get_quote_data(&quote, QuoteDataInput::None).await.unwrap();
         assert_eq!(data.to, TRON_VAULT);
         assert_eq!(data.value, quote.from_value);
+        assert_eq!(
+            provider.get_quote_data(&priced, QuoteDataInput::None).await.unwrap_err(),
+            SwapperError::InvalidRoute,
+            "the minimum price follows the amounts the quote shows, so a reply encoding a lower one is refused"
+        );
     }
 
     #[tokio::test]

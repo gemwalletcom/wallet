@@ -1,8 +1,8 @@
 use super::ChainflipRouteData;
 use super::broker::{AssetsResponse, ChainflipAsset, DepositChannelRequest, QuoteRequest, RefundParameters, TronVaultSwapResponse};
 use super::destination::VaultSwapDestination;
+use super::parameters::VaultSwapParameters;
 use super::provider::{TRON_VAULT, refund_parameters};
-use super::refund::VaultSwapRefund;
 use super::vault_swap::VaultSwap;
 use crate::fees::DEFAULT_CHAINFLIP_FEE_BPS;
 use crate::{Quote, Route};
@@ -80,12 +80,12 @@ pub fn arbitrum_usdc_destination() -> VaultSwapDestination {
     VaultSwapDestination::new(&ARBITRUM_USDC.id, TEST_EVM_SENDER).unwrap()
 }
 
-pub fn mock_refund(chain: Chain, address: &str, min_price: &str) -> VaultSwapRefund {
-    VaultSwapRefund::new(chain, refund_parameters(address, min_price))
+pub fn mock_parameters(chain: Chain, address: &str, min_price: &str) -> VaultSwapParameters {
+    VaultSwapParameters::new(chain, refund_parameters(address, min_price), None, None).unwrap()
 }
 
-pub fn ethereum_usdc_refund() -> VaultSwapRefund {
-    mock_refund(Chain::Ethereum, TEST_EVM_SENDER, "0x4faa1adcd75c490000000000000000")
+pub fn ethereum_usdc_parameters() -> VaultSwapParameters {
+    mock_parameters(Chain::Ethereum, TEST_EVM_SENDER, "0x4faa1adcd75c490000000000000000")
 }
 
 impl VaultSwap {
@@ -95,7 +95,7 @@ impl VaultSwap {
             token_id: None,
             amount: BigUint::from(100_000_000_000_000_000u64),
             destination: bitcoin_destination(),
-            refund: mock_refund(Chain::Ethereum, TEST_EVM_SENDER, ETHEREUM_NATIVE_MIN_PRICE),
+            parameters: mock_parameters(Chain::Ethereum, TEST_EVM_SENDER, ETHEREUM_NATIVE_MIN_PRICE),
         }
     }
 
@@ -105,7 +105,7 @@ impl VaultSwap {
             token_id: None,
             amount: BigUint::from(50_000_000u32),
             destination: arbitrum_usdc_destination(),
-            refund: mock_refund(Chain::Tron, TEST_TRON_SENDER, "0x0"),
+            parameters: mock_parameters(Chain::Tron, TEST_TRON_SENDER, "0x0"),
         }
     }
 
@@ -115,7 +115,7 @@ impl VaultSwap {
             token_id: None,
             amount: BigUint::from(500_000_000u64),
             destination: bitcoin_destination(),
-            refund: mock_refund(Chain::Solana, TEST_SOLANA_SENDER, SOLANA_MIN_PRICE),
+            parameters: mock_parameters(Chain::Solana, TEST_SOLANA_SENDER, SOLANA_MIN_PRICE),
         }
     }
 }

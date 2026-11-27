@@ -5,9 +5,9 @@ mod contracts;
 pub mod default;
 mod destination;
 pub mod model;
+mod parameters;
 pub mod price;
 pub mod provider;
-mod refund;
 pub mod seed;
 #[cfg(any(test, debug_assertions))]
 pub mod testkit;
