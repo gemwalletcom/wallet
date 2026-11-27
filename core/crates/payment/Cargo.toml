@@ -14,7 +14,7 @@ gem_solana = { path = "../gem_solana" }
 gem_wallet_connect = { path = "../gem_wallet_connect" }
 number_formatter = { path = "../number_formatter" }
 async-trait = { workspace = true }
-futures = { workspace = true }
+futures-util = { workspace = true }
 num-bigint = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }

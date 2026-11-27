@@ -1,6 +1,6 @@
 use std::sync::Arc;
 
-use futures::lock::Mutex;
+use futures_util::lock::Mutex;
 use gem_hypercore::{
     models::websocket::HyperliquidRequest,
     provider::{websocket_mapper::account_subscriptions, websocket_subscriptions::WebSocketSubscriptions},

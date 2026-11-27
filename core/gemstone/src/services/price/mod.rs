@@ -6,7 +6,7 @@ pub(crate) mod testkit;
 
 use crate::services::error::GemServiceError;
 use crate::services::preferences::GemPreferencesService;
-use futures::lock::Mutex;
+use futures_util::lock::Mutex;
 use std::sync::Arc;
 
 use primitives::currency::Currency;

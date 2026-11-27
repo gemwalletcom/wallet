@@ -4,6 +4,7 @@ use std::str;
 
 use async_trait::async_trait;
 use chain_traits::ChainTransactionLoad;
+use futures_util::future::{try_join, try_join5};
 use num_bigint::BigInt;
 
 use gem_client::Client;
@@ -29,13 +30,14 @@ impl<C: Client> ChainTransactionLoad for TronProvider<C> {
     }
 
     async fn get_transaction_load(&self, input: TransactionLoadInput) -> Result<TransactionLoadData, Box<dyn Error + Sync + Send>> {
-        let (block, chain_parameters, account_usage, is_new_account, stake_data) = futures::try_join!(
+        let (block, chain_parameters, account_usage, is_new_account, stake_data) = try_join5(
             self.get_tron_block(),
             self.get_chain_parameters(),
             self.get_account_usage(&input.sender_address),
             self.get_is_new_account_for_input_type(&input),
-            self.get_stake_data(&input)
-        )?;
+            self.get_stake_data(&input),
+        )
+        .await?;
 
         let block = block.block_header.raw_data;
         let metadata = TransactionLoadMetadata::Tron {
@@ -122,7 +124,7 @@ impl<C: Client> TronClient<C> {
         if let Some(approval) = &swap_data.data.approval {
             let approval_call = TronTriggerSmartContract::token_approval(owner, approval)?;
             let approval_fee = self.estimate_smart_contract_fee(approval_call.trigger_smart_contract_data(None), fee_context, None);
-            let (swap_fee, approval_fee) = futures::try_join!(swap_fee, approval_fee)?;
+            let (swap_fee, approval_fee) = try_join(swap_fee, approval_fee).await?;
             let fee = &approval_fee.fee + &swap_fee.fee;
             let gas_limit = &approval_fee.gas_limit + &swap_fee.gas_limit;
             return Ok(TransactionFee {
@@ -170,7 +172,7 @@ impl<C: Client> TronClient<C> {
     }
 
     async fn estimate_smart_contract_fee(&self, contract_data: TriggerSmartContractData, fee_context: &FeeEstimateContext<'_>, memo_data_bytes: Option<u64>) -> Result<TransactionFee, Box<dyn Error + Send + Sync>> {
-        let (estimated_energy, contract) = futures::try_join!(self.estimate_energy_with_data(&contract_data), self.get_contract(&contract_data.contract_address))?;
+        let (estimated_energy, contract) = try_join(self.estimate_energy_with_data(&contract_data), self.get_contract(&contract_data.contract_address)).await?;
         let caller_energy = self.caller_energy(&contract, estimated_energy).await?;
         contract_fee_from_energy(fee_context.chain_parameters, fee_context.account_usage, (caller_energy, estimated_energy), contract_data.data.len() as u64 / 2, memo_data_bytes)
     }

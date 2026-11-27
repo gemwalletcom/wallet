@@ -145,11 +145,7 @@ mod tests {
         );
         assert_eq!(pending_nonces(&pending, Chain::Ethereum, "0xother", now), Vec::<u64>::new(), "every address has its own nonces");
         assert_eq!(pending_nonces(&pending, Chain::SmartChain, "0xfrom", now), Vec::<u64>::new(), "every network has its own nonces");
-        assert_eq!(
-            pending_nonces(&pending, Chain::Ethereum, "0xfrom", now + Duration::from_secs(59)),
-            vec![5],
-            "a send holds its nonce for five blocks"
-        );
+        assert_eq!(pending_nonces(&pending, Chain::Ethereum, "0xfrom", now + Duration::from_secs(59)), vec![5], "a send holds its nonce for five blocks");
         assert_eq!(
             pending_nonces(&pending, Chain::Ethereum, "0xfrom", now + Duration::from_secs(61)),
             Vec::<u64>::new(),

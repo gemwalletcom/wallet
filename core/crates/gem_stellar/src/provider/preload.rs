@@ -1,8 +1,8 @@
 use async_trait::async_trait;
 use chain_traits::ChainTransactionLoad;
-use futures;
 use std::error::Error;
 
+use futures_util::future::join;
 use gem_client::Client;
 use primitives::{FeePriority, FeeRate, GasPriceType, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput};
 
@@ -12,7 +12,7 @@ use crate::{models::AccountResult, provider::preload_mapper::map_transaction_loa
 impl<C: Client> ChainTransactionLoad for StellarClient<C> {
     async fn get_transaction_preload(&self, input: TransactionPreloadInput) -> Result<TransactionLoadMetadata, Box<dyn Error + Sync + Send>> {
         let destination = input.input_type.swap_to_address().or(Some(input.destination_address.as_str())).filter(|address| !address.is_empty());
-        let (sender_account, destination_exists) = futures::join!(self.get_account(input.sender_address.clone()), self.destination_exists(destination));
+        let (sender_account, destination_exists) = join(self.get_account(input.sender_address.clone()), self.destination_exists(destination)).await;
         match sender_account? {
             AccountResult::Found(account) => Ok(TransactionLoadMetadata::Stellar {
                 sequence: account.sequence + 1,

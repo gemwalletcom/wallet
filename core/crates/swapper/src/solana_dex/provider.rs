@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use futures::future::{join_all, try_join_all};
+use futures_util::future::{join_all, try_join_all};
 use gem_client::Client;
 use gem_encoding::borsh::BorshDeserialize;
 use gem_jsonrpc::client::JsonRpcClient;

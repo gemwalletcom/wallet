@@ -12,7 +12,7 @@ rpc = [
     "gem_encoding/protobuf",
     "dep:gem_jsonrpc",
     "dep:chain_primitives",
-    "dep:futures",
+    "dep:futures-util",
 ]
 signer = ["dep:signer"]
 chain_integration_tests = ["rpc"]
@@ -31,7 +31,7 @@ serde_json = { workspace = true }
 serde_serializers = { path = "../serde_serializers", features = ["bigint"] }
 num-traits = { workspace = true }
 
-futures = { workspace = true, optional = true }
+futures-util = { workspace = true, optional = true }
 signer = { path = "../signer", optional = true }
 
 # Optional dependencies for rpc feature

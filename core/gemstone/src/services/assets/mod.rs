@@ -177,7 +177,7 @@ impl GemAssetsService {
     }
 
     pub async fn sync_availability(&self, versions: ConfigVersions) -> Result<(), GemServiceError> {
-        let results = futures::future::join_all(rules::asset_list_versions(&versions).into_iter().map(|(list, remote_version)| self.sync_availability_list(list, remote_version))).await;
+        let results = futures_util::future::join_all(rules::asset_list_versions(&versions).into_iter().map(|(list, remote_version)| self.sync_availability_list(list, remote_version))).await;
         for result in results {
             result?;
         }
@@ -215,7 +215,7 @@ impl GemAssetsService {
                 }
             }
         });
-        let tokens: Vec<Asset> = futures::future::join_all(lookups).await.into_iter().flatten().collect();
+        let tokens: Vec<Asset> = futures_util::future::join_all(lookups).await.into_iter().flatten().collect();
         if tokens.is_empty() {
             return Ok(vec![]);
         }

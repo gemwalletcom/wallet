@@ -82,6 +82,8 @@ serde_json = { version = "1.0.151", features = ["preserve_order"] }
 # Async runtime
 async-trait = { version = "0.1.92" }
 futures = { version = "0.3.33" }
+futures-util = { version = "0.3.33", default-features = false, features = ["std"] }
+futures-channel = { version = "0.3.33", default-features = false, features = ["alloc"] }
 tokio = { version = "1.53.1", features = ["macros", "rt-multi-thread"] }
 
 # HTTP and networking

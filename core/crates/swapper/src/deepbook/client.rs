@@ -9,7 +9,7 @@ use crate::{
     route_cache::DiscoveryCache,
     sui_swap::{MoveAbort, is_move_abort, lookup_pools, upgraded_error},
 };
-use futures::future::join_all;
+use futures_util::future::join_all;
 use gem_sui::{EMPTY_ADDRESS, SuiClient};
 use std::{collections::HashMap, sync::Arc};
 

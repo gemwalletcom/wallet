@@ -2,6 +2,7 @@ use std::error::Error;
 
 use async_trait::async_trait;
 use chain_traits::{ChainTransactionLoad, TransactionFeeOperation};
+use futures_util::future::try_join;
 use num_bigint::BigInt;
 
 use gem_client::Client;
@@ -16,7 +17,7 @@ impl<C: Client> ChainTransactionLoad for PolkadotProvider<C> {
     }
 
     async fn get_transaction_preload(&self, input: TransactionPreloadInput) -> Result<TransactionLoadMetadata, Box<dyn Error + Sync + Send>> {
-        let (material, sender_balance) = futures::try_join!(self.get_transaction_material(), self.get_balance(input.sender_address))?;
+        let (material, sender_balance) = try_join(self.get_transaction_material(), self.get_balance(input.sender_address)).await?;
 
         Ok(TransactionLoadMetadata::Polkadot {
             sequence: sender_balance.nonce,

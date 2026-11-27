@@ -6,6 +6,7 @@ use crate::services::error::GemServiceError;
 use std::future::Future;
 use std::sync::Arc;
 
+use futures_util::future::join;
 use primitives::{DateTime, WalletId};
 
 pub use crate::services::wallet_preferences::GemDiscoveryStep;
@@ -51,7 +52,7 @@ impl GemAssetDiscoveryService {
 
 impl GemAssetDiscoveryService {
     pub async fn discover(&self, wallet_id: WalletId) -> Result<(), GemServiceError> {
-        let (assets, transactions) = futures::join!(self.sync_assets(wallet_id.clone()), self.sync_transactions(wallet_id));
+        let (assets, transactions) = join(self.sync_assets(wallet_id.clone()), self.sync_transactions(wallet_id)).await;
         assets?;
         transactions
     }

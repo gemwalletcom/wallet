@@ -2,7 +2,7 @@ use std::error::Error;
 
 use async_trait::async_trait;
 use chain_traits::{ChainTransactionLoad, TransactionFeeOperation};
-use futures::try_join;
+use futures_util::future::try_join;
 use gem_client::Client;
 use primitives::{FeePriority, FeeRate, GasPriceType, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput, UTXO};
 
@@ -17,7 +17,7 @@ impl<C: Client> ChainTransactionLoad for CardanoClient<C> {
     }
 
     async fn get_transaction_preload(&self, input: TransactionPreloadInput) -> Result<TransactionLoadMetadata, Box<dyn Error + Sync + Send>> {
-        let (utxos, tip) = try_join!(self.get_utxos(&input.sender_address), self.get_tip())?;
+        let (utxos, tip) = try_join(self.get_utxos(&input.sender_address), self.get_tip()).await?;
         Ok(map_transaction_preload(utxos, tip.slot_no))
     }
 

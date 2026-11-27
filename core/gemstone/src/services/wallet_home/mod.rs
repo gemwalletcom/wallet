@@ -5,6 +5,7 @@ pub(crate) mod testkit;
 use std::sync::Arc;
 
 use crate::services::localization::GemLocalizedText;
+use futures_util::future::join;
 use primitives::{Asset, AssetFiatValue, AssetId, Banner, Currency, DateTime, NFTData, TotalFiatValue, Wallet, WalletId, WalletListItem};
 
 use crate::services::asset_discovery::GemAssetDiscoveryService;
@@ -121,7 +122,7 @@ impl GemWalletHomeService {
         {
             return self.wallet_preferences.set_assets_timestamp(wallet_id, DateTime::now().timestamp() as u64);
         }
-        let (balances, discovery) = futures::join!(self.balances.update_enabled_balances(wallet_id.clone()), self.discovery.discover(wallet_id));
+        let (balances, discovery) = join(self.balances.update_enabled_balances(wallet_id.clone()), self.discovery.discover(wallet_id)).await;
         balances?;
         discovery
     }

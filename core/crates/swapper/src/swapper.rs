@@ -157,7 +157,7 @@ impl GemSwapper {
 
     pub async fn get_quotes(&self, request: &QuoteRequest) -> Result<SwapQuotes, SwapperError> {
         let providers = self.get_providers_for_request(request)?;
-        let quote_results = futures::future::join_all(providers.iter().map(|provider| async move { (provider.id, self.get_provider_quote(&provider.id, request).await) })).await;
+        let quote_results = futures_util::future::join_all(providers.iter().map(|provider| async move { (provider.id, self.get_provider_quote(&provider.id, request).await) })).await;
 
         let mut quotes = Vec::new();
         let mut errors = Vec::new();
@@ -443,7 +443,7 @@ mod swap_integration_tests {
         time::Instant,
     };
 
-    use futures::{StreamExt, stream};
+    use futures_util::{StreamExt, stream};
     use num_bigint::BigUint;
     use primitives::{
         AssetFull, AssetId, Chain, ChainType,
@@ -547,7 +547,7 @@ mod swap_integration_tests {
         });
 
         let started = Instant::now();
-        let mut timings = futures::future::join_all(timings).await;
+        let mut timings = futures_util::future::join_all(timings).await;
         let total = started.elapsed().as_millis();
         timings.sort_by_key(|(_, elapsed, _)| *elapsed);
         for (provider, elapsed, quoted) in &timings {

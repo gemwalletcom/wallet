@@ -1,8 +1,9 @@
 use super::model::{TransactionArgument, TransactionCommand, TransactionInput};
 use crate::rpc::proto::{FunctionDescriptor, OpenSignature, open_signature::Reference};
 use crate::{SuiClient, SuiError, tx_builder::ResolvedObjectInput, types::ObjectInput};
-use futures::future::try_join_all;
 use std::collections::{HashMap, HashSet};
+
+use futures_util::future::try_join_all;
 
 #[derive(Clone, Debug, Eq, Hash, PartialEq)]
 struct MoveFunctionKey {

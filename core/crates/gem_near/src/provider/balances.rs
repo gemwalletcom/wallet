@@ -2,7 +2,7 @@ use std::error::Error;
 
 use async_trait::async_trait;
 use chain_traits::ChainBalances;
-use futures::future::try_join_all;
+use futures_util::future::try_join_all;
 use gem_client::Client;
 use primitives::{AssetBalance, Chain};
 

@@ -2,7 +2,8 @@ use std::error::Error;
 
 use async_trait::async_trait;
 use chain_traits::{ChainTransactionLoad, TransactionFeeOperation};
-use futures::{TryFutureExt, try_join};
+use futures_util::TryFutureExt;
+use futures_util::future::try_join;
 use gem_client::Client;
 use num_bigint::BigInt;
 use primitives::{FeeRate, TransactionInputType, TransactionLoadData, TransactionLoadInput, TransactionLoadMetadata, TransactionPreloadInput};
@@ -29,16 +30,17 @@ impl<C: Client + Clone> ChainTransactionLoad for NearProvider<C> {
 
     async fn get_transaction_preload(&self, input: TransactionPreloadInput) -> Result<TransactionLoadMetadata, Box<dyn Error + Sync + Send>> {
         let public_key = address_to_public_key(&input.sender_address)?;
-        let (access_key, block) = try_join!(self.get_account_access_key(&input.sender_address, &public_key), self.get_latest_block(),)?;
+        let (access_key, block) = try_join(self.get_account_access_key(&input.sender_address, &public_key), self.get_latest_block()).await?;
         Ok(map_transaction_preload(&access_key, &block))
     }
 
     async fn get_transaction_load(&self, input: TransactionLoadInput) -> Result<TransactionLoadData, Box<dyn Error + Sync + Send>> {
         let destination_address = input.input_type.swap_to_address().unwrap_or(&input.destination_address);
-        let (protocol_config, token_account_creation_deposit) = try_join!(
+        let (protocol_config, token_account_creation_deposit) = try_join(
             self.get_protocol_config().err_into(),
-            self.token_account_creation_deposit(input.input_type.get_asset().id.token_id.as_deref(), destination_address)
-        )?;
+            self.token_account_creation_deposit(input.input_type.get_asset().id.token_id.as_deref(), destination_address),
+        )
+        .await?;
         Ok(TransactionLoadData {
             fee: map_transaction_fee(&input, destination_address, &protocol_config, token_account_creation_deposit),
             metadata: input.metadata,

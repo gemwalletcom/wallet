@@ -5,7 +5,7 @@ use std::{
     time::{Duration, Instant},
 };
 
-use futures::future::join_all;
+use futures_util::future::join_all;
 use num_bigint::BigUint;
 use num_traits::ToPrimitive;
 use primitives::{DAY, HOUR, MINUTE, WEEK, swap::HUNDRED_PERCENT_IN_BPS};

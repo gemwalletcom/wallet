@@ -5,7 +5,7 @@ use crate::{
     models::{Coin, OwnedCoins},
 };
 #[cfg(feature = "rpc")]
-use futures::try_join;
+use futures_util::future::try_join;
 
 #[derive(Clone)]
 pub struct TransactionBuilderInput {
@@ -39,7 +39,7 @@ impl TransactionBuilderInput {
     pub async fn prefetch(client: &SuiClient, sender: &str, gas_budget: u64) -> Result<Self, SuiError> {
         let gas_price = async { client.get_gas_price().await.map_err(SuiError::from_display) };
         let gas_coins = async { client.get_gas_coins(sender).await.map_err(SuiError::from_display) };
-        let (gas_price, gas_coins) = try_join!(gas_price, gas_coins)?;
+        let (gas_price, gas_coins) = try_join(gas_price, gas_coins).await?;
         Self::from_gas_coins(sender, gas_price, gas_budget, &gas_coins)
     }
 

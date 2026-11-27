@@ -1,7 +1,7 @@
 use std::time::Duration;
 
 pub async fn sleep(duration: Duration) {
-    let (sender, receiver) = futures::channel::oneshot::channel();
+    let (sender, receiver) = futures_channel::oneshot::channel();
     std::thread::spawn(move || {
         std::thread::sleep(duration);
         let _ = sender.send(());

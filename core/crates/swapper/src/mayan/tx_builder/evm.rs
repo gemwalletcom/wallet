@@ -5,7 +5,7 @@ use crate::{
 };
 use alloy_primitives::{Address, Bytes, U256};
 use alloy_sol_types::{SolCall, sol};
-use futures::try_join;
+use futures_util::future::try_join;
 use num_bigint::BigUint;
 use primitives::{AssetId, decode_hex, hex, swap::ApprovalData};
 use std::{future::Future, str::FromStr, sync::Arc};
@@ -140,7 +140,7 @@ pub(in crate::mayan::tx_builder) fn build_swap_and_forward_erc20_transaction(tok
 
 pub(in crate::mayan::tx_builder) async fn build_quote_data(transaction: impl Future<Output = Result<EvmTransaction, SwapperError>>, quote: &Quote, rpc_provider: Arc<dyn RpcProvider>) -> Result<SwapperQuoteData, SwapperError> {
     let approval = approval_data(quote.request.wallet_address.clone(), quote.request.from_asset.asset_id(), U256::from_str(&quote.from_value.to_string())?, rpc_provider);
-    let (transaction, approval) = try_join!(transaction, approval)?;
+    let (transaction, approval) = try_join(transaction, approval).await?;
     let gas_limit = get_swap_gas_limit_with_approval(&approval, None, DEFAULT_EVM_SWAP_GAS_LIMIT);
     Ok(SwapperQuoteData::new_contract(
         transaction.to,

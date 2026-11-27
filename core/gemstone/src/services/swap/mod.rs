@@ -8,8 +8,8 @@ pub mod store;
 pub(crate) mod testkit;
 
 use crate::models::custom_types::GemBigInt;
-use futures::FutureExt;
-use futures::future::{Either, select};
+use futures_util::FutureExt;
+use futures_util::future::{Either, select};
 use primitives::unix_seconds;
 use std::panic::AssertUnwindSafe;
 use std::sync::Arc;
@@ -118,7 +118,7 @@ impl GemSwapService {
     async fn quote_within(&self, request: &QuoteRequest, provider: SwapperProvider, timeout: Duration) -> GemSwapProviderAnswer {
         let quote = AssertUnwindSafe(self.swapper.get_provider_quote(&provider, request)).catch_unwind();
         let timeout = sleep(timeout);
-        futures::pin_mut!(quote, timeout);
+        futures_util::pin_mut!(quote, timeout);
         let result = match select(quote, timeout).await {
             Either::Left((Ok(result), _)) => result,
             Either::Left((Err(_), _)) | Either::Right(_) => Err(SwapperError::NoQuoteAvailable),

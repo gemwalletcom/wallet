@@ -1,5 +1,6 @@
 use std::{error::Error, str::FromStr, sync::Arc};
 
+use futures_util::future::try_join;
 use gem_encoding::decode_base64;
 use gem_encoding::protobuf::{MessageDecode, MessageEncode, decode_grpc_message, encode_grpc_message};
 use gem_jsonrpc::grpc::GrpcTransport;
@@ -156,7 +157,7 @@ impl SuiClient {
     }
 
     pub async fn get_coins(&self, address: &str, coin_type: &str) -> Result<OwnedCoins<Coin>, Box<dyn Error + Send + Sync>> {
-        let (objects, balance) = futures::try_join!(self.list_coin_objects(address, coin_type), self.get_balance_for_coin(address, coin_type),)?;
+        let (objects, balance) = try_join(self.list_coin_objects(address, coin_type), self.get_balance_for_coin(address, coin_type)).await?;
         Ok(OwnedCoins::new(coin_type.to_string(), objects, balance.address_balance))
     }
 
@@ -166,7 +167,7 @@ impl SuiClient {
             return Ok(coins);
         }
 
-        let (service_info, epoch) = futures::try_join!(self.service_info(), self.get_epoch(None, Some(FieldMask::from_path_string("epoch"))),)?;
+        let (service_info, epoch) = try_join(self.service_info(), self.get_epoch(None, Some(FieldMask::from_path_string("epoch")))).await?;
         let chain_id = service_info.chain_id.ok_or("missing Sui chain id")?.parse::<SuiDigest>()?;
         reserve_address_balance(coins, address, GasReservationContext { epoch: epoch.epoch, chain_id }).map_err(|error| Box::new(error) as Box<dyn Error + Send + Sync>)
     }

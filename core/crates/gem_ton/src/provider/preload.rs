@@ -1,5 +1,6 @@
 use async_trait::async_trait;
 use chain_traits::ChainTransactionLoad;
+use futures_util::future::try_join;
 use gem_client::Client;
 use num_bigint::{BigInt, BigUint};
 use primitives::{
@@ -78,7 +79,7 @@ fn transfer_fee(asset_subtype: AssetSubtype, memo: Option<&str>, recipient_token
 #[async_trait]
 impl<C: Client> ChainTransactionLoad for TonClient<C> {
     async fn get_transaction_preload(&self, input: TransactionPreloadInput) -> Result<TransactionLoadMetadata, Box<dyn Error + Sync + Send>> {
-        let (wallet_info, (sender_token_address, recipient_token_address)) = futures::try_join!(self.get_wallet_information(input.sender_address.clone()), self.jetton_wallet_addresses(&input))?;
+        let (wallet_info, (sender_token_address, recipient_token_address)) = try_join(self.get_wallet_information(input.sender_address.clone()), self.jetton_wallet_addresses(&input)).await?;
         Ok(TransactionLoadMetadata::Ton {
             sender_token_address,
             recipient_token_address,
@@ -113,7 +114,7 @@ impl<C: Client> TonClient<C> {
                 None => Ok(None),
             }
         };
-        let (sender_jetton_wallets, recipient_jetton_wallets) = futures::future::try_join(sender_wallets, recipient_wallets).await?;
+        let (sender_jetton_wallets, recipient_jetton_wallets) = try_join(sender_wallets, recipient_wallets).await?;
 
         let sender_jetton_wallet_address = sender_jetton_wallets.jetton_wallets.iter().find(|wallet| wallet.jetton == jetton_token_id);
         let recipient_jetton_wallet_address = recipient_jetton_wallets.as_ref().and_then(|wallets| wallets.jetton_wallets.iter().find(|wallet| wallet.jetton == jetton_token_id));

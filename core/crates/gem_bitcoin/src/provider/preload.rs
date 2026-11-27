@@ -1,5 +1,6 @@
 use async_trait::async_trait;
 use chain_traits::{ChainTransactionLoad, TransactionFeeOperation};
+use futures_util::future::try_join3;
 use num_bigint::BigInt;
 use number_formatter::BigNumberFormatter;
 use std::error::Error;
@@ -37,7 +38,7 @@ impl<C: Client> ChainTransactionLoad for BitcoinClient<C> {
 
     async fn get_transaction_fee_rates(&self, _input_type: TransactionInputType) -> Result<Vec<FeeRate>, Box<dyn Error + Sync + Send>> {
         let priority = self.chain.get_blocks_fee_priority();
-        let (slow, normal, fast) = futures::try_join!(self.get_fee(priority.slow), self.get_fee(priority.normal), self.get_fee(priority.fast))?;
+        let (slow, normal, fast) = try_join3(self.get_fee(priority.slow), self.get_fee(priority.normal), self.get_fee(priority.fast)).await?;
         Ok(map_fee_rates(slow, normal, fast, self.chain))
     }
 

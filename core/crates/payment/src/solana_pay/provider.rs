@@ -1,4 +1,5 @@
 use async_trait::async_trait;
+use futures_util::future::try_join;
 use gem_client::Client;
 use primitives::{Chain, ChainAddress, OptionStringExt, PaymentInvoice, PaymentLink, PaymentMerchant, TransferDataOutputType};
 
@@ -43,7 +44,7 @@ impl<C: Client> PaymentProvider for SolanaPayProvider<C> {
 
     async fn load(&self, addresses: &[ChainAddress]) -> Result<PaymentLoad, PaymentError> {
         let account = addresses.iter().find(|address| address.chain == Chain::Solana).cloned().ok_or(PaymentError::NoPaymentOptions)?;
-        let (info, response) = futures::try_join!(self.client.get_info(), self.client.get_transaction(&account.address))?;
+        let (info, response) = try_join(self.client.get_info(), self.client.get_transaction(&account.address)).await?;
         let prepared = prepare(&response.transaction, &account.address).map_err(PaymentError::invalid_request)?;
 
         Ok(PaymentLoad::Sign {

@@ -4,6 +4,7 @@ use std::sync::Arc;
 
 use ::simulation::evm::SimulationClient;
 use chain_traits::ChainSimulation;
+use futures_util::future::join;
 use gem_evm::jsonrpc::TransactionObject;
 use gem_evm::rpc::{EthereumClient, EthereumProvider};
 use gem_jsonrpc::grpc::AlienGrpcTransport;
@@ -124,7 +125,7 @@ impl GemSimulationService {
                 SimulationClient::new(provider).simulate_evm_calldata(chain, calldata, &transaction.to).await.map_err(GemstoneError::from)
             }
         };
-        futures::join!(calldata_task, self.simulate_ethereum_balance_changes(provider, transaction))
+        join(calldata_task, self.simulate_ethereum_balance_changes(provider, transaction)).await
     }
 
     async fn simulate_ethereum_balance_changes(&self, provider: &EthereumProvider<AlienClient>, transaction: &WCEthereumTransaction) -> Result<SimulationResult, GemstoneError> {

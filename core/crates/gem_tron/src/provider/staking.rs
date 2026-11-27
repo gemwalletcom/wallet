@@ -2,6 +2,7 @@ use async_trait::async_trait;
 use chain_traits::ChainStaking;
 use std::error::Error;
 
+use futures_util::future::{try_join, try_join3};
 use gem_client::Client;
 use primitives::{DateTime, DelegationBase, DelegationValidator};
 
@@ -12,7 +13,7 @@ use crate::rpc::constants::{GET_WITNESS_127_PAY_PER_BLOCK, GET_WITNESS_PAY_PER_B
 #[async_trait]
 impl<C: Client> ChainStaking for TronProvider<C> {
     async fn get_staking_apy(&self) -> Result<Option<f64>, Box<dyn Error + Sync + Send>> {
-        let (params, witnesses) = futures::try_join!(self.get_chain_parameters(), self.get_witnesses_list())?;
+        let (params, witnesses) = try_join(self.get_chain_parameters(), self.get_witnesses_list()).await?;
 
         let block_reward = params.iter().find(|p| p.key == GET_WITNESS_PAY_PER_BLOCK).and_then(|p| p.value).unwrap_or(16_000_000) as f64 / 1_000_000.0;
 
@@ -39,7 +40,7 @@ impl<C: Client> ChainStaking for TronProvider<C> {
     }
 
     async fn get_staking_delegations(&self, address: String) -> Result<Vec<DelegationBase>, Box<dyn Error + Sync + Send>> {
-        let (account, reward, validators) = futures::try_join!(self.get_account(&address), self.get_reward(&address), self.get_staking_validators(None))?;
+        let (account, reward, validators) = try_join3(self.get_account(&address), self.get_reward(&address), self.get_staking_validators(None)).await?;
 
         Ok(map_staking_delegations(account, reward, &validators, DateTime::now()))
     }

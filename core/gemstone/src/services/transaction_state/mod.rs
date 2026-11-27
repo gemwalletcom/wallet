@@ -62,14 +62,14 @@ impl GemTransactionStateService {
     pub async fn track_pending(&self) -> Result<(), GemServiceError> {
         let pending = self.store.get_pending_transactions(TransactionState::pending()).await?;
         let tracked = pending.into_iter().map(|pending| self.track_transaction(pending.wallet_id, pending.transaction));
-        futures::future::join_all(tracked).await;
+        futures_util::future::join_all(tracked).await;
         Ok(())
     }
 
     pub async fn track(&self, wallet_id: WalletId, transactions: Vec<Transaction>) -> Result<(), GemServiceError> {
         self.enable_transaction_assets(wallet_id.clone(), transactions.clone()).await?;
         let tracked = transactions.into_iter().map(|transaction| self.track_transaction(wallet_id.clone(), transaction));
-        futures::future::join_all(tracked).await;
+        futures_util::future::join_all(tracked).await;
         Ok(())
     }
 

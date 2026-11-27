@@ -6,6 +6,7 @@ pub(crate) mod testkit;
 
 use std::sync::Arc;
 
+use futures_util::future::join;
 use primitives::perpetual::PerpetualSearchData;
 use primitives::{AssetBasic, Wallet};
 
@@ -51,10 +52,11 @@ impl GemSearchService {
             return Ok(false);
         }
         let wallet_chains = rules::wallet_chains(&wallet);
-        let (response, tokens) = futures::join!(
+        let (response, tokens) = join(
             self.api.client.get_search(query.clone(), wallet_chains.clone(), scope.api_tags()),
             self.assets.search_tokens(query.clone(), scope.token_chains(&wallet_chains)),
-        );
+        )
+        .await;
         let response = response.map_err(GemApiError::from)?;
         let assets = assets_rules::merge_assets(response.assets, tokens?);
         let key = scope.search_key(query);
@@ -69,10 +71,11 @@ impl GemSearchService {
     pub async fn search_assets(&self, wallet: Wallet, query: String) -> Result<Vec<AssetBasic>, GemServiceError> {
         let scope = GemSearchScope::All;
         let wallet_chains = rules::wallet_chains(&wallet);
-        let (assets, tokens) = futures::join!(
+        let (assets, tokens) = join(
             self.api.client.get_search_assets(query.clone(), wallet_chains.clone()),
             self.assets.search_tokens(query.clone(), scope.token_chains(&wallet_chains)),
-        );
+        )
+        .await;
         let assets = assets_rules::merge_assets(assets.map_err(GemApiError::from)?, tokens?);
         self.save_assets(&wallet, &assets, &scope.search_key(query)).await?;
         Ok(assets)

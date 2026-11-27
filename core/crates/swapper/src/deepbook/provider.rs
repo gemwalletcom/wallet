@@ -8,7 +8,7 @@ use crate::{
     sui_swap::{self, coin_type, discovery_pairs, fee_side, is_move_abort, route_paths, upgraded_error},
 };
 use async_trait::async_trait;
-use futures::future::join_all;
+use futures_util::future::join_all;
 use gem_sui::{ESTIMATION_GAS_BUDGET, tx_builder::PrefetchedTransactionData};
 use num_bigint::BigUint;
 use primitives::{AssetId, Chain};

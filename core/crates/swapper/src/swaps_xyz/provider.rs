@@ -1,3 +1,4 @@
+use futures_util::future::join;
 use primitives::hex;
 use std::{fmt::Debug, sync::Arc};
 
@@ -164,7 +165,7 @@ where
         let source = SwapsXyzChain::from_chain(request.from_asset.chain()).ok_or(SwapperError::NotSupportedChain)?;
         let destination = SwapsXyzChain::from_chain(request.to_asset.chain()).ok_or(SwapperError::NotSupportedChain)?;
         let action_request = Self::build_action_request(request, source, destination)?;
-        let (paths, response) = futures::join!(self.client.get_paths(source.id, destination.id), self.client.get_action(&action_request));
+        let (paths, response) = join(self.client.get_paths(source.id, destination.id), self.client.get_action(&action_request)).await;
         let paths = paths?;
         let path = paths
             .paths

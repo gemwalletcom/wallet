@@ -9,9 +9,10 @@ use std::collections::HashMap;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, Mutex};
 
-use futures::StreamExt;
-use futures::lock::Mutex as AsyncMutex;
-use futures::stream::FuturesUnordered;
+use futures_util::StreamExt;
+use futures_util::future::join4;
+use futures_util::lock::Mutex as AsyncMutex;
+use futures_util::stream::FuturesUnordered;
 use primitives::{Asset, AssetBalance, AssetId, Wallet, WalletId};
 use std::mem::{Discriminant, discriminant};
 
@@ -237,7 +238,7 @@ impl GemBalanceService {
 
     async fn chain_balances(&self, request: &BalanceRequest) -> Vec<Result<Vec<(BalanceKind, AssetBalance)>, GemServiceError>> {
         let token_ids = rules::request_token_ids(&request.token_ids);
-        let (coin, stake, tokens, earn) = futures::join!(
+        let (coin, stake, tokens, earn) = join4(
             async {
                 if request.coin {
                     self.gateway.get_balance_coin(request.chain, request.address.clone()).await.map(|balance| vec![balance])
@@ -266,7 +267,8 @@ impl GemBalanceService {
                     self.gateway.get_balance_earn(request.chain, request.address.clone(), token_ids.clone()).await
                 }
             },
-        );
+        )
+        .await;
         vec![
             rules::kind_balances(BalanceKind::Coin, coin.map_err(Into::into)),
             rules::kind_balances(BalanceKind::Stake, stake.map_err(Into::into)),
@@ -342,7 +344,7 @@ mod tests {
                 frozen: BigUint::ZERO,
                 metadata: None,
             });
-            let (first, second) = futures::future::join(testkit.service.update_balances(wallet.id.clone(), vec![stake]), testkit.service.update_balances(wallet.id.clone(), vec![coin])).await;
+            let (first, second) = futures_util::future::join(testkit.service.update_balances(wallet.id.clone(), vec![stake]), testkit.service.update_balances(wallet.id.clone(), vec![coin])).await;
             first.unwrap();
             second.unwrap();
 

@@ -64,7 +64,7 @@ mod chain_integration_tests {
         let (first, last) = (latest_block - 120, latest_block - 101);
 
         let range = client.get_block_range_transactions(&(first..=last).collect::<Vec<_>>()).await?;
-        let single = futures::future::try_join_all((first..=last).map(|block| client.get_block_transactions(block))).await?;
+        let single = futures_util::future::try_join_all((first..=last).map(|block| client.get_block_transactions(block))).await?;
 
         let hashes = |blocks: Vec<Vec<crate::models::Transaction>>| blocks.into_iter().map(|block| block.into_iter().map(|transaction| transaction.hash).collect::<Vec<_>>()).collect::<Vec<_>>();
         assert_eq!(hashes(range), hashes(single.into_iter().map(|block| block.transactions).collect()));

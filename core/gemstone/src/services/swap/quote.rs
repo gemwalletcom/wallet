@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use futures_util::future::{join, try_join3};
 use primitives::{Asset, AssetId, Currency, Feature, Wallet};
 use swapper::{FetchQuoteData, Quote, QuoteRequest, SwapperError, SwapperProvider};
 
@@ -132,12 +133,13 @@ impl GemSwapQuoteService {
             return failures;
         }
         let wallet_id = self.session.current_wallet_id();
-        let (prices, balances) = futures::join!(self.stream.add_prices(asset_ids.clone()), async {
+        let (prices, balances) = join(self.stream.add_prices(asset_ids.clone()), async {
             match wallet_id {
                 Ok(wallet_id) => self.balances.update(wallet_id, asset_ids).await,
                 Err(error) => Err(error),
             }
-        });
+        })
+        .await;
         record_result(&mut failures, GemSwapPairStep::AddPrices, prices);
         record_result(&mut failures, GemSwapPairStep::UpdateBalances, balances);
         failures
@@ -146,7 +148,7 @@ impl GemSwapQuoteService {
 
 impl GemSwapQuoteService {
     async fn pair(&self, from_asset_id: AssetId, to_asset_id: AssetId) -> Result<(Wallet, Asset, Asset), GemServiceError> {
-        futures::try_join!(self.session.require_current_wallet(), self.assets.ensure_asset(from_asset_id), self.assets.ensure_asset(to_asset_id))
+        try_join3(self.session.require_current_wallet(), self.assets.ensure_asset(from_asset_id), self.assets.ensure_asset(to_asset_id)).await
     }
 }
 

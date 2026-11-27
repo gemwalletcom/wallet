@@ -13,7 +13,8 @@ pub(crate) mod testkit;
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use futures::lock::Mutex;
+use futures_util::future::join;
+use futures_util::lock::Mutex;
 use gem_hypercore::config::HypercoreConfig;
 use gem_hypercore::models::perp_dex::PerpDex;
 use gem_hypercore::models::websocket::HyperliquidSocketMessage;
@@ -118,7 +119,7 @@ impl GemPerpetualService {
 
     pub async fn refresh(&self, trigger: GemMarketsRefreshTrigger) -> Vec<GemPerpetualRefreshFailure> {
         let account = async { (self.sync_current_positions().await, self.update_deposit_balances().await) };
-        let ((positions, deposit_balances), markets) = futures::join!(account, async { self.sync_markets_if_needed(Chain::HyperCore, trigger).await.map(|_| ()) });
+        let ((positions, deposit_balances), markets) = join(account, async { self.sync_markets_if_needed(Chain::HyperCore, trigger).await.map(|_| ()) }).await;
         let mut failures = Vec::new();
         record(&mut failures, GemPerpetualRefreshStep::Positions, async { positions }).await;
         record(&mut failures, GemPerpetualRefreshStep::Markets, async { markets }).await;
@@ -596,10 +597,11 @@ mod tests {
             testkit.provider.yields_while_requesting.store(true, Ordering::SeqCst);
             let closed = format!(r#"{{"channel":"clearinghouseState","data":{{"dex":"","user":"0x123","clearinghouseState":{EMPTY_CLEARINGHOUSE_STATE}}}}}"#);
 
-            let (refresh, frame) = futures::join!(
+            let (refresh, frame) = join(
                 testkit.service.sync_positions(testkit.wallet_id.clone(), Chain::HyperCore, "0x123".to_string()),
                 testkit.service.on_socket_message(testkit.wallet_id.clone(), closed.into_bytes()),
-            );
+            )
+            .await;
 
             refresh.unwrap();
             frame.unwrap();
@@ -748,7 +750,7 @@ mod tests {
             testkit.preferences.set_perpetual_enabled(true).unwrap();
             testkit.store.yields_while_saving.store(true, Ordering::SeqCst);
 
-            let (first, second) = futures::join!(testkit.service.sync_enablement(None), testkit.service.sync_enablement(None));
+            let (first, second) = join(testkit.service.sync_enablement(None), testkit.service.sync_enablement(None)).await;
 
             assert_eq!((first.unwrap(), second.unwrap()), (false, false));
             assert_eq!(testkit.provider.requested_types(), vec!["metaAndAssetCtxs"; testkit.service.perp_dexes.len()], "one sync asks each dex once");

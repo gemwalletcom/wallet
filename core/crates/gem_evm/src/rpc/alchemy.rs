@@ -2,6 +2,7 @@ use std::collections::HashSet;
 use std::error::Error;
 
 use alchemy::rpc::{Client as AlchemyClient, TransferDirection};
+use futures_util::future::try_join;
 use gem_client::Client;
 use num_bigint::BigUint;
 
@@ -9,7 +10,7 @@ use super::{EVMIndexerClient, TransactionReference};
 
 impl<C: Client + Clone> EVMIndexerClient for AlchemyClient<C> {
     async fn get_transactions_by_address(&self, address: &str, limit: usize) -> Result<Vec<TransactionReference>, Box<dyn Error + Send + Sync>> {
-        let (outgoing, incoming) = futures::try_join!(self.get_asset_transfers(TransferDirection::From, address, limit), self.get_asset_transfers(TransferDirection::To, address, limit),)?;
+        let (outgoing, incoming) = try_join(self.get_asset_transfers(TransferDirection::From, address, limit), self.get_asset_transfers(TransferDirection::To, address, limit)).await?;
         let mut transfers = outgoing.into_iter().chain(incoming).collect::<Vec<_>>();
         transfers.sort_by_key(|transfer| std::cmp::Reverse(transfer.block_num));
 

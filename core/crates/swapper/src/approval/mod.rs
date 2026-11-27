@@ -2,6 +2,7 @@ pub mod evm;
 pub mod tron;
 
 pub use evm::*;
+use futures_util::future::try_join;
 use primitives::{Chain, swap::ApprovalData};
 pub use tron::*;
 
@@ -52,7 +53,7 @@ pub(crate) async fn join_permit2_approvals(
             false => permit2.await,
         }
     };
-    futures::try_join!(approval, permit2)
+    try_join(approval, permit2).await
 }
 
 /// Returns the swap transaction gas limit only when a separate approval transaction is required.

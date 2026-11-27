@@ -5,7 +5,7 @@ edition = { workspace = true }
 
 [features]
 default = []
-rpc = ["dep:async-trait", "dep:chain_traits", "dep:futures", "dep:gem_client", "gem_jsonrpc/client"]
+rpc = ["dep:async-trait", "dep:chain_traits", "dep:futures-util", "dep:gem_client", "gem_jsonrpc/client"]
 indexer = ["rpc", "dep:alchemy", "dep:ankr", "dep:blockscout", "dep:etherscan"]
 signer = ["dep:signer"]
 chain_integration_tests = ["indexer"]
@@ -23,7 +23,7 @@ gem_client = { path = "../gem_client", optional = true }
 gem_hash = { path = "../gem_hash" }
 signer = { path = "../signer", optional = true }
 
-futures = { workspace = true, optional = true }
+futures-util = { workspace = true, optional = true }
 alloy-primitives = { workspace = true }
 alloy-sol-types = { workspace = true, features = ["eip712-serde"] }
 serde = { workspace = true }

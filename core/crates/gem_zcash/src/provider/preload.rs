@@ -2,6 +2,7 @@ use std::error::Error;
 
 use async_trait::async_trait;
 use chain_traits::{ChainTransactionLoad, TransactionFeeOperation};
+use futures_util::future::try_join;
 use gem_bitcoin::{provider::preload_mapper::map_utxos, signer::load_fee};
 use gem_client::Client;
 use num_bigint::BigInt;
@@ -19,7 +20,7 @@ impl<C: Client> ChainTransactionLoad for ZcashProvider<C> {
     }
 
     async fn get_transaction_preload(&self, input: TransactionPreloadInput) -> Result<TransactionLoadMetadata, Box<dyn Error + Sync + Send>> {
-        let (utxos, node_info) = futures::try_join!(self.client.get_utxos(&input.sender_address), self.client.get_node_info())?;
+        let (utxos, node_info) = try_join(self.client.get_utxos(&input.sender_address), self.client.get_node_info()).await?;
         let branch_id = node_info.backend.consensus.ok_or("Branch ID not found")?.nextblock;
         Ok(TransactionLoadMetadata::Zcash {
             utxos: map_utxos(utxos, input.sender_address),

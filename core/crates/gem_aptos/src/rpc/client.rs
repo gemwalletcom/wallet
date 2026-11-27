@@ -1,3 +1,4 @@
+use futures_util::future::try_join;
 use primitives::unix_timestamp;
 use std::error::Error;
 use std::str::FromStr;
@@ -61,8 +62,8 @@ impl<C: Client> AptosClient<C> {
 
     pub async fn get_block_range_transactions(&self, blocks: &[u64]) -> Result<Vec<Vec<Transaction>>, Box<dyn Error + Send + Sync>> {
         let (first_block, last_block) = blocks.first().zip(blocks.last()).ok_or("missing Aptos blocks")?;
-        let (first, last) = futures::try_join!(self.get_block_header(*first_block), self.get_block_header(*last_block))?;
-        let pages = futures::future::try_join_all(
+        let (first, last) = try_join(self.get_block_header(*first_block), self.get_block_header(*last_block)).await?;
+        let pages = futures_util::future::try_join_all(
             (first.first_version..=last.last_version)
                 .step_by(TRANSACTIONS_PAGE_LIMIT as usize)
                 .map(|start| self.get_transactions(start, TRANSACTIONS_PAGE_LIMIT.min(last.last_version + 1 - start))),

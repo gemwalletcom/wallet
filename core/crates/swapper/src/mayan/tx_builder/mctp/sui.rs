@@ -12,7 +12,7 @@ use crate::mayan::{
     wormhole_chain::WormholeChain,
 };
 use crate::{Quote, RpcProvider, SwapperError, SwapperQuoteData, client_factory::create_sui_client, route_cache::Cache, sui_swap};
-use futures::try_join;
+use futures_util::future::try_join;
 use gem_sui::SuiClient;
 use std::{fmt::Debug, sync::Arc};
 
@@ -26,7 +26,7 @@ where
     let mctp_input_contract = route.mctp_input_contract.as_deref().ok_or(SwapperError::InvalidRoute)?;
     let prefetched = PrefetchedSuiData::prefetch(&sui_client, sender, route, package_id_cache);
     let swap = get_swap_transaction(client, &sui_client, quote, route, mctp_input_contract);
-    let (prefetched, swap) = try_join!(prefetched, swap)?;
+    let (prefetched, swap) = try_join(prefetched, swap).await?;
 
     sui_swap::build_quote_data(&sui_client, prefetched.transaction.gas_coin_total, |gas_budget| {
         build_mctp_transaction(quote, route, &prefetched, destination_address, swap.as_ref(), gas_budget)

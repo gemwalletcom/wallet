@@ -1,6 +1,6 @@
 use async_trait::async_trait;
 use chain_traits::{ChainTransactionLoad, TransactionFeeOperation};
-use futures::try_join;
+use futures_util::future::{try_join, try_join4};
 use num_bigint::BigInt;
 use std::error::Error;
 use std::sync::Arc;
@@ -22,12 +22,13 @@ use crate::rpc::client::HyperCoreClient;
 impl<C: Client> HyperCoreClient<C> {
     async fn get_order(&self, sender_address: &str) -> Result<(HyperliquidOrder, UserFeeRates), Box<dyn Error + Sync + Send>> {
         let cache = HyperCoreCache::new(self.preferences.clone(), self.config.clone());
-        let (agent, referral_required, builder_required, fee_rates) = try_join!(
+        let (agent, referral_required, builder_required, fee_rates) = try_join4(
             cache.manage_agent(sender_address, self.secure_preferences.clone(), self.get_extra_agents(sender_address)),
             cache.needs_referral_approval(sender_address, self.get_referral(sender_address)),
             cache.needs_builder_fee_approval(sender_address, self.get_builder_fee(sender_address, &self.config.builder_address)),
             cache.get_user_fee_rates(sender_address, self.get_user_fees(sender_address)),
-        )?;
+        )
+        .await?;
         let fee_rates = if referral_required { cache.activate_referral_fee_rates(sender_address, &fee_rates)? } else { fee_rates.current() };
 
         Ok((
@@ -114,7 +115,7 @@ impl<C: Client> ChainTransactionLoad for HyperCoreClient<C> {
             TransactionInputType::Perpetual { perpetual_type, .. } => {
                 let fiat_value = perpetual_fee_fiat_value(perpetual_type)?;
                 let fee_asset = perpetual_type.base_asset().id.clone();
-                let ((order, fee_rates), unified_account_switch) = try_join!(self.get_order(&input.sender_address), self.get_unified_account_switch(&input.sender_address, perpetual_type))?;
+                let ((order, fee_rates), unified_account_switch) = try_join(self.get_order(&input.sender_address), self.get_unified_account_switch(&input.sender_address, perpetual_type)).await?;
                 let fee_amount = calculate_perpetual_fee_amount(fiat_value, fee_rates.perpetual_cross, order.builder_fee_bps);
 
                 Ok(TransactionLoadData {

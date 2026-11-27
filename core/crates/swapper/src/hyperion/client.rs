@@ -8,7 +8,7 @@ use crate::{
     route_cache::{DiscoveryCache, OutpricedCache, best_quote},
     route_path::RoutePath,
 };
-use futures::future::{join, join_all};
+use futures_util::future::{join, join_all};
 use gem_aptos::{
     AccountAddress, AptosClient, HYPERION_CONTRACT, VM_STATUS_ABORTED,
     models::{TransactionResponse, ViewRequest},

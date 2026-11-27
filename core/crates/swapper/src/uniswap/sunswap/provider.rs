@@ -21,7 +21,7 @@ use crate::{
 };
 use alloy_primitives::{Address, U256};
 use async_trait::async_trait;
-use futures::future::join_all;
+use futures_util::future::join_all;
 use gem_evm::uniswap::{
     command::{Permit2Permit, encode_commands},
     path::{BasePair, build_pairs},

@@ -1,6 +1,7 @@
 use std::error::Error;
 
 use blockscout::Client as BlockscoutClient;
+use futures_util::future::try_join;
 use gem_client::Client as Transport;
 use num_bigint::BigUint;
 
@@ -8,7 +9,7 @@ use super::{EVMIndexerClient, TransactionReference};
 
 impl<C: Transport> EVMIndexerClient for BlockscoutClient<C> {
     async fn get_transactions_by_address(&self, address: &str, limit: usize) -> Result<Vec<TransactionReference>, Box<dyn Error + Send + Sync>> {
-        let (transactions, token_transfers) = futures::try_join!(self.get_transactions(address, limit), self.get_token_transfers(address, limit))?;
+        let (transactions, token_transfers) = try_join(self.get_transactions(address, limit), self.get_token_transfers(address, limit)).await?;
         Ok(TransactionReference::unique_newest_first(
             transactions
                 .into_iter()

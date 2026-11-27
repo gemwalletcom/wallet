@@ -5,6 +5,7 @@ pub(crate) mod testkit;
 use std::future::Future;
 use std::sync::Arc;
 
+use futures_util::future::{join, join4};
 use primitives::{Chain, Wallet};
 
 pub use model::{GemAppStartFailure, GemAppStartStep};
@@ -76,16 +77,18 @@ impl GemAppStartService {
     }
 
     pub async fn run(&self) -> Vec<GemAppStartFailure> {
-        let (default_assets, nodes) = futures::join!(
+        let (default_assets, nodes) = join(
             recorded(GemAppStartStep::SetupAssets, self.assets.ensure_default_assets()),
             recorded(GemAppStartStep::SetupNodes, self.nodes.ensure_selected_nodes()),
-        );
-        let (banners, config_and_assets, device, support) = futures::join!(
+        )
+        .await;
+        let (banners, config_and_assets, device, support) = join4(
             recorded(GemAppStartStep::SetupBanners, self.banners.setup()),
             self.sync_config_and_assets(),
             recorded(GemAppStartStep::SyncDevice, async { self.device.synchronize().await.map(|_| ()) }),
             recorded(GemAppStartStep::RecoverSupportMessages, self.support.recover_interrupted_messages()),
-        );
+        )
+        .await;
         [default_assets, nodes, banners, config_and_assets, device, support].concat()
     }
 

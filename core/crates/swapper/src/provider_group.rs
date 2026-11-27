@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use futures::future::{join_all, try_join_all};
+use futures_util::future::{join_all, try_join_all};
 use primitives::{AssetId, Chain};
 
 use crate::{Contracts, FetchQuoteData, ProviderType, Quote, QuoteRequest, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData, cross_chain::VaultAddresses};

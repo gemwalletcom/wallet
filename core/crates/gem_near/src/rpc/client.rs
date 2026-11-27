@@ -7,7 +7,7 @@ use crate::{
     jsonrpc::NearRpc,
     models::{Account, AccountAccessKey, AccountAccessKeyList, Block, BroadcastResult, Chunk, GasPrice, NodeStatus, ProtocolConfig},
 };
-use futures::{StreamExt, TryStreamExt, stream};
+use futures_util::{StreamExt, TryStreamExt, stream};
 use gem_client::Client;
 use gem_encoding::encode_base64;
 use gem_jsonrpc::{client::JsonRpcClient, types::JsonRpcError};

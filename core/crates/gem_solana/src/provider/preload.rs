@@ -1,6 +1,7 @@
 use async_trait::async_trait;
 use chain_traits::{ChainTransactionLoad, TransactionFeeOperation};
-use futures::TryFutureExt;
+use futures_util::TryFutureExt;
+use futures_util::future::{join, try_join4};
 use std::error::Error;
 
 use crate::constants::{DEFAULT_GAS_LIMIT, DEFAULT_SWAP_GAS_LIMIT};
@@ -83,12 +84,13 @@ impl<C: Client + Clone> ChainTransactionLoad for SolanaProvider<C> {
             }
         };
 
-        let (block_hash, sender_token_address, recipient_token_address, destination_balance) = futures::try_join!(
+        let (block_hash, sender_token_address, recipient_token_address, destination_balance) = try_join4(
             self.get_latest_blockhash().err_into::<Box<dyn Error + Sync + Send>>(),
             sender_token_future.err_into(),
             recipient_token_future,
-            destination_balance_future.err_into()
-        )?;
+            destination_balance_future.err_into(),
+        )
+        .await?;
 
         if let TransactionInputType::TransferNft { .. } = input_type
             && sender_mint.is_some()
@@ -126,7 +128,7 @@ fn token_account_address(address: String, account: Option<AccountData>, token_pr
 #[cfg(feature = "rpc")]
 impl<C: Client + Clone> SolanaClient<C> {
     async fn detect_solana_nft(&self, mint: &str) -> Result<SolanaNftPreload, Box<dyn Error + Sync + Send>> {
-        let (account, metadata) = futures::join!(self.get_account_info_base64(mint), self.get_metaplex_metadata(mint));
+        let (account, metadata) = join(self.get_account_info_base64(mint), self.get_metaplex_metadata(mint)).await;
         let account = account?.value.ok_or("Solana NFT account not found")?;
         if account.owner == METAPLEX_CORE_PROGRAM {
             let data = account.data.first().ok_or("missing Metaplex Core asset data")?;

@@ -8,7 +8,7 @@ use crate::{
     },
     route_cache::Cache,
 };
-use futures::try_join;
+use futures_util::future::try_join5;
 use gem_sui::{
     ESTIMATION_GAS_BUDGET, SuiClient,
     models::{Coin, OwnedCoins},
@@ -46,7 +46,7 @@ impl PrefetchedSuiData {
                 Ok(None)
             }
         };
-        let (transaction, input_coins, objects, mctp_package_id, fee_manager_package_id) = try_join!(transaction, input_coins, objects, mctp_package_id, fee_manager_package_id)?;
+        let (transaction, input_coins, objects, mctp_package_id, fee_manager_package_id) = try_join5(transaction, input_coins, objects, mctp_package_id, fee_manager_package_id).await?;
 
         Ok(Self {
             transaction,

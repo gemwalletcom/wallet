@@ -1096,7 +1096,14 @@ mod tests {
         ];
         let ethereum = Asset::from_chain(Chain::Ethereum);
 
-        let normal = fee_rate_rows(Chain::Ethereum, &ethereum, &rates, None, &GemConfirmFeeSelection::Priority { priority: FeePriority::Normal }, &TransactionFee::mock_with_fee(21_000));
+        let normal = fee_rate_rows(
+            Chain::Ethereum,
+            &ethereum,
+            &rates,
+            None,
+            &GemConfirmFeeSelection::Priority { priority: FeePriority::Normal },
+            &TransactionFee::mock_with_fee(21_000),
+        );
         assert_eq!(normal.selected, Some(GasPriceType::eip1559(gwei(24), gwei(1))), "the fields start from the picked priority");
         assert_eq!(normal.normal.as_ref().and_then(GasPriceType::base_fee), Some(gwei(24)), "the base fee field starts from the base fee normal signs");
 
@@ -1267,11 +1274,17 @@ mod tests {
     #[test]
     fn test_the_fee_shown_is_what_the_network_charges_and_the_fee_checked_is_the_signed_cap() {
         let ethereum = Asset::from_chain(Chain::Ethereum);
-        let network = vec![FeeRate::new(FeePriority::Normal, GasPriceType::eip1559(gwei(10), gwei(1))), FeeRate::new(FeePriority::Fast, GasPriceType::eip1559(gwei(10), gwei(2)))];
+        let network = vec![
+            FeeRate::new(FeePriority::Normal, GasPriceType::eip1559(gwei(10), gwei(1))),
+            FeeRate::new(FeePriority::Fast, GasPriceType::eip1559(gwei(10), gwei(2))),
+        ];
         let network_base_fee = base_fee(&network);
         let signed = signed_fee_rates(network, 100);
         let gas_limit = 21_000u64;
-        let loaded = TransactionFee { fee: gwei(21) * gas_limit, ..TransactionFee::mock() };
+        let loaded = TransactionFee {
+            fee: gwei(21) * gas_limit,
+            ..TransactionFee::mock()
+        };
         let normal = GemConfirmFeeSelection::Priority { priority: FeePriority::Normal };
 
         let rows = fee_rate_rows(Chain::Ethereum, &ethereum, &signed, network_base_fee.as_ref(), &normal, &loaded);
@@ -1293,7 +1306,10 @@ mod tests {
                 base_fee: Some(gwei(30)),
                 rate: Some(gwei(3)),
             },
-            &TransactionFee { fee: gwei(33) * gas_limit, ..TransactionFee::mock() },
+            &TransactionFee {
+                fee: gwei(33) * gas_limit,
+                ..TransactionFee::mock()
+            },
         );
         assert_eq!(custom_row(&custom).unwrap().fee, Some(gwei(13) * gas_limit), "a custom cap above the base fee is charged the base fee and its tip");
 

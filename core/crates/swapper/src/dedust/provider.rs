@@ -13,7 +13,7 @@ use crate::{
     route_path::RoutePath,
 };
 use async_trait::async_trait;
-use futures::{TryStreamExt, future::join_all, stream};
+use futures_util::{TryStreamExt, future::join_all, stream};
 use gem_client::Client;
 use gem_ton::{address::Address, models::TonConnectMessage, rpc::client::TonClient};
 use num_bigint::BigUint;

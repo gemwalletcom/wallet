@@ -10,7 +10,7 @@ rpc = [
     "dep:async-trait",
     "dep:bech32",
     "dep:chain_traits",
-    "dep:futures",
+    "dep:futures-util",
     "dep:gem_client",
     "dep:gem_hash",
     "dep:num-traits",
@@ -31,7 +31,7 @@ num-bigint = { workspace = true }
 serde_serializers = { path = "../serde_serializers" }
 bech32 = { workspace = true, optional = true }
 gem_hash = { path = "../gem_hash", optional = true }
-futures = { workspace = true, optional = true }
+futures-util = { workspace = true, optional = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true, optional = true }
 async-trait = { workspace = true, optional = true }

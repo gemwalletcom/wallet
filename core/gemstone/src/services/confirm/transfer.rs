@@ -1,6 +1,7 @@
 use crate::services::simulation::{asset_status_rows, warning_rows};
 use std::sync::Arc;
 
+use futures_util::future::join3;
 use primitives::currency::Currency;
 use primitives::{Chain, SimulationResult, Wallet, WalletId};
 
@@ -155,11 +156,12 @@ impl GemConfirmTransferService {
     pub(super) async fn state(&self, wallet_id: WalletId, input: &GemConfirmInput, simulation: Option<SimulationResult>) -> Result<GemConfirmLoad, GemConfirmError> {
         let input_type = input.transfer.input_type.clone();
         let chain = input_type.transaction_asset().chain();
-        let (metadata, fee_assets, address_name) = futures::join!(
+        let (metadata, fee_assets, address_name) = join3(
             self.confirm.input_metadata(wallet_id.clone(), &input_type, input_type.fee_asset().id),
             self.confirm.fee_assets(wallet_id, chain, self.get_currency()),
             self.names.address_name(chain, input.transfer.recipient.address.clone()),
-        );
+        )
+        .await;
         Ok(GemConfirmLoad {
             transfer: input.transfer.clone(),
             sender: input.from.clone(),

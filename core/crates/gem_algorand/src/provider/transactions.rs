@@ -2,6 +2,7 @@ use async_trait::async_trait;
 use chain_traits::{ChainBlockTransactions, ChainTransaction, ChainTransactions, TransactionIdRequest, TransactionsRequest, TransactionsResult};
 use std::error::Error;
 
+use futures_util::future::try_join;
 use gem_client::Client;
 use primitives::Transaction;
 
@@ -13,7 +14,7 @@ use crate::{
 #[async_trait]
 impl<C: Client> ChainBlockTransactions for AlgorandClient<C> {
     async fn get_transactions_by_block(&self, block: u64) -> Result<Vec<Transaction>, Box<dyn Error + Sync + Send>> {
-        let (block, ids) = futures::try_join!(self.get_block(block), self.get_block_transaction_ids(block))?;
+        let (block, ids) = try_join(self.get_block(block), self.get_block_transaction_ids(block)).await?;
         map_block_transactions(block.block, ids.transaction_ids)
     }
 }
