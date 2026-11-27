@@ -1,0 +1,44 @@
+{
+  "result": {
+    "blockTime": 1788317205,
+    "meta": {
+      "err": {
+        "InstructionError": [
+          0,
+          "MissingRequiredSignature"
+        ]
+      },
+      "fee": 5000,
+      "preBalances": [],
+      "postBalances": [],
+      "preTokenBalances": [],
+      "postTokenBalances": []
+    },
+    "slot": 0,
+    "transaction": {
+      "message": {
+        "accountKeys": [
+          "DScDQ1zV4qVMU8HQmfcJkjZhfo5QqCWdV7dbxkb2gU9C",
+          "99vQwtBwYtrqqD9YSXbdum3KBdxPAVxYTaQ3cfnJSrN2",
+          "6mW9UoanWQNFcmUnzzNCFyk6KCemATDEMEWeQ938jj6E"
+        ],
+        "instructions": [
+          {
+            "programIdIndex": 1,
+            "accounts": [
+              1,
+              2,
+              2,
+              1,
+              1
+            ],
+            "data": "VyPN4WGD26G1nitkCKCRi9CZ4QPUBEQvf5vWKhzyResGLV1S8XRRYXfPNo1sQhMXU"
+          }
+        ]
+      },
+      "signatures": [
+        "4ijbHQFVEKD76JKD91EYWCJ7ZaxvutCQa9x1hweuVfmAsDW4dEJso3GRmE5LbdWR1WnpywjCP632nxovmbW6CXzw"
+      ]
+    }
+  }
+}

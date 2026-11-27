@@ -22,7 +22,7 @@ impl TransactionParser<ParseContext<'_>, Transaction> for MayanParser {
 
     fn parse(&self, context: &ParseContext<'_>) -> Option<Transaction> {
         let instruction = context.transaction.transaction.message.instructions.iter().find(|instruction| is_init_order(context, instruction))?;
-        let trader = context.transaction.instruction_account(instruction, TRADER_ACCOUNT_INDEX)?.clone();
+        let trader = context.transaction.instruction_signer(instruction, TRADER_ACCOUNT_INDEX)?.clone();
         let (asset_id, value) = source_debit(context, instruction, &trader)?;
 
         context.make_swap_transaction(trader, MAYAN_CPI_PROXY_PROGRAM_ID, asset_id, value)
