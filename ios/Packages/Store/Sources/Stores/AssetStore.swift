@@ -74,11 +74,6 @@ public struct AssetStore: Sendable {
     }
 
     @discardableResult
-    public func setAssetIsStakeable(for assetIds: [AssetId], value: Bool) throws -> Int {
-        try setColumn(for: assetIds, column: AssetRecord.Columns.isStakeable, value: value)
-    }
-
-    @discardableResult
     public func updateBuyableAssets(assetIds: [AssetId]) throws -> Int {
         try updateColumn(column: AssetRecord.Columns.isBuyable, enabledAssetIds: assetIds)
     }
@@ -98,14 +93,6 @@ public struct AssetStore: Sendable {
                 .filter(!enabledAssetIds.contains(AssetRecord.Columns.id) && column == true)
                 .updateAll(db, column.set(to: false))
             return enabled + disabled
-        }
-    }
-
-    private func setColumn(for assetIds: [AssetId], column: Column, value: Bool) throws -> Int {
-        try db.write { db in
-            try AssetRecord
-                .filter(assetIds.map(\.identifier).contains(AssetRecord.Columns.id) && column != value)
-                .updateAll(db, column.set(to: value))
         }
     }
 
