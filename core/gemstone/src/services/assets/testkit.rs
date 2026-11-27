@@ -49,8 +49,6 @@ pub struct MemoryAssetStore {
     pub asset_writes: Mutex<Vec<Vec<AssetBasic>>>,
     pub buyable_writes: Mutex<Vec<Vec<AssetId>>>,
     pub sellable_writes: Mutex<Vec<Vec<AssetId>>>,
-    pub swappable_writes: Mutex<Vec<Vec<AssetId>>>,
-    pub stakeable_writes: Mutex<Vec<Vec<AssetId>>>,
 }
 
 #[async_trait]
@@ -99,14 +97,6 @@ impl GemAssetStore for MemoryAssetStore {
     }
     async fn set_sellable_assets(&self, asset_ids: Vec<AssetId>) -> Result<(), GemServiceError> {
         self.sellable_writes.lock().unwrap().push(asset_ids);
-        Ok(())
-    }
-    async fn set_swappable_assets(&self, asset_ids: Vec<AssetId>) -> Result<(), GemServiceError> {
-        self.swappable_writes.lock().unwrap().push(asset_ids);
-        Ok(())
-    }
-    async fn set_stakeable_assets(&self, asset_ids: Vec<AssetId>) -> Result<(), GemServiceError> {
-        self.stakeable_writes.lock().unwrap().push(asset_ids);
         Ok(())
     }
 }

@@ -12,6 +12,7 @@ pub(crate) mod testkit;
 
 use crate::services::error::GemServiceError;
 use std::sync::Arc;
+use strum::IntoEnumIterator;
 
 use primitives::{Asset, AssetBasic, AssetFull, AssetId, AssetPrice, AssetProperties, Chain, ConfigVersions, DateTime, FiatAssets, FiatQuoteType, Wallet, WalletId};
 
@@ -197,7 +198,7 @@ impl GemAssetsService {
         match list {
             AssetList::Buy => self.store.set_buyable_assets(asset_ids).await?,
             AssetList::Sell => self.store.set_sellable_assets(asset_ids).await?,
-            AssetList::Swap => self.store.set_swappable_assets(rules::swappable_asset_ids(asset_ids)).await?,
+            AssetList::Swap => {}
         }
         self.preferences.set_assets_version(list, assets.version.to_string())
     }
@@ -225,19 +226,19 @@ impl GemAssetsService {
         Ok(rules::merge_assets(stored.into_iter().chain(synced).collect(), tokens.into_iter().map(rules::default_asset_basic).collect()))
     }
 
-    pub async fn sync_default_assets(&self) -> Result<(), GemServiceError> {
-        self.ensure_default_assets().await?;
-        self.store.set_stakeable_assets(rules::stakeable_asset_ids()).await
-    }
-
     pub async fn ensure_default_assets(&self) -> Result<(), GemServiceError> {
         let assets = rules::default_assets();
-        let existing = self.store.get_asset_ids(assets.iter().map(|asset| asset.asset.id.clone()).collect()).await?;
-        let missing = rules::missing_assets(assets, existing);
+        let stored = self.store.get_asset_basics(assets.iter().map(|asset| asset.asset.id.clone()).collect()).await?;
+        let changed = rules::changed_assets(rules::with_chain_flags(&stored), &stored);
+        if !changed.is_empty() {
+            self.store.save_assets(changed).await?;
+        }
+        let missing = rules::missing_assets(assets, stored.into_iter().map(|basic| basic.asset.id).collect());
         if missing.is_empty() {
             return Ok(());
         }
-        self.store.save_assets(missing).await
+        self.store.save_assets(missing).await?;
+        AssetList::iter().try_for_each(|list| self.preferences.remove_assets_version(list))
     }
 
     pub async fn get_fiat_assets(&self, quote_type: FiatQuoteType) -> Result<FiatAssets, GemApiError> {
@@ -284,6 +285,66 @@ mod tests {
             let writes = store.asset_writes.lock().unwrap();
             assert_eq!(writes.len(), 2);
             assert_eq!(writes[1], vec![reranked], "only the row that changed is written");
+        })
+    }
+
+    #[test]
+    fn test_assets_added_by_an_update_have_the_asset_lists_applied_again() {
+        block_on(async {
+            let store = Arc::new(MemoryAssetStore {
+                assets: std::sync::Mutex::new(rules::default_assets().into_iter().filter(|basic| basic.asset.id.chain != Chain::Arc).collect()),
+                ..MemoryAssetStore::default()
+            });
+            let service = GemAssetsService::mock(Arc::new(TestAlienProvider::offline()), store);
+            let store_versions = || AssetList::iter().for_each(|list| service.preferences.set_assets_version(list, "1".to_string()).unwrap());
+            let stored_versions = || AssetList::iter().map(|list| service.preferences.get_assets_version(list)).collect::<Vec<_>>();
+            store_versions();
+
+            service.ensure_default_assets().await.unwrap();
+            assert_eq!(stored_versions(), vec![None, None, None], "a new chain's coins get the buy, sell and swap lists on the same start");
+
+            store_versions();
+            service.ensure_default_assets().await.unwrap();
+            assert_eq!(stored_versions(), vec![Some("1".to_string()); 3], "a start that adds nothing keeps the applied lists");
+        })
+    }
+
+    #[test]
+    fn test_a_stored_coin_takes_the_stake_and_swap_its_chain_gained_in_an_update() {
+        block_on(async {
+            let solana = AssetId::from_chain(Chain::Solana);
+            let stored = rules::default_assets()
+                .into_iter()
+                .map(|basic| {
+                    if basic.asset.id != solana {
+                        return basic;
+                    }
+                    AssetBasic {
+                        properties: AssetProperties {
+                            is_stakeable: false,
+                            is_swapable: false,
+                            ..basic.properties.clone()
+                        },
+                        ..basic
+                    }
+                })
+                .collect();
+            let store = Arc::new(MemoryAssetStore {
+                assets: std::sync::Mutex::new(stored),
+                ..MemoryAssetStore::default()
+            });
+            let service = GemAssetsService::mock(Arc::new(TestAlienProvider::offline()), store.clone());
+            AssetList::iter().for_each(|list| service.preferences.set_assets_version(list, "1".to_string()).unwrap());
+
+            service.ensure_default_assets().await.unwrap();
+            service.ensure_default_assets().await.unwrap();
+
+            let properties = store.assets.lock().unwrap().iter().find(|basic| basic.asset.id == solana).unwrap().properties.clone();
+            assert!(properties.is_stakeable && properties.is_swapable);
+            let writes: Vec<Vec<AssetId>> = store.asset_writes.lock().unwrap().iter().map(|write| write.iter().map(|basic| basic.asset.id.clone()).collect()).collect();
+            assert_eq!(writes, vec![vec![solana]], "only the changed coin is written, and a start with nothing changed writes nothing");
+            let versions: Vec<_> = AssetList::iter().map(|list| service.preferences.get_assets_version(list)).collect();
+            assert_eq!(versions, vec![Some("1".to_string()); 3], "a flag change does not apply the asset lists again");
         })
     }
 

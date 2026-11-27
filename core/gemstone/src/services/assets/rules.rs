@@ -75,13 +75,6 @@ pub fn asset_ids(ids: &[String]) -> Vec<AssetId> {
     ids.iter().filter_map(|id| AssetId::new(id)).collect()
 }
 
-pub fn swappable_asset_ids(listed: Vec<AssetId>) -> Vec<AssetId> {
-    let natives = Chain::all().into_iter().filter(Chain::is_swap_supported).map(AssetId::from_chain);
-    let mut asset_ids = listed;
-    asset_ids.extend(natives.filter(|native| !asset_ids.contains(native)).collect::<Vec<_>>());
-    asset_ids
-}
-
 pub fn asset_prices(assets: &[AssetBasic]) -> Vec<AssetPrice> {
     assets
         .iter()
@@ -164,8 +157,21 @@ pub fn missing_assets(assets: Vec<AssetBasic>, existing: Vec<AssetId>) -> Vec<As
     missing_by(assets, existing, |asset| asset.asset.id.clone())
 }
 
-pub fn stakeable_asset_ids() -> Vec<AssetId> {
-    Chain::all().into_iter().filter(Chain::is_stake_supported).map(AssetId::from_chain).collect()
+pub fn with_chain_flags(assets: &[AssetBasic]) -> Vec<AssetBasic> {
+    assets
+        .iter()
+        .map(|basic| {
+            let chain_properties = AssetProperties::default(basic.asset.id.clone());
+            AssetBasic {
+                properties: AssetProperties {
+                    is_stakeable: chain_properties.is_stakeable,
+                    is_swapable: chain_properties.is_swapable,
+                    ..basic.properties.clone()
+                },
+                ..basic.clone()
+            }
+        })
+        .collect()
 }
 
 pub fn default_token_chain(chains: &[Chain]) -> Option<Chain> {
@@ -1630,8 +1636,38 @@ mod tests {
         let missing = missing_assets(assets.clone(), vec![bitcoin.clone()]);
         assert_eq!(missing.len(), assets.len() - 1);
         assert!(!missing.iter().any(|asset| asset.asset.id == bitcoin));
-        assert!(stakeable_asset_ids().contains(&AssetId::from_chain(Chain::Cosmos)));
-        assert!(!stakeable_asset_ids().contains(&bitcoin));
+    }
+
+    #[test]
+    fn test_stored_assets_take_stake_and_swap_from_their_chain() {
+        let solana = default_asset_basic(Asset::from_chain(Chain::Solana));
+        let bitcoin = default_asset_basic(Asset::from_chain(Chain::Bitcoin));
+        let stored = [
+            AssetBasic {
+                properties: AssetProperties {
+                    is_stakeable: false,
+                    is_swapable: false,
+                    is_buyable: true,
+                    ..solana.properties.clone()
+                },
+                ..solana
+            },
+            AssetBasic {
+                properties: AssetProperties {
+                    is_stakeable: true,
+                    is_swapable: false,
+                    ..bitcoin.properties.clone()
+                },
+                ..bitcoin
+            },
+        ];
+
+        let flags: Vec<_> = with_chain_flags(&stored)
+            .into_iter()
+            .map(|basic| (basic.properties.is_stakeable, basic.properties.is_swapable, basic.properties.is_buyable))
+            .collect();
+
+        assert_eq!(flags, vec![(true, true, true), (false, true, false)], "stake and swap follow the chain, everything else stays as stored");
     }
     use primitives::{Balance, DateTime, Price, PriceProvider};
     use primitives::{Chain, PriceAlertDirection, WalletType, currency::Currency};
@@ -1707,18 +1743,6 @@ mod tests {
         let ids = asset_ids(&["bitcoin".to_string(), String::new(), "ethereum_0x1234".to_string()]);
 
         assert_eq!(ids, vec![AssetId::from_chain(Chain::Bitcoin), AssetId::from_token(Chain::Ethereum, "0x1234")]);
-    }
-
-    #[test]
-    fn test_the_swap_list_adds_swap_supported_natives_once() {
-        let listed = vec![AssetId::from_token(Chain::Ethereum, "0x1234"), AssetId::from_chain(Chain::Ethereum)];
-        let added: Vec<AssetId> = Chain::all()
-            .into_iter()
-            .filter(|chain| chain.is_swap_supported() && *chain != Chain::Ethereum)
-            .map(AssetId::from_chain)
-            .collect();
-
-        assert_eq!(swappable_asset_ids(listed.clone()), [listed, added].concat());
     }
 
     fn state(wallet_type: WalletType, metadata: &AssetMetaData, banner_events: &[BannerEvent]) -> GemAssetDetailsState {

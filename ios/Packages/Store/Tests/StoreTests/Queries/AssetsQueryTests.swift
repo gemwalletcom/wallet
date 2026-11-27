@@ -99,7 +99,6 @@ struct AssetsQueryTests {
         let assetId = AssetId(chain: .bitcoin)
         let otherAssetIds = walletAssets.map(\.asset.id).filter { $0 != assetId }
         try assetStore.updateBuyableAssets(assetIds: otherAssetIds)
-        try assetStore.updateSwappableAssets(assetIds: otherAssetIds)
 
         try db.dbPool.read { db in
             let assets = try AssetsQuery.mock(filters: [.buyable, .swappable]).fetch(db)

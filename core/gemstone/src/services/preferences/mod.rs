@@ -323,6 +323,10 @@ impl GemPreferencesService {
         self.store.set(assets_version_key(list).to_string(), version)
     }
 
+    pub fn remove_assets_version(&self, list: AssetList) -> Result<(), GemServiceError> {
+        self.store.remove(assets_version_key(list).to_string())
+    }
+
     pub fn get_config(&self) -> Option<ConfigResponse> {
         self.store.get(CONFIG.to_string()).and_then(|json| serde_json::from_str(&json).ok())
     }
