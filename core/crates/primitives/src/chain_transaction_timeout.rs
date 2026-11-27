@@ -2,7 +2,7 @@ use std::time::Duration;
 
 use crate::{Chain, ChainType, DurationExt, WEEK};
 
-const MIN_EVM_TRANSACTION_TIMEOUT: Duration = Duration::from_mins(15);
+const MIN_TRANSACTION_TIMEOUT: Duration = Duration::from_mins(15);
 const NONCE_HOLD_BLOCKS: u32 = 5;
 const MIN_NONCE_HOLD: Duration = Duration::from_mins(1);
 
@@ -15,7 +15,7 @@ pub fn chain_transaction_timeout(chain: Chain) -> Duration {
     match chain.chain_type() {
         ChainType::Bitcoin => Duration::days(14),
         ChainType::Solana => block_time * 150,
-        ChainType::Ethereum => (block_time * 120).max(MIN_EVM_TRANSACTION_TIMEOUT),
+        ChainType::Ethereum => (block_time * 120).max(MIN_TRANSACTION_TIMEOUT),
         ChainType::Cosmos
         | ChainType::Ton
         | ChainType::Tron
@@ -27,7 +27,7 @@ pub fn chain_transaction_timeout(chain: Chain) -> Duration {
         | ChainType::Algorand
         | ChainType::Polkadot
         | ChainType::Cardano
-        | ChainType::HyperCore => block_time * 600,
+        | ChainType::HyperCore => (block_time * 600).max(MIN_TRANSACTION_TIMEOUT),
     }
 }
 
@@ -49,6 +49,7 @@ mod tests {
         assert_eq!(chain_transaction_timeout(Chain::Solana), block_time(Chain::Solana) * 150);
         assert_eq!(chain_transaction_timeout(Chain::Ethereum), block_time(Chain::Ethereum) * 120);
         assert_eq!(chain_transaction_timeout(Chain::Cosmos), block_time(Chain::Cosmos) * 600);
+        assert_eq!(chain_transaction_timeout(Chain::Ton), MIN_TRANSACTION_TIMEOUT, "600 fast blocks are too short a wait for a send");
     }
 
     #[test]
