@@ -361,10 +361,12 @@ extension ConfirmTransferSceneViewModel {
         Task {
             do {
                 let result = try await submit(request: request)
+                UINotificationFeedbackGenerator().notificationOccurred(.success)
                 onComplete?(result)
             } catch GemConfirmError.Cancelled {
                 state.screen = state.screen.onExecuteCancelled()
             } catch {
+                UINotificationFeedbackGenerator().notificationOccurred(.error)
                 let error = error.toConfirmError()
                 state.screen = state.screen.onExecuteFailed(error: error)
                 isPresentingAlertMessage = AlertMessage(title: Localized.Errors.transferError, message: error.display().localizedDescription)

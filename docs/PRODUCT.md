@@ -356,11 +356,6 @@ A haptic is the short vibration that confirms what the user's finger just did, o
 | Confirm fails to send | Error, with its alert | |
 | Import finds the Secret Phrase, private key or address invalid | Error, with the error | the error marks the wrong words, so the field does not shake |
 
-| When | iOS | Android | Expected |
-|---|---|---|---|
-| Confirm sends, signs or fails | none | none | Success or Error, [TODO.md](TODO.md) D532 |
-| Import finds the input invalid | none | none | Error, [TODO.md](TODO.md) D533 |
-
 - A haptic only answers the user's own touch; a refresh, a price change or a push never plays one.
 - Typing, scrolling and plain buttons have none, so a haptic keeps its meaning. Validation while the user types is silent; only a tap that fails plays Error.
 - Leverage, price alerts and dapp connections play none: they already show their result, and a haptic on every success stops meaning anything.

@@ -144,9 +144,6 @@ Taps on rows that already exist, not new row types.
 
 Differences between the apps, or between an app and the server, each with its decision.
 
-- **D532** **S** **Confirm plays Success when it sends or signs and Error when it fails**, on both apps ([`ConfirmTransferSceneViewModel.swift`](../ios/Features/Transfer/Sources/ViewModels/ConfirmTransferSceneViewModel.swift) `confirm()`, [`ConfirmTransferViewModel.kt`](../android/features/transfer/viewmodels/src/main/kotlin/com/gemwallet/android/features/transfer/viewmodels/confirm/ConfirmTransferViewModel.kt)). Send, swap, stake and perpetuals all finish there, so one change covers them. See [PRODUCT.md § Haptics](PRODUCT.md#haptics).
-- **D533** **S** **Import plays Error when the Secret Phrase, private key or address is invalid**, with the error it already shows and no shake, on both apps ([`ImportWalletSceneViewModel.swift`](../ios/Features/Onboarding/Sources/ViewModels/ImportWalletSceneViewModel.swift), [`ImportWalletViewModel.kt`](../android/features/onboarding/viewmodels/src/main/kotlin/com/gemwallet/android/features/onboarding/viewmodels/import_wallet/ImportWalletViewModel.kt)).
-
 ## 10. Module layout and names
 
 A feature module is one product area, and both apps give it the same name. iOS groups by product area and is the reference; Android splits many areas into one module per screen.

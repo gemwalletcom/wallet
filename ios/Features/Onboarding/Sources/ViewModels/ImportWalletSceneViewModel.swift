@@ -132,6 +132,7 @@ extension ImportWalletSceneViewModel {
         do {
             try await importWallet()
         } catch {
+            UINotificationFeedbackGenerator().notificationOccurred(.error)
             isImporting = false
             inputModel.update(error: error)
             isPresentingAlertMessage = AlertMessage(title: alertTitle, error: error)
