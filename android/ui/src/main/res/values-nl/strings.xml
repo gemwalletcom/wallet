@@ -594,7 +594,7 @@
   <string name="rewards_share_text">Doe mee met Gem Wallet via mijn verwijzingslink en verdien beloningen: %1$s</string>
   <string name="rewards_my_referral_code">Mijn verwijzingscode</string>
   <string name="rewards_invite_friends_title">Nodig vrienden uit</string>
-  <string name="rewards_invite_friends_description">Verdienen %1$s voor elke vriend die meedoet.</string>
+  <string name="rewards_invite_friends_description">Verdien %1$s voor elke vriend die meedoet.</string>
   <string name="rewards_referral_code">Verwijzingscode</string>
   <string name="rewards_invited_by">Uitgenodigd door</string>
   <string name="rewards_points">Punten</string>

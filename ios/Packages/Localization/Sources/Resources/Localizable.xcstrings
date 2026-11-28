@@ -75882,7 +75882,7 @@
         "fil": {
           "stringUnit": {
             "state": "translated",
-            "value": "Kumita %@ para sa bawat kaibigang sasali."
+            "value": "Kumita ng %@ para sa bawat kaibigang sasali."
           }
         },
         "fr": {
@@ -75912,13 +75912,13 @@
         "id": {
           "stringUnit": {
             "state": "translated",
-            "value": "Menghasilkan %@ untuk setiap teman yang bergabung."
+            "value": "Dapatkan %@ untuk setiap teman yang bergabung."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Guadagnare %@ per ogni amico che si iscrive."
+            "value": "Guadagna %@ per ogni amico che si iscrive."
           }
         },
         "ja": {
@@ -75942,13 +75942,13 @@
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Verdienen %@ voor elke vriend die meedoet."
+            "value": "Verdien %@ voor elke vriend die meedoet."
           }
         },
         "pl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Zarabiaj %@ za każdego dołączonego znajomego."
+            "value": "Zdobądź %@ za każdego znajomego, który dołączy."
           }
         },
         "pt-BR": {
@@ -75960,7 +75960,7 @@
         "ro": {
           "stringUnit": {
             "state": "translated",
-            "value": "Câştiga %@ pentru fiecare prieten care se alătură."
+            "value": "Câștigă %@ pentru fiecare prieten care se alătură."
           }
         },
         "ru": {
