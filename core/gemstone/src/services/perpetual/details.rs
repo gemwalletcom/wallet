@@ -3,12 +3,12 @@ use std::sync::Arc;
 use primitives::{Asset, AssetId, Chain, ChartPeriod, Perpetual, PerpetualPosition};
 
 use super::candles::{GemCandleRequest, GemCandleResult};
-use super::model::{GemPerpetualDetails, GemPerpetualPositionAction, GemPerpetualPositionKind, GemPerpetualRefreshFailure, GemPerpetualRefreshStep};
+use super::model::{GemPerpetualDetails, GemPerpetualPositionKind, GemPerpetualRefreshFailure, GemPerpetualRefreshStep};
 use super::{GemPerpetualService, rules};
 use crate::models::list::GemInfoTopic;
 use crate::models::perpetual::GemPerpetualSubscription;
 use crate::models::state::GemLoadState;
-use crate::services::amount::model::GemLeverageSelection;
+use crate::services::amount::model::{GemAmountRequest, GemLeverageSelection, GemNumberFormat, GemPerpetualAmountSession};
 use crate::services::assets::GemAssetsService;
 use crate::services::error::GemServiceError;
 use crate::services::failures::record_result;
@@ -47,8 +47,17 @@ impl GemPerpetualDetailsService {
         rules::details(&perpetual, &asset, positions, associated_assets)
     }
 
-    pub fn position_action(&self, perpetual: Perpetual, asset: Asset, position: Option<PerpetualPosition>, kind: GemPerpetualPositionKind) -> Result<GemPerpetualPositionAction, GemServiceError> {
-        rules::position_action(&perpetual, &asset, position, kind, self.preferences.get_perpetual_margin_type())
+    pub fn position_request(&self, perpetual: Perpetual, asset: Asset, position: Option<PerpetualPosition>, kind: GemPerpetualPositionKind, format: GemNumberFormat) -> Result<GemAmountRequest, GemServiceError> {
+        let action = rules::position_action(&perpetual, &asset, position, kind, self.preferences.get_perpetual_margin_type())?;
+        Ok(GemAmountRequest::Perpetual {
+            session: GemPerpetualAmountSession::new(
+                action,
+                self.preferences.get_perpetual_leverage(),
+                self.preferences.get_perpetual_take_profit_percent(),
+                self.preferences.get_perpetual_stop_loss_percent(),
+                format,
+            ),
+        })
     }
 
     pub fn close_transfer(&self, perpetual: Perpetual, asset: Asset, position: Option<PerpetualPosition>) -> Result<GemTransferData, GemServiceError> {

@@ -267,6 +267,8 @@ mocks:
   - GemAssetItemTrailing
   - GemAssetRowStyle
   - GemAuthenticationPreview
+  - GemAutocloseDraft
+  - GemAutocloseDraftField
   - GemChainRow
   - GemChart
   - GemChartBounds
@@ -319,7 +321,9 @@ mocks:
   - GemNumberUnit:
       code: USD
   - GemPaymentRecipient
+  - GemPerpetualAmountSession
   - GemPerpetualDetails
+  - GemPerpetualPositionAction
   - GemPerpetualTransferData
   - GemPickerOption
   - GemPrecision

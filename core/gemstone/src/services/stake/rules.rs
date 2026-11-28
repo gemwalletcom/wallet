@@ -12,9 +12,8 @@ use primitives::{AddressName, DateTime, OptionStringExt};
 use std::str::FromStr;
 
 use super::model::{
-    GemDelegationAction, GemDelegationActionItem, GemDelegationActionTarget, GemDelegationAmountInput, GemDelegationDestination, GemDelegationDetails, GemDelegationListRow, GemDelegationStatus, GemEarnInput, GemEarnSection, GemEarnView,
-    GemStakeAction, GemStakeActionItem, GemStakeActionKind, GemStakeAmountInput, GemStakeAmountSelection, GemStakeDelegationItem, GemStakeDestination, GemStakeInput, GemStakeSection, GemStakeViewState,
-    GemValidatorRow,
+    GemDelegationAction, GemDelegationActionItem, GemDelegationActionTarget, GemDelegationDestination, GemDelegationDetails, GemDelegationListRow, GemDelegationStatus, GemEarnInput, GemEarnSection, GemEarnView, GemStakeAction,
+    GemStakeActionItem, GemStakeActionKind, GemStakeAmountInput, GemStakeAmountSelection, GemStakeDelegationItem, GemStakeDestination, GemStakeInput, GemStakeSection, GemStakeViewState, GemValidatorRow,
 };
 use crate::config::image::GemImage;
 use crate::config::stake::EARN_OFFERED;
@@ -26,6 +25,7 @@ use crate::models::list::{GemGroup, GemGroupList, GemInfoTopic, GemListItem, Gem
 use crate::models::state::{GemListPhase, GemLoadState};
 use crate::percentage::GemPercentageStyle;
 use crate::precision::GemCurrencyStyle;
+use crate::services::amount::model::GemAmountRequest;
 use crate::services::balance::{GemAssetBalance, GemBalanceRow};
 use crate::services::empty_state::{GemEmptyStateKind, empty_state};
 use crate::services::localization::GemLocalizedText;
@@ -47,11 +47,11 @@ fn delegation_action_destination(asset: Asset, delegation: Delegation, action: G
     let value = BigInt::from(delegation.base.balance.clone());
     let stake = |asset, input| GemDelegationDestination::Amount {
         asset,
-        input: GemDelegationAmountInput::Stake { input },
+        request: GemAmountRequest::Stake { input },
     };
     let earn = |asset, earn_type| GemDelegationDestination::Amount {
         asset,
-        input: GemDelegationAmountInput::Earn { earn_type },
+        request: GemAmountRequest::Earn { earn_type },
     };
     let confirm = move |asset, stake_type| GemDelegationDestination::Confirm {
         transfer: transfer_rules::stake_transfer_data(asset, stake_type, value, false),
@@ -96,8 +96,7 @@ fn delegation_action_target(action: GemDelegationAction, delegation: &Delegation
     match (&destination, unavailable_topic) {
         (
             GemDelegationDestination::Amount {
-                input: GemDelegationAmountInput::Stake { input },
-                ..
+                request: GemAmountRequest::Stake { input }, ..
             },
             Some(topic),
         ) if requires_staking_feature(input) => GemDelegationActionTarget::Info { topic: topic.clone() },
@@ -1298,8 +1297,7 @@ mod tests {
             GemDelegationDestination::Details => "details",
             GemDelegationDestination::Confirm { .. } => "confirm",
             GemDelegationDestination::Amount {
-                input: GemDelegationAmountInput::Stake { input },
-                ..
+                request: GemAmountRequest::Stake { input }, ..
             } => match input {
                 GemStakeAmountInput::Stake { .. } => "stake amount",
                 GemStakeAmountInput::Redelegate { .. } => "redelegate amount",
@@ -1307,12 +1305,16 @@ mod tests {
                 GemStakeAmountInput::Withdraw { .. } | GemStakeAmountInput::Rewards { .. } | GemStakeAmountInput::Freeze { .. } | GemStakeAmountInput::Unfreeze { .. } => "other stake amount",
             },
             GemDelegationDestination::Amount {
-                input: GemDelegationAmountInput::Earn { earn_type },
+                request: GemAmountRequest::Earn { earn_type },
                 ..
             } => match earn_type {
                 EarnType::Deposit(_) => "earn deposit amount",
                 EarnType::Withdraw(_) => "earn withdraw amount",
             },
+            GemDelegationDestination::Amount {
+                request: GemAmountRequest::Transfer { .. } | GemAmountRequest::Perpetual { .. },
+                ..
+            } => "other amount",
         }
     }
 
@@ -1357,7 +1359,7 @@ mod tests {
 
         let GemDelegationDestination::Amount {
             asset,
-            input: GemDelegationAmountInput::Stake {
+            request: GemAmountRequest::Stake {
                 input: GemStakeAmountInput::Stake { validator },
             },
         } = destination(Chain::Ethereum, StakeProviderType::Stake, Stake)
@@ -1389,7 +1391,7 @@ mod tests {
         let redelegate = |validators: &[DelegationValidator]| delegation_action_destination(Asset::from_chain(Chain::Cosmos), delegation.clone(), GemDelegationAction::Redelegate, validators);
 
         let Some(GemDelegationDestination::Amount {
-            input: GemDelegationAmountInput::Stake {
+            request: GemAmountRequest::Stake {
                 input: GemStakeAmountInput::Redelegate { validator, .. },
             },
             ..

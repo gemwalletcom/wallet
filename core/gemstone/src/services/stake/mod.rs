@@ -22,8 +22,8 @@ use crate::services::preferences::GemPreferencesService;
 use crate::services::wallet_session::GemWalletSessionService;
 
 pub use model::{
-    GemDelegationAction, GemDelegationActionItem, GemDelegationActionTarget, GemDelegationAmountInput, GemDelegationDestination, GemDelegationDetails, GemDelegationRecord, GemDelegationStatus, GemEarnInput, GemEarnView, GemStakeAction,
-    GemStakeActionItem, GemStakeActionKind, GemStakeAmountInput, GemStakeAmountSelection, GemStakeDelegationItem, GemStakeDestination, GemStakeInput, GemStakeSection, GemStakeViewState, GemValidatorRow,
+    GemDelegationAction, GemDelegationActionItem, GemDelegationActionTarget, GemDelegationDestination, GemDelegationDetails, GemDelegationRecord, GemDelegationStatus, GemEarnInput, GemEarnView, GemStakeAction, GemStakeActionItem,
+    GemStakeActionKind, GemStakeAmountInput, GemStakeAmountSelection, GemStakeDelegationItem, GemStakeDestination, GemStakeInput, GemStakeSection, GemStakeViewState, GemValidatorRow,
 };
 pub use store::GemStakeStore;
 

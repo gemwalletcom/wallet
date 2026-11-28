@@ -11,11 +11,9 @@ pub use model::{
     GemAmountEarnType, GemAmountEntry, GemAmountError, GemAmountExtras, GemAmountInput, GemAmountInputType, GemAmountLeverage, GemAmountMaxEntry, GemAmountPerpetualPosition, GemAmountRequest, GemAmountStakeType, GemAmountTransfer,
     GemAmountType, GemLeverageSelection,
 };
-use model::{GemNumberFormat, GemPerpetualAmountSession};
 
 use crate::models::custom_types::GemBigInt;
 use crate::services::error::{GemServiceError, required_account};
-use crate::services::perpetual::GemPerpetualPositionAction;
 use crate::services::perpetual::rules as perpetual_rules;
 use crate::services::preferences::GemPreferencesService;
 use crate::services::stake::rules as stake_rules;
@@ -40,16 +38,6 @@ impl GemAmountService {
 
     pub fn get_currency(&self) -> Currency {
         self.preferences.get_currency()
-    }
-
-    pub fn new_perpetual_session(&self, action: GemPerpetualPositionAction, format: GemNumberFormat) -> GemPerpetualAmountSession {
-        GemPerpetualAmountSession::new(
-            action,
-            self.preferences.get_perpetual_leverage(),
-            self.preferences.get_perpetual_take_profit_percent(),
-            self.preferences.get_perpetual_stop_loss_percent(),
-            format,
-        )
     }
 
     pub fn extras(&self, request: GemAmountRequest, asset: Asset) -> GemAmountExtras {

@@ -2,13 +2,13 @@ use super::rules;
 use crate::formatted_number::{GemFormattedNumber, GemValueTone};
 use crate::models::list::{GemInfoTopic, GemListRow, GemRowMenuItem};
 use crate::models::state::{GemListPhase, GemLoadState};
-use crate::services::amount::model::GemAmountType;
+use crate::services::amount::model::{GemAmountRequest, GemAmountType};
 use crate::services::amount::rules as amount_rules;
 use crate::services::assets::icon::GemAssetIcon;
 use crate::services::assets::model::{GemAssetText, GemValueHeader};
 use crate::services::localization::GemLocalizedText;
 use crate::services::transfer::GemTransferData;
-use primitives::{Asset, AssetData, Currency, Delegation, DelegationBase, DelegationState, DelegationValidator, EarnType, Resource, StakeType, WalletType, YieldProvider};
+use primitives::{Asset, AssetData, Currency, Delegation, DelegationBase, DelegationState, DelegationValidator, Resource, StakeType, WalletType, YieldProvider};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, uniffi::Enum)]
 pub enum GemStakeSection {
@@ -116,14 +116,7 @@ pub enum GemStakeDestination {
 pub enum GemDelegationDestination {
     Details,
     Confirm { transfer: GemTransferData },
-    Amount { asset: Asset, input: GemDelegationAmountInput },
-}
-
-#[derive(Debug, Clone, uniffi::Enum)]
-#[allow(clippy::large_enum_variant)]
-pub enum GemDelegationAmountInput {
-    Stake { input: GemStakeAmountInput },
-    Earn { earn_type: EarnType },
+    Amount { asset: Asset, request: GemAmountRequest },
 }
 
 #[derive(Debug, Clone, uniffi::Record)]
