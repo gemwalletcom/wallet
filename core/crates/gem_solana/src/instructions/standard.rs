@@ -99,7 +99,7 @@ impl<'a> StandardInstruction<'a> {
         }
     }
 
-    pub fn created_account_owner(&self, account: &Pubkey) -> Option<&'a Pubkey> {
+    pub(crate) fn created_account_owner(&self, account: &Pubkey) -> Option<&'a Pubkey> {
         match self {
             Self::CreateTokenAccount { account: created, owner, .. } if *created == Some(account) => *owner,
             Self::ComputeBudget { .. } | Self::Memo | Self::Transfer { .. } | Self::CreateTokenAccount { .. } | Self::SyncNative | Self::CloseAccount { .. } | Self::TransferChecked { .. } | Self::Program(_) | Self::Unsupported => None,

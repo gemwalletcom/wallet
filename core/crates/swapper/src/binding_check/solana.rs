@@ -18,6 +18,42 @@ const MAX_COMPUTE_UNIT_PRICE: u64 = MAX_PRIORITY_FEE_LAMPORTS * MICRO_LAMPORTS_P
 const TOKEN_ACCOUNT_RENT_LAMPORTS: u64 = 2_039_280;
 const MAX_UNBOUND_LAMPORTS: u64 = 2 * TOKEN_ACCOUNT_RENT_LAMPORTS;
 
+#[derive(Debug, Default, PartialEq)]
+pub(crate) struct StepLimits {
+    pub fees: Vec<(Pubkey, u64)>,
+    pub wrapped_sol: u64,
+}
+
+impl StepLimits {
+    pub(crate) fn spending(mint: &Pubkey, amount: u64) -> Self {
+        Self {
+            fees: vec![],
+            wrapped_sol: if *mint == wrapped_sol::wrapped_sol_mint() { amount } else { 0 },
+        }
+    }
+
+    pub(super) fn from_quote(quote: &Quote) -> Result<Self, SwapperError> {
+        let fee = on_chain_referral_fees(&quote.request).solana;
+        let from_asset = quote.request.from_asset.asset_id();
+        let fees = [(from_asset.clone(), FeeSide::Input, &quote.from_value), (quote.request.to_asset.asset_id(), FeeSide::Output, &quote.to_value)]
+            .into_iter()
+            .filter(|(asset, _, _)| asset.chain == Chain::Solana)
+            .map(|(asset, side, value)| {
+                let mint = match asset.token_id {
+                    Some(token_id) => Pubkey::from_base58(&token_id).map_err(SwapperError::transaction_error)?,
+                    None => wrapped_sol::wrapped_sol_mint(),
+                };
+                Ok((mint, u64::try_from(fee.quoted_fee(side, value.clone())).unwrap_or(u64::MAX)))
+            })
+            .collect::<Result<_, SwapperError>>()?;
+        let wrapped_sol = match from_asset.chain == Chain::Solana && from_asset.is_native() {
+            true => u64::try_from(&quote.from_value).unwrap_or(u64::MAX),
+            false => 0,
+        };
+        Ok(Self { fees, wrapped_sol })
+    }
+}
+
 struct StepPolicy<'a> {
     wallet: &'a Pubkey,
     wrapped_sol: Pubkey,
@@ -26,22 +62,7 @@ struct StepPolicy<'a> {
     fee_limits: &'a [(Pubkey, u64)],
 }
 
-pub(super) fn fee_limits(quote: &Quote) -> Result<Vec<(Pubkey, u64)>, SwapperError> {
-    let fee = on_chain_referral_fees(&quote.request).solana;
-    [(quote.request.from_asset.asset_id(), FeeSide::Input, &quote.from_value), (quote.request.to_asset.asset_id(), FeeSide::Output, &quote.to_value)]
-        .into_iter()
-        .filter(|(asset, _, _)| asset.chain == Chain::Solana)
-        .map(|(asset, side, value)| {
-            let mint = match asset.token_id {
-                Some(token_id) => Pubkey::from_base58(&token_id).map_err(SwapperError::transaction_error)?,
-                None => wrapped_sol::wrapped_sol_mint(),
-            };
-            Ok((mint, u64::try_from(fee.quoted_fee(side, value.clone())).unwrap_or(u64::MAX)))
-        })
-        .collect()
-}
-
-pub(crate) fn verify_solana(transaction: &str, wallet: &str, contracts: &[&str], fee_limits: &[(Pubkey, u64)]) -> Result<(), SwapperError> {
+pub(crate) fn verify_solana(transaction: &str, wallet: &str, contracts: &[&str], limits: &StepLimits) -> Result<(), SwapperError> {
     let transaction = decode_transaction(transaction).map_err(SwapperError::transaction_error)?;
     let keys = transaction.account_keys();
     let instructions = transaction
@@ -50,21 +71,26 @@ pub(crate) fn verify_solana(transaction: &str, wallet: &str, contracts: &[&str],
         .map(|instruction| StandardInstruction::compiled(instruction, keys))
         .collect::<Option<Vec<_>>>()
         .ok_or(SwapperError::InvalidRoute)?;
-    verify_steps(&instructions, &Pubkey::from_base58(wallet).map_err(SwapperError::transaction_error)?, contracts, fee_limits)
+    verify_steps(&instructions, &Pubkey::from_base58(wallet).map_err(SwapperError::transaction_error)?, contracts, limits)
 }
 
-pub(crate) fn verify_steps(instructions: &[StandardInstruction], wallet: &Pubkey, contracts: &[&str], fee_limits: &[(Pubkey, u64)]) -> Result<(), SwapperError> {
+pub(crate) fn verify_steps(instructions: &[StandardInstruction], wallet: &Pubkey, contracts: &[&str], limits: &StepLimits) -> Result<(), SwapperError> {
     let policy = StepPolicy {
         wallet,
         wrapped_sol: wrapped_sol::wrapped_sol_account(wallet).map_err(SwapperError::transaction_error)?,
         referral: Pubkey::from_base58(SOLANA_REFERRAL_ADDRESS).map_err(SwapperError::transaction_error)?,
         contracts,
-        fee_limits,
+        fee_limits: &limits.fees,
     };
     let unbound_lamports = instructions.iter().enumerate().try_fold(0u64, |total, (position, instruction)| {
         policy.unbound_lamports(instruction, &instructions[position + 1..]).map(|lamports| total.saturating_add(lamports))
     })?;
-    let fees: Vec<(u64, u64)> = fee_limits
+    let wrapped_lamports = instructions
+        .iter()
+        .enumerate()
+        .fold(0u64, |total, (position, instruction)| total.saturating_add(policy.wrapped_lamports(instruction, &instructions[position + 1..])));
+    let fees: Vec<(u64, u64)> = limits
+        .fees
         .iter()
         .map(|(mint, limit)| (instructions.iter().fold(0u64, |total, instruction| total.saturating_add(policy.gem_fee(instruction, mint))), *limit))
         .filter(|(fee, _)| *fee > 0)
@@ -74,7 +100,7 @@ pub(crate) fn verify_steps(instructions: &[StandardInstruction], wallet: &Pubkey
         [(fee, limit)] => fee <= limit,
         _ => false,
     };
-    if unbound_lamports > MAX_UNBOUND_LAMPORTS || !fee_within_limit {
+    if unbound_lamports > MAX_UNBOUND_LAMPORTS || wrapped_lamports > limits.wrapped_sol || !fee_within_limit {
         return Err(SwapperError::InvalidRoute);
     }
     Ok(())
@@ -103,6 +129,23 @@ impl StepPolicy<'_> {
 
     fn returns_to_wallet(&self, destination: &Pubkey, later: &[StandardInstruction]) -> bool {
         *destination == self.wrapped_sol || later.iter().any(|instruction| instruction.closes_to(destination, self.wallet))
+    }
+
+    fn wrapped_lamports(&self, instruction: &StandardInstruction, later: &[StandardInstruction]) -> u64 {
+        match *instruction {
+            StandardInstruction::Transfer {
+                destination: Some(destination), lamports, ..
+            } if *destination == self.wrapped_sol && !later.iter().any(|instruction| instruction.closes_to(destination, self.wallet)) => lamports,
+            StandardInstruction::ComputeBudget { .. }
+            | StandardInstruction::Memo
+            | StandardInstruction::Transfer { .. }
+            | StandardInstruction::CreateTokenAccount { .. }
+            | StandardInstruction::SyncNative
+            | StandardInstruction::CloseAccount { .. }
+            | StandardInstruction::TransferChecked { .. }
+            | StandardInstruction::Program(_)
+            | StandardInstruction::Unsupported => 0,
+        }
     }
 
     fn takes_fee(&self, mint: &Pubkey) -> bool {
@@ -163,8 +206,15 @@ mod tests {
             ..Quote::mock(Chain::Solana, None)
         };
 
-        assert_eq!(fee_limits(&quote), Ok(vec![(wrapped_sol::wrapped_sol_mint(), 5_000_000), (usdc, 5_000)]), "Gem's fee on the amount it is taken from");
-        assert_eq!(fee_limits(&Quote::mock(Chain::Ethereum, None)), Ok(vec![]));
+        assert_eq!(
+            StepLimits::from_quote(&quote),
+            Ok(StepLimits {
+                fees: vec![(wrapped_sol::wrapped_sol_mint(), 5_000_000), (usdc, 5_000)],
+                wrapped_sol: 1_000_000_000,
+            }),
+            "Gem's fee on the amount it is taken from, and no more SOL wrapped than quoted"
+        );
+        assert_eq!(StepLimits::from_quote(&Quote::mock(Chain::Ethereum, None)), Ok(StepLimits::default()));
     }
 
     #[test]
@@ -173,12 +223,12 @@ mod tests {
         let okx_transaction = encode_base64(&decode_base58(okx["data"][0]["tx"]["data"].as_str().unwrap()).unwrap());
         let okx_wallet = decode_transaction(&okx_transaction).unwrap().account_keys()[0].to_base58();
         assert_eq!(
-            verify_solana(&okx_transaction, &okx_wallet, &["proVF4pMXVaYqmy4NjniPh4pqKNfMmsihgd4wdkCX3u"], &[]),
+            verify_solana(&okx_transaction, &okx_wallet, &["proVF4pMXVaYqmy4NjniPh4pqKNfMmsihgd4wdkCX3u"], &StepLimits::default()),
             Ok(()),
             "OKX's program plus the standard steps"
         );
         assert_eq!(
-            verify_solana(&okx_transaction, &okx_wallet, &["JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4"], &[]),
+            verify_solana(&okx_transaction, &okx_wallet, &["JUP6LkbZbjS1jKKwapdHNy74zcZ3tLUZoi5QNyVTaV4"], &StepLimits::default()),
             Err(SwapperError::InvalidRoute),
             "a transaction calling another program is refused"
         );
@@ -192,7 +242,10 @@ mod tests {
         let wallet_usdc = get_associated_token_address_with_program_id(&wallet, &usdc, &token_program()).unwrap();
         let referral_usdc = get_associated_token_address_with_program_id(&referral, &usdc, &token_program()).unwrap();
         let stranger_usdc = get_associated_token_address_with_program_id(&stranger, &usdc, &token_program()).unwrap();
-        let fee_limits = [(wrapped_sol::wrapped_sol_mint(), 5_000), (usdc, 1)];
+        let limits = StepLimits {
+            fees: vec![(wrapped_sol::wrapped_sol_mint(), 5_000), (usdc, 1)],
+            wrapped_sol: 1_000_000_000,
+        };
 
         for (instructions, reason) in [
             (
@@ -223,7 +276,7 @@ mod tests {
             ),
         ] {
             let transaction = SolanaTransaction::new(instructions, vec![]).encode(TEST_SOLANA_SENDER, &[]).unwrap();
-            assert_eq!(verify_solana(&transaction.data, TEST_SOLANA_SENDER, &[], &fee_limits), Ok(()), "{reason}");
+            assert_eq!(verify_solana(&transaction.data, TEST_SOLANA_SENDER, &[], &limits), Ok(()), "{reason}");
         }
 
         let assign = Instruction {
@@ -238,6 +291,10 @@ mod tests {
         };
         for (instructions, reason) in [
             (vec![system::transfer(&wallet, &stranger, MAX_UNBOUND_LAMPORTS + 1)], "SOL sent to someone else"),
+            (
+                vec![system::transfer(&wallet, &wrapped_sol, 1_000_000_001), token::sync_native(&wrapped_sol)],
+                "more SOL wrapped into the wallet's own account than quoted, and kept there",
+            ),
             (
                 vec![
                     create_associated_token_account_idempotent(&wallet, &stranger, &usdc, &token_program()).unwrap(),
@@ -281,7 +338,7 @@ mod tests {
             ),
         ] {
             let transaction = SolanaTransaction::new(instructions, vec![]).encode(TEST_SOLANA_SENDER, &[]).unwrap();
-            assert_eq!(verify_solana(&transaction.data, TEST_SOLANA_SENDER, &[], &fee_limits), Err(SwapperError::InvalidRoute), "{reason}");
+            assert_eq!(verify_solana(&transaction.data, TEST_SOLANA_SENDER, &[], &limits), Err(SwapperError::InvalidRoute), "{reason}");
         }
     }
 }

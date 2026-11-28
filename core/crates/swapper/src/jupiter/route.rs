@@ -1,8 +1,6 @@
 use gem_encoding::borsh::{BorshDeserialize, DecodeError, Reader};
 use gem_solana::{Instruction, JUPITER_PROGRAM_ID, Pubkey, anchor::instruction_body, associated_token::is_associated_token_address};
 
-use crate::fees::subtract_bps;
-
 struct RouteLayout {
     instruction: &'static str,
     authority: usize,
@@ -74,10 +72,6 @@ impl BorshDeserialize for RouteArguments {
 }
 
 impl RouteArguments {
-    pub(super) fn minimum_out(&self) -> u64 {
-        subtract_bps(&self.quoted_out_amount, u32::from(self.slippage_bps))
-    }
-
     fn route(mut body: &[u8]) -> Option<Self> {
         Self::deserialize(&mut body).ok()
     }

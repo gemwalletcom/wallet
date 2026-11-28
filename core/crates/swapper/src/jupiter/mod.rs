@@ -10,6 +10,4 @@ mod testkit;
 mod tx_builder;
 pub use provider::Jupiter;
 pub(crate) use route::JupiterRoute;
-#[cfg(test)]
-pub(crate) use route::RouteArguments;
 pub(crate) use swap_instructions::{QuotedRoute, RouteDestination, SwapInstructions};

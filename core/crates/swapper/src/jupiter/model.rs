@@ -21,7 +21,6 @@ pub(super) struct BuildRequest {
 #[serde(rename_all = "camelCase")]
 pub(super) struct BuildResponse {
     pub out_amount: String,
-    pub slippage_bps: u32,
     pub compute_budget_instructions: Vec<SolanaInstruction>,
     pub setup_instructions: Vec<SolanaInstruction>,
     pub swap_instruction: SolanaInstruction,

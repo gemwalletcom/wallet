@@ -1,5 +1,6 @@
 use super::{
     asset::{asset_id_for_token, supported_assets as mayan_supported_assets, token_id_for_asset},
+    cctp_domain::CCTP_TOKEN_DECIMALS,
     client::MayanClient,
     constants::{
         HYPERCORE_USDC_SETTLED_DECIMALS, MAYAN_CPI_PROXY_PROGRAM_ID, MAYAN_DEPOSIT_CONTRACTS, MAYAN_FAST_MCTP_PROGRAM_ID, MAYAN_FEE_MANAGER_PROGRAM_ID, MAYAN_FORWARDER, MAYAN_MAX_SLIPPAGE_BPS, MAYAN_MCTP_PROGRAM_ID,
@@ -112,14 +113,28 @@ fn settles_in_asset_decimals(asset: &SwapperQuoteAsset, route: &MayanQuoteCommon
     route.to_token.decimals == decimals
 }
 
-fn validate_route(quote: &Quote, route: &MayanQuoteCommon) -> Result<(), SwapperError> {
+fn bridges_minimum_out(route: &MayanQuote) -> Result<bool, SwapperError> {
+    let (min_middle_amount, has_auction) = match route {
+        MayanQuote::Mctp(route) => (&route.min_middle_amount, route.has_auction),
+        MayanQuote::FastMctp(route) => (&route.min_middle_amount, route.has_auction),
+        MayanQuote::Swift(_) | MayanQuote::MonoChain(_) => return Ok(true),
+    };
+    match (has_auction, min_middle_amount) {
+        (Some(true), _) | (Some(false) | None, None) => Ok(true),
+        (Some(false) | None, Some(min_middle_amount)) => Ok(fractional_amount::<BigUint>(min_middle_amount, CCTP_TOKEN_DECIMALS)? >= fractional_amount::<BigUint>(&route.common().min_amount_out, CCTP_TOKEN_DECIMALS)?),
+    }
+}
+
+fn validate_route(quote: &Quote, route: &MayanQuote) -> Result<(), SwapperError> {
+    let bridges_minimum_out = bridges_minimum_out(route)?;
+    let route = route.common();
     let from_asset = quote.request.from_asset.asset_id();
     let to_asset = quote.request.to_asset.asset_id();
     let amount = route.effective_amount_in64.parse::<BigUint>().map_err(|_| SwapperError::InvalidRoute)?;
     let spends_quoted_asset = asset_id_for_token(from_asset.chain, &route.from_token.contract).as_ref() == Some(&from_asset);
     let pays_quoted_asset = route.to_chain == wormhole_chain::name_for_chain(to_asset.chain)? && asset_id_for_token(to_asset.chain, &route.to_token.contract).as_ref() == Some(&to_asset);
     let pays_quoted_minimum = fractional_amount::<BigUint>(&route.min_amount_out, quote.request.to_asset.decimals)? >= subtract_bps(&quote.to_value, quote.data.slippage_bps.saturating_add(MINIMUM_ROUNDING_BPS));
-    if !spends_quoted_asset || !pays_quoted_asset || !settles_in_asset_decimals(&quote.request.to_asset, route) || !pays_quoted_minimum || amount > quote.from_value {
+    if !spends_quoted_asset || !pays_quoted_asset || !bridges_minimum_out || !settles_in_asset_decimals(&quote.request.to_asset, route) || !pays_quoted_minimum || amount > quote.from_value {
         return Err(SwapperError::InvalidRoute);
     }
     Ok(())
@@ -207,13 +222,13 @@ where
             from_value,
             ..Quote::from_route(request, self.provider(), to_value, route.common().slippage_bps, route, Some(route.common().eta_seconds))?
         };
-        validate_route(&quote, route.common())?;
+        validate_route(&quote, route)?;
         Ok(quote)
     }
 
     async fn get_quote_data(&self, quote: &Quote, _data: QuoteDataInput) -> Result<SwapperQuoteData, SwapperError> {
         let route: MayanQuote = quote.route_data()?;
-        validate_route(quote, route.common())?;
+        validate_route(quote, &route)?;
         match (quote.request.from_asset.chain().chain_type(), &route) {
             (ChainType::Ethereum, MayanQuote::Swift(route)) => swift::evm::build_quote_data(&self.price_client, quote, route, self.rpc_provider.clone()).await,
             (ChainType::Ethereum, MayanQuote::Mctp(route)) => mctp::evm::build_quote_data(&self.price_client, quote, route, self.rpc_provider.clone()).await,
@@ -307,17 +322,21 @@ mod tests {
 
     #[test]
     fn test_validate_route() {
-        let route = MayanMctpQuote::mock_solana_to_sui().common;
+        let mctp = MayanMctpQuote::mock_solana_to_sui();
+        let route = MayanQuote::Mctp(Box::new(mctp.clone()));
         let request = |from: AssetId, to: AssetId| mock_quote(SwapperQuoteAsset::from(from), SwapperQuoteAsset { decimals: 6, ..SwapperQuoteAsset::from(to) });
         let sui_usdc = AssetId::from_token(Chain::Sui, SUI_USDC_TOKEN_ID);
         let quote = Quote::mock_with_request(&request(SOLANA_USDC_ASSET_ID.clone(), sui_usdc.clone()));
-        let coin = MayanQuoteCommon {
-            from_token: MayanToken {
-                contract: EVM_ZERO_ADDRESS.to_string(),
-                ..route.from_token.clone()
+        let coin = MayanQuote::Mctp(Box::new(MayanMctpQuote {
+            common: MayanQuoteCommon {
+                from_token: MayanToken {
+                    contract: EVM_ZERO_ADDRESS.to_string(),
+                    ..mctp.common.from_token.clone()
+                },
+                ..mctp.common.clone()
             },
-            ..route.clone()
-        };
+            ..mctp.clone()
+        }));
 
         assert_eq!(validate_route(&quote, &route), Ok(()));
         assert_eq!(
@@ -369,6 +388,33 @@ mod tests {
         ] {
             assert_eq!(validate_route(&quote, &route), Err(SwapperError::InvalidRoute), "{reason}");
         }
+    }
+
+    #[test]
+    fn test_validate_route_bridges_minimum_out() {
+        let mctp = MayanMctpQuote::mock_solana_to_sui();
+        let quote = Quote::mock_with_request(&mock_quote(
+            SwapperQuoteAsset::from(SOLANA_USDC_ASSET_ID.clone()),
+            SwapperQuoteAsset {
+                decimals: 6,
+                ..SwapperQuoteAsset::from(AssetId::from_token(Chain::Sui, SUI_USDC_TOKEN_ID))
+            },
+        ));
+        let route = |min_middle_amount: f64, has_auction: bool| {
+            MayanQuote::Mctp(Box::new(MayanMctpQuote {
+                min_middle_amount: Some(serde_json::json!(min_middle_amount)),
+                has_auction: Some(has_auction),
+                ..mctp.clone()
+            }))
+        };
+
+        assert_eq!(validate_route(&quote, &route(0.7996, false)), Ok(()));
+        assert_eq!(validate_route(&quote, &route(0.000001, true)), Ok(()), "an auction signs the minimum out at the destination");
+        assert_eq!(
+            validate_route(&quote, &route(0.7995, false)),
+            Err(SwapperError::InvalidRoute),
+            "a bridge without an auction pays out what it bridges, so the bridged minimum must cover the minimum out"
+        );
     }
 
     #[test]

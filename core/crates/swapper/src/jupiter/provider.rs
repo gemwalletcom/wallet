@@ -115,7 +115,6 @@ where
         };
         let build = self.http_client.get_build(&build_request).await?;
         let to_value = build.out_amount.parse::<BigUint>().map_err(SwapperError::compute_quote_error)?;
-        let slippage_bps = build.slippage_bps;
         let lookup_tables = SolanaClient::new(self.rpc_client.clone())
             .get_address_lookup_tables(build.lookup_table_addresses())
             .await
@@ -133,7 +132,7 @@ where
                     output: AssetId::from(Chain::Solana, Some(output_mint)),
                     route_data,
                 }],
-                slippage_bps,
+                slippage_bps: build_request.slippage_bps,
             },
             request: request.clone(),
             eta_in_seconds: None,

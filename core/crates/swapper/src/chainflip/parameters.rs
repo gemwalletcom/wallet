@@ -1,6 +1,6 @@
 use std::str::FromStr;
 
-use alloy_primitives::U256;
+use alloy_primitives::{U256, hex};
 use primitives::Chain;
 
 use super::{
@@ -11,7 +11,7 @@ use super::{
 use crate::{SwapperError, fees::DEFAULT_CHAINFLIP_FEE_BPS};
 
 const CF_PARAMETERS_VERSION: u8 = 1;
-const BROKER_ACCOUNT_LENGTH: usize = 32;
+const BROKER_ACCOUNT: [u8; 32] = hex!("1e83d2972d3dca3a330d60c2777ee5b8d25683c63fa359116985609830f42054");
 const BROKER_FEE_BPS: u32 = 5;
 
 #[derive(Debug, Clone, PartialEq)]
@@ -34,9 +34,8 @@ impl VaultSwapParameters {
 
     pub(super) fn validate(&self, cf_parameters: &[u8]) -> Result<(), SwapperError> {
         let commission = cf_parameters
-            .strip_prefix(self.encode()?.as_slice())
-            .and_then(|fees| fees.split_at_checked(BROKER_ACCOUNT_LENGTH))
-            .and_then(|(_, fees)| commission_bps(fees))
+            .strip_prefix([self.encode()?.as_slice(), &BROKER_ACCOUNT].concat().as_slice())
+            .and_then(commission_bps)
             .ok_or(SwapperError::InvalidRoute)?;
         if commission > DEFAULT_CHAINFLIP_FEE_BPS + BROKER_FEE_BPS {
             return Err(SwapperError::InvalidRoute);
@@ -92,7 +91,7 @@ mod tests {
     fn test_validate() {
         let parameters = mock_parameters(Chain::Ethereum, TEST_EVM_SENDER, "0x0102");
         let refund = [&[1u8, 150, 0, 0, 0][..], &hex::decode(&TEST_EVM_SENDER[2..]).unwrap(), &[2, 1], &[0; 30]].concat();
-        let encoded = |swap: &[u8], fees: &[u8]| [&refund[..], swap, &[7; 32], fees].concat();
+        let encoded = |swap: &[u8], fees: &[u8]| [&refund[..], swap, &BROKER_ACCOUNT, fees].concat();
         let shipped = encoded(&[0, 0, 0, 0], &[5, 0, 4, 0, 45]);
 
         assert_eq!(parameters.validate(&shipped), Ok(()));
@@ -124,6 +123,7 @@ mod tests {
             (encoded(&[0, 0, 0, 0], &[6, 0, 4, 0, 45]), "a broker fee above the one quoted"),
             (encoded(&[0, 0, 0, 0], &[5, 0, 8, 0, 45, 1, 1]), "a second affiliate fee"),
             (encoded(&[0, 0, 0, 0], &[5, 0, 4, 0]), "an affiliate list cut short"),
+            ([&refund[..], &[0, 0, 0, 0], &[7; 32], &[5, 0, 4, 0, 45]].concat(), "a commission paid to another broker"),
             (shipped[1..].to_vec(), "a layout this app cannot read"),
             ([&[2u8][..], &shipped[1..]].concat(), "another version of the layout"),
             ([&shipped[..], &[0]].concat(), "bytes after the fees"),

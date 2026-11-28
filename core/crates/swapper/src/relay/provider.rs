@@ -141,11 +141,7 @@ where
             RelayChain::Bitcoin => mapper::map_bitcoin_quote_data(&response, &quote.from_value),
             RelayChain::Evm(_) => mapper::map_evm_quote_data(&response, approval),
             RelayChain::Tron => mapper::map_tron_quote_data(&response, approval),
-            RelayChain::Solana => {
-                solana::quoted_transaction(&quote.request, &quote.from_value, &response)?
-                    .quote_data(&quote.request.wallet_address, self.rpc_provider.clone())
-                    .await
-            }
+            RelayChain::Solana => solana::quoted_transaction(&quote.request, &response)?.quote_data(&quote.request.wallet_address, self.rpc_provider.clone()).await,
             RelayChain::Ton => mapper::map_ton_quote_data(&response, &quote.from_value),
             RelayChain::Xrp => mapper::map_xrp_quote_data(&response, &quote.from_value),
         }

@@ -2,19 +2,20 @@ use gem_evm::u256::u256_to_biguint;
 use num_bigint::BigUint;
 use primitives::{AssetId, swap::SwapQuoteDataType};
 
-use super::{data_format::DataFormat, evm::token_transfer};
+use super::{
+    data_format::DataFormat,
+    evm::{approvals, token_transfer},
+};
 use crate::{Deployment, SwapperError, SwapperQuoteData};
 
 pub(super) fn verify_amounts(from_asset: &AssetId, from_value: &BigUint, data: &SwapperQuoteData) -> Result<(), SwapperError> {
-    let is_swapped_token = |token: &str| from_asset.approval_token().is_some_and(|swapped| Deployment::contains(from_asset.chain, &[swapped], token));
-    let approves_swapped_token = data
-        .approval
-        .iter()
-        .map(|approval| approval.token.as_str())
-        .chain(data.permit2.iter().map(|permit2| permit2.token.as_str()))
-        .all(is_swapped_token);
+    let is_swapped_token = |token: &str| match from_asset.approval_token() {
+        Some(swapped) => Deployment::contains(from_asset.chain, &[swapped], token),
+        None => from_asset.is_native() && AssetId::from_token(from_asset.chain, token).is_native_mirror(),
+    };
+    let approves_swapped_token = approvals(data).all(|(token, _)| is_swapped_token(token));
     let sends_quoted_value = match (&data.data_type, DataFormat::of(from_asset.chain.chain_type())) {
-        (SwapQuoteDataType::Transfer, _) => data.value <= *from_value,
+        (SwapQuoteDataType::Transfer, DataFormat::EvmCall | DataFormat::SolanaTransaction | DataFormat::TonMessages | DataFormat::Unread) => data.value <= *from_value,
         (SwapQuoteDataType::Contract, DataFormat::EvmCall) => match from_asset.is_native() {
             true => data.value <= *from_value,
             false => data.value == BigUint::ZERO && token_transfer(from_asset, data).is_none_or(|transfer| u256_to_biguint(&transfer.value) <= *from_value),
@@ -35,7 +36,7 @@ mod tests {
     use gem_evm::contracts::IERC20;
     use primitives::{
         Chain, EVMChain,
-        asset_constants::{ETHEREUM_USDC_TOKEN_ID, ETHEREUM_USDT_TOKEN_ID},
+        asset_constants::{ARC_EURC_TOKEN_ID, ARC_USDC_TOKEN_ID, ETHEREUM_USDC_TOKEN_ID, ETHEREUM_USDT_TOKEN_ID},
         hex,
         swap::{ApprovalData, Permit2ApprovalData},
         testkit::signer_mock::{TEST_BITCOIN_SENDER, TEST_EVM_RECIPIENT},
@@ -92,6 +93,18 @@ mod tests {
             ),
             Ok(()),
             "a coin that is also a token is approved as its own token"
+        );
+        assert_eq!(
+            verify_amounts(
+                &AssetId::from_chain(Chain::Arc),
+                &amount,
+                &SwapperQuoteData {
+                    approval: Some(ApprovalData::make(ARC_USDC_TOKEN_ID, TEST_EVM_RECIPIENT, amount.clone(), false)),
+                    ..SwapperQuoteData::mock()
+                }
+            ),
+            Ok(()),
+            "a coin held as a token is approved as that token"
         );
         assert_eq!(
             verify_amounts(
@@ -152,6 +165,14 @@ mod tests {
                     ..SwapperQuoteData::mock()
                 },
                 "an approval on a coin swap",
+            ),
+            (
+                &AssetId::from_chain(Chain::Arc),
+                SwapperQuoteData {
+                    approval: Some(ApprovalData::make(ARC_EURC_TOKEN_ID, TEST_EVM_RECIPIENT, amount.clone(), false)),
+                    ..SwapperQuoteData::mock()
+                },
+                "an approval of another token on a coin held as a token",
             ),
             (
                 &AssetId::from_chain(Chain::Bitcoin),

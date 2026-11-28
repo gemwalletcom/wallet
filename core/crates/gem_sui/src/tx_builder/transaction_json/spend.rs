@@ -79,15 +79,18 @@ impl TransactionJsonReplay {
             TransactionArgument::Result { .. } | TransactionArgument::NestedResult { .. } => return Ok(None),
         };
         match self.transaction.inputs.get(index).ok_or_else(|| SuiError::invalid_input("Missing Sui input argument"))? {
-            TransactionInput::UnresolvedObject { .. } => match self.wallet_objects.get(&index) {
+            TransactionInput::UnresolvedObject { .. }
+            | TransactionInput::Object {
+                object: TransactionObject::ImmOrOwnedObject { .. },
+            } => match self.wallet_objects.get(&index) {
                 Some(WalletObject::Coin(coin_type)) => Ok(Some(coin_type.clone())),
                 Some(WalletObject::Other) => Err(SuiError::invalid_input("Sui transaction uses a wallet object that is not a coin")),
                 None => Ok(None),
             },
-            TransactionInput::Object { object } => match object {
-                TransactionObject::SharedObject { .. } => Ok(None),
-                TransactionObject::ImmOrOwnedObject { .. } | TransactionObject::Receiving { .. } => Err(SuiError::invalid_input("Sui transaction names an object whose owner was not read")),
-            },
+            TransactionInput::Object {
+                object: TransactionObject::SharedObject { .. },
+            } => Ok(None),
+            TransactionInput::Object { object: TransactionObject::Receiving { .. } } => Err(SuiError::invalid_input("Sui transaction receives an object whose owner was not read")),
             TransactionInput::Pure { .. } | TransactionInput::FundsWithdrawal { .. } | TransactionInput::UnresolvedPure { .. } => Ok(None),
         }
     }
@@ -132,6 +135,10 @@ mod tests {
         json!({ "UnresolvedObject": { "objectId": format!("0x{id:064x}") } })
     }
 
+    fn owned(id: u8) -> Value {
+        json!({ "Object": { "ImmOrOwnedObject": { "objectId": format!("0x{id:064x}"), "version": "1", "digest": "11111111111111111111111111111111" } } })
+    }
+
     fn swap(coin: Value) -> Value {
         json!({ "MoveCall": { "package": "0x2", "module": "router", "function": "swap", "typeArguments": [], "arguments": [coin] } })
     }
@@ -164,6 +171,20 @@ mod tests {
             .unwrap(),
             HashMap::from([(wal.clone(), 5_000_000_000)]),
             "a token split from the wallet's merged coins"
+        );
+        assert_eq!(
+            spend(
+                json!([owned(1), owned(2), amount(5_000_000_000)]),
+                json!([
+                    { "MergeCoins": { "destination": { "Input": 0 }, "sources": [{ "Input": 1 }] } },
+                    { "SplitCoins": { "coin": { "Input": 0 }, "amounts": [{ "Input": 2 }] } },
+                    swap(json!({ "NestedResult": [1, 0] }))
+                ]),
+                &[(0, WAL), (1, WAL)]
+            )
+            .unwrap(),
+            HashMap::from([(wal.clone(), 5_000_000_000)]),
+            "wallet coins the reply names by version count like any other"
         );
         assert_eq!(
             spend(
@@ -200,11 +221,12 @@ mod tests {
                 vec![],
                 "a split whose amount a call decides",
             ),
+            (json!([owned(1)]), json!([swap(json!({ "Input": 0 }))]), vec![(0, WAL)], "a wallet coin named by version handed to a call whole"),
             (
-                json!([{ "Object": { "ImmOrOwnedObject": { "objectId": format!("0x{:064x}", 1), "version": 1, "digest": "11111111111111111111111111111111" } } }]),
+                json!([{ "Object": { "Receiving": { "objectId": format!("0x{:064x}", 1), "version": "1", "digest": "11111111111111111111111111111111" } } }]),
                 json!([swap(json!({ "Input": 0 }))]),
                 vec![],
-                "an object whose owner the app did not read",
+                "an object received whose owner the app did not read",
             ),
         ] {
             assert!(spend(inputs, commands, &wallet_coins).is_err(), "{reason}");

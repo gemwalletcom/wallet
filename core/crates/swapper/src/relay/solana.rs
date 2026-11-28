@@ -3,7 +3,6 @@ use gem_solana::{
     anchor::{instruction_arguments, instruction_body},
     decode_instructions, wrapped_sol,
 };
-use num_bigint::BigUint;
 use primitives::{
     Chain,
     contract_constants::{SOLANA_JUPITER_PROGRAM_ID, SOLANA_RELAY_DEPOSITORY_PROGRAM_ID, SOLANA_RELAY_FORWARDER_PROGRAM_ID},
@@ -13,7 +12,12 @@ use super::{
     contracts::contracts,
     model::{RelayQuoteResponse, SolanaStepData},
 };
-use crate::{QuoteRequest, SwapperError, binding_check::solana::verify_steps, jupiter::JupiterRoute, solana_dex::SolanaTransaction};
+use crate::{
+    QuoteRequest, SwapperError,
+    binding_check::solana::{StepLimits, verify_steps},
+    jupiter::JupiterRoute,
+    solana_dex::SolanaTransaction,
+};
 
 const DEPOSIT_NATIVE: &str = "deposit_native";
 const DEPOSIT_TOKEN: &str = "deposit_token";
@@ -36,27 +40,32 @@ enum RelayStep<'a> {
     Unsupported,
 }
 
-pub fn quoted_transaction(request: &QuoteRequest, value: &BigUint, response: &RelayQuoteResponse) -> Result<SolanaTransaction, SwapperError> {
+pub fn quoted_transaction(request: &QuoteRequest, response: &RelayQuoteResponse) -> Result<SolanaTransaction, SwapperError> {
     transaction(
         response.get_solana_step().ok_or(SwapperError::InvalidRoute)?,
-        &QuotedDeposit::new(request, value, response.details.slippage_bps(request.options.slippage.bps))?,
+        &QuotedDeposit::new(request, response.details.slippage_bps(request.options.slippage.bps))?,
     )
 }
 
 fn transaction(step: &SolanaStepData, quoted: &QuotedDeposit) -> Result<SolanaTransaction, SwapperError> {
     let instructions = decode_instructions::<HexInstructionData>(step.instructions.clone()).map_err(SwapperError::transaction_error)?;
     let steps: Vec<StandardInstruction> = instructions.iter().map(StandardInstruction::new).collect();
-    verify_steps(&steps, &quoted.wallet, &contracts(Chain::Solana).targets, &[])?;
+    verify_steps(
+        &steps,
+        &quoted.wallet,
+        &contracts(Chain::Solana).targets,
+        &StepLimits::spending(&quoted.mint.unwrap_or_else(wrapped_sol::wrapped_sol_mint), quoted.amount),
+    )?;
     quoted.verify(&instructions.iter().map(RelayStep::decode).collect::<Vec<_>>())?;
     Ok(SolanaTransaction::new(instructions, step.address_lookup_table_addresses.clone()))
 }
 
 impl QuotedDeposit {
-    fn new(request: &QuoteRequest, value: &BigUint, slippage_bps: u32) -> Result<Self, SwapperError> {
+    fn new(request: &QuoteRequest, slippage_bps: u32) -> Result<Self, SwapperError> {
         Ok(Self {
             wallet: Pubkey::from_base58(&request.wallet_address).map_err(SwapperError::transaction_error)?,
             mint: request.from_asset.asset_id().token_id.as_deref().map(Pubkey::from_base58).transpose().map_err(SwapperError::transaction_error)?,
-            amount: u64::try_from(value).map_err(SwapperError::transaction_error)?,
+            amount: u64::try_from(&request.value).map_err(SwapperError::transaction_error)?,
             slippage_bps,
         })
     }
@@ -111,11 +120,11 @@ mod tests {
     use super::*;
     use crate::{
         SwapperQuoteAsset,
-        binding_check::solana::verify_solana,
-        jupiter::RouteArguments,
+        binding_check::solana::{StepLimits, verify_solana},
         testkit::{TEST_SOLANA_PAYER, mock_quote},
     };
     use gem_solana::{AddressLookupTableAccount, anchor::global_discriminator, decode_transaction};
+    use num_bigint::BigUint;
     use primitives::{
         AssetId,
         asset_constants::{BASE_USDC_ASSET_ID, SOLANA_USDC_ASSET_ID, SOLANA_USDC_TOKEN_ID, SOLANA_USDT_ASSET_ID},
@@ -133,8 +142,8 @@ mod tests {
             ..mock_quote(SwapperQuoteAsset::from(AssetId::from_chain(Chain::Solana)), SwapperQuoteAsset::from(BASE_USDC_ASSET_ID.clone()))
         };
 
-        let quote_data = quoted_transaction(&request, &request.value, &response).unwrap().encode(&request.wallet_address, &[]).unwrap();
-        verify_solana(&quote_data.data, &request.wallet_address, &contracts(Chain::Solana).targets, &[]).unwrap();
+        let quote_data = quoted_transaction(&request, &response).unwrap().encode(&request.wallet_address, &[]).unwrap();
+        verify_solana(&quote_data.data, &request.wallet_address, &contracts(Chain::Solana).targets, &StepLimits::default()).unwrap();
 
         let transaction_data = decode_transaction(&quote_data.data).unwrap();
         assert_eq!(transaction_data.num_required_signatures(), 1);
@@ -150,7 +159,7 @@ mod tests {
         let mut other_instruction = step.clone();
         other_instruction.instructions[0].data = hex::encode([global_discriminator("withdraw").as_slice(), &instructions[0].data[8..]].concat());
         assert_eq!(
-            transaction(&other_instruction, &QuotedDeposit::new(&request, &request.value, request.options.slippage.bps).unwrap()).err(),
+            transaction(&other_instruction, &QuotedDeposit::new(&request, request.options.slippage.bps).unwrap()).err(),
             Some(SwapperError::InvalidRoute),
             "an instruction of Relay's programs the check does not read"
         );
@@ -170,7 +179,7 @@ mod tests {
                 "a deposit of another asset",
             ),
         ] {
-            assert_eq!(quoted_transaction(&request, &request.value, &response).err(), Some(SwapperError::InvalidRoute), "{reason}");
+            assert_eq!(quoted_transaction(&request, &response).err(), Some(SwapperError::InvalidRoute), "{reason}");
         }
     }
 
@@ -183,7 +192,7 @@ mod tests {
             ..mock_quote(SwapperQuoteAsset::from(SOLANA_USDT_ASSET_ID.clone()), SwapperQuoteAsset::from(BASE_USDC_ASSET_ID.clone()))
         };
 
-        assert_eq!(quoted_transaction(&request, &request.value, &response).err(), None);
+        assert_eq!(quoted_transaction(&request, &response).err(), None);
         for (request, reason) in [
             (
                 QuoteRequest {
@@ -200,7 +209,7 @@ mod tests {
                 "a deposit of another token",
             ),
         ] {
-            assert_eq!(quoted_transaction(&request, &request.value, &response).err(), Some(SwapperError::InvalidRoute), "{reason}");
+            assert_eq!(quoted_transaction(&request, &response).err(), Some(SwapperError::InvalidRoute), "{reason}");
         }
     }
 
@@ -224,10 +233,10 @@ mod tests {
                 SwapperQuoteAsset::from(BASE_USDC_ASSET_ID.clone()),
             )
         };
-        let quoted = QuotedDeposit::new(&request, &request.value, 200).unwrap();
+        let quoted = QuotedDeposit::new(&request, 200).unwrap();
 
         let quote_data = transaction(step, &quoted).unwrap().encode(TEST_SOLANA_PAYER, &[lookup_table]).unwrap();
-        verify_solana(&quote_data.data, TEST_SOLANA_PAYER, &contracts(Chain::Solana).targets, &[]).unwrap();
+        verify_solana(&quote_data.data, TEST_SOLANA_PAYER, &contracts(Chain::Solana).targets, &StepLimits::default()).unwrap();
 
         let route = JupiterRoute::decode(&instructions[4]).unwrap();
         let mut to_user_destination = instructions[4].clone();
@@ -263,7 +272,7 @@ mod tests {
             (&other_authority, &quoted, "a route another account signs"),
             (
                 with_parameters.get_solana_step().unwrap(),
-                &QuotedDeposit::new(&cbbtc, &cbbtc.value, 200).unwrap(),
+                &QuotedDeposit::new(&cbbtc, 200).unwrap(),
                 "a route whose steps carry parameters, so the amount it spends cannot be read",
             ),
         ] {
@@ -272,33 +281,17 @@ mod tests {
 
         let input_mint = quoted.mint.unwrap();
         let decoded = || JupiterRoute::decode(&instructions[4]).unwrap();
+        let changed = |change: fn(&mut JupiterRoute)| {
+            let mut route = decoded();
+            change(&mut route);
+            route
+        };
         assert_eq!(decoded().arguments.slippage_bps, 200);
         assert!(quoted.is_quoted(&decoded(), &input_mint));
         for (route, reason) in [
-            (
-                JupiterRoute {
-                    arguments: RouteArguments { slippage_bps: 201, ..decoded().arguments },
-                    ..decoded()
-                },
-                "a route that allows more slippage than the quote shows",
-            ),
-            (
-                JupiterRoute {
-                    arguments: RouteArguments { platform_fee_bps: 1, ..decoded().arguments },
-                    ..decoded()
-                },
-                "a route that takes a platform fee",
-            ),
-            (
-                JupiterRoute {
-                    arguments: RouteArguments {
-                        positive_slippage_bps: 1,
-                        ..decoded().arguments
-                    },
-                    ..decoded()
-                },
-                "a route that keeps part of a better price",
-            ),
+            (changed(|route| route.arguments.slippage_bps = 201), "a route that allows more slippage than the quote shows"),
+            (changed(|route| route.arguments.platform_fee_bps = 1), "a route that takes a platform fee"),
+            (changed(|route| route.arguments.positive_slippage_bps = 1), "a route that keeps part of a better price"),
         ] {
             assert!(!quoted.is_quoted(&route, &input_mint), "{reason}");
         }

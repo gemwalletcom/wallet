@@ -4,7 +4,7 @@ use super::{
     amounts::verify_amounts,
     data_format::DataFormat,
     evm::verify_evm_call,
-    solana::{fee_limits, verify_solana},
+    solana::{StepLimits, verify_solana},
     ton::verify_ton_messages,
 };
 use crate::{Binding, Contracts, Deployment, Quote, SwapperError, SwapperQuoteData};
@@ -23,7 +23,7 @@ fn verify_contracts(quote: &Quote, from_asset: &AssetId, contracts: &Contracts, 
         return Err(SwapperError::InvalidRoute);
     }
     match (DataFormat::of(from_asset.chain.chain_type()), &data.data_type) {
-        (DataFormat::SolanaTransaction, SwapQuoteDataType::Transfer | SwapQuoteDataType::Contract) => verify_solana(&data.data, &quote.request.wallet_address, &contracts.targets, &fee_limits(quote)?),
+        (DataFormat::SolanaTransaction, SwapQuoteDataType::Transfer | SwapQuoteDataType::Contract) => verify_solana(&data.data, &quote.request.wallet_address, &contracts.targets, &StepLimits::from_quote(quote)?),
         (DataFormat::TonMessages, SwapQuoteDataType::Transfer | SwapQuoteDataType::Contract) => verify_ton_messages(&data.data, &contracts.targets, &quote.from_value),
         (DataFormat::EvmCall | DataFormat::Unread, SwapQuoteDataType::Transfer) => match Deployment::contains(from_asset.chain, &contracts.targets, &data.to) {
             true => Ok(()),

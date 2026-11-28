@@ -2,7 +2,11 @@ use gem_solana::models::SolanaInstruction;
 use gem_solana::{Base64InstructionData, Instruction, Pubkey, StandardInstruction, associated_token::is_associated_token_address, decode_instruction, decode_instructions, instructions::program_ids::compute_budget_program};
 
 use super::JupiterRoute;
-use crate::{SwapperError, binding_check::solana::verify_steps};
+use crate::{
+    SwapperError,
+    binding_check::solana::{StepLimits, verify_steps},
+    fees::subtract_bps,
+};
 
 #[derive(Debug, Clone, Copy)]
 pub(crate) enum RouteDestination {
@@ -56,7 +60,7 @@ impl SwapInstructions {
         };
         let is_quoted = route.spends_from(&quoted.wallet, &quoted.input_mint)
             && route.arguments.in_amount <= quoted.amount
-            && route.arguments.minimum_out() >= quoted.minimum_out
+            && subtract_bps(&route.arguments.quoted_out_amount, u32::from(route.arguments.slippage_bps)) >= quoted.minimum_out
             && route.arguments.positive_slippage_bps == 0
             && takes_quoted_fee
             && pays_destination;
@@ -64,7 +68,7 @@ impl SwapInstructions {
             return Err(SwapperError::InvalidRoute);
         }
         let steps: Vec<StandardInstruction> = self.compute_budget.iter().chain(&self.setup).chain(&self.cleanup).map(StandardInstruction::new).collect();
-        verify_steps(&steps, &quoted.wallet, &[], &[])
+        verify_steps(&steps, &quoted.wallet, &[], &StepLimits::spending(&quoted.input_mint, quoted.amount))
     }
 }
 

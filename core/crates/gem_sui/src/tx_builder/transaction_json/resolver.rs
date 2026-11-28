@@ -1,5 +1,5 @@
 use super::{
-    model::{TransactionArgument, TransactionCommand, TransactionInput},
+    model::{TransactionArgument, TransactionCommand, TransactionInput, TransactionObject},
     spend::WalletObject,
 };
 use crate::rpc::proto::{FunctionDescriptor, OpenSignature, open_signature::Reference};
@@ -71,7 +71,15 @@ pub(super) async fn object_inputs(client: &SuiClient, inputs: &[TransactionInput
         .iter()
         .filter_map(|input| match input {
             TransactionInput::UnresolvedObject { object } => Some(object.object_id.clone()),
-            TransactionInput::Pure { .. } | TransactionInput::Object { .. } | TransactionInput::FundsWithdrawal { .. } | TransactionInput::UnresolvedPure { .. } => None,
+            TransactionInput::Object {
+                object: TransactionObject::ImmOrOwnedObject { object },
+            } => Some(object.object_id.clone()),
+            TransactionInput::Pure { .. }
+            | TransactionInput::Object {
+                object: TransactionObject::SharedObject { .. } | TransactionObject::Receiving { .. },
+            }
+            | TransactionInput::FundsWithdrawal { .. }
+            | TransactionInput::UnresolvedPure { .. } => None,
         })
         .collect::<HashSet<_>>()
         .into_iter()
@@ -93,11 +101,22 @@ pub(super) async fn object_inputs(client: &SuiClient, inputs: &[TransactionInput
     let mut object_inputs = HashMap::new();
     let mut wallet_objects = HashMap::new();
     for (index, input) in inputs.iter().enumerate() {
-        let TransactionInput::UnresolvedObject { object } = input else {
-            continue;
+        let object_id = match input {
+            TransactionInput::UnresolvedObject { object } => &object.object_id,
+            TransactionInput::Object {
+                object: TransactionObject::ImmOrOwnedObject { object },
+            } => &object.object_id,
+            TransactionInput::Pure { .. }
+            | TransactionInput::Object {
+                object: TransactionObject::SharedObject { .. } | TransactionObject::Receiving { .. },
+            }
+            | TransactionInput::FundsWithdrawal { .. }
+            | TransactionInput::UnresolvedPure { .. } => continue,
         };
-        let resolved = objects.get(&object.object_id).ok_or_else(|| SuiError::invalid_input(format!("Sui object was not returned by RPC: {}", object.object_id)))?;
-        object_inputs.insert(index, resolved.input(input_mutability.get(&index).copied().unwrap_or(false)));
+        let resolved = objects.get(object_id).ok_or_else(|| SuiError::invalid_input(format!("Sui object was not returned by RPC: {object_id}")))?;
+        if let TransactionInput::UnresolvedObject { .. } = input {
+            object_inputs.insert(index, resolved.input(input_mutability.get(&index).copied().unwrap_or(false)));
+        }
         if resolved.is_owned() {
             wallet_objects.insert(index, resolved.coin_type().map_or(WalletObject::Other, WalletObject::Coin));
         }

@@ -11,16 +11,18 @@ pub(super) fn verify_evm_call(from_asset: &AssetId, contracts: &Contracts, data:
     let pays_deposit_contract = token_transfer(from_asset, data)
         .map(|transfer| eth_address::token_id(chain, &transfer.to))
         .is_some_and(|recipient| is_contract(&recipient) && is_spender(&recipient));
-    let approves_spenders = data
-        .approval
-        .iter()
-        .map(|approval| approval.spender.as_str())
-        .chain(data.permit2.iter().map(|permit2| permit2.spender.as_str()))
-        .all(is_spender);
+    let approves_spenders = approvals(data).all(|(_, spender)| is_spender(spender));
     if (!is_contract(&data.to) && !pays_deposit_contract) || !approves_spenders {
         return Err(SwapperError::InvalidRoute);
     }
     Ok(())
+}
+
+pub(super) fn approvals(data: &SwapperQuoteData) -> impl Iterator<Item = (&str, &str)> {
+    data.approval
+        .iter()
+        .map(|approval| (approval.token.as_str(), approval.spender.as_str()))
+        .chain(data.permit2.iter().map(|permit2| (permit2.token.as_str(), permit2.spender.as_str())))
 }
 
 pub(super) fn token_transfer(from_asset: &AssetId, data: &SwapperQuoteData) -> Option<IERC20::transferCall> {

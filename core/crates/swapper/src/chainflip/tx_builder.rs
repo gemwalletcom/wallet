@@ -58,7 +58,7 @@ pub(super) fn build_solana_transaction(fee_payer: &str, instruction: Instruction
 mod tests {
     use super::*;
     use crate::{
-        binding_check::solana::verify_solana,
+        binding_check::solana::{StepLimits, verify_solana},
         chainflip::{broker::SolanaVaultSwapResponse, provider::SOLANA_VAULT, testkit::TRON_NOTE},
     };
     use gem_jsonrpc::types::JsonRpcResponse;
@@ -106,7 +106,7 @@ mod tests {
         let response: JsonRpcResponse<SolanaVaultSwapResponse> = serde_json::from_str(include_str!("./test/chainflip_sol_arb_usdc_quote_data.json"))?;
 
         let tx_b64 = build_solana_transaction(wallet_address, solana_instruction(&response.result)?)?;
-        verify_solana(&tx_b64, wallet_address, &[SOLANA_VAULT], &[])?;
+        verify_solana(&tx_b64, wallet_address, &[SOLANA_VAULT], &StepLimits::default())?;
 
         assert_eq!(
             tx_b64,

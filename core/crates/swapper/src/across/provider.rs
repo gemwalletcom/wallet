@@ -555,8 +555,10 @@ mod tests {
     #[tokio::test]
     async fn test_direct_quote_data_approves_the_token_behind_native_arc_usdc() {
         let provider = Across::new(Arc::new(ProviderMock::mock_json_rpc_result(&HexEncode([0u8; 32]))));
-        let quote_data = provider.get_quote_data(&Quote::mock_across_arc(), QuoteDataInput::None).await.unwrap();
+        let quote = Quote::mock_across_arc();
+        let quote_data = provider.get_quote_data(&quote, QuoteDataInput::None).await.unwrap();
 
+        assert_eq!((&provider as &dyn Swapper).verify_binding(&quote, &quote_data), Ok(()));
         assert_eq!(quote_data.to, ARC_ACROSS_SPOKE_POOL_CONTRACT);
         assert_eq!(quote_data.value, BigUint::ZERO);
         assert_eq!(
