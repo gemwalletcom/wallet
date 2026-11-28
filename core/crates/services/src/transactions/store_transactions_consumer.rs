@@ -57,8 +57,10 @@ impl StoreTransactionsConsumer {
             return Ok(0);
         }
 
-        let (deposit_addresses, send_addresses) = tokio::try_join!(self.vault_client.get_deposit_address_map(), self.vault_client.get_send_address_map())?;
-        let transactions = Self::subscribed_transactions_for_storage(config, payload.transactions, &subscriptions, &deposit_addresses, &send_addresses, &payload.notification_type);
+        let send_addresses = self.vault_client.get_send_address_map().await?;
+        let transactions = Self::subscribed_transactions_for_storage(config, payload.transactions, &subscriptions, &send_addresses);
+        let deposit_addresses = self.vault_client.get_deposit_address_map(&transactions).await?;
+        let transactions = Self::transactions_for_storage(transactions, &deposit_addresses, &send_addresses, &payload.notification_type);
         if transactions.is_empty() {
             info_with_fields!("transaction storage skipped", chain = payload.chain.as_ref(), stage = "transaction_filters", subscriptions = subscriptions.len());
             return Ok(0);
@@ -97,7 +99,7 @@ impl StoreTransactionsConsumer {
         if transactions.is_empty() {
             return Ok(());
         }
-        let (deposit_addresses, send_addresses) = tokio::try_join!(self.vault_client.get_deposit_address_map(), self.vault_client.get_send_address_map())?;
+        let (deposit_addresses, send_addresses) = tokio::try_join!(self.vault_client.get_deposit_address_map(&transactions), self.vault_client.get_send_address_map())?;
         let transactions = Self::transactions_for_storage(transactions, &deposit_addresses, &send_addresses, notification_type);
         if transactions.is_empty() {
             return Ok(());
@@ -121,16 +123,9 @@ impl StoreTransactionsConsumer {
         self.subscription_lookup.get(chain, addresses).await
     }
 
-    fn subscribed_transactions_for_storage(
-        config: &StoreTransactionsConsumerConfig,
-        transactions: Vec<Transaction>,
-        subscriptions: &[DeviceSubscription],
-        deposit_addresses: &DepositAddressMap,
-        send_addresses: &SendAddressMap,
-        notification_type: &TransactionNotificationType,
-    ) -> Vec<Transaction> {
+    fn subscribed_transactions_for_storage(config: &StoreTransactionsConsumerConfig, transactions: Vec<Transaction>, subscriptions: &[DeviceSubscription], send_addresses: &SendAddressMap) -> Vec<Transaction> {
         let subscription_addresses: HashSet<_> = subscriptions.iter().map(|subscription| &subscription.address).collect();
-        Self::transactions_for_storage(transactions, deposit_addresses, send_addresses, notification_type)
+        transactions
             .into_iter()
             .filter(|transaction| config.is_transaction_within_asset_transfer_limit(transaction))
             .filter(|transaction| {
@@ -528,16 +523,9 @@ mod tests {
             value: BigUint::from(1u32),
         }]);
         let send_addresses = SendAddressMap::from([("0xvault".to_string(), SwapProvider::Mayan)]);
-        let notification_type = TransactionNotificationType::NewTransaction;
 
-        assert_eq!(
-            StoreTransactionsConsumer::subscribed_transactions_for_storage(&config, vec![payout.clone()], &subscriptions, &DepositAddressMap::new(), &SendAddressMap::new(), &notification_type).len(),
-            1
-        );
-        assert_eq!(
-            StoreTransactionsConsumer::subscribed_transactions_for_storage(&config, vec![payout], &subscriptions, &DepositAddressMap::new(), &send_addresses, &notification_type).len(),
-            0
-        );
+        assert_eq!(StoreTransactionsConsumer::subscribed_transactions_for_storage(&config, vec![payout.clone()], &subscriptions, &SendAddressMap::new()).len(), 1);
+        assert_eq!(StoreTransactionsConsumer::subscribed_transactions_for_storage(&config, vec![payout], &subscriptions, &send_addresses).len(), 0);
     }
 
     #[test]

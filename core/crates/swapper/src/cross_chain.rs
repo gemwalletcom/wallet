@@ -46,14 +46,22 @@ pub fn in_transit_swap_provider(transaction: &Transaction, deposit_addresses: &D
 }
 
 fn deposit_address_provider(transaction: &Transaction, deposit_addresses: &DepositAddressMap) -> Option<SwapperProvider> {
-    deposit_addresses
-        .get(&transaction.to)
-        .copied()
-        .or_else(|| transaction.output_addresses().into_iter().find_map(|address| deposit_addresses.get(&address).copied()))
-        .or_else(|| deposit_addresses.get(&deposit_order_id(transaction)?).copied())
-        .or_else(|| deposit_addresses.get(transaction.memo.as_deref()?).copied())
-        .or_else(|| deposit_addresses.get(transaction.data.as_deref()?).copied())
+    deposit_keys(transaction)
+        .iter()
+        .find_map(|key| deposit_addresses.get(key).copied())
         .or_else(|| deposit_addresses.get(transaction.contract.as_deref()?).copied().filter(|provider| *provider == SwapperProvider::Chainflip))
+}
+
+pub fn deposit_candidates(transaction: &Transaction) -> Vec<String> {
+    [transaction.id.to_string()].into_iter().chain(deposit_keys(transaction)).chain(transaction.contract.clone()).collect()
+}
+
+fn deposit_keys(transaction: &Transaction) -> Vec<String> {
+    [transaction.to.clone()]
+        .into_iter()
+        .chain(transaction.output_addresses())
+        .chain([deposit_order_id(transaction), transaction.memo.clone(), transaction.data.clone()].into_iter().flatten())
+        .collect()
 }
 
 fn deposit_order_id(transaction: &Transaction) -> Option<String> {
@@ -174,6 +182,26 @@ mod tests {
     use primitives::{
         AssetId, TransactionSwapMetadata, TransactionType, TransactionUtxoInput, contract_constants::SOLANA_MAYAN_CPI_PROXY_PROGRAM_ID, testkit::json_rpc::load_json_rpc_result, transaction_metadata_types::TransactionAssetTransfer,
     };
+
+    #[test]
+    fn test_deposit_candidates() {
+        let order_id = format!("0x{}", "ab".repeat(32));
+        let data = format!("0x12345678{}", "ab".repeat(32));
+        let transaction = Transaction {
+            memo: Some("memo".to_string()),
+            data: Some(data.clone()),
+            contract: Some("contract".to_string()),
+            utxo_outputs: Some(vec![TransactionUtxoInput::new("output".to_string(), BigUint::from(1u32))]),
+            ..Transaction::mock()
+        };
+        let candidates = deposit_candidates(&transaction);
+
+        assert_eq!(candidates, [transaction.id.to_string(), "0xto".to_string(), "output".to_string(), order_id, "memo".to_string(), data, "contract".to_string()]);
+        for candidate in candidates {
+            let deposit_addresses = DepositAddressMap::from([(candidate.clone(), SwapperProvider::Chainflip)]);
+            assert_eq!(in_transit_swap_provider(&transaction, &deposit_addresses), Some(SwapperProvider::Chainflip), "{candidate}");
+        }
+    }
 
     #[test]
     fn test_vault_address_detected() {
