@@ -378,7 +378,7 @@ fn public_cases() -> Vec<Case> {
         Case::new("v1_nft_asset_preview", Method::GET, "/v1/nft/assets/ethereum_0x0000000000000000000000000000000000000001::1/preview").volatile(),
         Case::new("v1_nft_asset_preview_bad", Method::GET, "/v1/nft/assets/not-an-id/preview"),
         Case::new("v1_nft_collection_preview", Method::GET, "/v1/nft/collections/ethereum_0x0000000000000000000000000000000000000001/preview").volatile(),
-        Case::new("v1_near_intents_quote", Method::POST, "/v1/swaps/near_intents/quote").json(json!({})).volatile(),
+        Case::new("v1_dropped_near_intents_quote", Method::POST, "/v1/swaps/near_intents/quote").json(json!({})),
         Case::new("v1_swaps_xyz_action", Method::POST, "/v1/swaps/swaps_xyz/action").json(json!({})),
         Case::new("v1_okx_quote", Method::POST, "/v1/swaps/providers/okx/v6/quote").json(json!({})),
         Case::new("v1_webhook_path_secret_unknown", Method::POST, "/v1/webhooks/fiat/unknown/secret").json(json!({})),
@@ -450,7 +450,7 @@ fn registered_device_cases(harness: &Harness) -> Vec<Case> {
         Case::new("v2_transactions_bad_limit", Method::GET, "/v2/devices/transactions?limit=many").wallet(),
         Case::new("v2_transaction_by_id", Method::GET, &format!("/v2/devices/transactions/{TRANSACTION_ID}")).wallet(),
         Case::new("v2_transaction_by_id_bad", Method::GET, "/v2/devices/transactions/not-an-id").wallet(),
-        Case::new("v2_transaction_legacy", Method::GET, &format!("/v2/devices/transaction/{TRANSACTION_ID}")).device(),
+        Case::new("v2_dropped_legacy_transaction", Method::GET, &format!("/v2/devices/transaction/{TRANSACTION_ID}")).device(),
         Case::new("v2_address_names", Method::POST, "/v2/devices/address_names")
             .device()
             .json(json!([{"chain": "ethereum", "address": TEST_PRIVATE_KEY_ETHEREUM_ADDRESS}])),

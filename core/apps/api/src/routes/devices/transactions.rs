@@ -5,7 +5,7 @@ use primitives::{DateTime, Transaction, TransactionsResponse};
 use serde::Deserialize;
 use services::transactions::TransactionsClient;
 
-use crate::auth::device::{AuthenticatedDevice, AuthenticatedDeviceWallet};
+use crate::auth::device::AuthenticatedDeviceWallet;
 use crate::error::ApiError;
 use crate::request::{AssetIdParam, Path, Query, QueryLimitParam, TransactionIdParam, lenient, timestamp};
 use crate::response::ApiResponse;
@@ -39,8 +39,4 @@ pub async fn get_transactions(device: AuthenticatedDeviceWallet, Query(query): Q
 
 pub async fn get_transaction_by_wallet(device: AuthenticatedDeviceWallet, Path(id): Path<TransactionIdParam>, State(client): State<Arc<TransactionsClient>>) -> Result<ApiResponse<Transaction>, ApiError> {
     Ok(client.get_transaction_by_wallet_id(device.record.id, device.wallet_id, &id.0).await?.into())
-}
-
-pub async fn get_transaction(_device: AuthenticatedDevice, Path(id): Path<TransactionIdParam>, State(client): State<Arc<TransactionsClient>>) -> Result<ApiResponse<Transaction>, ApiError> {
-    Ok(client.get_transaction_by_id(&id.0).await?.into())
 }

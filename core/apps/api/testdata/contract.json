@@ -554,6 +554,15 @@
       }
     }
   },
+  "v1_dropped_near_intents_quote": {
+    "status": 404,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "404 Not Found"
+      }
+    }
+  },
   "v1_fee_estimates": {
     "status": 200,
     "content_type": "application/json",
@@ -594,11 +603,6 @@
         "message": "Markets not found"
       }
     }
-  },
-  "v1_near_intents_quote": {
-    "status": 400,
-    "content_type": "application/json",
-    "body": "<volatile>"
   },
   "v1_nft_asset_preview": {
     "status": 404,
@@ -930,6 +934,15 @@
     "body": {
       "error": {
         "message": "Device id mismatch"
+      }
+    }
+  },
+  "v2_dropped_legacy_transaction": {
+    "status": 404,
+    "content_type": "application/json",
+    "body": {
+      "error": {
+        "message": "404 Not Found"
       }
     }
   },
@@ -1343,15 +1356,6 @@
     "body": {
       "error": {
         "message": "Invalid transaction id: not-an-id"
-      }
-    }
-  },
-  "v2_transaction_legacy": {
-    "status": 404,
-    "content_type": "application/json",
-    "body": {
-      "error": {
-        "message": "Transaction ethereum_0x0000000000000000000000000000000000000000000000000000000000000001 not found"
       }
     }
   },

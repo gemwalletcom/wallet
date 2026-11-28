@@ -40,10 +40,6 @@ impl TransactionsClient {
         Ok(self.repository.get_device_transactions(device_id.to_string()).await?)
     }
 
-    pub async fn get_transaction_by_id(&self, id: &TransactionId) -> Result<Transaction, Box<dyn Error + Send + Sync>> {
-        Ok(self.repository.get_transaction(id.clone()).await?)
-    }
-
     pub async fn get_transaction_by_wallet_id(&self, device_row_id: i32, wallet_id: i32, id: &TransactionId) -> Result<Transaction, Box<dyn Error + Send + Sync>> {
         let (addresses, transaction) = self.repository.get_wallet_transaction(device_row_id, wallet_id, id.clone()).await?;
         Ok(transaction.finalize(addresses).without_utxo())

@@ -40,7 +40,6 @@ pub fn router() -> Router<AppState> {
         .route("/swaps/providers/chainflip/deposit_channel", post(swap::post_chainflip_deposit_channel))
         .route("/swaps/providers/okx/v6/quote", post(swap::post_okx_quote_v6))
         .route("/swaps/providers/okx/v6/swap", post(swap::post_okx_swap_v6))
-        .route("/swaps/near_intents/quote", post(swap::post_near_intents_quote).layer(deprecated.clone()))
         .route("/swaps/swaps_xyz/action", post(swap::post_swaps_xyz_action).layer(deprecated))
         .route("/nft/assets/{asset_id}/preview", get(nft::get_nft_asset_preview))
         .route("/nft/assets/{asset_id}/resource", get(nft::get_nft_asset_resource))

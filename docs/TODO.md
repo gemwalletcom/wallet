@@ -21,7 +21,7 @@ These need no further answer; work them in this order, one family per change.
 
 1. **App models to Core records:** VM286 and VM287 (second round) area by area as grouped in section 5.
 
-Waiting on the owner: VM79, VM296 (review first), VM181, VM183, D175 (on hold), X171, CLN455, and everything under [Needs review](#needs-review). Waiting on a date or a release: X168, X169, X170, X163, X172, X173, X174, X176, X526.
+Waiting on the owner: VM79, VM296 (review first), VM181, VM183, D175 (on hold), X171, CLN455, and everything under [Needs review](#needs-review). Waiting on a date or a release: X168, X170, X163, X172, X173, X174, X176, X526.
 
 ## Screen coverage and existing infrastructure
 
@@ -179,10 +179,9 @@ Findings from reviewing commits that nobody has accepted yet, and not all of the
 
 - **CLN455** **S** **Transaction asset links keep ids the store does not have yet.** iOS drops a swap's asset ids that are not stored yet when linking a transaction to its assets, so asset-filtered history misses the swap; Android keeps them. Decide whether iOS relaxes its foreign key (a migration) or Core stores the asset first; until then this stays open.
 - **X168** **S** `WalletConfiguration.multi_signature_accounts` ([`wallet_configuration.rs`](../core/crates/primitives/src/wallet_configuration.rs)) is the old name of `externally_controlled_accounts`, which also covers Solana accounts assigned to another program. The API fills both because shipped apps read only the old field. Delete the field, its fill in [`wallet_configuration.rs`](../core/crates/services/src/devices/wallet_configuration_client.rs) and the merge in [`externally_controlled_banners`](../core/gemstone/src/services/wallet_configuration/rules.rs) on 2026-12-18, three months after the release that reads `externally_controlled_accounts`.
-- **X169** **S** The legacy singular `GET /v2/devices/transaction/<id>` route (`get_transaction` in [`transactions.rs`](../core/apps/api/src/routes/devices/transactions.rs)) goes on 2026-11-15, with its `v2_router` entry.
 - **X174** **S** The `/v2/devices` routes ([`v2_router`](../core/apps/api/src/routes/devices/mod.rs)), the path-only signing rule (`SignedPath::PathOnly` in [`middleware.rs`](../core/apps/api/src/auth/device/middleware.rs)) and the `/v2/devices/stream` route go on 2027-01-15, three months after the release whose gemstone client calls `/v3/devices`.
 - **X176** **S** Transaction pushes to apps older than Android 2.114.73 and iOS 2.114.74 still carry the whole `transaction` (`carries_transaction` in [`notification.rs`](../core/crates/push_notification/src/notification.rs)); newer apps open the details by id and load the transaction from the wallet or the server. Three months after iOS 2.114.74 ships, drop the version check and the `transaction` field so every push carries only the ids.
-- **X526** **S** Remove the deprecated `/v1/swaps/near_intents/quote` and `/v1/swaps/swaps_xyz/action` aliases in [`public/mod.rs`](../core/apps/api/src/routes/public/mod.rs) on 2026-11-14. Migrate shipped clients and the Near Intents proxy to `/v1/swaps/providers/{provider}/…` before then.
+- **X526** **S** Remove the deprecated `/v1/swaps/swaps_xyz/action` alias in [`public/mod.rs`](../core/apps/api/src/routes/public/mod.rs) once no app calls it. Android and iOS before 2.114.72 still swap through it; later apps call `/v1/swaps/providers/swaps_xyz/action`.
 - **X170** **S** Dynode's TON `/api/v2/runGetMethod` cache validation in [`proxy/service.rs`](../core/apps/dynode/src/proxy/service.rs) goes on 2027-01-01, together with the Dynode legacy wallet routes.
 - **X171** **S** The connection banner stays off (`CONNECTION_BANNER_ENABLED` in [`constants.rs`](../core/gemstone/src/constants.rs)) until it is polished; turning it on is the owner's call.
 - **X173** **M** `.sol` resolution is paused until the Solana Record Service publishes a supported resolver. SNS resolves `.sns` only; when SRS support ships, add `.sol` as a distinct provider and preserve its ownership independently from `.sns`.

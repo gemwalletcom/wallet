@@ -84,7 +84,6 @@ pub fn v2_router(state: &AppState, limit: usize) -> Router<AppState> {
         .route("/assets", get(assets::get_assets))
         .route("/transactions", get(transactions::get_transactions))
         .route("/transactions/{id}", get(transactions::get_transaction_by_wallet))
-        .route("/transaction/{id}", get(transactions::get_transaction))
         .route("/address_names", post(addresses::get_address_names))
         .route("/addresses/{chain}/{address}", get(addresses::get_address_details))
         .route("/nft_assets", get(nft::get_nft_assets))
