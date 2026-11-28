@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import com.gemwallet.android.ui.components.dialog.WarningHaptic
 import com.gemwallet.android.ui.components.screen.ModalBottomSheet
 import com.gemwallet.android.ui.localization.stringRes
 import com.gemwallet.android.ui.theme.Spacer16
@@ -26,6 +27,7 @@ internal fun PerpetualModifyBottomSheet(isVisible: Boolean, title: String, butto
         onDismissRequest = onDismiss,
         title = title,
     ) {
+        WarningHaptic()
         buttons.forEachIndexed { index, button ->
             if (index > 0) {
                 HorizontalDivider()

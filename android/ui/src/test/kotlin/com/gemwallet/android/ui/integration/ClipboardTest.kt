@@ -33,7 +33,7 @@ class ClipboardTest {
     }
 
     @Test
-    fun onlyAPasteThatFindsNothingPlaysError() {
+    fun aCopyPlaysSuccessAndOnlyAPasteThatFindsNothingPlaysError() {
         val haptics = mutableListOf<HapticFeedbackType>()
         val haptic = object : HapticFeedback {
             override fun performHapticFeedback(hapticFeedbackType: HapticFeedbackType) {
@@ -43,11 +43,13 @@ class ClipboardTest {
         val gemClipboard = Clipboard(ApplicationProvider.getApplicationContext(), haptic)
 
         gemClipboard.copy("abandon")
+        assertEquals(listOf(HapticFeedbackType.Confirm), haptics)
+
         assertEquals("abandon", gemClipboard.paste())
-        assertEquals(emptyList<HapticFeedbackType>(), haptics)
+        assertEquals(listOf(HapticFeedbackType.Confirm), haptics)
 
         gemClipboard.clear()
         assertNull(gemClipboard.paste())
-        assertEquals(listOf(HapticFeedbackType.Reject), haptics)
+        assertEquals(listOf(HapticFeedbackType.Confirm, HapticFeedbackType.Reject), haptics)
     }
 }

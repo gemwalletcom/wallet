@@ -8,6 +8,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.gemwallet.android.ui.R
+import com.gemwallet.android.ui.components.dialog.WarningHaptic
 import com.gemwallet.android.ui.localization.string
 import com.wallet.core.primitives.Asset
 import uniffi.gemstone.GemSwapPriceImpactRow
@@ -19,6 +20,7 @@ internal fun PriceImpactWarningDialog(isVisible: Boolean, priceImpact: GemSwapPr
         return
     }
 
+    WarningHaptic()
     AlertDialog(
         onDismissRequest = onDismiss,
         confirmButton = {

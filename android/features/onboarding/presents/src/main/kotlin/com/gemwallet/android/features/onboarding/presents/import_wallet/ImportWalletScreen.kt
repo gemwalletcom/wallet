@@ -29,7 +29,9 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Devices
@@ -86,11 +88,18 @@ fun ImportWalletScreen(importType: ImportType, onImported: () -> Unit, onCancel:
     val suggestions by viewModel.suggestions.collectAsStateWithLifecycle()
     val isImported by viewModel.isImported.collectAsStateWithLifecycle()
     var isScanning by rememberSaveable { mutableStateOf(false) }
+    val haptic = LocalHapticFeedback.current
 
     LaunchedEffect(isImported) {
         if (isImported) {
             viewModel.onImportedHandled()
             onImported()
+        }
+    }
+
+    LaunchedEffect(errorText) {
+        if (errorText != null) {
+            haptic.performHapticFeedback(HapticFeedbackType.Reject)
         }
     }
 

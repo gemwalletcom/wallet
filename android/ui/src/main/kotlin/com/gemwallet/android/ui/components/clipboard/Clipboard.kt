@@ -14,9 +14,15 @@ import uniffi.gemstone.GemCopy
 class Clipboard internal constructor(private val context: Context, private val haptic: HapticFeedback) {
     private val manager = context.clipboardManager()
 
-    fun copy(copy: GemCopy) = manager.setCopy(context, copy)
+    fun copy(copy: GemCopy) {
+        manager.setCopy(context, copy)
+        haptic.performHapticFeedback(HapticFeedbackType.Confirm)
+    }
 
-    fun copy(text: String) = manager.setPlainText(context, text)
+    fun copy(text: String) {
+        manager.setPlainText(context, text)
+        haptic.performHapticFeedback(HapticFeedbackType.Confirm)
+    }
 
     fun paste(): String? {
         val text = manager.getPlainText()

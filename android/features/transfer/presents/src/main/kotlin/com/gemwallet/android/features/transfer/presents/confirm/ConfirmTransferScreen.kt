@@ -19,7 +19,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -131,11 +133,19 @@ fun ConfirmTransferScreen(
     }
     val isShowBottomSheetInfo by viewModel.isErrorSheetVisible.collectAsStateWithLifecycle()
     val sentTransactionHash by viewModel.sentTransactionHash.collectAsStateWithLifecycle()
+    val haptic = LocalHapticFeedback.current
 
     LaunchedEffect(sentTransactionHash) {
         sentTransactionHash?.let {
+            haptic.performHapticFeedback(HapticFeedbackType.Confirm)
             viewModel.onSentHandled()
             finishAction(it)
+        }
+    }
+
+    LaunchedEffect(executeErrorText) {
+        if (executeErrorText != null) {
+            haptic.performHapticFeedback(HapticFeedbackType.Reject)
         }
     }
 

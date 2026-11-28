@@ -11,6 +11,7 @@ import com.gemwallet.android.ui.R
 
 @Composable
 fun DeleteConfirmationDialog(prompt: String, onConfirm: () -> Unit, onDismiss: () -> Unit) {
+    WarningHaptic()
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = MaterialTheme.colorScheme.background,

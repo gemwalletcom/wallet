@@ -358,8 +358,6 @@ A haptic is the short vibration that confirms what the user's finger just did, o
 
 | When | iOS | Android | Expected |
 |---|---|---|---|
-| A value is copied | Success | none | as iOS, [TODO.md](TODO.md) BD531 |
-| An alert asks to confirm a step that cannot be undone or changes money | Warning | none | as iOS, [TODO.md](TODO.md) BD531 |
 | Confirm sends, signs or fails | none | none | Success or Error, [TODO.md](TODO.md) D532 |
 | Import finds the input invalid | none | none | Error, [TODO.md](TODO.md) D533 |
 
