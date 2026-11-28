@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import enum Gemstone.GemAmountRequest
 import struct Gemstone.GemPaymentRecipient
 import struct Gemstone.GemTransferData
 import Primitives
@@ -37,11 +38,11 @@ public struct SelectedAssetInput: Sendable, Hashable, Identifiable {
 }
 
 public struct AmountInput: Hashable, Identifiable, Sendable {
-    public let type: AmountType
+    public let request: GemAmountRequest
     public let asset: Asset
 
-    public init(type: AmountType, asset: Asset) {
-        self.type = type
+    public init(request: GemAmountRequest, asset: Asset) {
+        self.request = request
         self.asset = asset
     }
 

@@ -288,6 +288,30 @@ public extension Gemstone.GemAuthenticationPreview {
     }
 }
 
+public extension Gemstone.GemAutocloseDraft {
+    static func mock(
+        takeProfit: Gemstone.GemAutocloseDraftField = .mock(),
+        stopLoss: Gemstone.GemAutocloseDraftField = .mock(),
+    ) -> Gemstone.GemAutocloseDraft {
+        Gemstone.GemAutocloseDraft(
+            takeProfit: takeProfit,
+            stopLoss: stopLoss,
+        )
+    }
+}
+
+public extension Gemstone.GemAutocloseDraftField {
+    static func mock(
+        value: String? = nil,
+        isEdited: Bool = false,
+    ) -> Gemstone.GemAutocloseDraftField {
+        Gemstone.GemAutocloseDraftField(
+            value: value,
+            isEdited: isEdited,
+        )
+    }
+}
+
 public extension Gemstone.GemChainRow {
     static func mock(
         chain: String = Primitives.Chain.bitcoin.rawValue,
@@ -1060,6 +1084,26 @@ public extension Gemstone.GemPaymentRecipient {
     }
 }
 
+public extension Gemstone.GemPerpetualAmountSession {
+    static func mock(
+        action: Gemstone.GemPerpetualPositionAction = .mock(),
+        leverage: Gemstone.GemLeverageSelection? = nil,
+        takeProfitPercent: UInt8 = 0,
+        stopLossPercent: UInt8 = 0,
+        autoclose: Gemstone.GemAutocloseDraft = .mock(),
+        format: Gemstone.GemNumberFormat = .mock(),
+    ) -> Gemstone.GemPerpetualAmountSession {
+        Gemstone.GemPerpetualAmountSession(
+            action: action,
+            leverage: leverage,
+            takeProfitPercent: takeProfitPercent,
+            stopLossPercent: stopLossPercent,
+            autoclose: autoclose,
+            format: format,
+        )
+    }
+}
+
 public extension Gemstone.GemPerpetualDetails {
     static func mock(
         title: String = "",
@@ -1077,6 +1121,12 @@ public extension Gemstone.GemPerpetualDetails {
             positionRow: positionRow,
             associatedAssets: associatedAssets,
         )
+    }
+}
+
+public extension Gemstone.GemPerpetualPositionAction {
+    static func mock() -> Gemstone.GemPerpetualPositionAction {
+        .open(data: .mock())
     }
 }
 

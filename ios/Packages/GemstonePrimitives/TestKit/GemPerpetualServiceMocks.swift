@@ -181,7 +181,7 @@ public final class GemPerpetualDetailsServiceMock: GemPerpetualDetailsServicePro
     public var candlesticksValue: [Gemstone.ChartCandleStick] = []
     public var candlesticksError: GemServiceError?
     public var closeTransferResult: Result<Gemstone.GemTransferData, Error> = .success(.mock())
-    public var positionActionResult: Result<GemPerpetualPositionAction, Error> = .success(.open(data: .mock(direction: .long, price: 100, leverage: 3)))
+    public var positionRequestResult: Result<GemAmountRequest, Error> = .success(.perpetual(session: .mock(action: .open(data: .mock(direction: .long, price: 100, leverage: 3)))))
     public var leverageSelectionResult: Result<GemLeverageSelection, Error> = .success(.mock())
     public var leverageTransferResult: Result<Gemstone.GemTransferData?, Error> = .success(.mock())
     public var syncPositionsError: Error?
@@ -190,7 +190,7 @@ public final class GemPerpetualDetailsServiceMock: GemPerpetualDetailsServicePro
     public private(set) var syncPositionsCount = 0
     public private(set) var syncedTransactionAssetIds: [Gemstone.AssetId] = []
     public private(set) var positionKinds: [GemPerpetualPositionKind] = []
-    public private(set) var positionActionPositions: [Gemstone.PerpetualPosition?] = []
+    public private(set) var positionRequestPositions: [Gemstone.PerpetualPosition?] = []
     public private(set) var closeTransferPositions: [Gemstone.PerpetualPosition?] = []
     public private(set) var leverageSelectionPositions: [Gemstone.PerpetualPosition?] = []
     public private(set) var leverageTransferPositions: [Gemstone.PerpetualPosition?] = []
@@ -233,15 +233,16 @@ public final class GemPerpetualDetailsServiceMock: GemPerpetualDetailsServicePro
         .marketData(symbol: perpetual.name)
     }
 
-    public func positionAction(
+    public func positionRequest(
         perpetual _: Gemstone.Perpetual,
         asset _: Gemstone.Asset,
         position: Gemstone.PerpetualPosition?,
         kind: GemPerpetualPositionKind,
-    ) throws -> GemPerpetualPositionAction {
+        format _: GemNumberFormat,
+    ) throws -> GemAmountRequest {
         positionKinds.append(kind)
-        positionActionPositions.append(position)
-        return try positionActionResult.get()
+        positionRequestPositions.append(position)
+        return try positionRequestResult.get()
     }
 
     public func details(perpetual _: Gemstone.Perpetual, asset _: Gemstone.Asset, positions _: [Gemstone.PerpetualPosition], associatedAssets _: [Gemstone.Asset]) -> GemPerpetualDetails {

@@ -18,10 +18,6 @@ public final class GemAmountServiceMock: GemAmountServiceProtocol, @unchecked Se
         Primitives.Currency.usd.toGem()
     }
 
-    public func newPerpetualSession(action: GemPerpetualPositionAction, format: GemNumberFormat) -> GemPerpetualAmountSession {
-        builder.newPerpetualSession(action: action, format: format)
-    }
-
     public func transferData(asset: Gemstone.Asset, request: GemAmountRequest, value: Gemstone.GemBigInt, useMaxAmount: Bool) async throws -> GemTransferData {
         if case .earn = request {
             throw AnyError("not stubbed")

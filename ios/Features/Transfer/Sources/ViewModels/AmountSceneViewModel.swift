@@ -68,24 +68,18 @@ public final class AmountSceneViewModel {
         self.onTransferAction = onTransferAction
         currency = service.getCurrency().toPrimitives()
         asset = input.asset
-        var stake: AmountStakeViewModel?
-        var perpetual: AmountPerpetualViewModel?
-        switch input.type {
-        case let .transfer(recipient): baseRequest = .transfer(transfer: .send(payment: recipient))
-        case .deposit: baseRequest = .transfer(transfer: .deposit)
-        case .withdraw: baseRequest = .transfer(transfer: .withdraw)
-        case let .earn(earnType): baseRequest = .earn(earnType: earnType)
-        case let .stake(type):
-            let model = AmountStakeViewModel(asset: input.asset, type: type)
-            stake = model
-            baseRequest = model.request
-        case let .perpetual(action):
-            let model = AmountPerpetualViewModel(action: action, service: service)
-            perpetual = model
-            baseRequest = model.request
+        baseRequest = input.request
+        switch input.request {
+        case .transfer, .earn:
+            stake = nil
+            perpetual = nil
+        case let .stake(stakeInput):
+            stake = AmountStakeViewModel(asset: input.asset, type: stakeInput)
+            perpetual = nil
+        case let .perpetual(session):
+            stake = nil
+            perpetual = AmountPerpetualViewModel(session: session)
         }
-        self.stake = stake
-        self.perpetual = perpetual
         assetQuery = ObservableQuery(AssetQuery(walletId: wallet.id, assetId: input.asset.id), initialValue: .with(asset: input.asset))
         let request = stake?.request ?? perpetual?.request ?? baseRequest
         let amountInput = Self.input(request: request, asset: input.asset, assetData: assetQuery.value)

@@ -1,9 +1,9 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
-import class Gemstone.GemAmountService
 import struct Gemstone.GemAssetItemRow
 import struct Gemstone.GemAutocloseSession
+import struct Gemstone.GemPerpetualAmountSession
 import GemstonePrimitives
 import GemstonePrimitivesTestKit
 import GemstoneServicesTestKit
@@ -11,8 +11,7 @@ import GemstoneServicesTestKit
 
 extension AutocloseType {
     static func mock(
-        session: GemAutocloseSession = GemAmountService.mock()
-            .newPerpetualSession(action: .open(data: .mock(direction: .long, price: 100, leverage: 10)), format: NumberInput.format())
+        session: GemAutocloseSession = GemPerpetualAmountSession.mock(action: .open(data: .mock(direction: .long, price: 100, leverage: 10)), format: NumberInput.format())
             .autocloseSession(amount: "1"),
         row: GemAssetItemRow = .mock(),
     ) -> AutocloseType {

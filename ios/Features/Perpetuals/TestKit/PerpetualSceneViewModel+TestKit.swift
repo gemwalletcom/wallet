@@ -1,6 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import enum Gemstone.GemPerpetualPositionAction
+import enum Gemstone.GemAmountRequest
 import GemstonePrimitives
 import GemstonePrimitivesTestKit
 import GemstoneServicesTestKit
@@ -13,7 +13,7 @@ public extension PerpetualSceneViewModel {
         service: GemPerpetualDetailsServiceMock = GemPerpetualDetailsServiceMock(),
         asset: Asset = .mock(),
         onTransferData: TransferDataAction = nil,
-        onPerpetualPosition: ((GemPerpetualPositionAction) -> Void)? = nil,
+        onPerpetualPosition: ((GemAmountRequest) -> Void)? = nil,
     ) -> PerpetualSceneViewModel {
         PerpetualSceneViewModel(
             wallet: .mock(),

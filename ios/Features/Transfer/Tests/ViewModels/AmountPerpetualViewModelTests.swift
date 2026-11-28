@@ -18,7 +18,7 @@ import TransferTestKit
 struct AmountPerpetualViewModelTests {
     @Test
     func leverageSelection() {
-        let open = AmountPerpetualViewModel.mock(action: .open(data: .mock(direction: .long, price: 100, leverage: 10)))
+        let open = AmountPerpetualViewModel.mock(action: .open(data: .mock(direction: .long, price: 100, leverage: 10)), leverage: .mock(options: [.mock(value: 3), .mock(value: 10)], selected: .mock(value: 3)))
         let increase = AmountPerpetualViewModel.mock(action: .increase(data: .mock(direction: .long, price: 100, leverage: 3)))
 
         #expect(open.leverageSelection != nil)
@@ -64,7 +64,7 @@ struct AmountPerpetualViewModelTests {
 
     @Test
     func aLeverageChangeReachesTheRequestAndKeepsEditedPrices() {
-        let model = AmountPerpetualViewModel.mock(action: .open(data: .mock(direction: .long, price: 100, leverage: 10)))
+        let model = AmountPerpetualViewModel.mock(action: .open(data: .mock(direction: .long, price: 100, leverage: 10)), leverage: .mock(options: [.mock(value: 3), .mock(value: 10)], selected: .mock(value: 3)))
         model.updateAutoclose(takeProfit: "150", stopLoss: "")
 
         model.onChangeLeverage(10)

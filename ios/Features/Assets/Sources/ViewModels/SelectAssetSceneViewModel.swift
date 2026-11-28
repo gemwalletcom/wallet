@@ -289,7 +289,7 @@ extension SelectAssetSceneViewModel {
         do {
             switch try await paymentService.prepareAsset(payment: payment, assetId: assetData.asset.id) {
             case let .confirm(transfer): route = .transfer(.confirm(transfer))
-            case let .amount(payment): route = .transfer(.amount(AmountInput(type: .transfer(recipient: payment), asset: assetData.asset)))
+            case let .amount(payment): route = .transfer(.amount(AmountInput(request: .transfer(transfer: .send(payment: payment)), asset: assetData.asset)))
             case let .recipient(payment): route = .asset(SelectAssetInput(type: selectType, assetData: assetData, recipient: payment))
             }
         } catch {

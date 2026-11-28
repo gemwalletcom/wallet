@@ -1,8 +1,8 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import enum Gemstone.GemAmountRequest
 import class Gemstone.GemPerpetualDetailsService
-import enum Gemstone.GemPerpetualPositionAction
 import enum Gemstone.GemSelectAssetType
 import GemstonePrimitives
 import GemstoneServices
@@ -38,7 +38,7 @@ public extension ViewModelFactory {
         asset: Asset,
         wallet: Wallet,
         onTransferData: TransferDataAction,
-        onPerpetualPosition: ((GemPerpetualPositionAction) -> Void)?,
+        onPerpetualPosition: ((GemAmountRequest) -> Void)?,
     ) -> PerpetualSceneViewModel {
         PerpetualSceneViewModel(
             wallet: wallet,

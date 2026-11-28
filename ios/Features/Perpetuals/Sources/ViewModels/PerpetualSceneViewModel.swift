@@ -2,13 +2,13 @@
 
 import Components
 import Foundation
+import enum Gemstone.GemAmountRequest
 import enum Gemstone.GemInfoTopic
 import struct Gemstone.GemLeverageSelection
 import struct Gemstone.GemListWindow
 import enum Gemstone.GemPerpetualButton
 import struct Gemstone.GemPerpetualDetails
 import protocol Gemstone.GemPerpetualDetailsServiceProtocol
-import enum Gemstone.GemPerpetualPositionAction
 import enum Gemstone.GemPerpetualPositionKind
 import struct Gemstone.GemTransactionRow
 import GemstonePrimitives
@@ -25,7 +25,7 @@ public final class PerpetualSceneViewModel {
     private let service: any GemPerpetualDetailsServiceProtocol
     private let observerService: any PerpetualObservable
     private let onTransferData: TransferDataAction
-    private let onPerpetualPosition: ((GemPerpetualPositionAction) -> Void)?
+    private let onPerpetualPosition: ((GemAmountRequest) -> Void)?
 
     public let wallet: Wallet
     let asset: Asset
@@ -65,7 +65,7 @@ public final class PerpetualSceneViewModel {
         service: any GemPerpetualDetailsServiceProtocol,
         observerService: any PerpetualObservable,
         onTransferData: TransferDataAction = nil,
-        onPerpetualPosition: ((GemPerpetualPositionAction) -> Void)? = nil,
+        onPerpetualPosition: ((GemAmountRequest) -> Void)? = nil,
     ) {
         self.wallet = wallet
         self.asset = asset
@@ -237,8 +237,8 @@ public extension PerpetualSceneViewModel {
 private extension PerpetualSceneViewModel {
     func onPositionAction(_ kind: GemPerpetualPositionKind) {
         do {
-            let positionAction = try service.positionAction(perpetual: perpetual.toGem(), asset: asset.toGem(), position: details.position, kind: kind)
-            onPerpetualPosition?(positionAction)
+            let request = try service.positionRequest(perpetual: perpetual.toGem(), asset: asset.toGem(), position: details.position, kind: kind, format: NumberInput.format())
+            onPerpetualPosition?(request)
         } catch {
             isPresentingInfoSheet = InfoSheetModel(error: error)
         }

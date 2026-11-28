@@ -183,7 +183,7 @@ extension RecipientSceneViewModel {
 
     private func route(_ next: GemRecipientNext) {
         switch next {
-        case let .amount(payment): onNavigate?(.amount(AmountInput(type: .transfer(recipient: payment), asset: asset)))
+        case let .amount(payment): onNavigate?(.amount(AmountInput(request: .transfer(transfer: .send(payment: payment)), asset: asset)))
         case let .confirm(transfer): onNavigate?(.confirm(transfer))
         }
     }

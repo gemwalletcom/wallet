@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import enum Gemstone.GemAmountRequest
 import struct Gemstone.GemEmptyState
 import struct Gemstone.GemInfoSheet
 import enum Gemstone.GemInfoTopic
@@ -77,7 +78,7 @@ public final class StakeSceneViewModel {
 
     func route(destination: GemStakeDestination) -> StakeRoute {
         switch destination {
-        case let .amount(input): route(amount: .stake(input))
+        case let .amount(input): route(request: .stake(input: input))
         case let .confirm(transfer): .transfer(.confirm(transfer))
         }
     }
@@ -115,7 +116,7 @@ extension StakeSceneViewModel {
         chain.chain.asset
     }
 
-    private func route(amount: AmountType) -> StakeRoute {
-        .transfer(.amount(AmountInput(type: amount, asset: asset)))
+    private func route(request: GemAmountRequest) -> StakeRoute {
+        .transfer(.amount(AmountInput(request: request, asset: asset)))
     }
 }

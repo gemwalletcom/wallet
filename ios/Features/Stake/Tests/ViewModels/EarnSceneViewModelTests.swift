@@ -24,7 +24,7 @@ struct EarnSceneViewModelTests {
         #expect(model.depositRoute(model.earnView) != nil)
         model.onSelectDeposit()
 
-        guard case let .transfer(.amount(input)) = route, case .earn = input.type else {
+        guard case let .transfer(.amount(input)) = route, case .earn = input.request else {
             Issue.record("expected an earn amount route, got \(String(describing: route))")
             return
         }

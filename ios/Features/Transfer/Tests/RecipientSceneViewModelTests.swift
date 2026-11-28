@@ -52,7 +52,7 @@ struct RecipientSceneViewModelTests {
         let checksummed = "0x5615E8AB93b9d695b6d4d6545f7792aA59e1069a"
         var recipientAddress: String?
         let model = RecipientSceneViewModel.mock(onNavigate: { step in
-            guard case let .amount(input) = step, case let .transfer(recipient) = input.type else { return }
+            guard case let .amount(input) = step, case let .transfer(.send(recipient)) = input.request else { return }
             recipientAddress = recipient.recipient.address
         })
 

@@ -72,7 +72,7 @@ public final class EarnSceneViewModel {
     }
 
     func depositRoute(_ view: GemEarnView) -> StakeRoute? {
-        view.depositProvider.map { .transfer(.amount(AmountInput(type: .earn(.deposit($0)), asset: asset))) }
+        view.depositProvider.map { .transfer(.amount(AmountInput(request: .earn(earnType: .deposit($0)), asset: asset))) }
     }
 
     func emptyContentModel(_ state: GemEmptyState) -> EmptyStateViewModel {

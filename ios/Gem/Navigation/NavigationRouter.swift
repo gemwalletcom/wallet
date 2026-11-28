@@ -246,7 +246,7 @@ extension NavigationRouter {
             }
             return .verify(url, link: link)
         case let .amount(asset, payment):
-            return .amount(AmountInput(type: .transfer(recipient: payment), asset: asset.toPrimitives()))
+            return .amount(AmountInput(request: .transfer(transfer: .send(payment: payment)), asset: asset.toPrimitives()))
         case let .recipient(asset, account, payment):
             let asset = asset.toPrimitives()
             return .recipient(

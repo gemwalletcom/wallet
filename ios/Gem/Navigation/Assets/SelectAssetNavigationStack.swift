@@ -77,7 +77,7 @@ struct SelectAssetNavigationStack: View {
                     case .deposit:
                         AmountNavigationView(
                             model: viewModelFactory.amountScene(
-                                input: AmountInput(type: .deposit, asset: input.asset),
+                                input: AmountInput(request: .transfer(transfer: .deposit), asset: input.asset),
                                 wallet: model.wallet,
                                 onTransferAction: { navigate(to: .confirm($0)) },
                             ),
@@ -85,7 +85,7 @@ struct SelectAssetNavigationStack: View {
                     case .withdraw:
                         AmountNavigationView(
                             model: viewModelFactory.amountScene(
-                                input: AmountInput(type: .withdraw, asset: input.asset),
+                                input: AmountInput(request: .transfer(transfer: .withdraw), asset: input.asset),
                                 wallet: model.wallet,
                                 onTransferAction: { navigate(to: .confirm($0)) },
                             ),

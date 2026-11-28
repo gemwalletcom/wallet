@@ -129,7 +129,7 @@ struct WalletNavigationStack: View {
                         asset: $0.asset,
                         wallet: wallet,
                         onTransferData: { present(.wallet(.transferData($0))) },
-                        onPerpetualPosition: { present(.wallet(.amount(AmountInput(type: .perpetual($0), asset: Chain.hyperCore.defaultAsset(type: .perpetual))))) },
+                        onPerpetualPosition: { present(.wallet(.amount(AmountInput(request: $0, asset: Chain.hyperCore.defaultAsset(type: .perpetual))))) },
                     ),
                     isPresentingSheet: presenter.isPresentingWalletSheet,
                 )

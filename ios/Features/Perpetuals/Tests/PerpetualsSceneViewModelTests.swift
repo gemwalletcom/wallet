@@ -74,7 +74,7 @@ struct PerpetualsSceneViewModelTests {
 
         await model.onSelectDeposit()
 
-        #expect(selected == AmountInput(type: .deposit, asset: .mock()))
+        #expect(selected == AmountInput(request: .transfer(transfer: .deposit), asset: .mock()))
     }
 
     @Test

@@ -20,9 +20,9 @@ struct AmountSceneRequestTests {
         let usdc = AssetData.mock(asset: .mock(symbol: "USDC"))
 
         #expect(AmountSceneViewModel.mock(assetData: usdc).displayAsset.id == usdc.asset.id)
-        #expect(AmountSceneViewModel.mock(type: .deposit, assetData: usdc).displayAsset.id == usdc.asset.id)
+        #expect(AmountSceneViewModel.mock(request: .transfer(transfer: .deposit), assetData: usdc).displayAsset.id == usdc.asset.id)
 
-        let withdraw = AmountSceneViewModel.mock(type: .withdraw, assetData: usdc).displayAsset
+        let withdraw = AmountSceneViewModel.mock(request: .transfer(transfer: .withdraw), assetData: usdc).displayAsset
         #expect(withdraw.id.identifier == "arbitrum_0xaf88d065e77c8cC2239327C5EDb3A432268e5831")
         #expect(withdraw.type == .erc20)
     }
@@ -32,8 +32,8 @@ struct AmountSceneRequestTests {
         let assetData = AssetData.mock(balance: .mock(available: 1000, withdrawable: 500))
 
         #expect(AmountSceneViewModel.mock(assetData: assetData).input.availableValue == 1000)
-        #expect(AmountSceneViewModel.mock(type: .deposit, assetData: assetData).input.availableValue == 1000)
-        #expect(AmountSceneViewModel.mock(type: .withdraw, assetData: assetData).input.availableValue == 500)
+        #expect(AmountSceneViewModel.mock(request: .transfer(transfer: .deposit), assetData: assetData).input.availableValue == 1000)
+        #expect(AmountSceneViewModel.mock(request: .transfer(transfer: .withdraw), assetData: assetData).input.availableValue == 500)
     }
 
     @Test
@@ -41,14 +41,14 @@ struct AmountSceneRequestTests {
         let recipient = GemPaymentRecipient.mock(recipient: .mock(address: "0x123"), amount: "1.5")
         let assetData = AssetData.mock(asset: .mock(decimals: 6))
 
-        #expect(AmountSceneViewModel.mock(type: .transfer(recipient: recipient), assetData: assetData).input.prefill?.value == 1_500_000)
-        #expect(AmountSceneViewModel.mock(type: .deposit, assetData: assetData).input.prefill == nil)
+        #expect(AmountSceneViewModel.mock(request: .transfer(transfer: .send(payment: recipient)), assetData: assetData).input.prefill?.value == 1_500_000)
+        #expect(AmountSceneViewModel.mock(request: .transfer(transfer: .deposit), assetData: assetData).input.prefill == nil)
     }
 
     @Test
     func anEarnNamesItsProvider() {
-        let deposit = AmountSceneViewModel.mock(type: .earn(.deposit(DelegationValidator.mock(name: "Figment").toGem())))
-        let withdraw = AmountSceneViewModel.mock(type: .earn(.withdraw(Delegation.mock(validator: .mock(name: "Chorus One")).toGem())))
+        let deposit = AmountSceneViewModel.mock(request: .earn(earnType: .deposit(DelegationValidator.mock(name: "Figment").toGem())))
+        let withdraw = AmountSceneViewModel.mock(request: .earn(earnType: .withdraw(Delegation.mock(validator: .mock(name: "Chorus One")).toGem())))
 
         #expect(deposit.providerName == "Figment")
         #expect(withdraw.providerName == "Chorus One")
@@ -61,7 +61,7 @@ struct AmountSceneRequestTests {
         let send = try await transferData(AmountSceneViewModel.mock(), value: 100, useMaxAmount: false)
         let arbitrumUSDC = AssetData.mock(asset: .mock(id: .mock(chain: .arbitrum, tokenId: "0xaf88d065e77c8cC2239327C5EDb3A432268e5831"), name: "USD Coin", symbol: "USDC", decimals: 6, type: .erc20))
         let session = try GemWalletSessionService.mock(wallet: .mock(accounts: [.mock(chain: .arbitrum)]))
-        let deposit = try await transferData(AmountSceneViewModel.mock(type: .deposit, assetData: arbitrumUSDC), value: 200, useMaxAmount: true, session: session)
+        let deposit = try await transferData(AmountSceneViewModel.mock(request: .transfer(transfer: .deposit), assetData: arbitrumUSDC), value: 200, useMaxAmount: true, session: session)
 
         guard case .transfer = send.inputType else {
             Issue.record("expected a transfer, got \(send.inputType)")

@@ -68,13 +68,13 @@ struct PerpetualSceneViewModelTests {
     @Test
     func openingALongPositionPassesTheDirectionToCore() {
         let service = GemPerpetualDetailsServiceMock()
-        var actions: [GemPerpetualPositionAction] = []
-        let model = PerpetualSceneViewModel.mock(service: service, onPerpetualPosition: { actions.append($0) })
+        var requests: [GemAmountRequest] = []
+        let model = PerpetualSceneViewModel.mock(service: service, onPerpetualPosition: { requests.append($0) })
 
         model.onSelectButton(.long)
 
         #expect(service.positionKinds == [.open(direction: PerpetualDirection.long.toGem())])
-        #expect(actions.count == 1)
+        #expect(requests.count == 1)
     }
 
     @Test
@@ -105,7 +105,7 @@ struct PerpetualSceneViewModelTests {
         model.onSelectButton(.reduce)
         #expect(model.isPresentingModifyAlert == nil)
         #expect(service.positionKinds == [.increase, .reduce])
-        #expect(service.positionActionPositions == [position, position])
+        #expect(service.positionRequestPositions == [position, position])
     }
 
     @Test
@@ -148,13 +148,13 @@ struct PerpetualSceneViewModelTests {
     @Test
     func aFailedPositionActionShowsTheError() {
         let service = GemPerpetualDetailsServiceMock()
-        service.positionActionResult = .failure(AnyError("no margin"))
-        var actions: [GemPerpetualPositionAction] = []
-        let model = PerpetualSceneViewModel.mock(service: service, onPerpetualPosition: { actions.append($0) })
+        service.positionRequestResult = .failure(AnyError("no margin"))
+        var requests: [GemAmountRequest] = []
+        let model = PerpetualSceneViewModel.mock(service: service, onPerpetualPosition: { requests.append($0) })
 
         model.onSelectButton(.long)
 
-        #expect(actions.isEmpty)
+        #expect(requests.isEmpty)
         #expect(model.isPresentingInfoSheet?.description == "no margin")
     }
 

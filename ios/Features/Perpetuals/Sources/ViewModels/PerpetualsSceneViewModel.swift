@@ -143,7 +143,7 @@ extension PerpetualsSceneViewModel {
         case .deposit:
             Task { await onSelectDeposit() }
         case let .withdraw(asset):
-            onSelectAmount?(AmountInput(type: .withdraw, asset: asset.toPrimitives()))
+            onSelectAmount?(AmountInput(request: .transfer(transfer: .withdraw), asset: asset.toPrimitives()))
         case .send, .receive, .buy, .swap, .sendCollectible, .collectibleMenu:
             break
         }
@@ -157,7 +157,7 @@ extension PerpetualsSceneViewModel {
         do {
             switch try await service.depositTarget() {
             case .selectAsset: onSelectAssetType?(.deposit)
-            case let .amount(asset): onSelectAmount?(AmountInput(type: .deposit, asset: asset.toPrimitives()))
+            case let .amount(asset): onSelectAmount?(AmountInput(request: .transfer(transfer: .deposit), asset: asset.toPrimitives()))
             }
         } catch {
             debugLog("PerpetualsSceneViewModel deposit target error: \(error)")

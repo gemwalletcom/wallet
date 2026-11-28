@@ -21,7 +21,7 @@ public enum WalletSheetType: Identifiable, Equatable, Sendable {
     public var id: String {
         switch self {
         case let .selectAsset(type, _): "selectAsset-\(type)"
-        case let .amount(input): "amount-\(input.type)-\(input.asset.id.identifier)"
+        case let .amount(input): "amount-\(input.request)-\(input.asset.id.identifier)"
         case let .infoSheet(sheet): "infoSheet-\(sheet.hashValue)"
         case let .transferData(data): "transferData-\(data.id)"
         case .addAsset: "addAsset"

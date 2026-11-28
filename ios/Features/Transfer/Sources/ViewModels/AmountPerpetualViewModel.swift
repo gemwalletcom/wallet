@@ -3,12 +3,9 @@
 import Components
 import Foundation
 import enum Gemstone.GemAmountRequest
-import protocol Gemstone.GemAmountServiceProtocol
 import struct Gemstone.GemAssetItemRow
 import struct Gemstone.GemAutocloseSession
 import struct Gemstone.GemPerpetualAmountSession
-import enum Gemstone.GemPerpetualPositionAction
-import GemstonePrimitives
 import Localization
 import PrimitivesComponents
 
@@ -16,8 +13,8 @@ import PrimitivesComponents
 public final class AmountPerpetualViewModel {
     private var session: GemPerpetualAmountSession
 
-    init(action: GemPerpetualPositionAction, service: any GemAmountServiceProtocol) {
-        session = service.newPerpetualSession(action: action, format: NumberInput.format())
+    init(session: GemPerpetualAmountSession) {
+        self.session = session
     }
 
     var leverageSelection: SelectionState<LeverageOption>? {

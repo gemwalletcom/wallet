@@ -1,16 +1,16 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import class Gemstone.GemAmountService
+import struct Gemstone.GemLeverageSelection
 import enum Gemstone.GemPerpetualPositionAction
+import GemstonePrimitives
 import GemstonePrimitivesTestKit
-import GemstoneServicesTestKit
 @testable import Transfer
 
 public extension AmountPerpetualViewModel {
     static func mock(
         action: GemPerpetualPositionAction = .open(data: .mock(direction: .long, price: 100, leverage: 3)),
-        service: GemAmountServiceMock = GemAmountServiceMock(builder: GemAmountService.mock()),
+        leverage: GemLeverageSelection? = nil,
     ) -> AmountPerpetualViewModel {
-        AmountPerpetualViewModel(action: action, service: service)
+        AmountPerpetualViewModel(session: .mock(action: action, leverage: leverage, format: NumberInput.format()))
     }
 }

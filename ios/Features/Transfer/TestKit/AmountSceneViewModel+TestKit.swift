@@ -1,5 +1,6 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
+import enum Gemstone.GemAmountRequest
 import class Gemstone.GemAmountService
 import GemstonePrimitives
 import GemstonePrimitivesTestKit
@@ -11,12 +12,12 @@ import Transfer
 
 public extension AmountSceneViewModel {
     static func mock(
-        type: AmountType = .transfer(recipient: .mock()),
+        request: GemAmountRequest = .transfer(transfer: .send(payment: .mock())),
         wallet: Wallet = .mock(),
         assetData: AssetData = .mock(),
     ) -> AmountSceneViewModel {
         let model = AmountSceneViewModel(
-            input: AmountInput(type: type, asset: assetData.asset),
+            input: AmountInput(request: request, asset: assetData.asset),
             wallet: wallet,
             service: GemAmountServiceMock(builder: GemAmountService.mock()),
             onTransferAction: { _ in },

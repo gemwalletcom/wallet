@@ -54,7 +54,7 @@ struct AmountSceneViewModelTests {
             balance: .mock(available: 2_000_000_000_000_000_000),
         )
         let model = AmountSceneViewModel.mock(
-            type: .stake(.stake(validator: DelegationValidator.mock().toGem())),
+            request: .stake(input: .stake(validator: DelegationValidator.mock().toGem())),
             assetData: assetData,
         )
 
@@ -74,7 +74,7 @@ struct AmountSceneViewModelTests {
             balance: .mock(frozen: 0, locked: 5_000_000),
         )
         let model = AmountSceneViewModel.mock(
-            type: .stake(.unfreeze(resource: Resource.bandwidth.toGem())),
+            request: .stake(input: .unfreeze(resource: Resource.bandwidth.toGem())),
             assetData: assetData,
         )
 
@@ -98,7 +98,7 @@ struct AmountSceneViewModelTests {
             balance: .mock(available: 5_000_000_000_000_000_000),
         )
         let model = AmountSceneViewModel.mock(
-            type: .stake(.stake(validator: validator1.toGem())),
+            request: .stake(input: .stake(validator: validator1.toGem())),
             assetData: assetData,
         )
 
@@ -134,7 +134,7 @@ struct AmountSceneViewModelTests {
         let delegation = Delegation.mock(base: .mock(state: .active, balance: 1_000_000))
         let assetData = AssetData.mock(asset: .mock(id: .mock(chain: .smartChain), name: "BNB", symbol: "BNB", decimals: 18))
         let model = AmountSceneViewModel.mock(
-            type: .stake(.withdraw(delegation: delegation.toGem())),
+            request: .stake(input: .withdraw(delegation: delegation.toGem())),
             assetData: assetData,
         )
 
@@ -148,7 +148,7 @@ struct AmountSceneViewModelTests {
         let first = Delegation.mock(base: .mock(rewards: 5_000_000_000_000_000_000), validator: .mock(id: "first"))
         let second = Delegation.mock(base: .mock(rewards: 2_000_000_000_000_000_000), validator: .mock(id: "second"))
         let model = AmountSceneViewModel.mock(
-            type: .stake(.rewards(delegations: [first.toGem(), second.toGem()], validator: first.validator.toGem())),
+            request: .stake(input: .rewards(delegations: [first.toGem(), second.toGem()], validator: first.validator.toGem())),
             assetData: .mock(asset: .mock(id: .mock(chain: .monad), name: "Monad", symbol: "MON", decimals: 18)),
         )
         #expect(model.amountInputModel.text == "5")
