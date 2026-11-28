@@ -50,7 +50,7 @@ class RecipientViewModelTest {
         viewModel.onDestination(
             recipient = RecipientUIState.Ready(asset, GemRecipientType.Asset(asset.toGem())),
             destination = GemRecipient(address = "address"),
-            amountAction = {},
+            amountAction = { _, _ -> },
             confirmAction = {},
         )
 

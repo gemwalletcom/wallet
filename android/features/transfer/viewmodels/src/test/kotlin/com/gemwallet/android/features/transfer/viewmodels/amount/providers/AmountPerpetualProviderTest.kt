@@ -3,11 +3,11 @@ package com.gemwallet.android.features.transfer.viewmodels.amount.providers
 import com.gemwallet.android.application.session.cases.GetCurrentWalletId
 import com.gemwallet.android.data.services.store.queries.AssetQuery
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.model.AmountParams
+import com.gemwallet.android.math.numberFormat
+import com.gemwallet.android.testkit.mockGemPerpetualAmountSession
 import com.gemwallet.android.testkit.mockGemPerpetualTransferData
 import com.gemwallet.android.testkit.mockHyperCoreBtc
 import com.gemwallet.android.testkit.mockHyperCoreUsdc
-import com.gemwallet.android.testkit.mockPerpetualId
 import com.gemwallet.android.testkit.mockWalletId
 import com.wallet.core.primitives.PerpetualDirection
 import com.wallet.core.primitives.PerpetualMarginType
@@ -23,15 +23,10 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import uniffi.gemstone.GemAmountServiceInterface
 import uniffi.gemstone.GemAmountTitle
 import uniffi.gemstone.GemAmountType
-import uniffi.gemstone.GemAutocloseDraft
-import uniffi.gemstone.GemAutocloseDraftField
 import uniffi.gemstone.GemLeverageSelection
 import uniffi.gemstone.GemLocalizedText
-import uniffi.gemstone.GemNumberFormat
-import uniffi.gemstone.GemPerpetualAmountSession
 import uniffi.gemstone.GemPerpetualPositionAction
 import uniffi.gemstone.GemPickerOption
 
@@ -108,28 +103,16 @@ class AmountPerpetualProviderTest {
         val assetQuery = mockk<AssetQuery> {
             every { this@mockk.invoke(walletId.id, any()) } returns flowOf(null)
         }
-        val service = mockk<GemAmountServiceInterface> {
-            every { newPerpetualSession(any(), any()) } answers { session(firstArg(), secondArg()) }
-        }
+        val option = { value: UByte -> GemPickerOption(value = value, label = GemLocalizedText.Text("${value}x")) }
         return AmountPerpetualProvider(
-            params = AmountParams.Perpetual(assetId = mockHyperCoreBtc().id, perpetualId = mockPerpetualId(symbol = "BTC-PERP"), positionAction = action),
-            service = service,
+            initialSession = mockGemPerpetualAmountSession(
+                action = action,
+                leverage = GemLeverageSelection(options = listOf(option(5u), option(10u)), selected = option(5u)),
+                format = numberFormat(),
+            ),
             getCurrentWalletId = getCurrentWalletId,
             assetQuery = assetQuery,
             scope = CoroutineScope(Dispatchers.Unconfined + SupervisorJob()),
-        )
-    }
-
-    private fun session(action: GemPerpetualPositionAction, format: GemNumberFormat): GemPerpetualAmountSession {
-        val option = { value: UByte -> GemPickerOption(value = value, label = GemLocalizedText.Text("${value}x")) }
-        val empty = GemAutocloseDraftField(value = null, isEdited = false)
-        return GemPerpetualAmountSession(
-            action = action,
-            leverage = GemLeverageSelection(options = listOf(option(5u), option(10u)), selected = option(5u)),
-            takeProfitPercent = 0u,
-            stopLossPercent = 0u,
-            autoclose = GemAutocloseDraft(takeProfit = empty, stopLoss = empty),
-            format = format,
         )
     }
 }

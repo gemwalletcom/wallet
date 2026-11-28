@@ -3,7 +3,6 @@ package com.gemwallet.android
 import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.domains.confirm.unpackTransferData
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.testkit.mockAccount
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetId
@@ -24,6 +23,8 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import uniffi.gemstone.GemAmountRequest
+import uniffi.gemstone.GemAmountTransfer
 import uniffi.gemstone.GemPaymentRecipient
 import uniffi.gemstone.GemPaymentServiceInterface
 import uniffi.gemstone.GemPaymentTarget
@@ -62,7 +63,7 @@ class PaymentNavigationTest {
 
         val route = navigation(GemPaymentTarget.Amount(asset.toGem(), recipient())).routes(payment).single()
 
-        assertEquals(AmountParams.Transfer(asset.id, recipient()), AmountParams.unpack((route as AmountRoute).params))
+        assertEquals(AmountRoute(asset.id, GemAmountRequest.Transfer(GemAmountTransfer.Send(recipient()))), route)
     }
 
     @Test

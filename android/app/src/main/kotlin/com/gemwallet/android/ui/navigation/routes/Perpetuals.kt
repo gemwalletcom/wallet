@@ -7,7 +7,6 @@ import com.gemwallet.android.features.perpetuals.presents.perpetual.PerpetualScr
 import com.gemwallet.android.features.perpetuals.presents.perpetuals.PerpetualsScreen
 import com.gemwallet.android.features.transfer.presents.confirm.ConfirmTransferScreen
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.GetAssetAction
-import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.AssetIdAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
@@ -16,6 +15,8 @@ import com.gemwallet.android.ui.navigation.routeArguments
 import com.wallet.core.primitives.AssetId
 import com.wallet.core.primitives.TransactionId
 import kotlinx.serialization.Serializable
+import uniffi.gemstone.GemAmountRequest
+import uniffi.gemstone.GemAmountTransfer
 import uniffi.gemstone.GemSelectAssetType
 
 @Serializable
@@ -52,7 +53,7 @@ fun EntryProviderScope<NavKey>.perpetualsScreen(
         SelectAssetScreen(
             selectType = GemSelectAssetType.Deposit,
             onCancel = onCancel,
-            onSelect = { amountAction(AmountParams.Deposit(it)) },
+            onSelect = { amountAction(it, GemAmountRequest.Transfer(GemAmountTransfer.Deposit)) },
         )
     }
 

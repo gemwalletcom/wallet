@@ -81,6 +81,8 @@ import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
+import uniffi.gemstone.GemAmountRequest
+import uniffi.gemstone.GemAmountTransfer
 import uniffi.gemstone.GemAssetDestination
 import uniffi.gemstone.GemDeeplinkService
 import uniffi.gemstone.GemNavigationServiceInterface
@@ -94,6 +96,9 @@ import uniffi.gemstone.WalletConnectLink
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class WalletNavigatorTest {
+    private val depositRoute = AmountRoute(mockAssetId(Chain.HyperCore), GemAmountRequest.Transfer(GemAmountTransfer.Deposit))
+    private val withdrawRoute = AmountRoute(mockAssetId(Chain.HyperCore), GemAmountRequest.Transfer(GemAmountTransfer.Withdraw))
+
     @Before
     fun setUp() {
         mockkStatic(Log::class)
@@ -309,7 +314,7 @@ class WalletNavigatorTest {
         val navigator = navigatorWith(
             WalletRootRoute,
             AssetRoute(mockAssetId(Chain.Solana)),
-            AmountRoute("amount"),
+            depositRoute,
         )
         val route = AssetRoute(mockAssetId(Chain.Ethereum))
 
@@ -416,7 +421,7 @@ class WalletNavigatorTest {
 
         val restored = listOf<NavKey>(
             AssetRoute(assetId),
-            AmountRoute("amount"),
+            depositRoute,
         ).dropNonRestorableRoutes(WalletRootRoute)
 
         assertEquals(listOf(WalletRootRoute), restored)
@@ -437,8 +442,8 @@ class WalletNavigatorTest {
             ExportPrivateKeyRoute(walletId, Chain.Ethereum),
             CreateWalletRoute,
             RecipientRoute(assetId),
-            AmountRoute("amount"),
-            AmountRoute("perpetual"),
+            depositRoute,
+            withdrawRoute,
             ConfirmTransferRoute("confirm"),
         ).dropNonRestorableRoutes(WalletRootRoute)
 
@@ -533,7 +538,7 @@ class WalletNavigatorTest {
             WalletsRoute,
             AssetRoute(assetId),
             RecipientRoute(assetId),
-            AmountRoute("amount"),
+            depositRoute,
             ConfirmTransferRoute("confirm"),
         )
 
@@ -558,7 +563,7 @@ class WalletNavigatorTest {
             AssetRoute(previousAssetId),
             AssetRoute(stakeAssetId),
             StakeRoute(stakeAssetId),
-            AmountRoute("amount"),
+            depositRoute,
             ConfirmTransferRoute("confirm"),
         )
 
@@ -582,7 +587,7 @@ class WalletNavigatorTest {
             AssetRoute(assetId),
             StakeRoute(assetId),
             DelegationRoute(validatorId = "validator", delegationId = "delegation"),
-            AmountRoute("amount"),
+            depositRoute,
             ConfirmTransferRoute("confirm"),
         )
 
@@ -628,7 +633,7 @@ class WalletNavigatorTest {
             WalletRootRoute,
             AssetRoute(assetId),
             RecipientRoute(assetId),
-            AmountRoute("amount"),
+            depositRoute,
             ConfirmTransferRoute("confirm"),
             SwapPairRoute(from = null, to = feeAssetId),
             ConfirmTransferRoute("swap"),
@@ -641,7 +646,7 @@ class WalletNavigatorTest {
                 WalletRootRoute,
                 AssetRoute(assetId),
                 RecipientRoute(assetId),
-                AmountRoute("amount"),
+                depositRoute,
                 ConfirmTransferRoute("confirm"),
             ),
             navigator.backStack.toList(),
@@ -654,7 +659,7 @@ class WalletNavigatorTest {
             WalletRootRoute,
             PerpetualsRoute,
             PerpetualDepositSelectRoute,
-            AmountRoute("amount"),
+            depositRoute,
             ConfirmTransferRoute("confirm"),
         )
 

@@ -6,12 +6,13 @@ import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.domains.confirm.ConfirmTransferInput
 import com.gemwallet.android.ext.runCatchingCancellable
 import com.gemwallet.android.ext.toIdentifier
-import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
 import com.wallet.core.primitives.AssetId
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import uniffi.gemstone.GemAmountRequest
+import uniffi.gemstone.GemAmountTransfer
 import uniffi.gemstone.GemPaymentRecipient
 import uniffi.gemstone.GemPaymentServiceInterface
 import uniffi.gemstone.GemPaymentStep
@@ -30,7 +31,7 @@ class SendPaymentViewModel @Inject constructor(private val paymentService: GemPa
                 .onSuccess { step ->
                     when (step) {
                         is GemPaymentStep.Confirm -> confirmAction(ConfirmTransferInput(step.transfer))
-                        is GemPaymentStep.Amount -> amountAction(AmountParams.Transfer(assetId, step.payment))
+                        is GemPaymentStep.Amount -> amountAction(assetId, GemAmountRequest.Transfer(GemAmountTransfer.Send(step.payment)))
                         is GemPaymentStep.Recipient -> recipientAction(assetId, step.payment)
                     }
                 }

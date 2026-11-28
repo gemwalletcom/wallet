@@ -374,7 +374,7 @@ class PerpetualViewModelTest {
         val service: GemPerpetualDetailsServiceInterface = mockk(relaxed = true) {
             every { chartPeriod() } returns uniffi.gemstone.ChartPeriod.DAY
             every { unavailableTopic() } returns null
-            every { positionAction(any(), any(), any(), any()) } throws IllegalStateException("no market")
+            every { positionRequest(any(), any(), any(), any(), any()) } throws IllegalStateException("no market")
         }
         val model = viewModel(service = service, data = perpetualData())
         val amount: AmountTransactionAction = mockk(relaxed = true)
@@ -383,7 +383,7 @@ class PerpetualViewModelTest {
         model.increasePosition(amount)
 
         assertEquals("no market", model.error.value)
-        verify(exactly = 0) { amount(any()) }
+        verify(exactly = 0) { amount(any(), any()) }
     }
 
     @Test
@@ -418,8 +418,8 @@ class PerpetualViewModelTest {
         assertNull(subject.leverageSelection.value)
         verify(exactly = 0) { service.leverageSelection(any(), any()) }
         verify(exactly = 0) { modify() }
-        verify(exactly = 0) { service.positionAction(any(), any(), any(), any()) }
-        verify(exactly = 0) { amount(any()) }
+        verify(exactly = 0) { service.positionRequest(any(), any(), any(), any(), any()) }
+        verify(exactly = 0) { amount(any(), any()) }
     }
 
     @Test
@@ -435,7 +435,7 @@ class PerpetualViewModelTest {
         subject.closePosition(mockk(relaxed = true))
         assertEquals("no position", subject.error.value)
         verify(exactly = 0) { service.unavailableTopic() }
-        verify(exactly = 0) { service.positionAction(any(), any(), any(), any()) }
+        verify(exactly = 0) { service.positionRequest(any(), any(), any(), any(), any()) }
         verify(exactly = 1) { service.closeTransfer(any(), any(), any()) }
         assertNull(subject.infoSheet.value)
     }

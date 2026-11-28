@@ -8,7 +8,6 @@ import com.gemwallet.android.data.services.store.queries.DelegationsQuery
 import com.gemwallet.android.data.services.store.queries.ValidatorsQuery
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
-import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.testkit.MainDispatcherRule
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetData
@@ -39,6 +38,8 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Rule
 import org.junit.Test
+import uniffi.gemstone.EarnType
+import uniffi.gemstone.GemAmountRequest
 import uniffi.gemstone.GemDelegationDestination
 import uniffi.gemstone.GemEarnInput
 import uniffi.gemstone.GemEarnView
@@ -114,7 +115,7 @@ class EarnViewModelTest {
 
         val model = viewModel(screenAssetId = token.id)
 
-        assertEquals(AmountParams.Earn.Deposit(token.id, provider.id), model.depositParams.first { it != null })
+        assertEquals(GemAmountRequest.Earn(EarnType.Deposit(provider.toGem())), model.depositRequest.first { it != null })
     }
 
     @Test
@@ -132,7 +133,7 @@ class EarnViewModelTest {
         model.positions.first { it.isNotEmpty() }
         var opened: Pair<String, String>? = null
 
-        model.onPosition(funded, onOpenDetail = { validator, delegation -> opened = validator to delegation }, onAmount = {}, onConfirm = {})
+        model.onPosition(funded, onOpenDetail = { validator, delegation -> opened = validator to delegation }, onAmount = { _, _ -> }, onConfirm = {})
 
         assertEquals(funded.validator.id to funded.base.delegationId, opened)
     }
@@ -148,10 +149,10 @@ class EarnViewModelTest {
     fun `depositing needs a provider`() = runTest(testDispatcher) {
         val withProvider = viewModel()
 
-        assertEquals(AmountParams.Earn.Deposit(asset.id, provider.id), withProvider.depositParams.first { it != null })
+        assertEquals(GemAmountRequest.Earn(EarnType.Deposit(provider.toGem())), withProvider.depositRequest.first { it != null })
 
         val withoutProvider = viewModel(providers = emptyList())
         advanceUntilIdle()
-        assertNull("nothing to deposit into", withoutProvider.depositParams.value)
+        assertNull("nothing to deposit into", withoutProvider.depositRequest.value)
     }
 }

@@ -11,7 +11,6 @@ import com.gemwallet.android.data.services.store.queries.ValidatorsQuery
 import com.gemwallet.android.domains.confirm.ConfirmTransferInput
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.model.toAmountParams
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
 import com.gemwallet.android.ui.models.navigation.RouteArgument
@@ -90,7 +89,7 @@ class DelegationViewModel @Inject constructor(
             is GemDelegationActionTarget.Open -> when (val destination = target.destination) {
                 GemDelegationDestination.Details -> Unit
                 is GemDelegationDestination.Confirm -> onConfirm(ConfirmTransferInput(destination.transfer))
-                is GemDelegationDestination.Amount -> onAmount(destination.input.toAmountParams(destination.asset.toPrimitives().id))
+                is GemDelegationDestination.Amount -> onAmount(destination.asset.toPrimitives().id, destination.request)
             }
 
             is GemDelegationActionTarget.Info -> infoSheet.value = target.topic

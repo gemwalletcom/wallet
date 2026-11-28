@@ -8,16 +8,14 @@ import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.modules.SerializersModule
 import uniffi.gemstone.FfiConverter
+import uniffi.gemstone.FfiConverterTypeGemAmountRequest
 import uniffi.gemstone.FfiConverterTypeGemPaymentRecipient
-import uniffi.gemstone.FfiConverterTypeGemPerpetualPositionAction
 import uniffi.gemstone.FfiConverterTypeGemRecipient
-import uniffi.gemstone.FfiConverterTypeGemStakeAmountInput
 import uniffi.gemstone.FfiConverterTypeGemTransferData
 import uniffi.gemstone.FfiConverterTypePaymentLink
+import uniffi.gemstone.GemAmountRequest
 import uniffi.gemstone.GemPaymentRecipient
-import uniffi.gemstone.GemPerpetualPositionAction
 import uniffi.gemstone.GemRecipient
-import uniffi.gemstone.GemStakeAmountInput
 import uniffi.gemstone.GemTransferData
 import uniffi.gemstone.PaymentLink
 import java.nio.ByteBuffer
@@ -46,8 +44,7 @@ inline fun <reified T : Any> gemRecordSerializer(converter: FfiConverter<T, *>):
 val gemRecordSerializers = SerializersModule {
     contextual(GemRecipient::class, gemRecordSerializer(FfiConverterTypeGemRecipient))
     contextual(GemPaymentRecipient::class, gemRecordSerializer(FfiConverterTypeGemPaymentRecipient))
-    contextual(GemPerpetualPositionAction::class, gemRecordSerializer(FfiConverterTypeGemPerpetualPositionAction))
+    contextual(GemAmountRequest::class, gemRecordSerializer(FfiConverterTypeGemAmountRequest))
     contextual(GemTransferData::class, gemRecordSerializer(FfiConverterTypeGemTransferData))
-    contextual(GemStakeAmountInput::class, gemRecordSerializer(FfiConverterTypeGemStakeAmountInput))
     contextual(PaymentLink::class, gemRecordSerializer(FfiConverterTypePaymentLink))
 }

@@ -25,7 +25,6 @@ import com.gemwallet.android.features.onboarding.presents.import_wallet.ImportWa
 import com.gemwallet.android.features.onboarding.presents.terms.AcceptTermsDestination
 import com.gemwallet.android.features.onboarding.presents.terms.AcceptTermsRoute
 import com.gemwallet.android.features.transfer.viewmodels.confirm.models.GetAssetAction
-import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.ImportType
 import com.gemwallet.android.model.Session
 import com.gemwallet.android.routes
@@ -117,6 +116,7 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import uniffi.gemstone.GemAmountRequest
 import uniffi.gemstone.GemAssetDestination
 import uniffi.gemstone.GemDeeplinkServiceInterface
 import uniffi.gemstone.GemNavigationServiceInterface
@@ -330,10 +330,7 @@ class WalletNavigator(
     fun openRecipient(payment: GemPaymentRecipient? = null, chains: List<Chain> = emptyList()) = push(SendSelectRoute(payment, chains))
     fun openRecipient(assetId: AssetId, payment: GemPaymentRecipient? = null) = push(RecipientRoute(assetId, payment = payment))
     fun openNftRecipient(nft: NFTAsset) = push(RecipientRoute(AssetId(nft.chain), nft = nft))
-    fun openAmount(params: AmountParams) {
-        val pack = params.pack() ?: return
-        push(AmountRoute(pack))
-    }
+    fun openAmount(assetId: AssetId, request: GemAmountRequest) = push(AmountRoute(assetId, request))
     fun openSwap() {
         clearSwapSelections()
         push(SwapRoute)

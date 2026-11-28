@@ -19,7 +19,7 @@ Use [Task Workflow](../skills/task-workflow.md) for execution and [Quality Check
 
 These need no further answer; work them in this order, one family per change.
 
-1. **App models to Core records:** VM287 (second round) area by area as grouped in section 5.
+None right now.
 
 Waiting on the owner: VM79, VM296 (review first), VM181, VM183, D175 (on hold), X171, CLN455, and everything under [Needs review](#needs-review). Waiting on a date or a release: X168, X170, X163, X172, X173, X174, X176, X526.
 
@@ -39,7 +39,7 @@ This map routes work to current owners. It groups existing ids rather than creat
 | Asset chart/market/alerts sections | `GemChartService`, `GemChartSession`, shared list renderer | — |
 | Receive, QR display, address details | `GemReceiveService`, `GemAddressDetailsService`, `GemCopy`, payment encoding | Retain existing native QR/share adapters |
 | Scanner, payment links, deep links and pushes | Existing payment decoder, `GemPaymentService`, push/navigation preparation | — |
-| Amount entry, fiat equivalent, amount extras | `GemAmountService`, `GemAmountRequest`, `GemAmountEntry`, `GemPerpetualAmountSession` | VM287 |
+| Amount entry, fiat equivalent, amount extras | `GemAmountService`, `GemAmountRequest`, `GemAmountEntry`, `GemPerpetualAmountSession` | — |
 | Confirmation, fees, simulation, acquisition | `GemConfirmTransferService`, `GemConfirmation`, `GemConfirmScreen`, shared headers/rows/info | — |
 | Swap, providers, slippage and swap details | `GemSwapQuoteService`, `GemSwapSession`, `GemSlippageSession` | — |
 | Activity, asset/position history, transaction details | `GemTransactionsService`, `GemTransactionDetailsService`, detail records, native indexed queries | — |
@@ -115,10 +115,6 @@ The target for every item below: a model that only renames or regroups a Core re
 
 ### Models and adapters
 
-- **VM287** **S** **Amount routes twin `GemAmountRequest`.**
-  - **iOS:** `AmountType` and `AmountInput` are rebuilt into a request in `AmountSceneViewModel`.
-  - **Android:** `AmountParams` (and `toAmountParams`) is rebuilt into a request in `AmountViewModel`.
-  - **Expected:** routes carry `GemAmountRequest` (on `GemAmountSession`).
 
 ### Twins and dead code
 

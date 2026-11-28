@@ -17,7 +17,6 @@ import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
 import com.gemwallet.android.ui.models.navigation.RouteArgument
@@ -40,6 +39,7 @@ import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.withContext
+import uniffi.gemstone.GemAmountRequest
 import uniffi.gemstone.GemInfoTopic
 import uniffi.gemstone.GemLoadState
 import uniffi.gemstone.GemStakeDestination
@@ -138,7 +138,7 @@ class StakeViewModel @Inject constructor(
 
     fun onSelect(destination: GemStakeDestination, onAmount: AmountTransactionAction, onConfirm: ConfirmTransactionAction) {
         when (destination) {
-            is GemStakeDestination.Amount -> onAmount(AmountParams.Stake(assetId.value, destination.input))
+            is GemStakeDestination.Amount -> onAmount(assetId.value, GemAmountRequest.Stake(destination.input))
             is GemStakeDestination.Confirm -> onConfirm(ConfirmTransferInput(destination.transfer))
         }
     }

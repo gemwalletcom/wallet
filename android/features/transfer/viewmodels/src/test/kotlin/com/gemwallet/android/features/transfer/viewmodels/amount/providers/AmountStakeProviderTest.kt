@@ -2,7 +2,6 @@ package com.gemwallet.android.features.transfer.viewmodels.amount.providers
 
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetId
 import com.gemwallet.android.testkit.mockDelegation
@@ -69,7 +68,8 @@ class AmountStakeProviderTest {
     private val scope = CoroutineScope(Dispatchers.Unconfined + SupervisorJob())
 
     private fun makeProvider(input: GemStakeAmountInput) = AmountStakeProvider(
-        params = AmountParams.Stake(asset.id, input),
+        assetId = asset.id,
+        input = input,
         validators = storedValidators,
         stakeService = stakeService,
         scope = scope,

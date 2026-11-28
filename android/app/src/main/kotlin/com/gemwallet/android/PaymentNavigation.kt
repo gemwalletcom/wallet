@@ -6,13 +6,14 @@ import com.gemwallet.android.domains.confirm.pack
 import com.gemwallet.android.ext.requireChain
 import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.ui.navigation.routes.AmountRoute
 import com.gemwallet.android.ui.navigation.routes.ConfirmTransferRoute
 import com.gemwallet.android.ui.navigation.routes.PaymentVerificationRoute
 import com.gemwallet.android.ui.navigation.routes.RecipientRoute
 import com.gemwallet.android.ui.navigation.routes.SendSelectRoute
 import kotlinx.coroutines.flow.first
+import uniffi.gemstone.GemAmountRequest
+import uniffi.gemstone.GemAmountTransfer
 import uniffi.gemstone.GemPaymentServiceInterface
 import uniffi.gemstone.GemPaymentTarget
 import uniffi.gemstone.Payment
@@ -28,7 +29,7 @@ class PaymentNavigation @Inject constructor(private val getSession: GetSession, 
             is GemPaymentTarget.Verify -> listOf(PaymentVerificationRoute(target.url, target.link))
 
             is GemPaymentTarget.Amount -> listOfNotNull(
-                target.asset.id.toAssetId()?.let { AmountParams.Transfer(it, target.payment).pack() }?.let(::AmountRoute),
+                target.asset.id.toAssetId()?.let { AmountRoute(it, GemAmountRequest.Transfer(GemAmountTransfer.Send(target.payment))) },
             )
 
             is GemPaymentTarget.Recipient -> listOfNotNull(

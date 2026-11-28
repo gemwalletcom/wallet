@@ -19,7 +19,7 @@ import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.ext.transactions
-import com.gemwallet.android.model.AmountParams
+import com.gemwallet.android.math.numberFormat
 import com.gemwallet.android.ui.components.list_item.sectionedByDay
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.StateViewType
@@ -269,8 +269,8 @@ class PerpetualViewModel @Inject constructor(
             return
         }
         val data = perpetual.value ?: return
-        runCatching { service.positionAction(data.perpetual.toGem(), data.asset.toGem(), details.value?.position, kind) }
-            .onSuccess { action -> amountAction(AmountParams.Perpetual(assetId = data.asset.id, perpetualId = data.perpetual.id, positionAction = action)) }
+        runCatching { service.positionRequest(data.perpetual.toGem(), data.asset.toGem(), details.value?.position, kind, numberFormat()) }
+            .onSuccess { request -> amountAction(data.asset.id, request) }
             .onFailure { errorState.value = it.errorText().text(context) }
     }
 

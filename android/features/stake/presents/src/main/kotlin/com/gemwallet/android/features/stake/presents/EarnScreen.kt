@@ -44,7 +44,7 @@ import uniffi.gemstone.GemListPhase
 fun EarnScreen(amountAction: AmountTransactionAction, onDelegation: (String, String) -> Unit, onConfirm: ConfirmTransactionAction, onCancel: () -> Unit, viewModel: EarnViewModel = hiltViewModel()) {
     val assetInfo by viewModel.assetInfo.collectAsStateWithLifecycle()
     val earnView by viewModel.earnView.collectAsStateWithLifecycle()
-    val depositParams by viewModel.depositParams.collectAsStateWithLifecycle()
+    val depositRequest by viewModel.depositRequest.collectAsStateWithLifecycle()
     val inSync by viewModel.isSync.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
@@ -77,12 +77,12 @@ fun EarnScreen(amountAction: AmountTransactionAction, onDelegation: (String, Str
                 earn.sections.forEach { section ->
                     item { SubheaderItem(section.stringRes()) }
                     when (section) {
-                        GemEarnSection.MANAGE -> depositParams?.let { params ->
+                        GemEarnSection.MANAGE -> depositRequest?.let { request ->
                             item {
                                 ListItem(
                                     model = earn.depositRow.listItemModel(context) ?: ListItemModel(title = ""),
                                     listPosition = ListPosition.Single,
-                                    modifier = Modifier.clickable { amountAction(params) },
+                                    modifier = Modifier.clickable { viewModel.onDeposit(request, amountAction) },
                                     accessory = { DataBadgeChevron() },
                                 )
                             }

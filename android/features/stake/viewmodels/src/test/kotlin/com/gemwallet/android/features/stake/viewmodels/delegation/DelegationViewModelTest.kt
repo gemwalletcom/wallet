@@ -147,7 +147,7 @@ class DelegationViewModelTest {
         viewModel.onAction(GemDelegationActionTarget.Info(GemInfoTopic.RegionUnavailable(country = "GB")), amount, confirm)
 
         assertEquals(GemInfoTopic.RegionUnavailable(country = "GB"), viewModel.infoSheet.value)
-        verify(exactly = 0) { amount(any()) }
+        verify(exactly = 0) { amount(any(), any()) }
         verify(exactly = 0) { confirm(any()) }
     }
 }

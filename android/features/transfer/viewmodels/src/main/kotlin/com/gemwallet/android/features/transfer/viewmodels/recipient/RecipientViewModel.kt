@@ -16,7 +16,6 @@ import com.gemwallet.android.ext.isMemoSupport
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.features.transfer.viewmodels.recipient.models.QrScanField
 import com.gemwallet.android.features.transfer.viewmodels.recipient.models.RecipientUIState
-import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
@@ -47,6 +46,8 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.updateAndGet
 import kotlinx.coroutines.launch
+import uniffi.gemstone.GemAmountRequest
+import uniffi.gemstone.GemAmountTransfer
 import uniffi.gemstone.GemGroup
 import uniffi.gemstone.GemNameIndicator
 import uniffi.gemstone.GemNameServiceInterface
@@ -159,10 +160,7 @@ class RecipientViewModel @Inject constructor(
 
     private fun route(recipient: RecipientUIState.Ready, next: GemRecipientNext, amountAction: AmountTransactionAction, confirmAction: ConfirmTransactionAction) {
         when (next) {
-            is GemRecipientNext.Amount -> amountAction(
-                AmountParams.Transfer(recipient.asset.id, next.payment),
-            )
-
+            is GemRecipientNext.Amount -> amountAction(recipient.asset.id, GemAmountRequest.Transfer(GemAmountTransfer.Send(next.payment)))
             is GemRecipientNext.Confirm -> confirmAction(ConfirmTransferInput(next.transfer))
         }
     }

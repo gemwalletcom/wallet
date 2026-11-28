@@ -11,7 +11,6 @@ import com.gemwallet.android.data.services.store.queries.DelegationsQuery
 import com.gemwallet.android.data.services.store.queries.ValidatorsQuery
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
-import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.testkit.MainDispatcherRule
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetData
@@ -48,6 +47,7 @@ import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import uniffi.gemstone.GemAmountRequest
 import uniffi.gemstone.GemLoadState
 import uniffi.gemstone.GemServiceException
 import uniffi.gemstone.GemStakeAmountInput
@@ -123,7 +123,7 @@ class StakeViewModelTest {
             viewModel.onSelect(GemStakeDestination.Amount(stake), amount, confirm)
             viewModel.onSelect(GemStakeDestination.Confirm(transfer), amount, confirm)
             assertNull(viewModel.infoSheet.value)
-            verify(exactly = 1) { amount(AmountParams.Stake(asset.id, stake)) }
+            verify(exactly = 1) { amount(asset.id, GemAmountRequest.Stake(stake)) }
             verify(exactly = 1) { confirm(match { it.data == transfer }) }
         } finally {
             viewModel.viewModelScope.cancel()

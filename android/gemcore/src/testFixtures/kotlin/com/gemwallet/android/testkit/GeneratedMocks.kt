@@ -1185,6 +1185,22 @@ fun mockGemAuthenticationPreview(
     message = message,
 )
 
+fun mockGemAutocloseDraft(
+    takeProfit: uniffi.gemstone.GemAutocloseDraftField = mockGemAutocloseDraftField(),
+    stopLoss: uniffi.gemstone.GemAutocloseDraftField = mockGemAutocloseDraftField(),
+) = uniffi.gemstone.GemAutocloseDraft(
+    takeProfit = takeProfit,
+    stopLoss = stopLoss,
+)
+
+fun mockGemAutocloseDraftField(
+    value: String? = null,
+    isEdited: Boolean = false,
+) = uniffi.gemstone.GemAutocloseDraftField(
+    value = value,
+    isEdited = isEdited,
+)
+
 fun mockGemChainRow(
     chain: String = com.wallet.core.primitives.Chain.Bitcoin.string,
     title: String = "",
@@ -1753,6 +1769,22 @@ fun mockGemPaymentRecipient(
     amount = amount,
 )
 
+fun mockGemPerpetualAmountSession(
+    action: uniffi.gemstone.GemPerpetualPositionAction = mockGemPerpetualPositionAction(),
+    leverage: uniffi.gemstone.GemLeverageSelection? = null,
+    takeProfitPercent: UByte = 0u,
+    stopLossPercent: UByte = 0u,
+    autoclose: uniffi.gemstone.GemAutocloseDraft = mockGemAutocloseDraft(),
+    format: uniffi.gemstone.GemNumberFormat = mockGemNumberFormat(),
+) = uniffi.gemstone.GemPerpetualAmountSession(
+    action = action,
+    leverage = leverage,
+    takeProfitPercent = takeProfitPercent,
+    stopLossPercent = stopLossPercent,
+    autoclose = autoclose,
+    format = format,
+)
+
 fun mockGemPerpetualDetails(
     title: String = "",
     sections: List<uniffi.gemstone.GemPerpetualSection> = emptyList(),
@@ -1768,6 +1800,8 @@ fun mockGemPerpetualDetails(
     positionRow = positionRow,
     associatedAssets = associatedAssets,
 )
+
+fun mockGemPerpetualPositionAction(): uniffi.gemstone.GemPerpetualPositionAction = uniffi.gemstone.GemPerpetualPositionAction.Open(data = mockGemPerpetualTransferData())
 
 fun mockGemPerpetualTransferData(
     provider: uniffi.gemstone.PerpetualProvider = uniffi.gemstone.PerpetualProvider.HYPERCORE,

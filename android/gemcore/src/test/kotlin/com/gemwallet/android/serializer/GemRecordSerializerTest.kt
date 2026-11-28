@@ -1,6 +1,7 @@
 package com.gemwallet.android.serializer
 
 import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.testkit.mockGemPerpetualAmountSession
 import com.gemwallet.android.testkit.mockGemPerpetualTransferData
 import com.gemwallet.android.testkit.mockHyperCoreBtc
 import com.gemwallet.android.testkit.mockHyperCoreUsdc
@@ -13,6 +14,7 @@ import kotlinx.serialization.encodeToString
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
+import uniffi.gemstone.GemAmountRequest
 import uniffi.gemstone.GemPaymentRecipient
 import uniffi.gemstone.GemPerpetualPositionAction
 import uniffi.gemstone.GemRecipient
@@ -27,8 +29,8 @@ class GemRecordSerializerTest {
     }
 
     @Test
-    fun anEnumWithDataRoundTripsThroughARoutePayload() {
-        val action: GemPerpetualPositionAction = GemPerpetualPositionAction.Reduce(
+    fun anAmountRequestRoundTripsThroughARoutePayload() {
+        val action = GemPerpetualPositionAction.Reduce(
             mockGemPerpetualTransferData(
                 provider = PerpetualProvider.Hypercore.toGem(),
                 direction = PerpetualDirection.Long.toGem(),
@@ -40,8 +42,9 @@ class GemRecordSerializerTest {
             ),
             mockPerpetualPosition().toGem(),
         )
+        val request: GemAmountRequest = GemAmountRequest.Perpetual(mockGemPerpetualAmountSession(action = action))
 
-        assertEquals(action, unpackRoutePayload<GemPerpetualPositionAction>(requireNotNull(action.packRoutePayload())))
+        assertEquals(request, unpackRoutePayload<GemAmountRequest>(requireNotNull(request.packRoutePayload())))
     }
 
     @Test

@@ -14,7 +14,6 @@ import com.gemwallet.android.ext.toAssetId
 import com.gemwallet.android.ext.toGem
 import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.ext.toPrimitives
-import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.ConfirmTransactionAction
 import com.gemwallet.android.ui.models.navigation.RouteArgument
@@ -35,6 +34,8 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
+import uniffi.gemstone.EarnType
+import uniffi.gemstone.GemAmountRequest
 import uniffi.gemstone.GemEarnInput
 import uniffi.gemstone.GemLoadState
 import uniffi.gemstone.GemStakeServiceInterface
@@ -98,8 +99,10 @@ class EarnViewModel @Inject constructor(
         item.destination.open(delegation, onOpenDetail, onAmount, onConfirm)
     }
 
-    val depositParams = earnView.map { view -> view?.depositProvider?.let { AmountParams.Earn.Deposit(assetId, it.id) } }
+    val depositRequest = earnView.map { view -> view?.depositProvider?.let { GemAmountRequest.Earn(EarnType.Deposit(it)) } }
         .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+
+    fun onDeposit(request: GemAmountRequest, onAmount: AmountTransactionAction) = onAmount(assetId, request)
 
     private val sync = MutableStateFlow(true)
 

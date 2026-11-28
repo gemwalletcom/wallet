@@ -4,8 +4,6 @@ import com.gemwallet.android.application.session.cases.GetCurrentWalletId
 import com.gemwallet.android.data.services.store.queries.AssetQuery
 import com.gemwallet.android.ext.HypercoreUSDC
 import com.gemwallet.android.ext.toGem
-import com.gemwallet.android.math.numberFormat
-import com.gemwallet.android.model.AmountParams
 import com.wallet.core.primitives.AssetData
 import com.wallet.core.primitives.TpslType
 import kotlinx.coroutines.CoroutineScope
@@ -19,15 +17,15 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.updateAndGet
 import uniffi.gemstone.GemAmountRequest
-import uniffi.gemstone.GemAmountServiceInterface
 import uniffi.gemstone.GemAssetItemRow
 import uniffi.gemstone.GemAutocloseSession
 import uniffi.gemstone.GemAutocloseViewState
+import uniffi.gemstone.GemPerpetualAmountSession
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class AmountPerpetualProvider(params: AmountParams.Perpetual, service: GemAmountServiceInterface, getCurrentWalletId: GetCurrentWalletId, assetQuery: AssetQuery, scope: CoroutineScope) {
+class AmountPerpetualProvider(initialSession: GemPerpetualAmountSession, getCurrentWalletId: GetCurrentWalletId, assetQuery: AssetQuery, scope: CoroutineScope) {
 
-    private val session = MutableStateFlow(service.newPerpetualSession(params.positionAction, numberFormat()))
+    private val session = MutableStateFlow(initialSession)
 
     val request: StateFlow<GemAmountRequest?> = session
         .map { GemAmountRequest.Perpetual(it) }

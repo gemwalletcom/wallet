@@ -9,8 +9,9 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.gemwallet.android.application.session.cases.GetCurrentWalletId
 import com.gemwallet.android.data.services.store.queries.AssetQuery
 import com.gemwallet.android.ext.toGem
+import com.gemwallet.android.ext.toIdentifier
 import com.gemwallet.android.features.transfer.viewmodels.amount.AmountViewModel
-import com.gemwallet.android.model.AmountParams
+import com.gemwallet.android.serializer.packRoutePayload
 import com.gemwallet.android.testkit.MainDispatcherRule
 import com.gemwallet.android.testkit.mockAsset
 import com.gemwallet.android.testkit.mockAssetData
@@ -48,7 +49,9 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import uniffi.gemstone.GemAmountInputType
+import uniffi.gemstone.GemAmountRequest
 import uniffi.gemstone.GemAmountServiceInterface
+import uniffi.gemstone.GemAmountTransfer
 import uniffi.gemstone.GemGroup
 import uniffi.gemstone.GemGroupList
 import uniffi.gemstone.GemListItem
@@ -117,7 +120,7 @@ class AmountViewModelTest {
     }
 
     @Test
-    fun `a prefilled payment amount fills the amount once`() = viewModelTest(AmountParams.Transfer(asset.id, GemPaymentRecipient(GemRecipient(address = "to"), "1.5"))) { viewModel ->
+    fun `a prefilled payment amount fills the amount once`() = viewModelTest(GemAmountRequest.Transfer(GemAmountTransfer.Send(GemPaymentRecipient(GemRecipient(address = "to"), "1.5")))) { viewModel ->
         assertEquals("1.5", viewModel.amount.text.toString())
 
         viewModel.setAmount("")
@@ -208,7 +211,7 @@ class AmountViewModelTest {
     }
 
     @Test
-    fun `a stake max keeps the network fee back and says so`() = viewModelTest(AmountParams.Stake(asset.id, GemStakeAmountInput.Stake(mockDelegationValidator(chain = Chain.Cosmos).toGem()))) { viewModel ->
+    fun `a stake max keeps the network fee back and says so`() = viewModelTest(GemAmountRequest.Stake(GemStakeAmountInput.Stake(mockDelegationValidator(chain = Chain.Cosmos).toGem()))) { viewModel ->
         assetInfoFlow.value = assetInfo(BigInteger("2000000"))
         runCurrent()
 
@@ -229,7 +232,7 @@ class AmountViewModelTest {
         val options = GemGroupList(listOf(GemGroup("Active", GemLocalizedText.SectionTitle(GemListSectionTitle.ACTIVE), GemListSectionFooter.NONE, rows.map { GemListItem.Validator(it, it.validator.id == "v2") })), GemListPhase.Rows)
         every { stakeService.stakeValidatorOptions(any(), any(), any()) } returns options
 
-        viewModelTest(AmountParams.Stake(asset.id, GemStakeAmountInput.Stake(rows[1].validator))) { viewModel ->
+        viewModelTest(GemAmountRequest.Stake(GemStakeAmountInput.Stake(rows[1].validator))) { viewModel ->
             assertEquals(options, viewModel.validatorPicker.value)
         }
     }
@@ -244,7 +247,7 @@ class AmountViewModelTest {
         every { stakeService.stakeValidatorOptions(any(), any(), any()) } returns
             GemGroupList(listOf(GemGroup("Active", GemLocalizedText.SectionTitle(GemListSectionTitle.ACTIVE), GemListSectionFooter.NONE, rows.map { GemListItem.Validator(it, false) })), GemListPhase.Rows)
 
-        viewModelTest(AmountParams.Stake(asset.id, GemStakeAmountInput.Rewards(delegations, validators[0].toGem()))) { viewModel ->
+        viewModelTest(GemAmountRequest.Stake(GemStakeAmountInput.Rewards(delegations, validators[0].toGem()))) { viewModel ->
             assertEquals("5", viewModel.amount.text.toString())
 
             viewModel.selectValidator("v2")
@@ -258,18 +261,15 @@ class AmountViewModelTest {
 
     private fun assetInfo(available: BigInteger) = mockAssetData(asset = asset, balance = mockBalance(available = available), price = mockPrice(price = 10.0))
 
-    private fun viewModelTest(params: AmountParams = AmountParams.Transfer(assetId = asset.id, payment = GemPaymentRecipient(GemRecipient(address = "to", memo = null), null)), block: suspend TestScope.(AmountViewModel) -> Unit) =
+    private fun viewModelTest(request: GemAmountRequest = GemAmountRequest.Transfer(GemAmountTransfer.Send(GemPaymentRecipient(GemRecipient(address = "to", memo = null), null))), block: suspend TestScope.(AmountViewModel) -> Unit) =
         runTest(testDispatcher) {
             val viewModel = AmountViewModel(
                 service = service,
                 stakeService = stakeService,
                 getCurrentWalletId = getCurrentWalletId,
                 assetQuery = assetQuery,
-                delegationQuery = mockk(relaxed = true),
-                validatorQuery = mockk(relaxed = true),
                 validatorsQuery = mockk { every { this@mockk.invoke(any(), any()) } returns flowOf(emptyList<DelegationValidator>()) },
-                getSession = mockk(relaxed = true),
-                savedStateHandle = SavedStateHandle(mapOf(RouteArgument.Params.key to params.pack())),
+                savedStateHandle = SavedStateHandle(mapOf(RouteArgument.AssetId.key to asset.id.toIdentifier(), RouteArgument.Params.key to request.packRoutePayload())),
                 context = context,
                 ioDispatcher = testDispatcher,
             )

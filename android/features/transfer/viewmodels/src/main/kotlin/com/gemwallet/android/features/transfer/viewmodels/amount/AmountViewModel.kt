@@ -9,10 +9,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.gemwallet.android.application.IoDispatcher
 import com.gemwallet.android.application.session.cases.GetCurrentWalletId
-import com.gemwallet.android.application.session.cases.GetSession
 import com.gemwallet.android.data.services.store.queries.AssetQuery
-import com.gemwallet.android.data.services.store.queries.DelegationQuery
-import com.gemwallet.android.data.services.store.queries.ValidatorQuery
 import com.gemwallet.android.data.services.store.queries.ValidatorsQuery
 import com.gemwallet.android.domains.confirm.ConfirmTransferInput
 import com.gemwallet.android.ext.toGem
@@ -21,12 +18,12 @@ import com.gemwallet.android.features.transfer.viewmodels.amount.models.AmountUI
 import com.gemwallet.android.features.transfer.viewmodels.amount.providers.AmountPerpetualProvider
 import com.gemwallet.android.features.transfer.viewmodels.amount.providers.AmountStakeProvider
 import com.gemwallet.android.math.numberFormat
-import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.model.text
 import com.gemwallet.android.ui.localization.string
 import com.gemwallet.android.ui.localization.text
 import com.gemwallet.android.ui.models.ButtonState
 import com.gemwallet.android.ui.models.buttonState
+import com.gemwallet.android.ui.models.navigation.requireAssetId
 import com.wallet.core.primitives.Asset
 import com.wallet.core.primitives.AssetData
 import com.wallet.core.primitives.AssetId
@@ -46,7 +43,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
@@ -54,7 +50,6 @@ import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import uniffi.gemstone.EarnType
 import uniffi.gemstone.GemAmountEntry
 import uniffi.gemstone.GemAmountErrorDisplay
 import uniffi.gemstone.GemAmountException
@@ -66,7 +61,6 @@ import uniffi.gemstone.GemAmountRequest
 import uniffi.gemstone.GemAmountServiceInterface
 import uniffi.gemstone.GemAmountSession
 import uniffi.gemstone.GemAmountTitle
-import uniffi.gemstone.GemAmountTransfer
 import uniffi.gemstone.GemAmountType
 import uniffi.gemstone.GemGroupList
 import uniffi.gemstone.GemStakeServiceInterface
@@ -80,43 +74,26 @@ class AmountViewModel @Inject constructor(
     stakeService: GemStakeServiceInterface,
     getCurrentWalletId: GetCurrentWalletId,
     assetQuery: AssetQuery,
-    delegationQuery: DelegationQuery,
-    validatorQuery: ValidatorQuery,
     validatorsQuery: ValidatorsQuery,
-    getSession: GetSession,
     savedStateHandle: SavedStateHandle,
     @param:ApplicationContext private val context: Context,
     @param:IoDispatcher private val ioDispatcher: CoroutineDispatcher,
 ) : ViewModel() {
 
-    private val params: AmountParams = savedStateHandle.requireAmountParams()
+    private val assetId: AssetId = savedStateHandle.requireAssetId()
 
-    private val stakeProvider = (params as? AmountParams.Stake)?.let { AmountStakeProvider(it, validatorsQuery(it.assetId, StakeProviderType.Stake), stakeService, viewModelScope, ioDispatcher) }
+    private val routeRequest: GemAmountRequest = savedStateHandle.requireAmountRequest()
 
-    val perpetualProvider = (params as? AmountParams.Perpetual)?.let { AmountPerpetualProvider(it, service, getCurrentWalletId, assetQuery, viewModelScope) }
+    private val stakeProvider = (routeRequest as? GemAmountRequest.Stake)?.let { AmountStakeProvider(assetId, it.input, validatorsQuery(assetId, StakeProviderType.Stake), stakeService, viewModelScope, ioDispatcher) }
+
+    val perpetualProvider = (routeRequest as? GemAmountRequest.Perpetual)?.let { AmountPerpetualProvider(it.session, getCurrentWalletId, assetQuery, viewModelScope) }
 
     private val assetInfo: StateFlow<AssetData?> = perpetualProvider?.assetInfo
-        ?: getCurrentWalletId().flatMapLatest { walletId -> assetQuery(walletId.id, params.assetId) }
+        ?: getCurrentWalletId().flatMapLatest { walletId -> assetQuery(walletId.id, assetId) }
             .flowOn(ioDispatcher)
             .stateIn(viewModelScope, SharingStarted.Eagerly, null)
 
-    private val request: StateFlow<GemAmountRequest?> = stakeProvider?.request ?: perpetualProvider?.request ?: when (params) {
-        is AmountParams.Transfer -> flowOf(GemAmountRequest.Transfer(GemAmountTransfer.Send(params.payment)))
-
-        is AmountParams.Deposit -> flowOf(GemAmountRequest.Transfer(GemAmountTransfer.Deposit))
-
-        is AmountParams.Withdraw -> flowOf(GemAmountRequest.Transfer(GemAmountTransfer.Withdraw))
-
-        is AmountParams.Earn.Deposit -> assetInfo.map { current -> current?.let { validatorQuery(AssetId(it.asset.id.chain), params.providerId)?.toGem() }?.let { GemAmountRequest.Earn(EarnType.Deposit(it)) } }
-
-        is AmountParams.Earn.Withdraw -> getSession()
-            .flatMapLatest { session -> session?.wallet?.id?.let { delegationQuery(it, params.validatorId, params.delegationId) } ?: flowOf(null) }
-            .map { delegation -> delegation?.let { GemAmountRequest.Earn(EarnType.Withdraw(it.toGem())) } }
-
-        is AmountParams.Stake, is AmountParams.Perpetual -> flowOf(null)
-    }
-        .flowOn(ioDispatcher)
-        .stateIn(viewModelScope, SharingStarted.Eagerly, null)
+    private val request: StateFlow<GemAmountRequest?> = stakeProvider?.request ?: perpetualProvider?.request ?: MutableStateFlow(routeRequest)
 
     private val amountType: StateFlow<GemAmountType?> = request
         .map { it?.amountType() }

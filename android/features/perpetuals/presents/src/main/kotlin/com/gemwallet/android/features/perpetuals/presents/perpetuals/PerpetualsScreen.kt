@@ -15,7 +15,6 @@ import com.gemwallet.android.ext.toPrimitives
 import com.gemwallet.android.features.assets.presents.select.RecentsScreen
 import com.gemwallet.android.features.assets.viewmodels.select.RecentsViewModel
 import com.gemwallet.android.features.perpetuals.viewmodels.PerpetualsViewModel
-import com.gemwallet.android.model.AmountParams
 import com.gemwallet.android.ui.components.InfoBottomSheet
 import com.gemwallet.android.ui.components.RefreshOnTimer
 import com.gemwallet.android.ui.components.infoSheet
@@ -24,6 +23,8 @@ import com.gemwallet.android.ui.models.actions.AmountTransactionAction
 import com.gemwallet.android.ui.models.actions.AssetIdAction
 import com.wallet.core.primitives.RecentActivityType
 import kotlinx.coroutines.launch
+import uniffi.gemstone.GemAmountRequest
+import uniffi.gemstone.GemAmountTransfer
 import uniffi.gemstone.GemPerpetualDepositTarget
 
 @Composable
@@ -86,13 +87,13 @@ fun PerpetualsScreen(
 
                 PerpetualsAction.Close -> onCancel()
 
-                is PerpetualsAction.Withdraw -> amountAction(AmountParams.Withdraw(action.assetId))
+                is PerpetualsAction.Withdraw -> amountAction(action.assetId, GemAmountRequest.Transfer(GemAmountTransfer.Withdraw))
 
                 PerpetualsAction.Deposit -> viewModel.deposit {
                     scope.launch {
                         when (val target = viewModel.depositTarget()) {
                             GemPerpetualDepositTarget.SelectAsset -> onSelectDepositAsset()
-                            is GemPerpetualDepositTarget.Amount -> amountAction(AmountParams.Deposit(target.asset.toPrimitives().id))
+                            is GemPerpetualDepositTarget.Amount -> amountAction(target.asset.toPrimitives().id, GemAmountRequest.Transfer(GemAmountTransfer.Deposit))
                             null -> Unit
                         }
                     }
