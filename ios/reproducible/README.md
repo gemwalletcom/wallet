@@ -30,7 +30,7 @@ The Rust toolchain is the one the root `rust-toolchain.toml` names; `rustup` ins
 ios/reproducible/compare.py <published.ipa> ios/build/reproducible/Gem.app
 ```
 
-`compare.py` takes two apps, each an `.ipa` or an `.app` folder, and compares every file in the app bundle. It prints a line for each file that is not byte for byte the same and exits with 0 only when none of them is a difference:
+`compare.py` takes two apps, each an `.ipa` or an `.app` folder, and compares every file in the app bundle. It prints a line for each file that is not byte for byte the same and exits with 0 only when none of them is a difference. It refuses an IPA that holds more than one app or two entries with one name, and any app that holds a symbolic link. A file that is an executable is never accepted under one of the statuses below except the first:
 
 | Status | Meaning |
 | --- | --- |
@@ -46,7 +46,13 @@ ios/reproducible/compare.py <published.ipa> ios/build/reproducible/Gem.app
 ios/reproducible/compare.py --app-store <published.ipa> <App Store copy>
 ```
 
-`--app-store` accepts the files the App Store rewrites or adds: `Info.plist`, every `Assets.car`, and `SC_Info/`. The store re-signs the executable and encrypts its code. A copy as downloaded still has that range encrypted: the script compares everything else in the executable, reports how many bytes it could not compare, and exits with 2. A decrypted copy is compared in full.
+The App Store copy goes second. `--app-store` accepts what the store adds or rewrites, each as `App Store file`, and nothing wider:
+
+- Files in `SC_Info/` at the root of the app.
+- An `Info.plist` at the root that differs only in `DTAppStoreToolsBuild` and `UISupportedDevices`. Any other key is a difference and is printed.
+- An `Assets.car` the store thinned for one device: every rendition it holds is in the published catalog.
+
+The store re-signs the executable and encrypts its code. A copy as downloaded still has that range encrypted: the script compares everything else in the executable, reports how many bytes it could not compare, and exits with 2. A decrypted copy is compared in full.
 
 ## What a match does not cover
 

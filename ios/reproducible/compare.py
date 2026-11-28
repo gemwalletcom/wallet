@@ -10,21 +10,35 @@ import zipfile
 from pathlib import Path
 
 MACH_O_64 = b"\xcf\xfa\xed\xfe"
+EXECUTABLE_MAGICS = {MACH_O_64, MACH_O_64[::-1], b"\xce\xfa\xed\xfe", b"\xfe\xed\xfa\xce", b"\xca\xfe\xba\xbe", b"\xbe\xba\xfe\xca", b"\xca\xfe\xba\xbf", b"\xbf\xba\xfe\xca"}
+SYMBOLIC_LINK = 0o120000
 HEADER_SIZE = 32
 SEGMENT_64 = 0x19
 CODE_SIGNATURE = 0x1D
 ENCRYPTION_INFO_64 = 0x2C
 BUILD_MACHINE_KEYS = {"BuildMachineOSBuild"}
-USAGE = "usage: compare.py [--app-store] <ipa or app> <ipa or app>"
+APP_STORE_KEYS = {"DTAppStoreToolsBuild", "UISupportedDevices"}
+USAGE = "usage: compare.py [--app-store] <ipa or app> <ipa or app from the App Store>"
 
 
 def bundle_files(path):
     source = Path(path)
     if source.is_dir():
-        return {str(file.relative_to(source)): file.read_bytes() for file in source.rglob("*") if file.is_file()}
+        files = [file for file in source.rglob("*") if file.is_symlink() or file.is_file()]
+        if any(file.is_symlink() for file in files):
+            sys.exit(f"{path} holds a symbolic link")
+        return {str(file.relative_to(source)): file.read_bytes() for file in files}
     with zipfile.ZipFile(source) as archive:
-        entries = ((entry, entry.filename.split("/", 2)) for entry in archive.infolist() if not entry.is_dir())
-        return {parts[2]: archive.read(entry) for entry, parts in entries if len(parts) == 3 and parts[0] == "Payload" and parts[1].endswith(".app")}
+        entries = [(entry, entry.filename.split("/", 2)) for entry in archive.infolist() if not entry.is_dir()]
+        entries = [(entry, parts) for entry, parts in entries if len(parts) == 3 and parts[0] == "Payload" and parts[1].endswith(".app")]
+        names = [entry.filename for entry, _ in entries]
+        if len({parts[1] for _, parts in entries}) != 1:
+            sys.exit(f"{path} does not hold exactly one app in Payload")
+        if len(names) != len(set(names)):
+            sys.exit(f"{path} holds two entries with the same name")
+        if any(entry.external_attr >> 16 & 0o170000 == SYMBOLIC_LINK for entry, _ in entries):
+            sys.exit(f"{path} holds a symbolic link")
+        return {parts[2]: archive.read(entry) for entry, parts in entries}
 
 
 def signing_file(name):
@@ -32,7 +46,7 @@ def signing_file(name):
 
 
 def app_store_file(name):
-    return name == "Info.plist" or Path(name).name == "Assets.car" or "SC_Info/" in name
+    return name.startswith("SC_Info/")
 
 
 def load_commands(data):
@@ -110,19 +124,44 @@ def differing_parts(first, second, first_image, second_image):
 
 def differing_keys(first, second):
     one, other = plistlib.loads(first), plistlib.loads(second)
-    return sorted(key for key in one.keys() | other.keys() if one.get(key) != other.get(key))
+    return {key for key in one.keys() | other.keys() if one.get(key) != other.get(key)}
 
 
-def catalog_contents(data):
+def catalog_entries(data):
     with tempfile.NamedTemporaryFile(suffix=".car") as file:
         file.write(data)
         file.flush()
         listing = json.loads(subprocess.run(["xcrun", "assetutil", "--info", file.name], capture_output=True, check=True).stdout)
-    return sorted(json.dumps({key: value for key, value in entry.items() if key != "Timestamp"}, sort_keys=True) for entry in listing)
+    return [json.dumps({key: value for key, value in entry.items() if key != "Timestamp"}, sort_keys=True) for entry in listing]
+
+
+def compare_catalogs(first, second, app_store):
+    if not shutil.which("xcrun"):
+        return "DIFFERENT", ["comparing asset catalogs needs assetutil from Xcode"], 0
+    one, other = catalog_entries(first), catalog_entries(second)
+    if sorted(one) == sorted(other):
+        return "same contents", ["compared as the renditions assetutil lists"], 0
+    added = set(other[1:]) - set(one[1:])
+    if app_store and not added:
+        return "App Store file", [f"holds {len(other) - 1} of the first's {len(one) - 1} renditions"], 0
+    return "DIFFERENT", [f"{len(set(one) ^ set(other))} renditions differ, {len(added)} of them only in the second"], 0
+
+
+def compare_information(name, first, second, app_store):
+    keys = differing_keys(first, second)
+    details = [f"keys that differ: {', '.join(sorted(keys))}"]
+    if not keys:
+        return "same contents", [], 0
+    if keys <= BUILD_MACHINE_KEYS:
+        return "same apart from the build machine", details, 0
+    if app_store and name == "Info.plist" and keys <= BUILD_MACHINE_KEYS | APP_STORE_KEYS:
+        return "App Store file", details, 0
+    return "DIFFERENT", details, 0
 
 
 def compare(name, first, second, app_store):
-    expected = "signing file" if signing_file(name) else "App Store file" if app_store and app_store_file(name) else None
+    executable = any(data is not None and data[:4] in EXECUTABLE_MAGICS for data in (first, second))
+    expected = None if executable else "signing file" if signing_file(name) else "App Store file" if app_store and app_store_file(name) else None
     if first is None or second is None:
         return expected or "DIFFERENT", [f"only in the {'second' if first is None else 'first'}"], 0
     if first == second:
@@ -133,17 +172,12 @@ def compare(name, first, second, app_store):
         if first_image == second_image:
             return "same outside the signature", [f"{encrypted} bytes of encrypted code not compared"] if encrypted else [], encrypted
         return "DIFFERENT", list(differing_parts(first, second, first_image, second_image)), encrypted
-    kind = Path(name).name
-    if kind == "Assets.car" and shutil.which("xcrun") and catalog_contents(first) == catalog_contents(second):
-        return "same contents", ["compared as the renditions assetutil lists"], 0
-    if kind == "Info.plist":
-        keys = differing_keys(first, second)
-        details = [f"keys that differ: {', '.join(keys)}"]
-        if not keys:
-            return "same contents", [], 0
-        if set(keys) <= BUILD_MACHINE_KEYS:
-            return "same apart from the build machine", details, 0
-        return expected or "DIFFERENT", details, 0
+    if executable:
+        return "DIFFERENT", [], 0
+    if Path(name).name == "Assets.car":
+        return compare_catalogs(first, second, app_store)
+    if Path(name).name == "Info.plist":
+        return compare_information(name, first, second, app_store)
     return expected or "DIFFERENT", [], 0
 
 
