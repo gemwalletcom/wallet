@@ -56,16 +56,16 @@ struct SelectAssetNavigationStack: View {
             .navigationDestination(keyedBy: SelectAssetInput.self) { input in
                 Group {
                     switch input.type {
-                    case let .send(recipient):
+                    case .send:
                         RecipientNavigationView(
                             model: viewModelFactory.recipientScene(
                                 asset: input.asset,
                                 type: .asset(asset: input.asset.toGem()),
-                                recipient: recipient,
+                                recipient: input.recipient,
                                 onNavigate: navigate,
                             ),
                         )
-                    case .receive:
+                    case .receive, .receiveCollection:
                         ReceiveScene(model: viewModelFactory.receiveScene(assetData: input.assetData, wallet: model.wallet))
                     case .buy:
                         FiatConnectNavigationView(
@@ -90,7 +90,7 @@ struct SelectAssetNavigationStack: View {
                                 onTransferAction: { navigate(to: .confirm($0)) },
                             ),
                         )
-                    case .manage, .priceAlert, .swap, .payment:
+                    case .manage, .priceAlert, .swapPay, .swapReceive, .payment, .walletSearch, .walletSearchResults:
                         EmptyView()
                     }
                 }

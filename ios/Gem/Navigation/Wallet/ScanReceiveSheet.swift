@@ -21,7 +21,7 @@ private struct ScanReceiveSheet: ViewModifier {
 
     func body(content: Content) -> some View {
         content.sheet(isPresented: $isPresented, onDismiss: onDismiss) {
-            if let selectAssetModel = viewModelFactory.selectAssetScene(selectType: .receive(.asset)) {
+            if let selectAssetModel = viewModelFactory.selectAssetScene(selectType: .receive) {
                 ScanReceiveNavigationStack(
                     model: ScanReceiveViewModel(
                         selectAssetModel: selectAssetModel,

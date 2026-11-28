@@ -1,6 +1,7 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
 import Foundation
+import struct Gemstone.GemPaymentRecipient
 import struct Gemstone.GemTransferData
 import enum Gemstone.PaymentLink
 import GemstonePrimitives
@@ -12,7 +13,7 @@ public enum PaymentDestination: Identifiable, Sendable {
     case verify(URL, link: PaymentLink)
     case amount(AmountInput)
     case recipient(SelectedAssetInput)
-    case selectAsset(SelectAssetType, chains: [Chain])
+    case selectAsset(recipient: GemPaymentRecipient?, chains: [Chain])
 
     public var id: String {
         switch self {
@@ -20,7 +21,7 @@ public enum PaymentDestination: Identifiable, Sendable {
         case let .verify(url, _): "verify-\(url)"
         case let .amount(input): "amount-\(input.id)"
         case let .recipient(input): "recipient-\(input.id)"
-        case let .selectAsset(type, _): "selectAsset-\(type.id)"
+        case .selectAsset: "selectAsset-send"
         }
     }
 }

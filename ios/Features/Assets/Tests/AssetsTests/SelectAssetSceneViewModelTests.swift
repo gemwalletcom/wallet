@@ -14,7 +14,7 @@ import Testing
 struct SelectAssetSceneViewModelTests {
     @Test
     func recentsFollowTheChainFilter() {
-        let model = SelectAssetSceneViewModel.mock(selectType: .send(.none), chains: [.bitcoin])
+        let model = SelectAssetSceneViewModel.mock(selectType: .send, chains: [.bitcoin])
 
         #expect(model.recentModel.query.request.filters == [.enabled, .hasBalance, .chains([Chain.bitcoin.rawValue])])
 
@@ -41,7 +41,7 @@ struct SelectAssetSceneViewModelTests {
     func selectRecentWithoutAccountDoesNotSelectAsset() {
         let model = SelectAssetSceneViewModel.mock(
             wallet: Wallet.mock(accounts: [.mock(chain: .ethereum)]),
-            selectType: .send(.none),
+            selectType: .send,
         )
 
         model.onSelectRecent(.mock(id: .mock(chain: .solana), name: "Solana", symbol: "SOL", decimals: 9))
@@ -68,7 +68,7 @@ struct SelectAssetSceneViewModelTests {
     func nonToggleFlowNeverEnablesAssets() async {
         await confirmation(expectedCount: 0) { enabledAssets in
             let enabler = GemAssetSelectionServiceMock(onSetAssetsEnabled: { _, _ in enabledAssets() })
-            await SelectAssetSceneViewModel.mock(selectType: .receive(.asset), service: enabler)
+            await SelectAssetSceneViewModel.mock(selectType: .receive, service: enabler)
                 .setAssetEnabled(assetId: .mock(), enabled: true)
         }
     }

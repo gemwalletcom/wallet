@@ -6,6 +6,7 @@ import class Gemstone.GemAddAssetService
 import class Gemstone.GemAssetDetailsService
 import class Gemstone.GemAssetSelectionService
 import class Gemstone.GemChartService
+import struct Gemstone.GemPaymentRecipient
 import enum Gemstone.GemSelectAssetType
 import class Gemstone.GemWalletHomeService
 import GemstonePrimitives
@@ -150,20 +151,22 @@ public extension ViewModelFactory {
     }
 
     @MainActor
-    func selectAssetScene(selectType: SelectAssetType, selectAssetAction: AssetAction = .none) -> SelectAssetSceneViewModel? {
+    func selectAssetScene(selectType: GemSelectAssetType, selectAssetAction: AssetAction = .none) -> SelectAssetSceneViewModel? {
         currentWallet().map { selectAssetScene(wallet: $0, selectType: selectType, selectAssetAction: selectAssetAction) }
     }
 
     @MainActor
     func selectAssetScene(
         wallet: Wallet,
-        selectType: SelectAssetType,
+        selectType: GemSelectAssetType,
+        recipient: GemPaymentRecipient? = .none,
         selectAssetAction: AssetAction = .none,
         chains: [Chain] = [],
     ) -> SelectAssetSceneViewModel {
         SelectAssetSceneViewModel(
             wallet: wallet,
             selectType: selectType,
+            recipient: recipient,
             service: assetSelectionService(),
             paymentService: paymentService,
             recentAssetsService: recentAssetsService,

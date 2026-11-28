@@ -2,6 +2,7 @@
 
 import protocol Gemstone.GemPerpetualServiceProtocol
 import class Gemstone.GemRecentActivityService
+import enum Gemstone.GemSelectAssetType
 import GemstonePrimitives
 import GemstonePrimitivesTestKit
 import GemstoneServices
@@ -16,7 +17,7 @@ public extension PerpetualsSceneViewModel {
         wallet: Wallet = .mock(),
         onSelectAmount: ((AmountInput) -> Void)? = nil,
         perpetualService: any GemPerpetualServiceProtocol = GemPerpetualServiceMock(),
-        onSelectAssetType: ((SelectAssetType) -> Void)? = nil,
+        onSelectAssetType: ((GemSelectAssetType) -> Void)? = nil,
     ) -> PerpetualsSceneViewModel {
         PerpetualsSceneViewModel(
             wallet: wallet,

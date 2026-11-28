@@ -23,7 +23,7 @@ public final class CollectionsSceneViewModel: Sendable {
 
     public var loadState: GemLoadState = .loading
     public var isPresentingToastMessage: ToastMessage?
-    public var isPresentingReceiveSelectAssetType: SelectAssetType?
+    public var isPresentingReceiveSelectAsset: Bool = false
 
     public init(
         service: any GemNftServiceProtocol,
@@ -63,6 +63,6 @@ public final class CollectionsSceneViewModel: Sendable {
     }
 
     public func onSelectReceive() {
-        isPresentingReceiveSelectAssetType = .receive(.collection)
+        isPresentingReceiveSelectAsset = true
     }
 }

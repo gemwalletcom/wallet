@@ -3,6 +3,7 @@
 import Components
 import func Gemstone.emptyState
 import enum Gemstone.GemInfoTopic
+import enum Gemstone.GemSelectAssetType
 import GemstonePrimitives
 import GemstonePrimitivesTestKit
 import InfoSheet
@@ -56,7 +57,7 @@ struct PerpetualsSceneViewModelTests {
 
     @Test
     func depositOpensThePickerWhenThereIsAChoice() async {
-        var selected: SelectAssetType?
+        var selected: GemSelectAssetType?
         let model = PerpetualsSceneViewModel.mock(onSelectAssetType: { selected = $0 })
 
         await model.onSelectDeposit()

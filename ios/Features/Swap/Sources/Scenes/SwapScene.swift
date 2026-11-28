@@ -109,7 +109,7 @@ extension SwapScene {
     private var swapFromSectionView: some View {
         Section {
             SwapTokenView(
-                side: model.side(type: .pay),
+                side: model.side(.pay),
                 text: $model.amountInputModel.text,
                 onBalanceAction: model.onSelectFromMaxBalance,
                 onSelectAssetAction: model.onSelectAssetPay,
@@ -125,7 +125,7 @@ extension SwapScene {
     private var swapToSectionView: some View {
         Section {
             SwapTokenView(
-                side: model.side(type: .receive(payAssetId: nil)),
+                side: model.side(.receive),
                 text: .constant(model.toValue),
                 isQuote: true,
                 showLoading: model.isReceiveFieldLoading,

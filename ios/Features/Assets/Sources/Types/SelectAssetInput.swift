@@ -1,28 +1,27 @@
 // Copyright (c). Gem Wallet. All rights reserved.
 
-import GemstonePrimitives
+import struct Gemstone.GemPaymentRecipient
+import enum Gemstone.GemSelectAssetType
 import Primitives
 
 public struct SelectAssetInput: Hashable {
-    public let type: SelectAssetType
+    public let type: GemSelectAssetType
     public let assetData: AssetData
+    public let recipient: GemPaymentRecipient?
 
-    public init(type: SelectAssetType, assetData: AssetData) {
+    public init(type: GemSelectAssetType, assetData: AssetData, recipient: GemPaymentRecipient? = .none) {
         self.type = type
         self.assetData = assetData
+        self.recipient = recipient
     }
 }
 
-extension SelectAssetInput: Identifiable {
-    public var id: String {
-        type.id
-    }
-
-    public var asset: Asset {
+public extension SelectAssetInput {
+    var asset: Asset {
         assetData.asset
     }
 
-    public var assetAddress: AssetAddress {
+    var assetAddress: AssetAddress {
         assetData.assetAddress
     }
 }

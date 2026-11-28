@@ -2,6 +2,7 @@
 
 import BigInt
 import enum Gemstone.GemInfoTopic
+import enum Gemstone.GemSelectAssetType
 import struct Gemstone.GemSwapPairSuggestion
 import struct Gemstone.SwapperQuote
 import GemstonePrimitives
@@ -41,6 +42,15 @@ struct SwapSceneViewModelTests {
         await model.suggestPair()
 
         #expect(model.pairSelectorModel.toAssetId == .mock(chain: .ethereum, tokenId: "0xdAC17F958D2ee523a2206206994597C13D831ec7"))
+    }
+
+    @Test
+    func assetPickerCarriesThePayAsset() {
+        let model = SwapSceneViewModel.mock()
+        model.fromAssetQuery.value = .mock(asset: .mock(id: .mock(chain: .smartChain)))
+
+        #expect(model.selectAssetType(side: .pay) == .swapPay)
+        #expect(model.selectAssetType(side: .receive) == .swapReceive(payAssetId: .mock(chain: .smartChain)))
     }
 
     @Test

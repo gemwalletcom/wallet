@@ -86,7 +86,7 @@ extension TransactionsSceneViewModel {
     }
 
     private func onSelectReceive() {
-        isPresentingSheet = .selectAsset(.receive(.asset))
+        isPresentingSheet = .selectAsset(.receive)
     }
 
     private func onSelectBuy() {

@@ -6,6 +6,7 @@ import Foundation
 import protocol Gemstone.GemAssetSelectionServiceProtocol
 import class Gemstone.GemPaymentService
 import class Gemstone.GemRecentActivityService
+import enum Gemstone.GemSelectAssetType
 import GemstonePrimitives
 import GemstonePrimitivesTestKit
 import GemstoneServices
@@ -18,7 +19,7 @@ public extension SelectAssetSceneViewModel {
     @MainActor
     static func mock(
         wallet: Wallet = .mock(),
-        selectType: SelectAssetType = .manage,
+        selectType: GemSelectAssetType = .manage,
         assets: [AssetData] = [],
         state: StateViewType<[AssetBasic]> = .noData,
         service: any GemAssetSelectionServiceProtocol = GemAssetSelectionServiceMock(),

@@ -17,11 +17,11 @@ struct CollectionsNavigationView: View {
 
     var body: some View {
         CollectionsScene(model: model)
-            .sheet(item: $model.isPresentingReceiveSelectAssetType) {
+            .sheet(isPresented: $model.isPresentingReceiveSelectAsset) {
                 SelectAssetNavigationStack(
                     model: viewModelFactory.selectAssetScene(
                         wallet: model.wallet,
-                        selectType: $0,
+                        selectType: .receiveCollection,
                     ),
                 )
             }

@@ -7,6 +7,7 @@ import func Gemstone.formattedPercentage
 import enum Gemstone.GemInfoTopic
 import struct Gemstone.GemProviderLoadingRow
 import struct Gemstone.GemProviderRow
+import enum Gemstone.GemSelectAssetType
 import enum Gemstone.GemSlippageSelection
 import struct Gemstone.GemSwapDetails
 import enum Gemstone.GemSwapErrorDisplay
@@ -192,10 +193,17 @@ public final class SwapSceneViewModel {
         }
     }
 
-    func side(type: SelectAssetSwapType) -> GemSwapSideState {
-        switch type {
+    func side(_ side: GemSwapSide) -> GemSwapSideState {
+        switch side {
         case .pay: viewState.pay
         case .receive: viewState.receive
+        }
+    }
+
+    public func selectAssetType(side: GemSwapSide) -> GemSelectAssetType {
+        switch side {
+        case .pay: .swapPay
+        case .receive: .swapReceive(payAssetId: fromAsset?.asset.id)
         }
     }
 }
@@ -281,8 +289,8 @@ extension SwapSceneViewModel {
     }
 
     func onSelectAssetReceive() {
-        guard let fromAsset else { return }
-        isPresentingInfoSheet = .selectAsset(.receive(payAssetId: fromAsset.asset.id))
+        guard fromAsset != nil else { return }
+        isPresentingInfoSheet = .selectAsset(.receive)
     }
 
     func onSelectSwapDetails() {
@@ -306,11 +314,7 @@ extension SwapSceneViewModel {
     }
 
     public func onFinishAssetSelection(asset: Asset) {
-        guard case let .selectAsset(type) = isPresentingInfoSheet else { return }
-        let side: GemSwapSide = switch type {
-        case .pay: .pay
-        case .receive: .receive
-        }
+        guard case let .selectAsset(side) = isPresentingInfoSheet else { return }
         let selection = service.selectPairAsset(
             selection: GemSwapPairSelection(
                 payAssetId: pairSelectorModel.fromAssetId,

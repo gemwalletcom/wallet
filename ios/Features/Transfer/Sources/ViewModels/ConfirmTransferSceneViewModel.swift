@@ -258,7 +258,7 @@ extension ConfirmTransferSceneViewModel {
             return assetIds
         }.first
         guard let assetIds else { return }
-        isPresentingSheet = .paymentAsset(.payment(assetIds))
+        isPresentingSheet = .paymentAsset(.payment(assetIds: assetIds))
     }
 
     public func selectPaymentAsset(_ asset: Asset) {

@@ -60,7 +60,7 @@ struct ConfirmTransferSceneViewModelTests {
             Issue.record("Expected the asset picker")
             return
         }
-        #expect(selection == .payment([Asset.mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18).id, Asset.mock(id: .mock(chain: .smartChain), name: "BNB", symbol: "BNB", decimals: 18).id]))
+        #expect(selection == .payment(assetIds: [Asset.mock(id: .mock(chain: .ethereum), name: "Ethereum", symbol: "ETH", decimals: 18).id, Asset.mock(id: .mock(chain: .smartChain), name: "BNB", symbol: "BNB", decimals: 18).id]))
 
         model.selectPaymentAsset(.mock(id: .mock(chain: .smartChain), name: "BNB", symbol: "BNB", decimals: 18))
         await model.load()

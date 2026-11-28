@@ -12,6 +12,7 @@ import struct Gemstone.GemPaymentRecipient
 import protocol Gemstone.GemPaymentServiceProtocol
 import protocol Gemstone.GemRecentActivityServiceProtocol
 import struct Gemstone.GemSelectAssetFlow
+import enum Gemstone.GemSelectAssetType
 import struct Gemstone.GemSelectAssetView
 import struct Gemstone.GemSelectAssetWalletFlow
 import enum Gemstone.GemServiceError
@@ -28,7 +29,8 @@ import SwiftUI
 public final class SelectAssetSceneViewModel {
     private let service: any GemAssetSelectionServiceProtocol
     private let paymentService: any GemPaymentServiceProtocol
-    let selectType: SelectAssetType
+    let selectType: GemSelectAssetType
+    private let recipient: GemPaymentRecipient?
     let flow: GemSelectAssetFlow
     private let walletFlow: GemSelectAssetWalletFlow
 
@@ -55,7 +57,8 @@ public final class SelectAssetSceneViewModel {
 
     public init(
         wallet: Wallet,
-        selectType: SelectAssetType,
+        selectType: GemSelectAssetType,
+        recipient: GemPaymentRecipient? = .none,
         service: any GemAssetSelectionServiceProtocol,
         paymentService: any GemPaymentServiceProtocol,
         recentAssetsService: any GemRecentActivityServiceProtocol,
@@ -66,7 +69,8 @@ public final class SelectAssetSceneViewModel {
         self.paymentService = paymentService
         self.wallet = wallet
         self.selectType = selectType
-        let walletFlow = service.walletFlow(selectType: selectType.flowType, wallet: wallet.toGem())
+        self.recipient = recipient
+        let walletFlow = service.walletFlow(selectType: selectType, wallet: wallet.toGem())
         self.walletFlow = walletFlow
         flow = walletFlow.flow
         onSelectAssetAction = selectAssetAction
@@ -272,12 +276,11 @@ extension SelectAssetSceneViewModel {
     }
 
     private func select(_ assetData: AssetData) {
-        switch selectType {
-        case let .send(payment?):
+        if let recipient {
             Task {
-                await selectPayment(payment, assetData: assetData)
+                await selectPayment(recipient, assetData: assetData)
             }
-        case .send(.none), .receive, .buy, .swap, .payment, .manage, .priceAlert, .deposit, .withdraw:
+        } else {
             route = .asset(SelectAssetInput(type: selectType, assetData: assetData))
         }
     }
@@ -287,7 +290,7 @@ extension SelectAssetSceneViewModel {
             switch try await paymentService.prepareAsset(payment: payment, assetId: assetData.asset.id) {
             case let .confirm(transfer): route = .transfer(.confirm(transfer))
             case let .amount(payment): route = .transfer(.amount(AmountInput(type: .transfer(recipient: payment), asset: assetData.asset)))
-            case let .recipient(payment): route = .asset(SelectAssetInput(type: .send(payment), assetData: assetData))
+            case let .recipient(payment): route = .asset(SelectAssetInput(type: selectType, assetData: assetData, recipient: payment))
             }
         } catch {
             debugLog("SelectAssetScene payment step error: \(error)")

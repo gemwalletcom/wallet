@@ -157,8 +157,8 @@ public extension WalletSceneViewModel {
     internal func onHeaderAction(_ action: GemHeaderButtonAction) {
         switch action {
         case .buy: isPresentingSheet.wrappedValue = .selectAsset(.buy, chains: [])
-        case .send: isPresentingSheet.wrappedValue = .selectAsset(.send(.none), chains: [])
-        case .receive: isPresentingSheet.wrappedValue = .selectAsset(.receive(.asset), chains: [])
+        case .send: isPresentingSheet.wrappedValue = .selectAsset(.send, chains: [])
+        case .receive: isPresentingSheet.wrappedValue = .selectAsset(.receive, chains: [])
         case .swap: isPresentingSheet.wrappedValue = .swap
         case .deposit, .withdraw, .sendCollectible, .collectibleMenu: break
         }
@@ -177,7 +177,7 @@ public extension WalletSceneViewModel {
     internal func onSelectBanner(button: GemBannerButton) {
         switch button {
         case .buy: isPresentingSheet.wrappedValue = .selectAsset(.buy, chains: [])
-        case .receive: isPresentingSheet.wrappedValue = .selectAsset(.receive(.asset), chains: [])
+        case .receive: isPresentingSheet.wrappedValue = .selectAsset(.receive, chains: [])
         }
     }
 

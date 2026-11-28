@@ -29,9 +29,9 @@ struct PaymentNavigationStack: View {
             AmountNavigationStack(input: input, wallet: wallet, onComplete: onComplete)
         case let .recipient(input):
             SelectedAssetNavigationStack(input: input, wallet: wallet, onComplete: onComplete)
-        case let .selectAsset(type, chains):
+        case let .selectAsset(recipient, chains):
             SelectAssetNavigationStack(
-                model: viewModelFactory.selectAssetScene(wallet: wallet, selectType: type, chains: chains),
+                model: viewModelFactory.selectAssetScene(wallet: wallet, selectType: .send, recipient: recipient, chains: chains),
             )
         }
     }

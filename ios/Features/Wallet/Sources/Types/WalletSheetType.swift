@@ -2,6 +2,7 @@
 
 import Foundation
 import struct Gemstone.GemInfoSheet
+import enum Gemstone.GemSelectAssetType
 import struct Gemstone.GemTransferData
 import GemstonePrimitives
 import InfoSheet
@@ -9,7 +10,7 @@ import Primitives
 import PrimitivesComponents
 
 public enum WalletSheetType: Identifiable, Equatable, Sendable {
-    case selectAsset(SelectAssetType, chains: [Chain])
+    case selectAsset(GemSelectAssetType, chains: [Chain])
     case amount(AmountInput)
     case infoSheet(GemInfoSheet)
     case transferData(GemTransferData)
@@ -19,7 +20,7 @@ public enum WalletSheetType: Identifiable, Equatable, Sendable {
 
     public var id: String {
         switch self {
-        case let .selectAsset(type, _): "selectAsset-\(type.id)"
+        case let .selectAsset(type, _): "selectAsset-\(type)"
         case let .amount(input): "amount-\(input.type)-\(input.asset.id.identifier)"
         case let .infoSheet(sheet): "infoSheet-\(sheet.hashValue)"
         case let .transferData(data): "transferData-\(data.id)"

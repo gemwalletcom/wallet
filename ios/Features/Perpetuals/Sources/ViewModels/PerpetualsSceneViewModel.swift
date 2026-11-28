@@ -11,6 +11,7 @@ import struct Gemstone.GemPerpetualMarketSession
 import struct Gemstone.GemPerpetualMarketView
 import protocol Gemstone.GemPerpetualServiceProtocol
 import protocol Gemstone.GemRecentActivityServiceProtocol
+import enum Gemstone.GemSelectAssetType
 import struct Gemstone.GemValueHeader
 import func Gemstone.perpetualBalanceHeader
 import GemstonePrimitives
@@ -64,7 +65,7 @@ public final class PerpetualsSceneViewModel {
     }
 
     let onSelectAmount: ((AmountInput) -> Void)?
-    let onSelectAssetType: ((SelectAssetType) -> Void)?
+    let onSelectAssetType: ((GemSelectAssetType) -> Void)?
     let onSelectAsset: ((Asset) -> Void)?
     let onSelectPortfolio: VoidAction
 
@@ -74,7 +75,7 @@ public final class PerpetualsSceneViewModel {
         observerService: any PerpetualObservable,
         recentAssetsService: any GemRecentActivityServiceProtocol,
         onSelectAmount: ((AmountInput) -> Void)? = nil,
-        onSelectAssetType: ((SelectAssetType) -> Void)? = nil,
+        onSelectAssetType: ((GemSelectAssetType) -> Void)? = nil,
         onSelectAsset: ((Asset) -> Void)? = nil,
         onSelectPortfolio: (() -> Void)? = nil,
     ) {

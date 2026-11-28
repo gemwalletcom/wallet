@@ -3,6 +3,7 @@
 import Foundation
 import class Gemstone.GemPerpetualDetailsService
 import enum Gemstone.GemPerpetualPositionAction
+import enum Gemstone.GemSelectAssetType
 import GemstonePrimitives
 import GemstoneServices
 import Perpetuals
@@ -16,7 +17,7 @@ public extension ViewModelFactory {
     func perpetualsScene(
         wallet: Wallet,
         onSelectAmount: @escaping (AmountInput) -> Void,
-        onSelectAssetType: @escaping (SelectAssetType) -> Void,
+        onSelectAssetType: @escaping (GemSelectAssetType) -> Void,
         onSelectAsset: @escaping (Asset) -> Void,
         onSelectPortfolio: @escaping () -> Void,
     ) -> PerpetualsSceneViewModel {

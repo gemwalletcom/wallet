@@ -257,7 +257,7 @@ extension NavigationRouter {
                 ),
             )
         case let .selectAsset(payment, chains):
-            return .selectAsset(.send(payment), chains: chains.compactMap { Primitives.Chain(rawValue: $0) })
+            return .selectAsset(recipient: payment, chains: chains.compactMap { Primitives.Chain(rawValue: $0) })
         case .unsupported:
             throw AnyError(Localized.Errors.notSupported)
         }
