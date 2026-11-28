@@ -2,6 +2,7 @@ pub const APTOS_NATIVE_COIN: &str = "0x1::aptos_coin::AptosCoin";
 pub const APTOS_NATIVE_METADATA_ADDRESS: &str = "0xa";
 pub const APTOS_TRANSFER_FUNCTION: &str = "0x1::aptos_account::transfer";
 pub const FUNGIBLE_TRANSFER_FUNCTION: &str = "0x1::primary_fungible_store::transfer";
+pub const FUNGIBLE_BATCH_TRANSFER_FUNCTION: &str = "0x1::aptos_account::batch_transfer_fungible_assets";
 pub const OBJECT_CORE_TYPE: &str = "0x1::object::ObjectCore";
 pub const ENTRY_FUNCTION_PAYLOAD_TYPE: &str = "entry_function_payload";
 pub const NO_ACCOUNT_SIGNATURE_TYPE: &str = "no_account_signature";

@@ -31,7 +31,7 @@ impl<C: Client> ChainBlockTransactions for AptosClient<C> {
 impl<C: Client> ChainTransaction for AptosClient<C> {
     async fn get_transaction_by_hash(&self, request: TransactionIdRequest) -> Result<Option<Transaction>, Box<dyn Error + Sync + Send>> {
         let hash = request.hash;
-        Ok(map_transaction(self.get_transaction_by_hash(&hash).await?))
+        Ok(map_transaction(self.get_transaction_by_hash(&hash).await?).into_iter().next())
     }
 }
 

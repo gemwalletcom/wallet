@@ -1,0 +1,115 @@
+{
+  "hash": "0x85fb524711e7d665509e612558b8ed42f27ac9882acf877bb4d7214f9be1d22f",
+  "sender": "0x9577885192fe855857dfd699ba15ef89e7eac15f770f1d89565d7188339a7fbb",
+  "success": true,
+  "gas_used": "11448",
+  "gas_unit_price": "100",
+  "timestamp": "1795846568181337",
+  "type": "user_transaction",
+  "payload": {
+    "function": "0x1::aptos_account::batch_transfer_fungible_assets",
+    "arguments": [
+      {
+        "inner": "0x357b0b74bc833e95a115ad22604854d6b0fca151cecd94111770e5d6ffc9dc2b"
+      },
+      [
+        "0x868639e25f660315ced59988baad07a5d60007e981d2d593b7833a8645c405ed",
+        "0x4b6ae525d90a098b2b8a713c7c16707c7856da2fc1b6886ea16e7f3b4417c654",
+        "0xc22d90300d4a120122814068d8df4ab46e57ae0d860419a9b4ef1c9754971ead",
+        "0xbd033343e300c2394df2328504ed407ef4ba412642c12d22d039d16c52ba2442",
+        "0xc413089f62438a1fb0fdd210b5e335578d61e69dd8340ea9808272fefe35ce81"
+      ],
+      [
+        "13000410",
+        "3900000",
+        "5492910",
+        "6900000",
+        "6399830000"
+      ]
+    ],
+    "type": "entry_function_payload"
+  },
+  "events": [
+    {
+      "guid": {
+        "account_address": "0x0"
+      },
+      "type": "0x1::fungible_asset::Withdraw"
+    },
+    {
+      "guid": {
+        "account_address": "0x0"
+      },
+      "type": "0x1::fungible_asset::Deposit",
+      "data": {
+        "amount": "13000410"
+      }
+    },
+    {
+      "guid": {
+        "account_address": "0x0"
+      },
+      "type": "0x1::fungible_asset::Withdraw"
+    },
+    {
+      "guid": {
+        "account_address": "0x0"
+      },
+      "type": "0x1::fungible_asset::Deposit",
+      "data": {
+        "amount": "3900000"
+      }
+    },
+    {
+      "guid": {
+        "account_address": "0x0"
+      },
+      "type": "0x1::fungible_asset::Withdraw"
+    },
+    {
+      "guid": {
+        "account_address": "0x0"
+      },
+      "type": "0x1::fungible_asset::Deposit",
+      "data": {
+        "amount": "5492910"
+      }
+    },
+    {
+      "guid": {
+        "account_address": "0x0"
+      },
+      "type": "0x1::fungible_asset::Withdraw"
+    },
+    {
+      "guid": {
+        "account_address": "0x0"
+      },
+      "type": "0x1::fungible_asset::Deposit",
+      "data": {
+        "amount": "6900000"
+      }
+    },
+    {
+      "guid": {
+        "account_address": "0x0"
+      },
+      "type": "0x1::fungible_asset::Withdraw"
+    },
+    {
+      "guid": {
+        "account_address": "0x0"
+      },
+      "type": "0x1::fungible_asset::Deposit",
+      "data": {
+        "amount": "6399830000"
+      }
+    },
+    {
+      "guid": {
+        "account_address": "0x0"
+      },
+      "type": "0x1::transaction_fee::FeeStatement"
+    }
+  ]
+}

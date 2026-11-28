@@ -1,0 +1,47 @@
+{
+  "hash": "0xbb20d4d4a3877185036586f78beea39607cd480f8bb11e5c3ef5352f2d3865ae",
+  "sender": "0x9577885192fe855857dfd699ba15ef89e7eac15f770f1d89565d7188339a7fbb",
+  "success": true,
+  "gas_used": "101",
+  "gas_unit_price": "100",
+  "timestamp": "1795838590592490",
+  "type": "user_transaction",
+  "payload": {
+    "function": "0x1::aptos_account::batch_transfer_fungible_assets",
+    "arguments": [
+      {
+        "inner": "0xa"
+      },
+      [
+        "0xef63b80162a96a03127f35704bb9f3557bacb2d8327f1328e0274d3f2630d8fd"
+      ],
+      [
+        "4367727073"
+      ]
+    ],
+    "type": "entry_function_payload"
+  },
+  "events": [
+    {
+      "guid": {
+        "account_address": "0x0"
+      },
+      "type": "0x1::fungible_asset::Withdraw"
+    },
+    {
+      "guid": {
+        "account_address": "0x0"
+      },
+      "type": "0x1::fungible_asset::Deposit",
+      "data": {
+        "amount": "4367727073"
+      }
+    },
+    {
+      "guid": {
+        "account_address": "0x0"
+      },
+      "type": "0x1::transaction_fee::FeeStatement"
+    }
+  ]
+}
