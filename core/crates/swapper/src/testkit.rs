@@ -1,5 +1,5 @@
 use crate::{
-    AssetList, Contracts, QuoteDataInput, Permit2ApprovalData, ProviderData, ProviderType, Route, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteAsset, SwapperQuoteData, SwapperSlippage,
+    AssetList, Binding, Contracts, QuoteDataInput, Permit2ApprovalData, ProviderData, ProviderType, Route, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteAsset, SwapperQuoteData, SwapperSlippage,
     SwapperSlippageMode,
 };
 use async_trait::async_trait;
@@ -18,6 +18,8 @@ use gem_evm::jsonrpc::{BlockParameter, EthereumRpc, TransactionObject};
 use gem_reqwest::NativeProvider;
 #[cfg(all(test, feature = "swap_integration_tests"))]
 use primitives::decode_hex;
+
+pub const TEST_SOLANA_PAYER: &str = "7g2rVN8fAAQdPh1mkajpvELqYa3gWvFXJsBLnKfEQfqy";
 
 pub const TEST_SUI_WALLET: &str = "0x2ec5b7bcf6a0512850fe5f95cbd0a4303e8de5a3ffc01f9dba96bf1fde5f9bb5";
 #[cfg(all(test, feature = "swap_integration_tests"))]
@@ -101,6 +103,10 @@ impl Quote {
             request: QuoteRequest::mock(chain, token_id),
             eta_in_seconds: None,
         }
+    }
+
+    pub fn mock_from(asset: &AssetId) -> Self {
+        Self::mock(asset.chain, asset.token_id.as_deref())
     }
 
     pub fn mock_with_request(request: &QuoteRequest) -> Self {
@@ -197,7 +203,7 @@ pub struct MockSwapper {
     response: MockResponse,
     amount_mode: SwapAmountMode,
     pending_permit: Option<Permit2ApprovalData>,
-    contracts: Vec<&'static str>,
+    binding: Binding,
     quote_data: SwapperQuoteData,
     builds: Arc<Mutex<Vec<QuoteDataInput>>>,
 }
@@ -210,14 +216,17 @@ impl MockSwapper {
             response,
             amount_mode: SwapAmountMode::Fixed,
             pending_permit: None,
-            contracts: Vec::new(),
+            binding: Binding::BuiltOnDevice,
             quote_data: SwapperQuoteData::mock(),
             builds: Arc::default(),
         }
     }
 
     pub fn with_contracts(self, contracts: Vec<&'static str>) -> Self {
-        Self { contracts, ..self }
+        Self {
+            binding: Binding::Contracts(Contracts::new(contracts)),
+            ..self
+        }
     }
 
     pub fn with_quote_data(self, quote_data: SwapperQuoteData) -> Self {
@@ -255,8 +264,8 @@ impl Swapper for MockSwapper {
         self.amount_mode
     }
 
-    fn contracts(&self, _from_asset: &AssetId) -> Contracts {
-        Contracts::new(self.contracts.clone())
+    fn binding(&self, _quote: &Quote) -> Binding {
+        self.binding.clone()
     }
 
     async fn get_quote(&self, request: &QuoteRequest) -> Result<Quote, SwapperError> {

@@ -1,6 +1,6 @@
 use crate::{
     Result,
-    instructions::program_ids::{associated_token_program, system_program},
+    instructions::program_ids::{associated_token_program, system_program, token_2022_program, token_program},
     types::{AccountMeta, Instruction, Pubkey, find_program_address},
 };
 
@@ -27,7 +27,7 @@ pub fn create_associated_token_account_idempotent_with_address(payer: &Pubkey, a
     }
 }
 
-pub fn is_create_account_data(data: &[u8]) -> bool {
+pub(crate) fn is_create_account_data(data: &[u8]) -> bool {
     data.is_empty() || data == [CREATE_DISCRIMINANT] || data == [CREATE_IDEMPOTENT_DISCRIMINANT]
 }
 
@@ -36,10 +36,15 @@ pub fn get_associated_token_address_with_program_id(wallet: &Pubkey, mint: &Pubk
     find_program_address(&associated_token_program(), &seeds).map(|(address, _)| address)
 }
 
+pub fn is_associated_token_address(address: &Pubkey, wallet: &Pubkey, mint: &Pubkey) -> bool {
+    [token_program(), token_2022_program()]
+        .iter()
+        .any(|program| get_associated_token_address_with_program_id(wallet, mint, program).is_ok_and(|associated| associated == *address))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::instructions::program_ids::{token_2022_program, token_program};
 
     #[test]
     fn test_associated_token_instruction_and_address() {
@@ -58,5 +63,17 @@ mod tests {
             vec![payer, token_address, wallet, mint, system_program(), token_program()]
         );
         assert_eq!(instruction.data, [CREATE_IDEMPOTENT_DISCRIMINANT]);
+    }
+
+    #[test]
+    fn test_is_associated_token_address() {
+        let wallet = Pubkey::from_base58("Hozo7TadHq6PMMiGLGNvgk79Hvj5VTAM7Ny2bamQ2m8q").unwrap();
+        let other = Pubkey::from_base58("3ECJhLBQ9DAuKBKNjQGLEk3YqoFcF1YvhdayQ2C96eXF").unwrap();
+        let mint = Pubkey::from_base58("7o36UsWR1JQLpZ9PE2gn9L4SQ69CNNiWAXd4Jt7rqz9Z").unwrap();
+
+        assert!(is_associated_token_address(&get_associated_token_address_with_program_id(&wallet, &mint, &token_program()).unwrap(), &wallet, &mint));
+        assert!(is_associated_token_address(&get_associated_token_address_with_program_id(&wallet, &mint, &token_2022_program()).unwrap(), &wallet, &mint));
+        assert!(!is_associated_token_address(&get_associated_token_address_with_program_id(&other, &mint, &token_program()).unwrap(), &wallet, &mint));
+        assert!(!is_associated_token_address(&wallet, &wallet, &mint));
     }
 }

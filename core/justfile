@@ -50,9 +50,9 @@ test-integration:
     cargo test --lib -p nft --features nft_integration_tests -- nft_integration_tests --test-threads=1
     cargo test --lib -p prices --features price_integration_tests -- price_integration_tests --test-threads=1
 
-check-swap-contracts:
-    @echo "Quoting every route a provider binds to its contracts, live, and running the Confirm check on each..."
-    cargo test --lib -p swapper --features swap_integration_tests -- test_every_bound_route_passes_the_contract_check --nocapture
+check-swap-bindings:
+    @echo "Quoting every route of every provider, live, and running the Confirm binding check on each..."
+    cargo test --lib -p swapper --features swap_integration_tests -- test_every_route_passes_the_binding_check --nocapture
 
 INTEGRATION_FEATURES := "chain_integration_tests,swapper/swap_integration_tests,fiat/fiat_integration_tests,nft/nft_integration_tests,prices/price_integration_tests,security/security_integration_tests,storage/database_integration_tests"
 

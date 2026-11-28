@@ -1,5 +1,5 @@
 use super::{client::Hyperion, model::token_metadata, tx_builder};
-use crate::{QuoteDataInput, ProviderType, Quote, QuoteRequest, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperQuoteData, fees::FeeSide};
+use crate::{Binding, QuoteDataInput, ProviderType, Quote, QuoteRequest, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperQuoteData, fees::FeeSide};
 use async_trait::async_trait;
 use gem_client::Client;
 use num_bigint::BigUint;
@@ -13,6 +13,10 @@ impl<C: Client + 'static> Swapper for Hyperion<C> {
 
     fn supported_assets(&self) -> Vec<SwapperChainAsset> {
         vec![SwapperChainAsset::All(Chain::Aptos)]
+    }
+
+    fn binding(&self, _quote: &Quote) -> Binding {
+        Binding::BuiltOnDevice
     }
 
     fn amount_mode(&self, _request: &QuoteRequest) -> SwapAmountMode {
@@ -65,7 +69,7 @@ mod swap_integration_tests {
 
         let quote = provider.get_quote(&request).await?;
         let quote_data = provider.get_quote_data(&quote, QuoteDataInput::None).await?;
-        (&provider as &dyn Swapper).verify_contracts(&quote, &quote_data)?;
+        (&provider as &dyn Swapper).verify_binding(&quote, &quote_data)?;
         let payload: TransactionPayload = serde_json::from_str(&quote_data.data)?;
         println!("APT->USDC quote: to_value={}, route={}, gas_limit={:?}", quote.to_value, quote.data.routes[0].route_data, quote_data.gas_limit);
 

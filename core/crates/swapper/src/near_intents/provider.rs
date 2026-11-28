@@ -5,7 +5,8 @@ use super::{
     supported_assets,
 };
 use crate::{
-    QuoteDataInput, ProviderType, Quote, QuoteRequest, RpcClient, RpcProvider, SwapAmountMode, SwapResult, SwapResultRequest, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteAsset, SwapperQuoteData, amount_to_value,
+    Binding, QuoteDataInput, ProviderType, Quote, QuoteRequest, RpcClient, RpcProvider, SwapAmountMode, SwapResult, SwapResultRequest, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteAsset, SwapperQuoteData,
+    amount_to_value,
     cross_chain::VaultAddresses,
     fees::default_referral_fees,
     fees::{DEFAULT_REFERRER, bps_of},
@@ -236,6 +237,10 @@ where
 
     fn supported_assets(&self) -> Vec<SwapperChainAsset> {
         self.supported_assets.clone()
+    }
+
+    fn binding(&self, _quote: &Quote) -> Binding {
+        Binding::DepositAddress
     }
 
     fn amount_mode(&self, request: &QuoteRequest) -> SwapAmountMode {

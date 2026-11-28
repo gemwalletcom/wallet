@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use futures::future::{join_all, try_join_all};
 use primitives::{AssetId, Chain};
 
-use crate::{Contracts, QuoteDataInput, ProviderType, Quote, QuoteRequest, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData, cross_chain::VaultAddresses};
+use crate::{Binding, Contracts, QuoteDataInput, ProviderType, Quote, QuoteRequest, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData, cross_chain::VaultAddresses};
 
 #[derive(Debug)]
 pub(crate) struct ProviderGroup {
@@ -17,6 +17,10 @@ impl ProviderGroup {
 
     fn members_for(&self, chain: Chain) -> impl Iterator<Item = &(&'static str, Box<dyn Swapper>)> {
         self.members.iter().filter(move |(_, member)| member.supported_chains().contains(&chain))
+    }
+
+    fn member(&self, quote: &Quote) -> Option<&dyn Swapper> {
+        self.members.iter().find(|(protocol_id, _)| *protocol_id == quote.data.provider.protocol_id).map(|(_, member)| member.as_ref())
     }
 
     fn quote_provider(&self, protocol_id: &str) -> ProviderType {
@@ -38,8 +42,11 @@ impl Swapper for ProviderGroup {
         assets.iter().enumerate().filter(|(index, asset)| !assets[..*index].contains(asset)).map(|(_, asset)| asset.clone()).collect()
     }
 
-    fn contracts(&self, from_asset: &AssetId) -> Contracts {
-        self.members_for(from_asset.chain).map(|(_, member)| member.contracts(from_asset)).collect()
+    fn binding(&self, quote: &Quote) -> Binding {
+        match self.member(quote) {
+            Some(member) => member.binding(&quote.with_provider(member.provider().clone())),
+            None => Binding::Contracts(Contracts::default()),
+        }
     }
 
     fn amount_mode(&self, request: &QuoteRequest) -> SwapAmountMode {
@@ -64,7 +71,7 @@ impl Swapper for ProviderGroup {
     }
 
     async fn get_quote_data(&self, quote: &Quote, data: QuoteDataInput) -> Result<SwapperQuoteData, SwapperError> {
-        let (_, member) = self.members.iter().find(|(protocol_id, _)| *protocol_id == quote.data.provider.protocol_id).ok_or(SwapperError::InvalidRoute)?;
+        let member = self.member(quote).ok_or(SwapperError::InvalidRoute)?;
         member.get_quote_data(&quote.with_provider(member.provider().clone()), data).await
     }
 
@@ -83,6 +90,7 @@ mod tests {
     use primitives::Chain;
 
     use super::*;
+    use crate::Contracts;
     use crate::testkit::MockSwapper;
 
     fn quote(request: &QuoteRequest, to_value: u64) -> Result<Quote, SwapperError> {
@@ -131,15 +139,15 @@ mod tests {
     }
 
     #[test]
-    fn test_group_binds_every_member_on_the_chain() {
+    fn test_group_binds_the_member_that_quoted() {
         let clmm = MockSwapper::new(SwapperProvider::RaydiumClmm, |request| quote(request, 100)).with_contracts(vec!["clmm"]);
-        let amm = MockSwapper::new(SwapperProvider::RaydiumClmm, |request| quote(request, 100)).with_contracts(vec!["amm"]);
-        let solana = MockSwapper::new(SwapperProvider::RaydiumClmm, |request| quote(request, 100))
-            .with_supported_assets(vec![SwapperChainAsset::All(Chain::Solana)])
-            .with_contracts(vec!["other_chain"]);
-        let group = group(vec![("clmm", clmm), ("amm", amm), ("solana", solana)]);
+        let amm = MockSwapper::new(SwapperProvider::RaydiumClmm, |request| quote(request, 100));
+        let group = group(vec![("clmm", clmm), ("amm", amm)]);
+        let quoted_by = |protocol_id| Quote::mock(Chain::Ethereum, None).with_provider(group.quote_provider(protocol_id));
 
-        assert_eq!(group.contracts(&Chain::Ethereum.as_asset_id()), Contracts::new(vec!["clmm", "amm"]));
+        assert_eq!(group.binding(&quoted_by("clmm")), Binding::Contracts(Contracts::new(vec!["clmm"])));
+        assert_eq!(group.binding(&quoted_by("amm")), Binding::BuiltOnDevice);
+        assert_eq!(group.binding(&quoted_by("unknown")), Binding::Contracts(Contracts::default()), "a quote no member made binds nothing");
     }
 
     #[tokio::test]

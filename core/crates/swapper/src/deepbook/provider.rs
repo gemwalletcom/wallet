@@ -4,7 +4,7 @@ use super::{
     tx_builder,
 };
 use crate::{
-    QuoteDataInput, ProviderType, Quote, QuoteRequest, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperQuoteData,
+    Binding, QuoteDataInput, ProviderType, Quote, QuoteRequest, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperQuoteData,
     sui_swap::{self, coin_type, discovery_pairs, fee_side, is_move_abort, route_paths, upgraded_error},
 };
 use async_trait::async_trait;
@@ -22,6 +22,10 @@ impl Swapper for Deepbook {
 
     fn supported_assets(&self) -> Vec<SwapperChainAsset> {
         vec![SwapperChainAsset::All(Chain::Sui)]
+    }
+
+    fn binding(&self, _quote: &Quote) -> Binding {
+        Binding::BuiltOnDevice
     }
 
     fn amount_mode(&self, _request: &QuoteRequest) -> SwapAmountMode {

@@ -1,8 +1,8 @@
 mod alien;
 mod approval;
+mod binding_check;
 mod chainlink;
 mod clmm;
-mod contract_check;
 pub mod cross_chain;
 mod deployment;
 mod eth_address;
@@ -66,7 +66,7 @@ pub fn amount_to_value(token: &str, decimals: u32) -> Option<String> {
 }
 
 pub use alien::{AlienError, HttpMethod, RpcClient, RpcProvider, Target};
-pub use deployment::{Contracts, Deployment};
+pub use deployment::{Binding, Contracts, Deployment};
 pub use error::SwapperError;
 pub use models::*;
 pub use swapper_trait::Swapper;

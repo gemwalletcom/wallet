@@ -13,7 +13,7 @@ use primitives::{
     swap::{SwapResult, SwapResultRequest, SwapStatus},
 };
 
-use crate::{QuoteDataInput, ProviderData, ProviderType, Quote, QuoteRequest, Route, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData};
+use crate::{Binding, QuoteDataInput, ProviderData, ProviderType, Quote, QuoteRequest, Route, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData};
 
 #[derive(Debug)]
 pub struct HyperCoreBridge {
@@ -51,6 +51,10 @@ impl Swapper for HyperCoreBridge {
             SwapperChainAsset::Assets(Chain::HyperCore, vec![HYPERCORE_HYPE.id.clone()]),
             SwapperChainAsset::Assets(Chain::Hyperliquid, vec![HYPEREVM_HYPE.id.clone()]),
         ]
+    }
+
+    fn binding(&self, _quote: &Quote) -> Binding {
+        Binding::BuiltOnDevice
     }
 
     fn amount_mode(&self, _request: &QuoteRequest) -> SwapAmountMode {

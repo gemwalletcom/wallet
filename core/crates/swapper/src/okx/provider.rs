@@ -6,7 +6,7 @@ use super::{
     quote_data::build_swap_quote_data,
 };
 use crate::{
-    Contracts, QuoteDataInput, ProviderType, Quote, QuoteRequest, SwapAmountMode, Swapper, SwapperError, SwapperProvider, SwapperQuoteData,
+    Binding, QuoteDataInput, ProviderType, Quote, QuoteRequest, SwapAmountMode, Swapper, SwapperError, SwapperProvider, SwapperQuoteData,
     alien::{RpcClient, RpcProvider},
     config::get_swap_provider_url,
     models::SwapperChainAsset,
@@ -14,7 +14,6 @@ use crate::{
 use async_trait::async_trait;
 use gem_client::{Client, ClientExt};
 use num_bigint::BigUint;
-use primitives::AssetId;
 use std::str::FromStr;
 use std::{fmt::Debug, sync::Arc};
 
@@ -62,8 +61,8 @@ where
         SwapAmountMode::Fixed
     }
 
-    fn contracts(&self, from_asset: &AssetId) -> Contracts {
-        constants::contracts(from_asset.chain)
+    fn binding(&self, quote: &Quote) -> Binding {
+        Binding::Contracts(constants::contracts(quote.request.from_asset.chain()))
     }
 
     async fn get_quote(&self, request: &QuoteRequest) -> Result<Quote, SwapperError> {
@@ -97,6 +96,7 @@ fn support_assets() -> Vec<SwapperChainAsset> {
 mod tests {
     use super::super::testkit::{mock_client, mock_solana_request};
     use super::*;
+    use crate::Contracts;
     use crate::{SwapperProviderMode, SwapperQuoteAsset, testkit::mock_quote};
     use gem_client::testkit::MockClient;
     use gem_encoding::decode_base58;
@@ -104,7 +104,6 @@ mod tests {
     use primitives::{
         AssetId, Chain,
         asset_constants::{ETHEREUM_USDC_ASSET_ID, ETHEREUM_USDC_TOKEN_ID},
-        contract_constants::SOLANA_OKX_DEX_V2_PROGRAM_ID,
         testkit::signer_mock::{TEST_EVM_SENDER, TEST_SOLANA_SENDER},
     };
 
@@ -118,21 +117,25 @@ mod tests {
     }
 
     #[test]
-    fn test_contracts() {
+    fn test_binding() {
         let provider = OkxProvider::mock(MockClient::new(), "{}");
 
         assert_eq!(
-            provider.contracts(&AssetId::from_chain(Chain::Ethereum)),
-            Contracts {
+            provider.binding(&Quote::mock_from(&ETHEREUM_USDC_ASSET_ID)),
+            Binding::Contracts(Contracts {
                 targets: vec!["0x8feAB81D36E7576107D5dE0758c1b839Be31B4F6"],
-                spenders: vec![EVM_TOKEN_APPROVE],
-            }
+                spenders: vec!["0x40aA958dd87FC8305b97f2BA922CDdCa374bcD7f"],
+            }),
+            "the router is called and only its approval contract is approved"
         );
-        assert_eq!(provider.contracts(&ETHEREUM_USDC_ASSET_ID), provider.contracts(&AssetId::from_chain(Chain::Ethereum)));
-        assert_eq!(provider.contracts(&AssetId::from_chain(Chain::Solana)), Contracts::new(vec![SOLANA_OKX_DEX_V2_PROGRAM_ID]));
-        assert_eq!(provider.contracts(&AssetId::from_chain(Chain::Bitcoin)), Contracts::default());
+        assert_eq!(provider.binding(&Quote::mock_from(&AssetId::from_chain(Chain::Bitcoin))), Binding::Contracts(Contracts::default()));
         for asset in support_assets() {
-            assert!(!provider.contracts(&asset.get_chain().as_asset_id()).targets.is_empty(), "{:?} ships no contracts", asset.get_chain());
+            assert_ne!(
+                provider.binding(&Quote::mock_from(&asset.get_chain().as_asset_id())),
+                Binding::Contracts(Contracts::default()),
+                "{:?} ships no contracts",
+                asset.get_chain()
+            );
         }
     }
 
@@ -205,7 +208,7 @@ mod tests {
         assert_eq!(decode_transaction(&quote_data.data).unwrap(), unsigned);
         assert_eq!(quote_data.to, "proVF4pMXVaYqmy4NjniPh4pqKNfMmsihgd4wdkCX3u");
         let swapper: &dyn Swapper = &provider;
-        swapper.verify_contracts(&quote, &quote_data).unwrap();
+        swapper.verify_binding(&quote, &quote_data).unwrap();
         assert_eq!(quote_data.value, BigUint::from(0u64));
         assert!(quote_data.approval.is_none());
         assert_eq!(quote_data.gas_limit, unsigned.get_compute_unit_limit().map(|limit| limit.to_string()));
@@ -236,7 +239,7 @@ mod tests {
         assert_eq!(quote_data.value, BigUint::from(0u64));
         assert_eq!(quote_data.data, "0xabc123");
         let swapper: &dyn Swapper = &provider;
-        swapper.verify_contracts(&quote, &quote_data).unwrap();
+        swapper.verify_binding(&quote, &quote_data).unwrap();
         let approval = quote_data.approval.unwrap();
         assert_eq!(approval.token, ETHEREUM_USDC_TOKEN_ID);
         assert_eq!(approval.spender, EVM_TOKEN_APPROVE);
@@ -277,7 +280,7 @@ mod swap_integration_tests {
 
             let quote_data = provider.get_quote_data(&quote, QuoteDataInput::None).await?;
 
-            (&provider as &dyn Swapper).verify_contracts(&quote, &quote_data)?;
+            (&provider as &dyn Swapper).verify_binding(&quote, &quote_data)?;
             assert!(!quote_data.to.is_empty());
             assert_eq!(quote_data.value.to_string(), expected_value);
             assert!(!quote_data.data.is_empty());
@@ -295,7 +298,7 @@ mod swap_integration_tests {
 
         let quote_data = provider.get_quote_data(&quote, QuoteDataInput::None).await?;
 
-        (&provider as &dyn Swapper).verify_contracts(&quote, &quote_data)?;
+        (&provider as &dyn Swapper).verify_binding(&quote, &quote_data)?;
         assert!(!quote_data.to.is_empty());
         assert!(!quote_data.data.is_empty());
         Ok(())

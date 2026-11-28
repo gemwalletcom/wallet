@@ -1,4 +1,4 @@
-use super::{Argument, TransactionBuilder, TransactionBuilderInput};
+use super::{Argument, TransactionBuilder, TransactionBuilderInput, balance::MODULE_COIN};
 use crate::{
     SUI_COIN_TYPE, SuiError,
     address::SuiAddress,
@@ -11,7 +11,6 @@ use gem_encoding::decode_base64;
 use serde::de::DeserializeOwned;
 use std::error::Error;
 
-const MODULE_COIN: &str = "coin";
 const FUNCTION_ZERO: &str = "zero";
 const FUNCTION_REDEEM_FUNDS: &str = "redeem_funds";
 

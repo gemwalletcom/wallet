@@ -1,17 +1,20 @@
 use crate::rpc::proto::{Object, OwnerKind};
-use crate::{SuiClient, SuiError};
+use crate::{SuiClient, SuiError, sui_framework_package_address};
 use std::{
     collections::{BTreeSet, HashMap},
     str::FromStr,
 };
 
-use super::{Argument, TransactionBuilder};
-use crate::types::{Address, Digest, ObjectInput};
+use super::{Argument, TransactionBuilder, balance::MODULE_COIN};
+use crate::types::{Address, Digest, ObjectInput, TypeTag};
+
+const COIN_STRUCT: &str = "Coin";
 
 #[derive(Clone, Debug)]
 pub struct ResolvedObjectInput {
     object_id: Address,
     owner: ResolvedObjectOwner,
+    object_type: Option<String>,
 }
 
 #[derive(Clone, Debug)]
@@ -48,7 +51,29 @@ impl ResolvedObjectInput {
                 return Err(SuiError::invalid_input(format!("Unsupported Sui object owner kind for {object_id}: {owner_kind:?}")));
             }
         };
-        Ok(Self { object_id, owner })
+        Ok(Self {
+            object_id,
+            owner,
+            object_type: object.object_type,
+        })
+    }
+
+    pub(crate) fn is_owned(&self) -> bool {
+        match self.owner {
+            ResolvedObjectOwner::Owned { .. } => true,
+            ResolvedObjectOwner::Shared { .. } | ResolvedObjectOwner::Immutable { .. } => false,
+        }
+    }
+
+    pub(crate) fn coin_type(&self) -> Option<String> {
+        let TypeTag::Struct(object) = self.object_type.as_deref()?.parse::<TypeTag>().ok()? else {
+            return None;
+        };
+        let is_coin = object.address == sui_framework_package_address() && object.module.to_string() == MODULE_COIN && object.name.to_string() == COIN_STRUCT;
+        match object.type_params.as_slice() {
+            [coin_type] if is_coin => Some(coin_type.to_string()),
+            _ => None,
+        }
     }
 
     pub fn input(&self, mutable: bool) -> ObjectInput {
@@ -109,5 +134,44 @@ impl ObjectResolver {
 
     pub fn shared_object(&self, txb: &mut TransactionBuilder, object_id: &str, mutable: bool) -> Result<Argument, SuiError> {
         Ok(txb.object(self.shared_object_input(object_id, mutable)?))
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::{SUI_COIN_TYPE, SUI_COIN_TYPE_FULL, rpc::proto::Owner};
+
+    #[test]
+    fn test_coin_type() {
+        let object = |kind: i32, object_type: &str| {
+            ResolvedObjectInput::from_rpc_object(Object {
+                object_id: Some(format!("0x{:064x}", 1)),
+                version: Some(1),
+                digest: Some("11111111111111111111111111111111".to_string()),
+                owner: Some(Owner {
+                    kind: Some(kind),
+                    address: None,
+                    version: Some(1),
+                }),
+                object_type: Some(object_type.to_string()),
+                ..Default::default()
+            })
+            .unwrap()
+        };
+        let full = object(1, &format!("0x{:064x}::coin::Coin<{SUI_COIN_TYPE}>", 2));
+
+        assert!(full.is_owned());
+        assert_eq!(full.coin_type(), Some(SUI_COIN_TYPE_FULL.to_string()));
+        assert_eq!(object(1, "0x2::coin::Coin<0x2::sui::SUI>").coin_type(), Some(SUI_COIN_TYPE_FULL.to_string()));
+        assert_eq!(
+            object(1, "0x2::coin::Coin<0x5::lp::LP<0x2::sui::SUI>>").coin_type(),
+            object(1, &format!("0x2::coin::Coin<0x5::lp::LP<0x{:064x}::sui::SUI>>", 2)).coin_type(),
+            "a generic coin type reads the same in either address form"
+        );
+        assert_eq!(object(1, "0x2::coin::CoinMetadata<0x2::sui::SUI>").coin_type(), None);
+        assert_eq!(object(1, "0x3::coin::Coin<0x2::sui::SUI>").coin_type(), None, "a coin type of another package is not a coin");
+        assert_eq!(object(1, "0x2::kiosk::Kiosk").coin_type(), None);
+        assert!(!object(3, "0x2::clock::Clock").is_owned(), "a shared object is not the wallet's");
     }
 }

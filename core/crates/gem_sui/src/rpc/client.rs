@@ -363,7 +363,7 @@ impl SuiClient {
             .collect::<Result<Vec<_>, Box<dyn Error + Send + Sync>>>()?;
         let request = BatchGetObjectsRequest {
             requests,
-            read_mask: Some(FieldMask::from_paths(["object_id", "version", "digest", "owner"])),
+            read_mask: Some(FieldMask::from_paths(["object_id", "version", "digest", "owner", "object_type"])),
         };
         let response: BatchGetObjectsResponse = self.grpc_unary("/sui.rpc.v2.LedgerService/BatchGetObjects", request).await?;
         response

@@ -7,26 +7,15 @@ use crate::{
 
 const TRANSFER_DISCRIMINANT: [u8; 4] = decode_hex_literal("02000000");
 pub const ADVANCE_NONCE_ACCOUNT_DISCRIMINANT: [u8; 4] = decode_hex_literal("04000000");
-const ASSIGN_DISCRIMINANT: [u8; 4] = decode_hex_literal("01000000");
-const AUTHORIZE_NONCE_ACCOUNT_DISCRIMINANT: [u8; 4] = decode_hex_literal("07000000");
-const ASSIGN_WITH_SEED_DISCRIMINANT: [u8; 4] = decode_hex_literal("0a000000");
-
-pub fn grants_authority_data(data: &[u8]) -> bool {
-    [ASSIGN_DISCRIMINANT, AUTHORIZE_NONCE_ACCOUNT_DISCRIMINANT, ASSIGN_WITH_SEED_DISCRIMINANT]
-        .iter()
-        .any(|discriminant| data.get(..4) == Some(discriminant.as_slice()))
-}
 
 pub fn is_advance_nonce_account_data(data: &[u8]) -> bool {
     data.get(..4) == Some(ADVANCE_NONCE_ACCOUNT_DISCRIMINANT.as_slice())
 }
 
-pub fn transfer_lamports(data: &[u8]) -> Option<u64> {
+pub(crate) fn transfer_lamports(data: &[u8]) -> Option<u64> {
     let (discriminant, lamports) = data.split_first_chunk::<4>()?;
-    if *discriminant != TRANSFER_DISCRIMINANT {
-        return None;
-    }
-    Some(u64::from_le_bytes(*lamports.first_chunk::<8>()?))
+    let lamports: [u8; 8] = lamports.try_into().ok()?;
+    (*discriminant == TRANSFER_DISCRIMINANT).then_some(u64::from_le_bytes(lamports))
 }
 
 pub fn is_advance_nonce_account(instruction: &Instruction) -> bool {
@@ -49,14 +38,6 @@ pub fn transfer(from: &Pubkey, to: &Pubkey, lamports: u64) -> Instruction {
 mod tests {
     use super::*;
     use primitives::hex;
-
-    #[test]
-    fn test_grants_authority_data() {
-        assert!(grants_authority_data(&ASSIGN_DISCRIMINANT));
-        assert!(grants_authority_data(&AUTHORIZE_NONCE_ACCOUNT_DISCRIMINANT));
-        assert!(grants_authority_data(&ASSIGN_WITH_SEED_DISCRIMINANT));
-        assert!(!grants_authority_data(&TRANSFER_DISCRIMINANT), "a transfer hands nothing over");
-    }
 
     #[test]
     fn test_transfer_wire_format() {

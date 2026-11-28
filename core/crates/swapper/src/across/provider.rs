@@ -1,6 +1,6 @@
 use super::{DEFAULT_DEPOSIT_GAS_LIMIT, DEFAULT_FILL_TIMEOUT, GAS_TOKEN_DECIMALS, config_store::TokenConfig, hubpool::HubPoolClient};
 use crate::{
-    SwapAmountMode, SwapResult, Swapper, SwapperError, SwapperProvider, SwapperQuoteData,
+    Binding, Contracts, SwapAmountMode, SwapResult, Swapper, SwapperError, SwapperProvider, SwapperQuoteData,
     alien::RpcProvider,
     approval::{check_token_approval, get_swap_gas_limit_with_approval},
     chainlink::{self, ONE_DOLLAR},
@@ -239,6 +239,14 @@ impl Swapper for Across {
             .into_iter()
             .filter_map(|chain| supported_assets.get(&chain).map(|assets| SwapperChainAsset::Assets(chain, assets.clone())))
             .collect()
+    }
+
+    fn binding(&self, quote: &Quote) -> Binding {
+        Binding::Contracts(
+            AcrossDeployment::deployment_by_chain(&quote.request.from_asset.chain())
+                .map(|deployment| Contracts::new(vec![deployment.spoke_pool]))
+                .unwrap_or_default(),
+        )
     }
 
     fn amount_mode(&self, _request: &QuoteRequest) -> SwapAmountMode {
@@ -547,8 +555,10 @@ mod tests {
     #[tokio::test]
     async fn test_direct_quote_data_approves_the_token_behind_native_arc_usdc() {
         let provider = Across::new(Arc::new(ProviderMock::mock_json_rpc_result(&HexEncode([0u8; 32]))));
-        let quote_data = provider.get_quote_data(&Quote::mock_across_arc(), QuoteDataInput::None).await.unwrap();
+        let quote = Quote::mock_across_arc();
+        let quote_data = provider.get_quote_data(&quote, QuoteDataInput::None).await.unwrap();
 
+        assert_eq!((&provider as &dyn Swapper).verify_binding(&quote, &quote_data), Ok(()));
         assert_eq!(quote_data.to, ARC_ACROSS_SPOKE_POOL_CONTRACT);
         assert_eq!(quote_data.value, BigUint::ZERO);
         assert_eq!(

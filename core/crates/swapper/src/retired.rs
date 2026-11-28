@@ -1,4 +1,4 @@
-use crate::{QuoteDataInput, ProviderType, Quote, QuoteRequest, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData};
+use crate::{Binding, Contracts, QuoteDataInput, ProviderType, Quote, QuoteRequest, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData};
 use async_trait::async_trait;
 
 /// Providers that no longer quote. They stay registered so lookups by provider still find them.
@@ -23,6 +23,10 @@ impl Swapper for RetiredSwapper {
 
     fn supported_assets(&self) -> Vec<SwapperChainAsset> {
         vec![]
+    }
+
+    fn binding(&self, _quote: &Quote) -> Binding {
+        Binding::Contracts(Contracts::default())
     }
 
     fn amount_mode(&self, _request: &QuoteRequest) -> SwapAmountMode {

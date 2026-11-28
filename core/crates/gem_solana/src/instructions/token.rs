@@ -5,14 +5,13 @@ use crate::{
 
 const TRANSFER_DISCRIMINANT: u8 = 3;
 const TRANSFER_CHECKED_DISCRIMINANT: u8 = 12;
-pub const CLOSE_ACCOUNT_DISCRIMINANT: u8 = 9;
-pub const SYNC_NATIVE_DISCRIMINANT: u8 = 17;
-const APPROVE_DISCRIMINANT: u8 = 4;
-pub const SET_AUTHORITY_DISCRIMINANT: u8 = 6;
-const APPROVE_CHECKED_DISCRIMINANT: u8 = 13;
+pub(crate) const CLOSE_ACCOUNT_DISCRIMINANT: u8 = 9;
+pub(crate) const SYNC_NATIVE_DISCRIMINANT: u8 = 17;
 
-pub fn grants_authority_data(data: &[u8]) -> bool {
-    matches!(data.first(), Some(&(APPROVE_DISCRIMINANT | SET_AUTHORITY_DISCRIMINANT | APPROVE_CHECKED_DISCRIMINANT)))
+pub(crate) fn transfer_checked_amount(data: &[u8]) -> Option<u64> {
+    let (discriminant, arguments) = data.split_first()?;
+    let [amount @ .., _decimals]: [u8; 9] = arguments.try_into().ok()?;
+    (*discriminant == TRANSFER_CHECKED_DISCRIMINANT).then_some(u64::from_le_bytes(amount))
 }
 
 pub fn transfer(source: &Pubkey, destination: &Pubkey, owner: &Pubkey, amount: u64) -> Instruction {
@@ -66,15 +65,6 @@ mod tests {
 
     use super::*;
     use crate::instructions::program_ids::token_2022_program;
-
-    #[test]
-    fn test_grants_authority_data() {
-        assert!(grants_authority_data(&[APPROVE_DISCRIMINANT, 0]));
-        assert!(grants_authority_data(&[SET_AUTHORITY_DISCRIMINANT, 2, 1]));
-        assert!(grants_authority_data(&[APPROVE_CHECKED_DISCRIMINANT, 0]));
-        assert!(!grants_authority_data(&[TRANSFER_CHECKED_DISCRIMINANT, 0]), "moving tokens hands nothing over");
-        assert!(!grants_authority_data(&[]));
-    }
 
     #[test]
     fn test_token_instruction_wire_formats() {

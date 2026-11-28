@@ -96,6 +96,10 @@ impl AssetId {
         AssetId { chain, token_id: Some(token_id.into()) }
     }
 
+    pub fn approval_token(&self) -> Option<&str> {
+        self.token_id.as_deref().or_else(|| EVMChain::from_chain(self.chain).and_then(|chain| chain.native_token_contract()))
+    }
+
     pub fn from_chain(chain: Chain) -> AssetId {
         AssetId { chain, token_id: None }
     }
@@ -277,6 +281,15 @@ mod tests {
         assert_eq!(asset_id.chain, Chain::HyperCore);
         assert_eq!(asset_id.token_id, Some("perpetual::ETH".to_string()));
         assert_eq!(asset_id.to_string(), "hypercore_perpetual::ETH");
+    }
+
+    #[test]
+    fn test_approval_token() {
+        assert_eq!(AssetId::from_token(Chain::Ethereum, "0xtoken").approval_token(), Some("0xtoken"));
+        assert_eq!(AssetId::from_chain(Chain::Ethereum).approval_token(), None);
+        assert_eq!(AssetId::from_chain(Chain::Celo).approval_token(), EVMChain::Celo.native_token_contract(), "a coin that is also a token approves its own token");
+        assert!(AssetId::from_chain(Chain::Celo).approval_token().is_some());
+        assert_eq!(AssetId::from_chain(Chain::Solana).approval_token(), None);
     }
 
     #[test]

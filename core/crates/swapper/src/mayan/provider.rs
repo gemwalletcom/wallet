@@ -1,31 +1,36 @@
 use super::{
-    asset::{supported_assets as mayan_supported_assets, token_id_for_asset},
+    asset::{asset_id_for_token, supported_assets as mayan_supported_assets, token_id_for_asset},
+    cctp_domain::CCTP_TOKEN_DECIMALS,
     client::MayanClient,
     constants::{
-        MAYAN_CPI_PROXY_PROGRAM_ID, MAYAN_DEPOSIT_CONTRACTS, MAYAN_FAST_MCTP_PROGRAM_ID, MAYAN_FEE_MANAGER_PROGRAM_ID, MAYAN_FORWARDER, MAYAN_MAX_SLIPPAGE_BPS, MAYAN_MCTP_PROGRAM_ID, MAYAN_PAYLOAD_WRITER_PROGRAM_ID, MAYAN_PROGRAM_ID,
-        MAYAN_SEND_CONTRACTS,
+        HYPERCORE_USDC_SETTLED_DECIMALS, MAYAN_CPI_PROXY_PROGRAM_ID, MAYAN_DEPOSIT_CONTRACTS, MAYAN_FAST_MCTP_PROGRAM_ID, MAYAN_FEE_MANAGER_PROGRAM_ID, MAYAN_FORWARDER, MAYAN_MAX_SLIPPAGE_BPS, MAYAN_MCTP_PROGRAM_ID,
+        MAYAN_PAYLOAD_WRITER_PROGRAM_ID, MAYAN_PROGRAM_ID, MAYAN_SEND_CONTRACTS,
     },
     mapper::map_swap_result,
-    model::{MayanChain, MayanQuote, MayanTransactionResult, QuoteParams, SwiftVersion},
-    tx_builder::{fast_mctp, mctp, mono_chain, swift},
+    model::{MayanChain, MayanQuote, MayanQuoteCommon, MayanTransactionResult, QuoteParams, SwiftVersion},
+    tx_builder::{amount::fractional_amount, fast_mctp, mctp, mono_chain, swift},
     wormhole_chain,
 };
 use crate::amount_to_value;
 use crate::client_factory::create_eth_client;
 use crate::{
-    Contracts, QuoteDataInput, ProviderType, Quote, QuoteRequest, RpcClient, RpcProvider, SwapAmountMode, SwapResult, SwapResultRequest, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData,
+    Binding, Contracts, QuoteDataInput, ProviderType, Quote, QuoteRequest, RpcClient, RpcProvider, SwapAmountMode, SwapResult, SwapResultRequest, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteAsset,
+    SwapperQuoteData,
     config::get_swap_proxy_url,
     cross_chain::VaultAddresses,
-    fees::{default_referral_address, default_referral_fees},
+    fees::{default_referral_address, default_referral_fees, subtract_bps},
     route_cache::Cache,
 };
 use async_trait::async_trait;
 use gem_client::Client;
 use gem_evm::rpc::client::FUNCTION_ERC20_DECIMALS;
+use num_bigint::BigUint;
 use primitives::{
-    AssetId, Chain, ChainType, HOUR,
+    Chain, ChainType, HOUR,
     contract_constants::{EVM_ZERO_ADDRESS, SOLANA_JUPITER_PROGRAM_ID},
     decode_hex,
+    known_assets::HYPERCORE_SPOT_USDC,
+    swap::SlippageMode,
 };
 use std::{collections::BTreeSet, fmt::Debug, sync::Arc};
 
@@ -101,6 +106,40 @@ where
     }
 }
 
+const MINIMUM_ROUNDING_BPS: u32 = 1;
+
+fn settles_in_asset_decimals(asset: &SwapperQuoteAsset, route: &MayanQuoteCommon) -> bool {
+    let decimals = if asset.asset_id() == HYPERCORE_SPOT_USDC.id { HYPERCORE_USDC_SETTLED_DECIMALS } else { asset.decimals };
+    route.to_token.decimals == decimals
+}
+
+fn bridges_minimum_out(route: &MayanQuote) -> Result<bool, SwapperError> {
+    let (min_middle_amount, has_auction) = match route {
+        MayanQuote::Mctp(route) => (&route.min_middle_amount, route.has_auction),
+        MayanQuote::FastMctp(route) => (&route.min_middle_amount, route.has_auction),
+        MayanQuote::Swift(_) | MayanQuote::MonoChain(_) => return Ok(true),
+    };
+    match (has_auction, min_middle_amount) {
+        (Some(true), _) | (Some(false) | None, None) => Ok(true),
+        (Some(false) | None, Some(min_middle_amount)) => Ok(fractional_amount::<BigUint>(min_middle_amount, CCTP_TOKEN_DECIMALS)? >= fractional_amount::<BigUint>(&route.common().min_amount_out, CCTP_TOKEN_DECIMALS)?),
+    }
+}
+
+fn validate_route(quote: &Quote, route: &MayanQuote) -> Result<(), SwapperError> {
+    let bridges_minimum_out = bridges_minimum_out(route)?;
+    let route = route.common();
+    let from_asset = quote.request.from_asset.asset_id();
+    let to_asset = quote.request.to_asset.asset_id();
+    let amount = route.effective_amount_in64.parse::<BigUint>().map_err(|_| SwapperError::InvalidRoute)?;
+    let spends_quoted_asset = asset_id_for_token(from_asset.chain, &route.from_token.contract).as_ref() == Some(&from_asset);
+    let pays_quoted_asset = route.to_chain == wormhole_chain::name_for_chain(to_asset.chain)? && asset_id_for_token(to_asset.chain, &route.to_token.contract).as_ref() == Some(&to_asset);
+    let pays_quoted_minimum = fractional_amount::<BigUint>(&route.min_amount_out, quote.request.to_asset.decimals)? >= subtract_bps(&quote.to_value, quote.data.slippage_bps.saturating_add(MINIMUM_ROUNDING_BPS));
+    if !spends_quoted_asset || !pays_quoted_asset || !bridges_minimum_out || !settles_in_asset_decimals(&quote.request.to_asset, route) || !pays_quoted_minimum || amount > quote.from_value {
+        return Err(SwapperError::InvalidRoute);
+    }
+    Ok(())
+}
+
 #[async_trait]
 impl<C> Swapper for Mayan<C>
 where
@@ -118,10 +157,10 @@ where
         SwapAmountMode::Fixed
     }
 
-    fn contracts(&self, from_asset: &AssetId) -> Contracts {
-        Contracts::new(match from_asset.chain.chain_type() {
-            ChainType::Ethereum => vec![MAYAN_FORWARDER],
-            ChainType::Solana => vec![
+    fn binding(&self, quote: &Quote) -> Binding {
+        match quote.request.from_asset.chain().chain_type() {
+            ChainType::Ethereum => Binding::Contracts(Contracts::new(vec![MAYAN_FORWARDER])),
+            ChainType::Solana => Binding::Contracts(Contracts::new(vec![
                 MAYAN_CPI_PROXY_PROGRAM_ID,
                 MAYAN_PROGRAM_ID,
                 MAYAN_MCTP_PROGRAM_ID,
@@ -129,9 +168,21 @@ where
                 MAYAN_FEE_MANAGER_PROGRAM_ID,
                 MAYAN_PAYLOAD_WRITER_PROGRAM_ID,
                 SOLANA_JUPITER_PROGRAM_ID,
-            ],
-            _ => Vec::new(),
-        })
+            ])),
+            ChainType::Sui => Binding::BuiltOnDevice,
+            ChainType::Bitcoin
+            | ChainType::Cosmos
+            | ChainType::Ton
+            | ChainType::Tron
+            | ChainType::Aptos
+            | ChainType::Xrp
+            | ChainType::Near
+            | ChainType::Stellar
+            | ChainType::Algorand
+            | ChainType::Polkadot
+            | ChainType::Cardano
+            | ChainType::HyperCore => Binding::Contracts(Contracts::default()),
+        }
     }
 
     async fn get_quote(&self, request: &QuoteRequest) -> Result<Quote, SwapperError> {
@@ -159,16 +210,25 @@ where
             .await
             .map_err(|error| map_quote_error(error, request.from_asset.decimals))?;
         let route = Self::select_route(&routes, from_asset.chain, to_asset.chain).ok_or(SwapperError::NoQuoteAvailable)?;
+        let allowed_slippage_bps = match request.options.slippage.mode {
+            SlippageMode::Exact => request.options.slippage.bps,
+            SlippageMode::Auto => MAYAN_MAX_SLIPPAGE_BPS,
+        };
+        if route.common().slippage_bps > allowed_slippage_bps {
+            return Err(SwapperError::InvalidRoute);
+        }
         let to_value = route.common().expected_output_value(request.to_asset.decimals)?;
-
-        Ok(Quote {
+        let quote = Quote {
             from_value,
             ..Quote::from_route(request, self.provider(), to_value, route.common().slippage_bps, route, Some(route.common().eta_seconds))?
-        })
+        };
+        validate_route(&quote, route)?;
+        Ok(quote)
     }
 
     async fn get_quote_data(&self, quote: &Quote, _data: QuoteDataInput) -> Result<SwapperQuoteData, SwapperError> {
         let route: MayanQuote = quote.route_data()?;
+        validate_route(quote, &route)?;
         match (quote.request.from_asset.chain().chain_type(), &route) {
             (ChainType::Ethereum, MayanQuote::Swift(route)) => swift::evm::build_quote_data(&self.price_client, quote, route, self.rpc_provider.clone()).await,
             (ChainType::Ethereum, MayanQuote::Mctp(route)) => mctp::evm::build_quote_data(&self.price_client, quote, route, self.rpc_provider.clone()).await,
@@ -257,21 +317,121 @@ fn map_quote_error(error: SwapperError, decimals: u32) -> SwapperError {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::testkit::mock_quote;
-    use num_bigint::BigUint;
+    use crate::{mayan::model::MayanToken, testkit::mock_quote};
+    use primitives::asset_constants::{SOLANA_USDC_ASSET_ID, SUI_USDC_TOKEN_ID};
 
     #[test]
-    fn test_contracts() {
+    fn test_validate_route() {
+        let mctp = MayanMctpQuote::mock_solana_to_sui();
+        let route = MayanQuote::Mctp(Box::new(mctp.clone()));
+        let request = |from: AssetId, to: AssetId| mock_quote(SwapperQuoteAsset::from(from), SwapperQuoteAsset { decimals: 6, ..SwapperQuoteAsset::from(to) });
+        let sui_usdc = AssetId::from_token(Chain::Sui, SUI_USDC_TOKEN_ID);
+        let quote = Quote::mock_with_request(&request(SOLANA_USDC_ASSET_ID.clone(), sui_usdc.clone()));
+        let coin = MayanQuote::Mctp(Box::new(MayanMctpQuote {
+            common: MayanQuoteCommon {
+                from_token: MayanToken {
+                    contract: EVM_ZERO_ADDRESS.to_string(),
+                    ..mctp.common.from_token.clone()
+                },
+                ..mctp.common.clone()
+            },
+            ..mctp.clone()
+        }));
+
+        assert_eq!(validate_route(&quote, &route), Ok(()));
+        assert_eq!(
+            validate_route(
+                &Quote {
+                    to_value: BigUint::from(803_620u64),
+                    ..quote.clone()
+                },
+                &route
+            ),
+            Ok(()),
+            "a minimum a unit under the quote's is rounding"
+        );
+        assert_eq!(validate_route(&Quote::mock_with_request(&request(AssetId::from_chain(Chain::Solana), sui_usdc.clone())), &coin), Ok(()));
+        for (quote, reason) in [
+            (
+                Quote {
+                    from_value: BigUint::from(999_999u64),
+                    ..quote.clone()
+                },
+                "a route that spends more than quoted",
+            ),
+            (Quote::mock_with_request(&request(AssetId::from_chain(Chain::Solana), sui_usdc.clone())), "a route that spends another asset than quoted"),
+            (
+                Quote::mock_with_request(&request(SOLANA_USDC_ASSET_ID.clone(), AssetId::from_chain(Chain::Sui))),
+                "a route that pays out another asset than quoted",
+            ),
+            (
+                Quote::mock_with_request(&request(SOLANA_USDC_ASSET_ID.clone(), AssetId::from_token(Chain::Base, SUI_USDC_TOKEN_ID))),
+                "a route that pays out on another network than quoted",
+            ),
+            (
+                Quote {
+                    to_value: BigUint::from(810_000u64),
+                    ..quote.clone()
+                },
+                "a route that accepts less than the minimum the quote shows",
+            ),
+            (
+                Quote::mock_with_request(&mock_quote(
+                    SwapperQuoteAsset::from(SOLANA_USDC_ASSET_ID.clone()),
+                    SwapperQuoteAsset {
+                        decimals: 8,
+                        ..SwapperQuoteAsset::from(sui_usdc)
+                    },
+                )),
+                "a route that names other decimals for the asset than it has, which would sign a smaller minimum",
+            ),
+        ] {
+            assert_eq!(validate_route(&quote, &route), Err(SwapperError::InvalidRoute), "{reason}");
+        }
+    }
+
+    #[test]
+    fn test_validate_route_bridges_minimum_out() {
+        let mctp = MayanMctpQuote::mock_solana_to_sui();
+        let quote = Quote::mock_with_request(&mock_quote(
+            SwapperQuoteAsset::from(SOLANA_USDC_ASSET_ID.clone()),
+            SwapperQuoteAsset {
+                decimals: 6,
+                ..SwapperQuoteAsset::from(AssetId::from_token(Chain::Sui, SUI_USDC_TOKEN_ID))
+            },
+        ));
+        let route = |min_middle_amount: f64, has_auction: bool| {
+            MayanQuote::Mctp(Box::new(MayanMctpQuote {
+                min_middle_amount: Some(serde_json::json!(min_middle_amount)),
+                has_auction: Some(has_auction),
+                ..mctp.clone()
+            }))
+        };
+
+        assert_eq!(validate_route(&quote, &route(0.7996, false)), Ok(()));
+        assert_eq!(validate_route(&quote, &route(0.000001, true)), Ok(()), "an auction signs the minimum out at the destination");
+        assert_eq!(
+            validate_route(&quote, &route(0.7995, false)),
+            Err(SwapperError::InvalidRoute),
+            "a bridge without an auction pays out what it bridges, so the bridged minimum must cover the minimum out"
+        );
+    }
+
+    #[test]
+    fn test_binding() {
         let provider = Mayan::with_clients(MayanClient::new(MockClient::new()), MayanClient::new(MockClient::new()), Arc::new(ProviderMock::new("{}".to_string())));
 
-        assert_eq!(provider.contracts(&AssetId::from_chain(Chain::Ethereum)), Contracts::new(vec![MAYAN_FORWARDER]));
-        assert_eq!(provider.contracts(&AssetId::from_chain(Chain::Base)), Contracts::new(vec![MAYAN_FORWARDER]));
-        assert!(provider.contracts(&AssetId::from_chain(Chain::Solana)).targets.contains(&MAYAN_CPI_PROXY_PROGRAM_ID));
-        assert!(
-            provider.contracts(&AssetId::from_chain(Chain::Solana)).targets.contains(&SOLANA_JUPITER_PROGRAM_ID),
-            "a route that swaps on Solana first calls Jupiter outside Mayan's proxy"
+        assert_eq!(
+            provider.binding(&Quote::mock_from(&AssetId::from_chain(Chain::Base))),
+            Binding::Contracts(Contracts::new(vec![MAYAN_FORWARDER])),
+            "every EVM network calls the forwarder"
         );
-        assert_eq!(provider.contracts(&AssetId::from_chain(Chain::Sui)), Contracts::default(), "a Sui transaction carries its packages inside");
+        assert_eq!(provider.binding(&Quote::mock_from(&AssetId::from_chain(Chain::Sui))), Binding::BuiltOnDevice, "a Sui transaction carries its packages inside");
+        assert_eq!(
+            provider.binding(&Quote::mock_from(&AssetId::from_chain(Chain::Tron))),
+            Binding::Contracts(Contracts::default()),
+            "a network Mayan does not swap from is refused"
+        );
     }
 
     #[test]
@@ -345,6 +505,35 @@ mod tests {
         let quote = provider.get_quote(&request).await.unwrap();
 
         assert_eq!(quote.to_value, BigUint::from(602333700u64));
+        let tighter = QuoteRequest {
+            options: Options::new_with_slippage(4.into()),
+            ..request
+        };
+        assert_eq!(provider.get_quote(&tighter).await.unwrap_err(), SwapperError::InvalidRoute, "a route with more slippage than the wallet set");
+
+        let replying = |edit: fn(&mut serde_json::Value)| {
+            let mut reply: serde_json::Value = serde_json::from_slice(include_bytes!("test/quote_response_swift_hypercore.json")).unwrap();
+            edit(&mut reply["quotes"][0]);
+            let price_client = MockClient::new().with_get(move |_| Ok(serde_json::to_vec(&reply).unwrap()));
+            Mayan::with_clients(MayanClient::new(price_client), MayanClient::new(MockClient::new()), Arc::new(ProviderMock::new("{}".to_string())))
+        };
+        let auto = QuoteRequest { options: Options::default(), ..tighter };
+        assert!(replying(|_| {}).get_quote(&auto).await.is_ok());
+        assert_eq!(
+            replying(|quote| quote["slippageBps"] = serde_json::json!(MAYAN_MAX_SLIPPAGE_BPS + 1)).get_quote(&auto).await.unwrap_err(),
+            SwapperError::InvalidRoute,
+            "an Auto slippage above the most Mayan is asked for"
+        );
+        assert_eq!(
+            replying(|quote| quote["toToken"]["decimals"] = serde_json::json!(2)).get_quote(&auto).await.unwrap_err(),
+            SwapperError::InvalidRoute,
+            "a reply that names fewer decimals than HyperCore USDC settles in"
+        );
+        assert_eq!(
+            replying(|quote| quote["minAmountOut"] = serde_json::json!(5)).get_quote(&auto).await.unwrap_err(),
+            SwapperError::InvalidRoute,
+            "a route that accepts less than the minimum the quote would show is left out of the list"
+        );
     }
 
     #[tokio::test]
@@ -398,13 +587,14 @@ mod tests {
 #[cfg(all(test, feature = "swap_integration_tests"))]
 mod swap_integration_tests {
     use super::*;
-    use crate::testkit::mock_quote;
+    use crate::testkit::{TEST_SUI_WALLET, mock_quote};
     use crate::{QuoteDataInput, SwapperQuoteAsset, mayan::constants::MAYAN_FORWARDER, models::Options};
     use gem_reqwest::NativeProvider;
     use num_bigint::BigUint;
     use primitives::{
-        AssetId,
-        asset_constants::{BASE_USDC_ASSET_ID, HYPERCORE_SPOT_USDC_ASSET_ID, HYPEREVM_USDC_ASSET_ID, POLYGON_USDT_ASSET_ID, SOLANA_USDC_ASSET_ID, SUI_USDC_ASSET_ID},
+        Asset, AssetId,
+        asset_constants::{HYPEREVM_USDC_ASSET_ID, POLYGON_USDT_ASSET_ID, SOLANA_USDC_ASSET_ID, SUI_USDC_ASSET_ID, SUI_WAL_ASSET_ID},
+        known_assets::BASE_USDC,
         swap::{Slippage, SlippageMode, SwapStatus},
     };
     use std::{future::Future, time::Instant};
@@ -422,7 +612,7 @@ mod swap_integration_tests {
         let provider = Mayan::new(rpc_provider);
         let request = QuoteRequest {
             from_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Ethereum)),
-            to_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Solana)),
+            to_asset: SwapperQuoteAsset::from(&Asset::from_chain(Chain::Solana)),
             wallet_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".to_string(),
             destination_address: "7g2rVN8fAAQdPh1mkajpvELqYa3gWvFXJsBLnKfEQfqy".to_string(),
             value: BigUint::from(50000000000000000u64),
@@ -431,7 +621,7 @@ mod swap_integration_tests {
 
         let quote = timed("mayan swift evm quote", provider.get_quote(&request)).await?;
         let quote_data = timed("mayan swift evm quote data", provider.get_quote_data(&quote, QuoteDataInput::None)).await?;
-        (&provider as &dyn Swapper).verify_contracts(&quote, &quote_data)?;
+        (&provider as &dyn Swapper).verify_binding(&quote, &quote_data)?;
 
         assert_eq!(quote.from_value, request.value);
         assert!(quote.to_value > BigUint::ZERO);
@@ -453,7 +643,7 @@ mod swap_integration_tests {
         let provider = Mayan::new(rpc_provider);
         let request = QuoteRequest {
             from_asset: SwapperQuoteAsset::from(SOLANA_USDC_ASSET_ID.clone()),
-            to_asset: SwapperQuoteAsset::from(BASE_USDC_ASSET_ID.clone()),
+            to_asset: SwapperQuoteAsset::from(&*BASE_USDC),
             wallet_address: "7g2rVN8fAAQdPh1mkajpvELqYa3gWvFXJsBLnKfEQfqy".to_string(),
             destination_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".to_string(),
             value: BigUint::from(5000000u64),
@@ -462,7 +652,7 @@ mod swap_integration_tests {
 
         let quote = timed("mayan swift solana quote", provider.get_quote(&request)).await?;
         let quote_data = timed("mayan swift solana quote data", provider.get_quote_data(&quote, QuoteDataInput::None)).await?;
-        (&provider as &dyn Swapper).verify_contracts(&quote, &quote_data)?;
+        (&provider as &dyn Swapper).verify_binding(&quote, &quote_data)?;
 
         assert_eq!(quote.from_value, request.value);
         assert!(quote.to_value > BigUint::ZERO);
@@ -485,7 +675,7 @@ mod swap_integration_tests {
         let provider = Mayan::new(rpc_provider);
         let request = QuoteRequest {
             from_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Solana)),
-            to_asset: SwapperQuoteAsset::from(BASE_USDC_ASSET_ID.clone()),
+            to_asset: SwapperQuoteAsset::from(&*BASE_USDC),
             wallet_address: "7g2rVN8fAAQdPh1mkajpvELqYa3gWvFXJsBLnKfEQfqy".to_string(),
             destination_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".to_string(),
             value: BigUint::from(100_000_000u64),
@@ -494,7 +684,7 @@ mod swap_integration_tests {
 
         let quote = timed("mayan swift solana swap-first quote", provider.get_quote(&request)).await?;
         let quote_data = timed("mayan swift solana swap-first quote data", provider.get_quote_data(&quote, QuoteDataInput::None)).await?;
-        (&provider as &dyn Swapper).verify_contracts(&quote, &quote_data)?;
+        (&provider as &dyn Swapper).verify_binding(&quote, &quote_data)?;
 
         let MayanQuote::Swift(route) = quote.route_data()? else {
             return Err(SwapperError::InvalidRoute);
@@ -510,7 +700,7 @@ mod swap_integration_tests {
         let provider = Mayan::new(rpc_provider);
         let request = QuoteRequest {
             from_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Sui)),
-            to_asset: SwapperQuoteAsset::from(BASE_USDC_ASSET_ID.clone()),
+            to_asset: SwapperQuoteAsset::from(&*BASE_USDC),
             wallet_address: "0xa9bd0493f9bd1f792a4aedc1f99d54535a75a46c38fd56a8f2c6b7c8d75817a1".to_string(),
             destination_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".to_string(),
             value: BigUint::from(1000000000u64),
@@ -519,7 +709,7 @@ mod swap_integration_tests {
 
         let quote = timed("mayan fast mctp sui quote", provider.get_quote(&request)).await?;
         let quote_data = timed("mayan fast mctp sui quote data", provider.get_quote_data(&quote, QuoteDataInput::None)).await?;
-        (&provider as &dyn Swapper).verify_contracts(&quote, &quote_data)?;
+        (&provider as &dyn Swapper).verify_binding(&quote, &quote_data)?;
 
         assert_eq!(quote.from_value, request.value);
         assert!(quote.to_value > BigUint::ZERO);
@@ -537,12 +727,36 @@ mod swap_integration_tests {
     }
 
     #[tokio::test]
+    async fn test_mayan_provider_get_sui_token_quote_and_data() -> Result<(), SwapperError> {
+        let provider = Mayan::new(Arc::new(NativeProvider::default().set_debug(false)));
+        let request = QuoteRequest {
+            from_asset: SwapperQuoteAsset::from(SUI_WAL_ASSET_ID.clone()),
+            to_asset: SwapperQuoteAsset::from(&*BASE_USDC),
+            wallet_address: TEST_SUI_WALLET.to_string(),
+            destination_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".to_string(),
+            value: BigUint::from(5_000_000_000u64),
+            options: Options::new_with_slippage(200.into()),
+        };
+
+        let quote = timed("mayan sui token quote", provider.get_quote(&request)).await?;
+        let quote_data = timed("mayan sui token quote data", provider.get_quote_data(&quote, QuoteDataInput::None)).await?;
+        (&provider as &dyn Swapper).verify_binding(&quote, &quote_data)?;
+
+        assert!(quote.to_value > BigUint::ZERO);
+        assert!(!quote_data.data.is_empty());
+        Ok(())
+    }
+
+    #[tokio::test]
     async fn test_mayan_provider_get_fast_mctp_solana_to_sui_quote_and_data() -> Result<(), SwapperError> {
         let rpc_provider = Arc::new(NativeProvider::default().set_debug(false));
         let provider = Mayan::new(rpc_provider);
         let request = QuoteRequest {
             from_asset: SwapperQuoteAsset::from(SOLANA_USDC_ASSET_ID.clone()),
-            to_asset: SwapperQuoteAsset::from(SUI_USDC_ASSET_ID.clone()),
+            to_asset: SwapperQuoteAsset {
+                decimals: 6,
+                ..SwapperQuoteAsset::from(SUI_USDC_ASSET_ID.clone())
+            },
             wallet_address: "7g2rVN8fAAQdPh1mkajpvELqYa3gWvFXJsBLnKfEQfqy".to_string(),
             destination_address: "0xa9bd0493f9bd1f792a4aedc1f99d54535a75a46c38fd56a8f2c6b7c8d75817a1".to_string(),
             value: BigUint::from(1000000u64),
@@ -551,7 +765,7 @@ mod swap_integration_tests {
 
         let quote = timed("mayan fast mctp solana to sui quote", provider.get_quote(&request)).await?;
         let quote_data = timed("mayan fast mctp solana to sui quote data", provider.get_quote_data(&quote, QuoteDataInput::None)).await?;
-        (&provider as &dyn Swapper).verify_contracts(&quote, &quote_data)?;
+        (&provider as &dyn Swapper).verify_binding(&quote, &quote_data)?;
 
         assert_eq!(quote.from_value, request.value);
         assert!(quote.to_value > BigUint::ZERO);
@@ -572,7 +786,10 @@ mod swap_integration_tests {
         let provider = Mayan::new(rpc_provider);
         let request = QuoteRequest {
             from_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Ethereum)),
-            to_asset: SwapperQuoteAsset::from(SUI_USDC_ASSET_ID.clone()),
+            to_asset: SwapperQuoteAsset {
+                decimals: 6,
+                ..SwapperQuoteAsset::from(SUI_USDC_ASSET_ID.clone())
+            },
             wallet_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".to_string(),
             destination_address: "0xa9bd0493f9bd1f792a4aedc1f99d54535a75a46c38fd56a8f2c6b7c8d75817a1".to_string(),
             value: BigUint::from(100000000000000000u64),
@@ -581,7 +798,7 @@ mod swap_integration_tests {
 
         let quote = timed("mayan fast mctp evm to sui quote", provider.get_quote(&request)).await?;
         let quote_data = timed("mayan fast mctp evm to sui quote data", provider.get_quote_data(&quote, QuoteDataInput::None)).await?;
-        (&provider as &dyn Swapper).verify_contracts(&quote, &quote_data)?;
+        (&provider as &dyn Swapper).verify_binding(&quote, &quote_data)?;
 
         assert_eq!(quote.from_value, request.value);
         assert!(quote.to_value > BigUint::ZERO);
@@ -601,7 +818,7 @@ mod swap_integration_tests {
         let provider = Mayan::new(rpc_provider);
         let request = QuoteRequest {
             from_asset: SwapperQuoteAsset::from(SUI_USDC_ASSET_ID.clone()),
-            to_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Base)),
+            to_asset: SwapperQuoteAsset::from(&Asset::from_chain(Chain::Base)),
             wallet_address: "0xa9bd0493f9bd1f792a4aedc1f99d54535a75a46c38fd56a8f2c6b7c8d75817a1".to_string(),
             destination_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".to_string(),
             value: BigUint::from(3000000u64),
@@ -610,7 +827,7 @@ mod swap_integration_tests {
 
         let quote = timed("mayan fast mctp sui usdc order quote", provider.get_quote(&request)).await?;
         let quote_data = timed("mayan fast mctp sui usdc order quote data", provider.get_quote_data(&quote, QuoteDataInput::None)).await?;
-        (&provider as &dyn Swapper).verify_contracts(&quote, &quote_data)?;
+        (&provider as &dyn Swapper).verify_binding(&quote, &quote_data)?;
 
         let MayanQuote::FastMctp(route) = quote.route_data()? else {
             return Err(SwapperError::InvalidRoute);
@@ -629,12 +846,12 @@ mod swap_integration_tests {
         let provider = Mayan::new(rpc_provider);
         let request = QuoteRequest {
             options: Options::new_with_slippage(200.into()),
-            ..mock_quote(SwapperQuoteAsset::from(HYPEREVM_USDC_ASSET_ID.clone()), SwapperQuoteAsset::from(HYPERCORE_SPOT_USDC_ASSET_ID.clone()))
+            ..mock_quote(SwapperQuoteAsset::from(HYPEREVM_USDC_ASSET_ID.clone()), SwapperQuoteAsset::from(&*HYPERCORE_SPOT_USDC))
         };
 
         let quote = timed("mayan mono-chain hyperevm to hypercore quote", provider.get_quote(&request)).await?;
         let quote_data = timed("mayan mono-chain hyperevm to hypercore quote data", provider.get_quote_data(&quote, QuoteDataInput::None)).await?;
-        (&provider as &dyn Swapper).verify_contracts(&quote, &quote_data)?;
+        (&provider as &dyn Swapper).verify_binding(&quote, &quote_data)?;
 
         assert_eq!(quote.from_value, request.value);
         assert!(quote.to_value > BigUint::ZERO);
@@ -654,7 +871,7 @@ mod swap_integration_tests {
         let provider = Mayan::new(rpc_provider);
         let request = QuoteRequest {
             from_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Ethereum)),
-            to_asset: SwapperQuoteAsset::from(AssetId::from_chain(Chain::Solana)),
+            to_asset: SwapperQuoteAsset::from(&Asset::from_chain(Chain::Solana)),
             wallet_address: "0x514BCb1F9AAbb904e6106Bd1052B66d2706dBbb7".to_string(),
             destination_address: "7g2rVN8fAAQdPh1mkajpvELqYa3gWvFXJsBLnKfEQfqy".to_string(),
             value: BigUint::from(50000000000000000u64),

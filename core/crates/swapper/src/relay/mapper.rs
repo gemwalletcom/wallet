@@ -13,18 +13,20 @@ use super::{
     chain::RelayChain,
     contracts,
     model::{RelayQuoteResponse, RelayRequest, RelayRequestAppFees},
+    solana,
 };
 use crate::{
-    Deployment, SwapResult, SwapperError, SwapperProvider, SwapperQuoteData,
+    Deployment, QuoteRequest, SwapResult, SwapperError, SwapperProvider, SwapperQuoteData,
     approval::{DEFAULT_EVM_SWAP_GAS_LIMIT, DEFAULT_TRON_SWAP_ENERGY_LIMIT, get_swap_gas_limit_with_approval},
 };
 
-pub fn validate_quote_response(from_chain: RelayChain, quote_response: &RelayQuoteResponse, value: &BigUint) -> Result<(), SwapperError> {
+pub fn validate_quote_response(from_chain: RelayChain, quote_response: &RelayQuoteResponse, request: &QuoteRequest) -> Result<(), SwapperError> {
     match from_chain {
-        RelayChain::Bitcoin => map_bitcoin_quote_data(quote_response, value).map(drop),
-        RelayChain::Evm(_) | RelayChain::Tron | RelayChain::Ton => validate_targets(from_chain, quote_response),
-        RelayChain::Solana => Ok(()),
-        RelayChain::Xrp => map_xrp_quote_data(quote_response, value).and_then(|_| validate_targets(from_chain, quote_response)),
+        RelayChain::Bitcoin => map_bitcoin_quote_data(quote_response, &request.value).map(drop),
+        RelayChain::Evm(_) | RelayChain::Tron => validate_targets(from_chain, quote_response),
+        RelayChain::Ton => map_ton_quote_data(quote_response, &request.value).and_then(|_| validate_targets(from_chain, quote_response)),
+        RelayChain::Solana => solana::quoted_transaction(request, quote_response).map(drop),
+        RelayChain::Xrp => map_xrp_quote_data(quote_response, &request.value).and_then(|_| validate_targets(from_chain, quote_response)),
     }
 }
 
@@ -79,14 +81,18 @@ pub fn map_tron_quote_data(quote_response: &RelayQuoteResponse, approval: Option
     ))
 }
 
-pub fn map_ton_quote_data(quote_response: &RelayQuoteResponse) -> Result<SwapperQuoteData, SwapperError> {
+pub fn map_ton_quote_data(quote_response: &RelayQuoteResponse, value: &BigUint) -> Result<SwapperQuoteData, SwapperError> {
     let ton = quote_response.get_ton_step().ok_or(SwapperError::InvalidRoute)?;
     let messages = ton
         .messages
         .iter()
         .map(|message| Ok(TonConnectMessage::new(RelayChain::Ton.contract_address(&message.to)?, &BigUint::from_str(&message.value)?, Some(message.body.clone()))))
         .collect::<Result<Vec<_>, SwapperError>>()?;
-    TonConnectMessage::swap_quote_data(&messages).map_err(|_| SwapperError::InvalidRoute)
+    let data = TonConnectMessage::swap_quote_data(&messages).map_err(|_| SwapperError::InvalidRoute)?;
+    if data.value > *value {
+        return Err(SwapperError::InvalidRoute);
+    }
+    Ok(data)
 }
 
 fn map_referral_fee(app_fees: Option<&RelayRequestAppFees>) -> Option<TransactionSwapReferralFee> {
@@ -137,7 +143,11 @@ pub fn map_swap_result(request: &RelayRequest) -> SwapResult {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::relay::model::{RelayQuoteResponse, RelayRequest, RelayRequestsResponse, RelayStatus, Step};
+    use crate::{
+        SwapperQuoteAsset,
+        relay::model::{RelayQuoteResponse, RelayRequest, RelayRequestsResponse, RelayStatus, Step},
+        testkit::mock_quote,
+    };
     use primitives::{
         AssetId, Chain,
         asset_constants::{BASE_USDC_ASSET_ID, ETHEREUM_USDC_ASSET_ID},
@@ -148,26 +158,32 @@ mod tests {
     #[test]
     fn test_validate_quote_response_binds_targets_to_shipped_contracts() {
         let celo = include_str!("testdata/quote_celo_native_to_bsc_usdt.json");
+        let request = mock_quote(SwapperQuoteAsset::from(AssetId::from_chain(Chain::Celo)), SwapperQuoteAsset::from(BASE_USDC_ASSET_ID.clone()));
         let shipped: RelayQuoteResponse = serde_json::from_str(celo).unwrap();
-        assert!(validate_quote_response(RelayChain::Evm(EVMChain::Celo), &shipped, &BigUint::ZERO).is_ok());
+        assert!(validate_quote_response(RelayChain::Evm(EVMChain::Celo), &shipped, &request).is_ok());
 
         let tron: RelayQuoteResponse = serde_json::from_str(include_str!("testdata/quote_tron_to_base_usdc.json")).unwrap();
-        assert!(validate_quote_response(RelayChain::Tron, &tron, &BigUint::ZERO).is_ok(), "a hex Tron contract matches the shipped base58 depository");
+        assert!(validate_quote_response(RelayChain::Tron, &tron, &request).is_ok(), "a hex Tron contract matches the shipped base58 depository");
 
         let foreign: RelayQuoteResponse = serde_json::from_str(&celo.replace("0xccc88a9d1b4ed6b0eaba998850414b24f1c315be", "0x0000000000000000000000000000000000000001")).unwrap();
-        assert_eq!(validate_quote_response(RelayChain::Evm(EVMChain::Celo), &foreign, &BigUint::ZERO).unwrap_err(), SwapperError::InvalidRoute);
+        assert_eq!(validate_quote_response(RelayChain::Evm(EVMChain::Celo), &foreign, &request).unwrap_err(), SwapperError::InvalidRoute);
 
         let mut ton: serde_json::Value = serde_json::from_str(include_str!("testdata/quote_ton_to_base_usdc.json")).unwrap();
         let shipped_ton: RelayQuoteResponse = serde_json::from_value(ton.clone()).unwrap();
-        assert!(validate_quote_response(RelayChain::Ton, &shipped_ton, &BigUint::ZERO).is_ok());
+        let request = QuoteRequest {
+            value: BigUint::from(5_000_000_000u64),
+            ..request
+        };
+        assert!(validate_quote_response(RelayChain::Ton, &shipped_ton, &request).is_ok());
         let step = ton["steps"].as_array_mut().unwrap().iter_mut().find(|step| step["items"][0]["data"]["messages"].is_array()).unwrap();
         let messages = step["items"][0]["data"]["messages"].as_array_mut().unwrap();
         let mut drain = messages[0].clone();
         drain["to"] = serde_json::Value::String("EQBvW8Z5huBkMJYdnfAEM5JqTNkuWX3diqYENkWsIL0XggGG".to_string());
+        drain["value"] = serde_json::Value::String("0".to_string());
         messages.push(drain);
         let drained: RelayQuoteResponse = serde_json::from_value(ton).unwrap();
         assert_eq!(
-            validate_quote_response(RelayChain::Ton, &drained, &BigUint::ZERO).unwrap_err(),
+            validate_quote_response(RelayChain::Ton, &drained, &request).unwrap_err(),
             SwapperError::InvalidRoute,
             "a second message paying elsewhere is refused"
         );
@@ -178,20 +194,24 @@ mod tests {
         let quote = include_str!("testdata/quote_xrp_to_arb_usdc.json");
         let response: RelayQuoteResponse = serde_json::from_str(quote).unwrap();
         let value = BigUint::from(10_000_000u64);
+        let request = QuoteRequest {
+            value: value.clone(),
+            ..mock_quote(SwapperQuoteAsset::from(AssetId::from_chain(Chain::Xrp)), SwapperQuoteAsset::from(BASE_USDC_ASSET_ID.clone()))
+        };
         let memo = "0xa1b3ef6f9a2b6d7c3979b4b7b64efd3a6b54a167aa2d0ee0bc1ab9891bc651c9";
         assert_eq!(
             map_xrp_quote_data(&response, &value).unwrap(),
             SwapperQuoteData::new_transfer("rJBdWA9p5KwBoqSQTyMdg3UHLsJVzGVu5m".to_string(), value.clone(), Some(memo.to_string()))
         );
-        assert!(validate_quote_response(RelayChain::Xrp, &response, &value).is_ok());
+        assert!(validate_quote_response(RelayChain::Xrp, &response, &request).is_ok());
         assert_eq!(map_xrp_quote_data(&response, &BigUint::from(10_000_001u64)), Err(SwapperError::InvalidRoute));
 
         let foreign_quote = quote.replace("rJBdWA9p5KwBoqSQTyMdg3UHLsJVzGVu5m", "rHb9CJAWyB4rj91VRWn96DkukG4bwdtyTh");
         let foreign: RelayQuoteResponse = serde_json::from_str(&foreign_quote).unwrap();
-        assert_eq!(validate_quote_response(RelayChain::Xrp, &foreign, &value), Err(SwapperError::InvalidRoute));
+        assert_eq!(validate_quote_response(RelayChain::Xrp, &foreign, &request), Err(SwapperError::InvalidRoute));
 
         let approve: RelayQuoteResponse = serde_json::from_str(&foreign_quote.replace(r#""id": "deposit""#, r#""id": "approve""#).replace(r#""kind": "transaction""#, r#""kind": "signature""#)).unwrap();
-        assert_eq!(validate_quote_response(RelayChain::Xrp, &approve, &value), Err(SwapperError::InvalidRoute));
+        assert_eq!(validate_quote_response(RelayChain::Xrp, &approve, &request), Err(SwapperError::InvalidRoute));
         assert_eq!(map_xrp_quote_data(&approve, &value), Err(SwapperError::InvalidRoute));
 
         let evm = RelayQuoteResponse::mock_with_steps(vec![Step::mock_transaction("deposit", "0xrouter", "0", "0x")]);
@@ -202,6 +222,10 @@ mod tests {
     fn test_map_bitcoin_quote_data() {
         let response: RelayQuoteResponse = serde_json::from_str(include_str!("testdata/quote_btc_to_base_usdc.json")).unwrap();
         let value = BigUint::from(2_000_000u64);
+        let request = QuoteRequest {
+            value: value.clone(),
+            ..mock_quote(SwapperQuoteAsset::from(AssetId::from_chain(Chain::Bitcoin)), SwapperQuoteAsset::from(BASE_USDC_ASSET_ID.clone()))
+        };
         assert_eq!(
             map_bitcoin_quote_data(&response, &value).unwrap(),
             SwapperQuoteData::new_transfer("bc1qa0z550eacdsxytnxf9yk7xvvhqzqvlx2tl44z2".to_string(), value.clone(), None)
@@ -213,10 +237,10 @@ mod tests {
         assert_eq!(map_bitcoin_quote_data(&missing, &value), Err(SwapperError::InvalidRoute));
         let evm = RelayQuoteResponse::mock_with_steps(vec![Step::mock_transaction("deposit", "0xrouter", "0", "0x")]);
         assert_eq!(map_bitcoin_quote_data(&evm, &value), Err(SwapperError::InvalidRoute));
-        assert_eq!(validate_quote_response(RelayChain::Bitcoin, &evm, &value), Err(SwapperError::InvalidRoute));
-        assert_eq!(validate_quote_response(RelayChain::Tron, &evm, &value), Err(SwapperError::InvalidRoute));
-        assert_eq!(validate_quote_response(RelayChain::Solana, &evm, &value), Ok(()));
-        assert_eq!(validate_quote_response(RelayChain::Bitcoin, &response, &value), Ok(()));
+        assert_eq!(validate_quote_response(RelayChain::Bitcoin, &evm, &request), Err(SwapperError::InvalidRoute));
+        assert_eq!(validate_quote_response(RelayChain::Tron, &evm, &request), Err(SwapperError::InvalidRoute));
+        assert_eq!(validate_quote_response(RelayChain::Solana, &evm, &request), Err(SwapperError::InvalidRoute), "a Solana quote without a Solana transaction");
+        assert_eq!(validate_quote_response(RelayChain::Bitcoin, &response, &request), Ok(()));
     }
 
     #[test]
@@ -280,7 +304,8 @@ mod tests {
     #[test]
     fn test_map_ton_quote_data() {
         let quote_response: RelayQuoteResponse = serde_json::from_str(include_str!("testdata/quote_ton_to_base_usdc.json")).unwrap();
-        let result = map_ton_quote_data(&quote_response).unwrap();
+        let value = BigUint::from(5_000_000_000u64);
+        let result = map_ton_quote_data(&quote_response, &value).unwrap();
         let body = quote_response.get_ton_step().unwrap().messages[0].body.clone();
 
         assert_eq!(result.to, "EQCrdGsDTqA2t6xRR4N6V4J705F7w_VQbUdHnofsh-8lVIPs");
@@ -291,10 +316,15 @@ mod tests {
         );
         assert!(result.approval.is_none());
         assert!(result.gas_limit.is_none());
+        assert_eq!(
+            map_ton_quote_data(&quote_response, &BigUint::from(4_999_999_999u64)),
+            Err(SwapperError::InvalidRoute),
+            "messages that send more TON than quoted"
+        );
 
         assert_eq!(map_evm_quote_data(&quote_response, None).unwrap_err(), SwapperError::InvalidRoute);
         let tron_quote: RelayQuoteResponse = serde_json::from_str(include_str!("testdata/quote_tron_to_base_usdc.json")).unwrap();
-        assert_eq!(map_ton_quote_data(&tron_quote).unwrap_err(), SwapperError::InvalidRoute);
+        assert_eq!(map_ton_quote_data(&tron_quote, &value).unwrap_err(), SwapperError::InvalidRoute);
     }
 
     #[test]

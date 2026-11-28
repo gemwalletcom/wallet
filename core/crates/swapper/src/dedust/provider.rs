@@ -5,7 +5,7 @@ use super::{
     tx_builder::DedustSwap,
 };
 use crate::{
-    QuoteDataInput, ProviderType, Quote, QuoteRequest, RpcClient, RpcProvider, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData,
+    Binding, QuoteDataInput, ProviderType, Quote, QuoteRequest, RpcClient, RpcProvider, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData,
     client_factory::create_ton_client,
     fees::subtract_bps,
     models::nonzero_swap_value,
@@ -98,6 +98,10 @@ where
         vec![SwapperChainAsset::All(Chain::Ton)]
     }
 
+    fn binding(&self, _quote: &Quote) -> Binding {
+        Binding::BuiltOnDevice
+    }
+
     fn amount_mode(&self, _request: &QuoteRequest) -> SwapAmountMode {
         SwapAmountMode::Fixed
     }
@@ -141,7 +145,7 @@ mod swap_integration_tests {
         for (from, to, value) in [(ton(), usdt(), 1_000_000_000u64), (usdt(), ton(), 5_000_000), (usdt(), not(), 5_000_000), (ton(), stton(), 10_000_000_000)] {
             let quote = provider.get_quote(&mock_request(from, to, value)).await?;
             let data = provider.get_quote_data(&quote, QuoteDataInput::None).await?;
-            (&provider as &dyn Swapper).verify_contracts(&quote, &data)?;
+            (&provider as &dyn Swapper).verify_binding(&quote, &data)?;
             let messages: Vec<TonConnectMessage> = serde_json::from_str(&data.data)?;
             println!("DeDust quote: to_value={} route={} messages={}", quote.to_value, quote.data.routes[0].route_data, messages.len());
 

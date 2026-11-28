@@ -35,6 +35,7 @@ pub const SUI_USDC_TREASURY: &str = "0x57d6725e7a8b49a7b2a612f6bd66ab5f39fc95332
 pub const SDK_VERSION: &str = "15_3_0";
 
 pub const MAYAN_MAX_SLIPPAGE_BPS: u32 = 500;
+pub const HYPERCORE_USDC_SETTLED_DECIMALS: u32 = 6;
 
 pub const MAYAN_DEPOSIT_CONTRACTS: &[Deployment] = &[
     Deployment::new(Chain::Ethereum, MAYAN_FORWARDER),

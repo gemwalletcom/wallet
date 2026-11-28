@@ -1,6 +1,6 @@
 use super::commands::{SwapCommands, build_commands, encode_execute};
 use crate::{
-    Contracts, QuoteDataInput, ProviderType, Quote, QuoteRequest, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData,
+    Binding, Contracts, QuoteDataInput, ProviderType, Quote, QuoteRequest, SwapAmountMode, Swapper, SwapperChainAsset, SwapperError, SwapperProvider, SwapperQuoteData,
     alien::RpcProvider,
     approval::{DEFAULT_EVM_SWAP_GAS_LIMIT, check_approval_erc20, get_swap_gas_limit_with_approval},
     client_factory::create_client_with_chain,
@@ -116,8 +116,8 @@ impl Swapper for Aero {
         SwapAmountMode::Fixed
     }
 
-    fn contracts(&self, from_asset: &AssetId) -> Contracts {
-        get_factory_by_chain(&from_asset.chain).map(|_| Contracts::new(vec![METAROUTER])).unwrap_or_default()
+    fn binding(&self, quote: &Quote) -> Binding {
+        Binding::Contracts(get_factory_by_chain(&quote.request.from_asset.chain()).map(|_| Contracts::new(vec![METAROUTER])).unwrap_or_default())
     }
 
     async fn preload_routes(&self, from_asset: &AssetId, to_asset: &AssetId) {
@@ -285,7 +285,7 @@ mod tests {
         }
         .into_quote(&native, aero.provider().clone(), true, U256::from(1));
         let data = aero.get_quote_data(&quote, QuoteDataInput::None).await.unwrap();
-        (&aero as &dyn Swapper).verify_contracts(&quote, &data).unwrap();
+        (&aero as &dyn Swapper).verify_binding(&quote, &data).unwrap();
         let swap = SwapExactIn {
             pools: vec![pool],
             tokenIn: weth,
@@ -315,7 +315,7 @@ mod tests {
         }
         .into_quote(&token, aero.provider().clone(), false, U256::from(1));
         let data = aero.get_quote_data(&quote, QuoteDataInput::None).await.unwrap();
-        (&aero as &dyn Swapper).verify_contracts(&quote, &data).unwrap();
+        (&aero as &dyn Swapper).verify_binding(&quote, &data).unwrap();
         let swap = SwapExactIn {
             tokenIn: usdc,
             amountIn: BalanceSpend::amount(U256::from(100_000_000u64)),
@@ -389,7 +389,7 @@ mod swap_integration_tests {
             };
             let quote = provider.get_quote(&request).await?;
             let data = provider.get_quote_data(&quote, QuoteDataInput::None).await?;
-            (&provider as &dyn Swapper).verify_contracts(&quote, &data)?;
+            (&provider as &dyn Swapper).verify_binding(&quote, &data)?;
             println!("{chain} native -> {} through {:?}", quote.to_value, quote.data.routes);
 
             assert_eq!((data.to.as_str(), data.approval.clone(), data.gas_limit.clone()), (METAROUTER, None, None));

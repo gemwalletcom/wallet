@@ -6,7 +6,7 @@ use number_formatter::BigNumberFormatter;
 use serde_json::Value;
 use std::str::FromStr;
 
-pub(super) fn fractional_amount<T>(amount: &Value, decimals: u32) -> Result<T, SwapperError>
+pub(in crate::mayan) fn fractional_amount<T>(amount: &Value, decimals: u32) -> Result<T, SwapperError>
 where
     T: FromStr,
     SwapperError: From<T::Err>,

@@ -10,6 +10,8 @@ mod finish;
 mod replay;
 #[cfg(feature = "rpc")]
 mod resolver;
+#[cfg(feature = "rpc")]
+mod spend;
 #[cfg(all(any(test, debug_assertions), feature = "rpc"))]
 mod testkit;
 

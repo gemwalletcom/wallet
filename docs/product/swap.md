@@ -148,6 +148,8 @@ A stablecoin is one on the official list, USDT, USDC, USDS, USDe, USD1, USDG and
 | The user changes Slippage | the choice is kept for later swaps | |
 | Slippage is Auto and the provider is OKX or Chainflip | Minimum Receive uses the most OKX may take, and the slippage Chainflip recommends | the minimum shown is one the trade keeps |
 | The user picks a Slippage and the provider is Chainflip | the swap uses that slippage, not Chainflip's recommendation | the chosen limit is the one enforced |
+| The user picks a Slippage and Mayan's or Relay's route would use more | that provider gives no quote | the chosen limit is the one enforced |
+| Slippage is Auto and Mayan's route would use more than `5%` | Mayan gives no quote | Auto never lets the provider pick an unbounded minimum |
 
 ### Confirm
 
@@ -201,30 +203,52 @@ A stablecoin is one on the official list, USDT, USDC, USDS, USDe, USD1, USDG and
 
 ## Contract binding
 
-A provider may only move funds into contracts the app ships for it. Before Confirm signs, the app checks the transaction against that list: on EVM and Tron the contract called and every spender, on Solana every instruction's program, on TON every message. Standard Solana programs pass but may not approve a delegate, change an authority or reassign an account; the Solana check stops at the program, so where a transfer inside a standard program pays is not yet bound. A provider that names anything else is refused at Confirm, and left out of the quote list where its quote already names the contract. When a provider upgrades a contract, its swaps stop until the app update that ships the new address.
+Every provider declares, for each network, how its swaps are bound: to the contracts the app ships for it, to a deposit address the provider makes per swap, or to a transaction the app builds itself against shipped contracts.
+
+Before Confirm signs, the app checks every swap, however it is bound:
+
+- An approval or Permit2 signature is only for the token being swapped. A coin that is also a token, such as CELO, approves its own token, and a coin held as a token, such as Arc's USDC, approves that token.
+- On EVM and Tron a token swap sends no coin, and a coin swap sends at most the amount quoted.
+- A deposit, of the coin or as a token transfer, sends at most the amount quoted.
+
+For a provider bound to contracts it also checks:
+
+- On EVM and Tron, the contract called and every spender. A plain token transfer counts as the deposit only into a contract the app both calls and approves for that provider.
+- On TON, every message, and together they attach no more TON than the amount quoted.
+- For a plain transfer, the address it pays.
+- For a provider that shows several pool types as one, only the contracts of the pool type that gave the quote.
+- On Solana, every instruction. Besides the provider's own programs, only the standard steps pass: setting the network fee under a limit, creating token accounts, wrapping SOL into the wallet's own account, no more than the amount quoted unless the account is closed back to the wallet, paying Gem's fee, and closing accounts back to the wallet. Gem's fee is in one token, the token swapped or the token received, and no more than Gem's fee on the amount quoted. The network fee may come to no more than `0.01 SOL`. SOL sent anywhere the check cannot tie to the wallet or to Gem is limited to the rent of two token accounts.
+
+A provider that names anything else is refused at Confirm, and left out of the quote list where its quote already names the contract. When a provider upgrades a contract, its swaps stop until the app update that ships the new address.
 
 | Provider | Network | Bound to | Checked |
 |---|---|---|---|
 | THORChain | EVM token deposit | The router | In the quote list and at Confirm |
-| THORChain | Coin deposit | Not bound: the vault rotates | |
+| THORChain | Coin deposit, and tokens on other networks | A deposit address: the vault rotates | |
 | OKX | EVM | The router, and its approval contract as the only spender | At Confirm |
 | OKX | Solana | Its program | At Confirm |
 | Relay | EVM | Its deposit contract, approval proxies and routers; only the deposit contract and approval proxies as spenders | In the quote list and at Confirm |
-| Relay | Tron, TON | Its depository | In the quote list and at Confirm |
-| Relay | XRP Ledger | Its depository, with exactly the amount quoted | In the quote list |
-| Relay | Solana | Its depository and forwarder programs, and Jupiter's | At Confirm |
-| Chainflip | EVM, Tron, Solana | The vault, exactly the amount and token quoted, the asset, network and address the swap pays out to, and the refund address, minimum price, and a refund sent as a plain transfer, with no contract message | At Confirm |
-| Mayan | EVM | The forwarder | At Confirm |
-| Mayan | Solana | Its programs, and Jupiter's; a swap before the bridge pays into the bridge's own account, and the steps around it only create token accounts, wrap SOL into the wallet's own account and close an account back to the wallet | At Confirm |
-| Bridgers | EVM, TON coin | The router | At Confirm |
-| Jupiter, Orca, Raydium, PumpSwap, Meteora | Solana | Their programs | At Confirm |
+| Relay | Tron | Its depository | In the quote list and at Confirm |
+| Relay | TON | Its depository | In the quote list and at Confirm |
+| Relay | XRP Ledger | Its depository, with exactly the amount quoted | In the quote list and at Confirm |
+| Relay | Solana | Its depository and forwarder programs, and Jupiter's; the deposit, and a swap before it, spend only the asset quoted and no more than the amount quoted; the swap spends from the wallet's own account of that token, allows no more slippage than the quote shows, takes no fee, keeps no share of a better price, and pays into the account Relay's forwarder deposits; a swap whose amount the app cannot read is left out | In the quote list and at Confirm |
+| Chainflip | EVM, Tron, Solana | The vault, exactly the amount and token quoted, the asset, network and address the swap pays out to, and the refund address, minimum price, and a refund sent as a plain transfer, with no contract message; no oracle price limit, the chunks and boost fee the quote chose, and a commission paid to the broker account the app ships, no higher than Gem's fee and the broker's own `0.05%` | At Confirm |
+| Chainflip | EVM, Tron, Solana | The minimum price is never below the price the amounts shown imply, less the slippage | At Confirm |
+| Mayan | EVM | The forwarder; the route spends only the asset quoted, no more than the amount quoted, pays out the asset and network quoted, in the asset's own decimals, and accepts no less than the Minimum Receive shown; a route without an auction pays out what it bridges, so the least the bridge accepts covers the Minimum Receive; on a route that also swaps after the bridge, the least the swap before the bridge accepts is Mayan's, which nothing independent prices | In the quote list and at Confirm |
+| Mayan | Solana | Its programs, and Jupiter's; the route spends only the asset quoted, no more than the amount quoted, pays out the asset and network quoted, in the asset's own decimals, and accepts no less than the Minimum Receive shown; a swap before the bridge spends from the wallet's own account of that token, takes no fee, keeps no share of a better price and pays into the bridge's own account, whose own instruction holds the least it accepts; a route without an auction pays out what it bridges, so the least the bridge accepts covers the Minimum Receive; on a route that also swaps after the bridge, the least the swap before the bridge accepts is Mayan's, which nothing independent prices; the steps around it are only the standard Solana steps above, with no fee of their own | In the quote list and at Confirm |
+| Bridgers | EVM, TON coin, XRP Ledger | The router | At Confirm |
+| Jupiter | Solana | Its program; the swap spends no more than the amount quoted, from the wallet's own account of the token quoted, delivers at least the amount shown less the slippage the wallet set, takes exactly Gem's fee into Gem's fee account, keeps no share of a better price, and pays into the wallet's own account of the token received; the steps around it are only the standard Solana steps above, with no fee of their own | In the quote list and at Confirm |
+| Orca, Raydium, PumpSwap, Meteora | Solana | Their programs | At Confirm |
 | Aero | EVM | The Metarouter | At Confirm |
-| Relay, Chainflip, Near Intents, swaps.xyz | Bitcoin and other deposit-address swaps | Not bound: a deposit address made per swap | |
-| Mayan on Sui; Bridgers for TON tokens and XRP | | Not bound | |
-| DeDust, STON.fi | TON tokens | Not bound: the sender's own jetton wallet, which comes from the TON node | |
-| Hyperliquid | HYPE and UBTC against USDC | The pair's market, shipped with the app | |
-| Hyperliquid | Any other pair | Not bound: the market comes from the Hyperliquid node | |
-| Uniswap family, Across, SunSwap, STON.fi, DeDust, Hyperion, Cetus, DeepBook, Stellar DEX, XRP Ledger DEX | All | Built on the device against shipped contracts | |
+| Uniswap, PancakeSwap, Oku, Wagmi, Aerodrome | EVM | The Universal Router, with Permit2 and the router as spenders | At Confirm |
+| SunSwap | Tron | Its Universal Router, with its Permit2 and the router as spenders | At Confirm |
+| Across | EVM, Tron | The spoke pool | At Confirm |
+| Relay, Chainflip, Near Intents, swaps.xyz | Deposit-address swaps, such as Relay from Bitcoin and Chainflip from Polkadot | A deposit address made per swap | |
+| Mayan | Sui | Built on the device against the package read from Mayan's shipped state object on the Sui node; the route spends only the asset quoted, no more than the amount quoted, pays out the asset and network quoted, in the asset's own decimals, and accepts no less than the Minimum Receive shown; a swap before the bridge replays the transaction Mayan returns, which may take from the wallet only the coin quoted, no more than the amount quoted, and the SUI in the Wormhole fee coin the reply names, which Wormhole accepts only at its exact fee; a route without an auction pays out what it bridges, so the least the bridge accepts covers the Minimum Receive; on a route that also swaps after the bridge, the least the swap before the bridge accepts is Mayan's, which nothing independent prices | In the quote list and at Confirm |
+| Bridgers, DeDust, STON.fi | TON tokens | Built on the device: the token leaves through the sender's own jetton wallet, which comes from the TON node | |
+| DeDust, STON.fi | TON coin | Built on the device against shipped contracts | |
+| Hyperliquid | All | Built on the device: the order names the pair's market, shipped with the app for HYPE and UBTC against USDC and read from the Hyperliquid node for any other pair; HYPE moved between HyperEVM and HyperCore is a send to the network's system address | |
+| Hyperion, Cetus, DeepBook, Stellar DEX, XRP Ledger DEX | All | Built on the device against shipped contracts | |
 
 A known contract shows under its provider's name, such as `SunSwap Router`; the shared Uniswap Permit2 shows as `Permit2`.
 
@@ -240,4 +264,4 @@ None recorded.
 - A slow provider never holds back a quote another provider already gave.
 - Swap never signs anything: the confirmation screen holds the only authentication and signs the trade it showed.
 - The Slippage row reads Auto on both screens until the user picks a value.
-- A swap only calls, and only approves, contracts the app ships for that provider and network ([Contract binding](#contract-binding)).
+- A swap only approves the token it swaps, never sends more than the amount quoted outside OKX's own Solana program, which the app does not read, and only calls and approves contracts the app ships for that provider and network ([Contract binding](#contract-binding)).

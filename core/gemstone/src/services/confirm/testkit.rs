@@ -352,7 +352,7 @@ pub fn mock_swap_transfer(address: &str, permit2: Option<Permit2ApprovalData>) -
         recipient: GemRecipient::address(address.to_string()),
         value: 5.into(),
         ..GemTransferData::mock(TransactionInputType::Swap {
-            from_asset: Asset::mock_eth(),
+            from_asset: Asset::mock_ethereum_usdt(),
             to_asset: Asset::mock_erc20(),
             swap_data: SwapData {
                 data: SwapQuoteData { permit2, ..SwapQuoteData::mock() },

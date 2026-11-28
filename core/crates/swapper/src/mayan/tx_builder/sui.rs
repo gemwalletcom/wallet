@@ -6,7 +6,7 @@ use std::{
 use gem_client::Client;
 use gem_sui::tx_builder::{Argument, TransactionBuilder};
 use gem_sui::{
-    SUI_COIN_TYPE, SuiClient, is_sui_coin,
+    SUI_COIN_TYPE, SuiClient, coin_type_matches, is_sui_coin,
     models::{Coin, OwnedCoins},
     tx_builder::{ResolvedObjectInput, TransactionJsonReplay, build_input_coin, prepare_transaction_json_replay},
 };
@@ -34,10 +34,36 @@ impl SuiClientSwapReplay {
     where
         C: Client + Clone + Send + Sync + Debug + 'static,
     {
+        let coin_type = params.input_coin_type.clone();
+        let amount = params.amount_in64.parse::<u64>()?;
         let swap: SuiClientSwap = client.get_swap_sui(params).await?;
         let replay = prepare_transaction_json_replay(sui_client, &swap.tx).await.map_err(sui_error)?;
+        verify_wallet_spend(&replay, &coin_type, amount, wormhole_fee(&swap, &replay)?)?;
         Ok(Self { swap, replay })
     }
+}
+
+fn wormhole_fee(swap: &SuiClientSwap, replay: &TransactionJsonReplay) -> Result<u64, SwapperError> {
+    let Some(coin) = &swap.wh_fee_coin else {
+        return Ok(0);
+    };
+    match replay.unused_wallet_split(coin) {
+        Some((coin_type, amount)) if coin_type_matches(&coin_type, SUI_COIN_TYPE) => Ok(amount),
+        Some(_) | None => Err(SwapperError::InvalidRoute),
+    }
+}
+
+fn verify_wallet_spend(replay: &TransactionJsonReplay, coin_type: &str, amount: u64, wormhole_fee: u64) -> Result<(), SwapperError> {
+    let spend = replay.wallet_spend().map_err(|_| SwapperError::InvalidRoute)?;
+    let within_quote = spend.iter().all(|(spent_type, spent)| {
+        let quoted = if coin_type_matches(spent_type, coin_type) { amount } else { 0 };
+        let fee = if coin_type_matches(spent_type, SUI_COIN_TYPE) { wormhole_fee } else { 0 };
+        *spent <= quoted.saturating_add(fee)
+    });
+    if !within_quote {
+        return Err(SwapperError::InvalidRoute);
+    }
+    Ok(())
 }
 
 pub(in crate::mayan::tx_builder) struct SuiInputCoin {
@@ -134,7 +160,7 @@ mod tests {
     use super::*;
     use crate::mayan::model::{MayanFastMctpQuote, MayanMctpQuote, SuiTransactionArgument};
     use gem_sui::types::{Command, Input, WithdrawalReservation};
-    use primitives::asset_constants::SUI_USDC_TOKEN_ID;
+    use primitives::asset_constants::{SUI_USDC_TOKEN_ID, SUI_WAL_TOKEN_ID};
 
     #[test]
     fn test_bridge_amount() {
@@ -149,6 +175,58 @@ mod tests {
         let route = MayanFastMctpQuote::mock_sui();
         let input_contract = route.fast_mctp_input_contract.clone().unwrap();
         assert_eq!(bridge_amount(&route, route.min_middle_amount.as_ref(), &input_contract).unwrap(), 1_038_528);
+    }
+
+    #[test]
+    fn test_verify_wallet_spend() {
+        let coin: SuiClientSwap = serde_json::from_str(include_str!("../test/sui_client_swap_sui_to_usdc.json")).unwrap();
+        let token: SuiClientSwap = serde_json::from_str(include_str!("../test/sui_client_swap_wal_to_usdc.json")).unwrap();
+        let wallet_coins = |coin_type: &'static str| (0..19).map(|index| (index, coin_type)).collect::<Vec<_>>();
+        let from_gas = TransactionJsonReplay::mock(&coin.tx);
+        let from_wallet_coins = TransactionJsonReplay::mock_with_wallet_coins(&token.tx, &wallet_coins(SUI_WAL_TOKEN_ID));
+
+        assert_eq!(verify_wallet_spend(&from_gas, SUI_COIN_TYPE, 1_000_000_000, 0), Ok(()));
+        assert_eq!(verify_wallet_spend(&from_wallet_coins, SUI_WAL_TOKEN_ID, 5_000_000_000, 0), Ok(()));
+        for (replay, coin_type, amount, reason) in [
+            (&from_gas, SUI_COIN_TYPE, 999_999_999, "a swap that takes more SUI than quoted"),
+            (&from_gas, SUI_WAL_TOKEN_ID, 1_000_000_000, "a swap of a token that takes SUI"),
+            (&from_wallet_coins, SUI_WAL_TOKEN_ID, 4_999_999_999, "a swap that takes more of the token than quoted"),
+            (
+                &TransactionJsonReplay::mock_with_wallet_coins(&token.tx, &wallet_coins(SUI_USDC_TOKEN_ID)),
+                SUI_WAL_TOKEN_ID,
+                5_000_000_000,
+                "a swap that takes the wallet's coins of another token",
+            ),
+        ] {
+            assert_eq!(verify_wallet_spend(replay, coin_type, amount, 0), Err(SwapperError::InvalidRoute), "{reason}");
+        }
+        assert_eq!(verify_wallet_spend(&from_gas, SUI_WAL_TOKEN_ID, 0, 1_000_000_000), Ok(()), "SUI for the Wormhole fee beside a token swap");
+
+        assert_eq!(wormhole_fee(&coin, &from_gas), Ok(0), "a reply without a fee coin gets no SUI for the fee");
+        let fee_coin = |argument| SuiClientSwap { wh_fee_coin: Some(argument), ..coin.clone() };
+        assert_eq!(
+            wormhole_fee(&fee_coin(SuiTransactionArgument::NestedResult { nested_result: [0, 0] }), &from_gas),
+            Err(SwapperError::InvalidRoute),
+            "a fee coin the swap also spends, so a call could split SUI off it"
+        );
+        assert_eq!(wormhole_fee(&fee_coin(SuiTransactionArgument::Result { result: 4 }), &from_gas), Err(SwapperError::InvalidRoute), "a fee coin a call returns");
+        let mut with_fee_split: Value = serde_json::from_str(&coin.tx).unwrap();
+        let fee_input = with_fee_split["inputs"].as_array().unwrap().len();
+        with_fee_split["inputs"]
+            .as_array_mut()
+            .unwrap()
+            .push(serde_json::json!({ "Pure": { "bytes": gem_encoding::encode_base64(&7_000u64.to_le_bytes()) } }));
+        let fee_command = with_fee_split["commands"].as_array().unwrap().len();
+        with_fee_split["commands"]
+            .as_array_mut()
+            .unwrap()
+            .push(serde_json::json!({ "SplitCoins": { "coin": { "GasCoin": true }, "amounts": [{ "Input": fee_input }] } }));
+        let fee_split = TransactionJsonReplay::mock(&with_fee_split.to_string());
+        assert_eq!(
+            wormhole_fee(&fee_coin(SuiTransactionArgument::NestedResult { nested_result: [fee_command, 0] }), &fee_split),
+            Ok(7_000),
+            "SUI split from the wallet for the fee and left for Wormhole, which takes only its exact fee"
+        );
     }
 
     #[test]

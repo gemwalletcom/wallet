@@ -3,7 +3,7 @@ use crate::{
     tx_builder::{Argument, TransactionBuilder, move_call},
 };
 
-const MODULE_COIN: &str = "coin";
+pub(crate) const MODULE_COIN: &str = "coin";
 const MODULE_BALANCE: &str = "balance";
 const FUNCTION_INTO_BALANCE: &str = "into_balance";
 const FUNCTION_FROM_BALANCE: &str = "from_balance";

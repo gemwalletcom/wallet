@@ -2,36 +2,31 @@ use std::str::FromStr;
 
 use gem_encoding::encode_base64;
 use gem_solana::{
-    AccountMeta, BLOCKHASH_SET_AT_SIGNING, DEFAULT_SWAP_GAS_LIMIT, InstructionBuilder, Pubkey, TransactionBuilder,
+    AccountMeta, BLOCKHASH_SET_AT_SIGNING, DEFAULT_SWAP_GAS_LIMIT, Instruction, InstructionBuilder, Pubkey, TransactionBuilder,
     compute_budget::{set_compute_unit_limit, set_compute_unit_price},
 };
-use gem_tron::address::TronAddress;
-use num_bigint::BigUint;
 use primitives::{
     hex::{decode_hex, encode},
     swap::SwapQuoteDataType::Contract,
 };
 
-use super::broker::{SolanaVaultSwapResponse, TronVaultSwapResponse};
+use super::{broker::SolanaVaultSwapResponse, vault_swap::TronVaultCall};
 use crate::{SwapperError, SwapperQuoteData};
 
-pub(super) fn build_tron_quote_data(response: &TronVaultSwapResponse, to: TronAddress, value: BigUint) -> Result<SwapperQuoteData, SwapperError> {
-    let calldata = decode_hex(&response.calldata).map_err(|_| SwapperError::TransactionError("invalid Tron calldata".to_string()))?;
-
-    Ok(SwapperQuoteData {
-        to: to.to_string(),
+pub(super) fn build_tron_quote_data(note: &str, call: TronVaultCall) -> SwapperQuoteData {
+    SwapperQuoteData {
+        to: call.to.to_string(),
         data_type: Contract,
-        value,
-        data: encode(calldata),
-        memo: Some(response.note.clone()),
+        value: call.value,
+        data: encode(call.calldata),
+        memo: Some(note.to_string()),
         approval: None,
         gas_limit: None,
         permit2: None,
-    })
+    }
 }
 
-pub(super) fn build_solana_transaction(fee_payer: &str, response: &SolanaVaultSwapResponse) -> Result<String, SwapperError> {
-    let fee_payer = Pubkey::from_str(fee_payer).map_err(|_| SwapperError::transaction_error("Invalid fee payer"))?;
+pub(super) fn solana_instruction(response: &SolanaVaultSwapResponse) -> Result<Instruction, SwapperError> {
     let program_id = Pubkey::from_str(&response.program_id).map_err(|_| SwapperError::transaction_error("Invalid program ID"))?;
     let data = decode_hex(&response.data).map_err(|_| SwapperError::transaction_error("Invalid data"))?;
     let accounts = response
@@ -45,7 +40,11 @@ pub(super) fn build_solana_transaction(fee_payer: &str, response: &SolanaVaultSw
             })
         })
         .collect::<Result<_, SwapperError>>()?;
-    let instruction = InstructionBuilder::new(program_id).accounts(accounts).data(data).build();
+    Ok(InstructionBuilder::new(program_id).accounts(accounts).data(data).build())
+}
+
+pub(super) fn build_solana_transaction(fee_payer: &str, instruction: Instruction) -> Result<String, SwapperError> {
+    let fee_payer = Pubkey::from_str(fee_payer).map_err(|_| SwapperError::transaction_error("Invalid fee payer"))?;
     let mut transaction_builder = TransactionBuilder::new(fee_payer, BLOCKHASH_SET_AT_SIGNING);
     transaction_builder.add_instructions(vec![set_compute_unit_price(0), set_compute_unit_limit(DEFAULT_SWAP_GAS_LIMIT), instruction]);
 
@@ -58,25 +57,25 @@ pub(super) fn build_solana_transaction(fee_payer: &str, response: &SolanaVaultSw
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::chainflip::broker::{SolanaVaultSwapResponse, TronVaultSwapResponse};
-    use crate::chainflip::testkit::TRON_NOTE;
+    use crate::{
+        binding_check::solana::{StepLimits, verify_solana},
+        chainflip::{broker::SolanaVaultSwapResponse, provider::SOLANA_VAULT, testkit::TRON_NOTE},
+    };
     use gem_jsonrpc::types::JsonRpcResponse;
     use gem_solana::decode_transaction;
+    use gem_tron::address::TronAddress;
     use num_bigint::BigUint;
 
     #[test]
     fn test_build_tron_quote_data_maps_trc20_contract_call_fields() {
         let data = build_tron_quote_data(
-            &TronVaultSwapResponse {
-                calldata: "0xa9059cbb".to_string(),
+            TRON_NOTE,
+            TronVaultCall {
+                to: TronAddress::parse("TXYZopYRdj2D9XRtbG411XZZ3kM5VkAeBf").unwrap(),
                 value: BigUint::ZERO,
-                source_token_address: Some("0xeca9bc828a3005b9a3b909f2cc5c2a54794de05f".to_string()),
-                ..TronVaultSwapResponse::mock()
+                calldata: vec![0xa9, 0x05, 0x9c, 0xbb],
             },
-            TronAddress::parse("TXYZopYRdj2D9XRtbG411XZZ3kM5VkAeBf").unwrap(),
-            BigUint::ZERO,
-        )
-        .unwrap();
+        );
 
         assert_eq!(data.data_type, Contract);
         assert_eq!(data.to, "TXYZopYRdj2D9XRtbG411XZZ3kM5VkAeBf");
@@ -87,21 +86,18 @@ mod tests {
 
     #[test]
     fn test_build_tron_quote_data_maps_native_contract_transfer_fields() {
-        for calldata in ["", "0x"] {
-            let data = build_tron_quote_data(
-                &TronVaultSwapResponse {
-                    calldata: calldata.to_string(),
-                    ..TronVaultSwapResponse::mock()
-                },
-                TronAddress::parse("TDMakP1fbWc7XXoSWZpujpjRAuePPEn4oi").unwrap(),
-                BigUint::from(50_000_000u64),
-            )
-            .unwrap();
+        let data = build_tron_quote_data(
+            TRON_NOTE,
+            TronVaultCall {
+                to: TronAddress::parse("TDMakP1fbWc7XXoSWZpujpjRAuePPEn4oi").unwrap(),
+                value: BigUint::from(50_000_000u64),
+                calldata: vec![],
+            },
+        );
 
-            assert_eq!(data.to, "TDMakP1fbWc7XXoSWZpujpjRAuePPEn4oi");
-            assert_eq!(data.value, BigUint::from(50000000u64));
-            assert_eq!(data.data, "");
-        }
+        assert_eq!(data.to, "TDMakP1fbWc7XXoSWZpujpjRAuePPEn4oi");
+        assert_eq!(data.value, BigUint::from(50000000u64));
+        assert_eq!(data.data, "");
     }
 
     #[test]
@@ -109,8 +105,8 @@ mod tests {
         let wallet_address = "A21o4asMbFHYadqXdLusT9Bvx9xaC5YV9gcaidjqtdXC";
         let response: JsonRpcResponse<SolanaVaultSwapResponse> = serde_json::from_str(include_str!("./test/chainflip_sol_arb_usdc_quote_data.json"))?;
 
-        let tx_b64 = build_solana_transaction(wallet_address, &response.result)?;
-        crate::contract_check::verify_solana_programs(&tx_b64, &["J88B7gmadHzTNGiy54c9Ms8BsEXNdB2fntFyhKpk3qoT"])?;
+        let tx_b64 = build_solana_transaction(wallet_address, solana_instruction(&response.result)?)?;
+        verify_solana(&tx_b64, wallet_address, &[SOLANA_VAULT], &StepLimits::default())?;
 
         assert_eq!(
             tx_b64,
